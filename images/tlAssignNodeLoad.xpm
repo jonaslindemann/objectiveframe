@@ -1,0 +1,30 @@
+/* XPM */
+static char *tlAssignNodeLoad[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18        5            1",
+/* colors */
+"` c #000081",
+". c #810000",
+"# c #aa3000",
+"a c #c20000",
+"b c none",
+/* pixels */
+"bbbbbbbbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"bbba.bbbb`bbbb....",
+"bbba.bbbb``bbaaaa.",
+"bbba.b``````baaaa.",
+"bbba.bbbb``bbaaaa.",
+"bbba.bbbb`bbbaaaab",
+"bbba.bbbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"#a......bbbbbbbbbb",
+"baa....bbbbbbbbbbb",
+"bbaa..bbbbbbbbbbbb",
+"bbba.bbbbbbbbbbbbb",
+"bbbbbbbbbbbbbbbbbb"
+};

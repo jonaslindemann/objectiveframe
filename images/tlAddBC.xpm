@@ -1,0 +1,30 @@
+/* XPM */
+static char *tlAddBC[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18        5            1",
+/* colors */
+"` c #000081",
+". c #008100",
+"# c #00ff00",
+"a c none",
+"b c #ffffff",
+/* pixels */
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaa``aaa",
+"aaaaaaaaaaaaa``aaa",
+"aaaaaaaaaaa``````a",
+"aaaaaaaaaaa``````a",
+"aaaaaaaaaaaaa``aaa",
+"aaaaaaaaabaab``aaa",
+"aaaaaaaab#ab#aaaaa",
+"aaaaaaab##b##aaaaa",
+"aaaaaaaa..a..aaaaa",
+"aaaaaaaaa.aa.aaaaa",
+"aaaabaaaaaaaaaaaaa",
+"aaab#.aaaaaaaaaaaa",
+"aab##..aaaaaaaaaaa",
+"aaaabaaaaaaaaaaaaa",
+"aaab#.aaaaaaaaaaaa",
+"aab##..aaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa"
+};

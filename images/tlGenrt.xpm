@@ -1,0 +1,44 @@
+/* XPM */
+static char *tlGenrt[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18       16            1",
+/* colors */
+"` c #000000",
+". c #800000",
+"# c #008000",
+"a c None",
+"b c #000080",
+"c c #800080",
+"d c #008080",
+"e c #c0c0c0",
+"f c #808080",
+"g c #ff0000",
+"h c #00ff00",
+"i c #ffff00",
+"j c #0000ff",
+"k c #ff00ff",
+"l c #00ffff",
+"m c #ffffff",
+/* pixels */
+"aaaaaaaaaaaaaaaaaa",
+"a`fe```ff`aaaaaaaa",
+"a`e`fef`f```aaaaaa",
+"afe`e`f`fff`aaaaaa",
+"a`e`fff`f```aaaa`a",
+"a`ff```ff`aaf`fa`a",
+"a``fffff``fa`f```a",
+"af```f```f`af``fea",
+"a`fa`f`af`faa`fe`a",
+"aaaa```aaaa```e`fa",
+"a``aaaaaaaa`ffe`ea",
+"af`af`faaaa```e`fa",
+"af```f`aaaaaa`ff`a",
+"aeef``faaaaaf``ffa",
+"a``ff`aaaaaa`f```a",
+"aef`f```aaaaf`fa`a",
+"aaf`fff`aaaaaaaa`a",
+"aaaaaaaaaaaaaaaaaa"
+};
+aaaaaa`a",
+"aaaaaaaaaaaaaaaaaa"
+};

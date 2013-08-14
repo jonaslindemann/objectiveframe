@@ -1,0 +1,732 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#define MR_APPLY 2} {public local
+} 
+
+decl {\#include <FemBeamMaterial.h>} {public local
+} 
+
+decl {\#include "FemRectSection.h"} {private local
+} 
+
+decl {\#include "FemLSection.h"} {private local
+} 
+
+decl {\#include "FemISection.h"} {private local
+} 
+
+decl {\#include "FemTSection.h"} {private local
+} 
+
+decl {\#include "FemUSection.h"} {private local
+} 
+
+decl {\#include "FemRHSSection.h"} {private local
+} 
+
+decl {\#include "FemSolidPipeSection.h"} {private local
+} 
+
+decl {\#include "FemPipeSection.h"} {private local
+} 
+
+decl {\#include <FL/fl_show_colormap.H>} {private local
+} 
+
+Function {cb_update(void* p)} {open
+} {
+  code {CMaterialDlg* dlg = (CMaterialDlg*) p;
+dlg->updateData();
+Fl::repeat_timeout(0.3, cb_update, p);} {}
+} 
+
+class CMaterialDlg {open
+} {
+  decl {int m_sectionType;} {private local
+  }
+  decl {int m_modalResult} {private local
+  }
+  decl {CFemBeamMaterial* m_material} {private local
+  }
+  decl {Fl_Widget* m_workspace} {private local
+  }
+  decl {Fl_Color m_colorIndex} {private local
+  }
+  Function {CMaterialDlg()} {open
+  } {
+    Fl_Window wndMaterial {
+      label {Beam properties} open
+      xywh {519 238 433 494} type Double modal visible
+    } {
+      Fl_Button btnOK {
+        label Ok
+        callback {this->update();
+this->updateData();
+m_modalResult = MR_OK;
+hide();}
+        xywh {232 463 60 25} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Button btnClose {
+        label Cancel
+        callback {m_modalResult = MR_CANCEL;
+hide();}
+        xywh {300 463 61 25} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Button btnApply {
+        label Refresh
+        callback {this->update();
+this->updateData();
+m_modalResult = MR_APPLY;}
+        xywh {368 463 61 25} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Tabs tbMaterial {
+        xywh {5 4 424 454} box UP_BOX labelsize 12
+      } {
+        Fl_Group grpGeneral {
+          label General
+          xywh {8 30 421 426} labelsize 12 hide
+        } {
+          Fl_Group grpMaterialConst {
+            label {Material constants} open
+            xywh {81 163 274 75} box DOWN_FRAME labelsize 12 align 5
+          } {
+            Fl_Value_Input edtE {
+              label {Young's modulus}
+              xywh {217 174 127 24} labelsize 12 textsize 12
+            }
+            Fl_Value_Input edtG {
+              label {Shear modulus}
+              xywh {217 204 127 24} labelsize 12 textsize 12
+            }
+          }
+          Fl_Group grpSectionConst {
+            label {Crossection constants} open
+            xywh {80 258 275 134} box DOWN_FRAME labelsize 12 align 5
+          } {
+            Fl_Value_Input edtA {
+              label Area
+              xywh {217 271 126 24} labelsize 12 textsize 12
+            }
+            Fl_Value_Input edtIy {
+              label {Moment of inertia (y)}
+              xywh {217 299 125 24} labelsize 12 textsize 12
+            }
+            Fl_Value_Input edtIz {
+              label {Moment of inertia (z)}
+              xywh {217 327 125 24} labelsize 12 textsize 12
+            }
+            Fl_Value_Input edtKv {
+              label {Saint-Venant const.}
+              xywh {217 355 125 24} labelsize 12 textsize 12
+            }
+          }
+          Fl_Group grpVisual {
+            label Visual open
+            xywh {82 51 272 88} box DOWN_FRAME labelsize 12 align 5
+          } {
+            Fl_Input edtName {
+              label Name
+              xywh {96 75 246 24} labelsize 12 align 5 textsize 12
+            }
+            Fl_Box boxColor {
+              label Color
+              xywh {96 103 214 24} box DOWN_BOX color 93 labelsize 12
+            }
+            Fl_Button btnSetColor {
+              label {...}
+              callback {if (m_material!=NULL)
+{
+	m_colorIndex = boxColor->color();
+	m_colorIndex = fl_show_colormap(m_colorIndex);
+	boxColor->color(m_colorIndex);
+	wndMaterial->redraw();
+}}
+              xywh {315 103 26 24} down_box PLASTIC_DOWN_BOX labelsize 12
+            }
+          }
+        }
+        Fl_Group grpSection {
+          label Section
+          xywh {10 28 419 430} labelsize 12
+        } {
+          Fl_Group grpRepresentation {
+            label {Represent crossection as} open
+            xywh {14 47 408 403} box ENGRAVED_BOX labelsize 12 align 5
+          } {
+            Fl_Button btnRectangle {
+              callback {this->callBack(0);
+this->updateData();}
+              image {../../images/section1.xpm} xywh {24 59 96 96} down_box DOWN_BOX
+              code0 {btnRectangle->type(FL_RADIO_BUTTON);}
+            }
+            Fl_Button btnISection {
+              callback {this->callBack(1);
+this->updateData();}
+              image {../../images/section2.xpm} xywh {218 59 96 96} down_box DOWN_BOX
+              code0 {btnISection->type(FL_RADIO_BUTTON);}
+            }
+            Fl_Button btnTSection {
+              callback {this->callBack(3);
+this->updateData();}
+              image {../../images/section4.xpm} xywh {78 156 92 96} down_box DOWN_BOX
+              code0 {btnTSection->type(FL_RADIO_BUTTON);}
+            }
+            Fl_Value_Input edtHeight {
+              label {Section height}
+              callback {this->updateData();}
+              xywh {130 268 72 24} labelsize 12 textsize 12
+            }
+            Fl_Value_Input edtWidth {
+              label {Section width}
+              callback {this->updateData();}
+              xywh {130 296 72 24} labelsize 12 textsize 12
+            }
+            Fl_Value_Input edtUFT {
+              label {Upper flange thickness}
+              callback {this->updateData();}
+              xywh {339 268 71 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtLFT {
+              label {Lower flange thickness}
+              callback {this->updateData();}
+              xywh {339 295 71 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtUFW {
+              label {Upper flange width}
+              callback {this->updateData();}
+              xywh {130 324 72 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtLFW {
+              label {Lower flange width}
+              callback {this->updateData();}
+              xywh {130 352 72 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtWT {
+              label {Waist thickness}
+              callback {this->updateData();}
+              xywh {130 380 72 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtULFW {
+              label {Upper left flange width}
+              callback {this->updateData();}
+              xywh {339 323 71 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtLLFW {
+              label {Lower left flange width}
+              callback {this->updateData();}
+              xywh {339 351 71 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Button btnUSection {
+              callback {this->callBack(4);
+this->updateData();}
+              image {../../images/section5.xpm} xywh {314 59 96 96} down_box DOWN_BOX
+              code0 {btnUSection->type(FL_RADIO_BUTTON);}
+            }
+            Fl_Button btnRHS {
+              callback {this->callBack(5);
+this->updateData();}
+              image {../../images/section6.xpm} xywh {121 59 97 96} down_box DOWN_BOX
+              code0 {btnRHS->type(FL_RADIO_BUTTON);}
+            }
+            Fl_Value_Input edtOuterRadius {
+              label {Outer radius}
+              callback {this->updateData();}
+              xywh {339 379 71 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Value_Input edtInnerRadius {
+              label {Inner radius}
+              callback {this->updateData();}
+              xywh {339 407 71 24} labelsize 12 textsize 12 deactivate
+            }
+            Fl_Button btnSolidPipe {
+              callback {this->callBack(6);
+this->updateData();}
+              image {../../images/section7.xpm} xywh {171 156 97 96} down_box DOWN_BOX
+              code0 {btnSolidPipe->type(FL_RADIO_BUTTON);}
+            }
+            Fl_Button btnPipe {
+              callback {this->callBack(7);
+this->updateData();}
+              image {../../images/section8.xpm} xywh {270 156 92 96} down_box DOWN_BOX
+              code0 {btnPipe->type(FL_RADIO_BUTTON);}
+            }
+          }
+        }
+      }
+    }
+    code {m_sectionType = 0;} {}
+    code {edtHeight->value(0.0);
+	edtWidth->value(0.0);
+	edtUFT->value(0.0);
+	edtLFT->value(0.0);
+	edtUFW->value(0.0);
+	edtLFW->value(0.0);
+	edtWT->value(0.0);
+	edtULFW->value(0.0);
+	edtLLFW->value(0.0);
+	edtOuterRadius->value(0.0);
+	edtInnerRadius->value(0.0);} {}
+  }
+  Function {show()} {} {
+    code {Fl::add_timeout(0.3, cb_update, (void*)this);
+wndMaterial->show();
+while (wndMaterial->visible()) Fl::wait();} {}
+  }
+  Function {setMaterial(CFemBeamMaterial* material)} {open
+  } {
+    code {m_material = material;
+if (m_material==NULL)
+{
+	btnApply->deactivate();
+	tbMaterial->deactivate();
+}
+else
+{
+	std::string materialName;
+	double E, A, G, Iy, Iz, Kv;
+	double sectWidth, sectHeight, sectUFW, sectLFW;
+	double sectWT, sectUFT, sectLFT, sectULFW;
+	double sectLLFW, sectOuterRadius, sectInnerRadius;
+	int sectRepr;
+	materialName = m_material->getName();
+	m_material->getProperties(E, G, A, Iy, Iz, Kv);
+	CFemSection* tempSection;
+	tempSection = m_material->getSection();
+	if (tempSection == NULL)
+	{
+		sectRepr = 0;
+		tempSection = new CFemRectSection(0.10, 0.05);
+		m_material->setSection(tempSection);
+	}
+	this->getSectionProps(sectWidth, sectHeight, sectUFW, sectLFW,
+						      sectWT, sectUFT, sectLFT, sectULFW, 
+							  sectLLFW, sectOuterRadius, sectInnerRadius);
+
+	m_material->getSection()->setAutoCalc(true);
+
+	edtA->deactivate();
+	edtIy->deactivate();
+	edtIz->deactivate();
+	edtKv->deactivate();
+
+	btnApply->activate();
+	tbMaterial->activate();
+	edtName->value(materialName.c_str());
+	edtE->value(E);
+	edtA->value(A);
+	edtG->value(G);
+	edtIy->value(Iy);
+	edtIz->value(Iz);
+	edtKv->value(Kv);
+	edtHeight->value(sectHeight);
+	if (!tempSection->isClass("CFemUSection"))
+		edtWidth->value(sectWidth);
+	else
+		edtWidth->value(sectUFW);
+	edtUFW->value(sectUFW);
+	edtLFW->value(sectLFW);
+	edtWT->value(sectWT);
+	edtUFT->value(sectUFT);
+	edtLFT->value(sectLFT);
+	edtULFW->value(sectULFW);
+	edtLLFW->value(sectLLFW);
+	edtOuterRadius->value(sectOuterRadius);
+	edtInnerRadius->value(sectInnerRadius);
+	if (tempSection->isClass("CFemRectSection"))
+		this->callBack(0);
+	if (tempSection->isClass("CFemISection"))
+		this->callBack(1);
+	if (tempSection->isClass("CFemLSection"))
+		this->callBack(2);
+	if (tempSection->isClass("CFemTSection"))
+		this->callBack(3);
+	if (tempSection->isClass("CFemUSection"))
+		this->callBack(4);
+	if (tempSection->isClass("CFemRHSSection"))
+		this->callBack(5);
+	if (tempSection->isClass("CFemSolidPipeSection"))
+		this->callBack(6);
+	if (tempSection->isClass("CFemPipeSection"))
+		this->callBack(7);
+	boxColor->color((Fl_Color) m_material->getColor());
+	updateData();
+}} {}
+  }
+  Function {getMaterial()} {open return_type {CFemBeamMaterial*}
+  } {
+    code {return m_material;} {selected
+    }
+  }
+  Function {setWorkspace(Fl_Widget* widget)} {} {
+    code {m_workspace = widget;} {}
+  }
+  Function {hide()} {} {
+    code {Fl::remove_timeout(cb_update, (void*)this);
+wndMaterial->hide();} {}
+  }
+  Function {getModalResult()} {return_type int
+  } {
+    code {return m_modalResult;} {}
+  }
+  Function {setSectionProps(double width, double height, double UFW, double LFW,
+									   double WT, double UFT, double LFT, double ULFW,
+									   double LLFW, double outerRadius, double innerRadius, int repr)} {} {
+    code {CFemSection* tempSection;
+	CFemRectSection* rectSection;
+	
+	tempSection = (m_material->getSection());
+
+	switch (repr) {
+	case 0:
+		if (tempSection->isClass("CFemRectSection"))
+		{
+			rectSection = (CFemRectSection*)tempSection;
+			rectSection->setSectionSize(width, height);
+		}
+		else
+		{
+			tempSection = new CFemRectSection(width, height);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 1:
+		if (tempSection->isClass("CFemISection"))
+		{
+			CFemISection* ISection;
+			ISection= (CFemISection*)tempSection;
+			ISection->setSectionSize(height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW);
+		}
+		else
+		{
+			tempSection = new CFemISection(height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 2:
+		if (tempSection->isClass("CFemLSection"))
+		{
+			CFemLSection* LSection;
+			LSection = (CFemLSection*)tempSection;
+			LSection->setSectionSize(width, height, WT, LFT);
+		}
+		else
+		{
+			tempSection = new CFemLSection(width, height, WT, LFT);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 3:
+		if (tempSection->isClass("CFemTSection"))
+		{
+			CFemTSection* TSection;
+			TSection = (CFemTSection*)tempSection;
+			TSection->setSectionSize(width, height, WT, UFT, ULFW);
+		}
+		else
+		{
+			tempSection = new CFemTSection(width, height, WT, UFT, ULFW);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 4:
+		if (tempSection->isClass("CFemUSection"))
+		{
+			CFemUSection* USection;
+			USection = (CFemUSection*)tempSection;
+			USection->setSectionSize(height, width, width, WT, UFT, LFT);
+		}
+		else
+		{
+			tempSection = new CFemUSection(height, width, width, WT, UFT, LFT);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 5:
+		if (tempSection->isClass("CFemRHSSection"))
+		{
+			CFemRHSSection* RHSSection;
+			RHSSection = (CFemRHSSection*)tempSection;
+			RHSSection->setSectionSize(height, width, WT);
+		}
+		else
+		{
+			tempSection = new CFemRHSSection(height, width, WT);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 6:
+		if (tempSection->isClass("CFemSolidPipeSection"))
+		{
+			CFemSolidPipeSection* SolidPipeSection;
+			SolidPipeSection = (CFemSolidPipeSection*)tempSection;
+			SolidPipeSection->setSectionSize(outerRadius);
+		}
+		else
+		{
+			tempSection = new CFemSolidPipeSection(outerRadius);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	case 7:
+		if (tempSection->isClass("CFemPipeSection"))
+		{
+			CFemPipeSection* PipeSection;
+			PipeSection = (CFemPipeSection*)tempSection;
+			PipeSection->setSectionSize(outerRadius, innerRadius);
+		}
+		else
+		{
+			tempSection = new CFemPipeSection(outerRadius, innerRadius);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	default:
+		if (tempSection->isClass("CFemRectSection"))
+		{
+			rectSection= (CFemRectSection*)tempSection;
+			rectSection->setSectionSize(width, height);
+		}
+		else
+		{
+			tempSection = new CFemRectSection(width, height);
+			m_material->setSection((CFemSection*)tempSection);
+		}
+		break;
+	}} {}
+  }
+  Function {getSectionProps(double &width, double &height, double &UFW, double &LFW,
+									   double &WT, double &UFT, double &LFT, double &ULFW,
+									   double &LLFW, double &outerRadius, double &innerRadius)} {} {
+    code {CFemSection* tempSection;
+	double* tempProps;
+
+	tempSection = (m_material->getSection());
+	tempSection->getAllProps(tempProps);
+
+	height = tempProps[0];
+	width = tempProps[1];
+	UFW = tempProps[2];
+	LFW = tempProps[3];
+	WT = tempProps[4];
+	UFT = tempProps[5];
+	LFT = tempProps[6];
+	ULFW = tempProps[7];
+	LLFW = tempProps[8];
+	outerRadius = tempProps[9];
+	innerRadius = tempProps[10];} {}
+  }
+  Function {callBack(int repr)} {} {
+    code {switch (repr) {
+	case 0:
+		btnRectangle->value(1);
+		edtHeight->activate();
+		edtWidth->activate();
+		edtUFT->deactivate();
+		edtLFT->deactivate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->deactivate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+		m_sectionType=0;
+		break;
+	case 1:
+		btnISection->value(1);
+		edtHeight->activate();
+		edtWidth->deactivate();
+		edtUFT->activate();
+		edtLFT->activate();
+		edtUFW->activate();
+		edtLFW->activate();
+		edtWT->activate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+		m_sectionType=1;
+		break;
+	case 2:
+/*
+		btnLSection->value(1);
+		edtHeight->activate();
+		edtWidth->activate();
+		edtUFT->deactivate();
+		edtLFT->activate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->activate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+*/
+		m_sectionType=2;
+		break;
+	case 3:
+		btnTSection->value(1);
+		edtHeight->activate();
+		edtWidth->activate();
+		edtUFT->activate();
+		edtLFT->deactivate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->activate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+		m_sectionType=3;
+		break;
+	case 4:
+		btnUSection->value(1);
+  		edtHeight->activate();
+		edtWidth->activate();
+		edtUFT->activate();
+		edtLFT->activate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->activate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+		m_sectionType=4;
+		break;
+	case 5:
+		btnRHS->value(1);
+		edtHeight->activate();
+		edtWidth->activate();
+		edtUFT->deactivate();
+		edtLFT->deactivate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->activate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+		m_sectionType=5;
+		break;
+	case 6:
+		btnSolidPipe->value(1);
+		edtHeight->deactivate();
+		edtWidth->deactivate();
+		edtUFT->deactivate();
+		edtLFT->deactivate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->deactivate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->activate();
+		edtInnerRadius->deactivate();
+		m_sectionType=6;
+		break;
+	case 7:
+		btnPipe->value(1);
+  		edtHeight->deactivate();
+		edtWidth->deactivate();
+		edtUFT->deactivate();
+		edtLFT->deactivate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->deactivate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->activate();
+		edtInnerRadius->activate();
+		m_sectionType=7;
+		break;
+	default:
+		btnRectangle->value(1);
+		edtHeight->activate();
+		edtWidth->activate();
+		edtUFT->deactivate();
+		edtLFT->deactivate();
+		edtUFW->deactivate();
+		edtLFW->deactivate();
+		edtWT->deactivate();
+		edtULFW->deactivate();
+		edtLLFW->deactivate();
+		edtOuterRadius->deactivate();
+		edtInnerRadius->deactivate();
+		m_sectionType=0;
+		break;
+	}} {}
+  }
+  Function {update()} {} {
+    code {if (m_material!=NULL)
+{
+	if (m_workspace!=NULL)
+	{
+		m_workspace->set_changed();
+		m_workspace->redraw();
+	}
+	uchar r, g, b;
+	Fl::get_color(boxColor->color(), r, g, b);
+	m_material->setProperties(
+		edtE->value(),
+		edtG->value(),
+		edtA->value(),
+		edtIy->value(),
+		edtIz->value(),
+		edtKv->value());
+
+	this->setSectionProps(
+		edtWidth->value(),
+		edtHeight->value(),
+		edtUFW->value(),
+		edtLFW->value(),
+		edtWT->value(),
+		edtUFT->value(),
+		edtLFT->value(),
+		edtULFW->value(),
+		edtLLFW->value(),
+		edtOuterRadius->value(),
+		edtInnerRadius->value(),
+		m_sectionType);
+
+	m_material->setColor((int) boxColor->color());
+	m_material->setName((char*)edtName->value());
+}} {}
+  }
+  Function {updateData()} {} {
+    code {this->setSectionProps(
+	edtWidth->value(),
+	edtHeight->value(),
+	edtUFW->value(),
+	edtLFW->value(),
+	edtWT->value(),
+	edtUFT->value(),
+	edtLFT->value(),
+	edtULFW->value(),
+	edtLLFW->value(),
+	edtOuterRadius->value(),
+	edtInnerRadius->value(),
+	m_sectionType);
+
+edtA->deactivate();
+edtIy->deactivate();
+edtIz->deactivate();
+edtKv->deactivate();
+double* tempData;
+m_material->getSection()->getAllData(tempData);
+m_material->getSection()->setAutoCalc(true);
+edtA->value(tempData[1]);
+edtIy->value(tempData[3]);
+edtIz->value(tempData[4]);
+edtKv->value(tempData[5]);} {}
+  }
+} 

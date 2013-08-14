@@ -1,0 +1,50 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0100 
+header_name {.h} 
+code_name {.cpp}
+decl {int x;} {} 
+
+Function {cbHide(void* w)} {open
+} {
+  code {Fl_Window* window = (Fl_Window*)w;
+window->hide();} {}
+} 
+
+class CSplashFrame {open
+} {
+  decl {bool m_timer} {}
+  Function {CSplashFrame()} {open
+  } {
+    Fl_Window wndSplash {open
+      xywh {444 111 402 302} noborder visible
+    } {
+      Fl_Box boxImage {selected
+        image {../../images/splash2.xpm} xywh {0 0 402 302}
+      }
+      Fl_Button btnClose {
+        label Close
+        callback {wndSplash->hide();}
+        xywh {339 269 55 25} box THIN_UP_FRAME down_box THIN_DOWN_FRAME labelsize 12 labelcolor 7
+      }
+    }
+  }
+  Function {show()} {open
+  } {
+    code {if (m_timer)
+	Fl::add_timeout(4.0,cbHide,(void*)wndSplash);
+
+wndSplash->show();} {}
+  }
+  Function {center()} {open
+  } {
+    code {wndSplash->position(Fl::w()/2-wndSplash->w()/2,Fl::h()/2-wndSplash->h()/2);} {}
+  }
+  Function {setTimer(bool flag)} {open
+  } {
+    code {m_timer = flag;} {}
+  }
+  Function {hide()} {open
+  } {
+    code {wndSplash->hide();} {}
+  }
+} 

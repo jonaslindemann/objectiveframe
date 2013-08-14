@@ -1,0 +1,213 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#ifdef WIN32} {public local
+} 
+
+decl {\#include "fl_message_win.H"} {public local
+} 
+
+decl {\#endif} {public local
+} 
+
+decl {\#include <FL/fl_message.H>} {public local
+} 
+
+decl {\#include <FemElementLoadSet.h>} {public local
+} 
+
+decl {\#include <FemBeamLoad.h>} {public local
+} 
+
+decl {\#include "IvfFemWidget.h"} {private local
+} 
+
+decl {\#include "ElementLoadDlg.h"} {private local
+} 
+
+class CElementLoadsDlg {open
+} {
+  decl {CFemElementLoadSet* m_loadSet} {private local
+  }
+  decl {void* m_femWidget} {private local
+  }
+  decl {CFemBeamLoad* m_currentLoad} {private local
+  }
+  Function {CElementLoadsDlg()} {open
+  } {
+    Fl_Window wndElementLoads {
+      label {Element loads} open
+      xywh {355 54 181 211} type Double non_modal visible
+    } {
+      Fl_Browser lbLoadSet {
+        label Loads
+        callback {if (m_loadSet!=NULL)
+{
+	if (lbLoadSet->value()>0)
+	{
+		m_currentLoad = (CFemBeamLoad*)
+			m_loadSet->getLoad(lbLoadSet->value()-1);
+	}
+	else m_currentLoad = NULL;
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->setCurrentBeamLoad(m_currentLoad);
+	}
+}}
+        xywh {4 17 144 189} type Hold box DOWN_BOX labelsize 12 align 5 textsize 12
+      }
+      Fl_Button btnAddLoad {
+        callback {if (m_loadSet!=NULL)
+{
+	std::string loadName;
+	const char* result = fl_input("Load name");
+	if (result!=NULL)
+	{
+		loadName = result;
+		if (loadName!="")
+		{
+			CFemBeamLoad* load = new CFemBeamLoad();
+			load->setName(loadName);
+			load->setLocalDirection(0.0, 1.0, 0.0);
+			m_loadSet->addLoad(load);
+			
+			if (m_femWidget!=NULL)
+			{
+				CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+				femWidget->addBeamLoad(load);
+			}
+			this->fillListBox();
+		}
+	}
+}}
+        image {../../images/tlAddNodeLoad.xpm} xywh {150 17 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnRemoveLoad {
+        callback {if (m_currentLoad!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->deleteBeamLoad(m_currentLoad);
+		this->fillListBox();
+	}
+}}
+        image {../../images/tlDelNodeLoad.xpm} xywh {150 48 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnEditLoad {
+        callback {if (this->getCurrentLoad()!=NULL)
+{
+	CElementLoadDlg* dlg = new CElementLoadDlg();
+	dlg->setLoad(this->getCurrentLoad());
+	dlg->setWorkspace((Fl_Widget*)m_femWidget);
+	dlg->show();
+	if (dlg->getModalResult()==MR_OK)
+	{
+		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	}
+	delete dlg;
+	this->fillListBox();
+}}
+        image {../../images/tlInspNodeLoad.xpm} xywh {150 145 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnAssignLoad {
+        callback {if (this->getCurrentLoad()!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->assignBeamLoadSelected();
+	}
+}}
+        image {../../images/tlAssignNodeLoad.xpm} xywh {150 81 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnClearElements {
+        callback {if (this->getCurrentLoad()!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->removeBeamLoadsFromSelected();
+	}
+}} selected
+        image {../../images/tlClearNodes.xpm} xywh {150 113 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+    }
+    code {m_loadSet = NULL;
+m_currentLoad = NULL;
+m_femWidget = NULL;} {}
+  }
+  Function {show()} {} {
+    code {wndElementLoads->show();
+this->setLoadSet(m_loadSet);
+this->fillListBox();} {}
+  }
+  Function {setLoadSet(CFemElementLoadSet* loadSet)} {} {
+    code {m_loadSet = loadSet;
+if (m_loadSet==NULL)
+{
+	lbLoadSet->clear();
+	lbLoadSet->deactivate();
+	btnAddLoad->deactivate();
+	btnRemoveLoad->deactivate();
+	btnEditLoad->deactivate();
+}
+else
+{
+	lbLoadSet->activate();
+	btnAddLoad->activate();
+	btnRemoveLoad->activate();
+	btnEditLoad->activate();
+	this->fillListBox();
+	wndElementLoads->redraw();
+}} {}
+  }
+  Function {getLoadSet()} {return_type {CFemElementLoadSet*}
+  } {
+    code {return m_loadSet;} {}
+  }
+  Function {hide()} {} {
+    code {wndElementLoads->hide();} {}
+  }
+  Function {fillListBox()} {private
+  } {
+    code {if (m_loadSet!=NULL)
+{
+	std::string loadName;
+	lbLoadSet->clear();
+	for (int i=0; i<m_loadSet->getSize(); i++)
+	{
+		CFemBeamLoad* beamLoad = 
+			(CFemBeamLoad*) m_loadSet->getLoad(i);
+		loadName = beamLoad->getName();
+		lbLoadSet->add(loadName.c_str(), beamLoad);
+	}
+	m_currentLoad = NULL;
+}} {}
+  }
+  Function {getCurrentLoad()} {return_type {CFemBeamLoad*}
+  } {
+    code {return m_currentLoad;} {}
+  }
+  Function {setFemWidget(void* femWidget)} {} {
+    code {m_femWidget = femWidget;} {}
+  }
+} 

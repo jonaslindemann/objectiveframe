@@ -1,0 +1,39 @@
+/* XPM */
+static char *Time[] = {
+/* width height num_colors chars_per_pixel */
+"    16    16       16            1",
+/* colors */
+"` c #000000",
+". c #800000",
+"# c #008000",
+"a c None",
+"b c #000080",
+"c c #800080",
+"d c #008080",
+"e c #c0c0c0",
+"f c #808080",
+"g c #ff0000",
+"h c #00ff00",
+"i c #ffff00",
+"j c #0000ff",
+"k c #ff00ff",
+"l c #00ffff",
+"m c #ffffff",
+/* pixels */
+"eeeee`````eeeeee",
+"eee``mimim``eeee",
+"ee`imim`mimi`eee",
+"e`imimimimimi`ee",
+"e`mimimimimim`ee",
+"`mimimimimimim`e",
+"`imimimimimimi`e",
+"`mimimi``````m`e",
+"`imimi`imimimi`e",
+"`mimi`imimimim`e",
+"e`mi`imimimim`ee",
+"e`imimimimimi`ee",
+"ee`imimimimi`eee",
+"eee``mimim``eeee",
+"eeeee`````eeeeee",
+"eeeeeeeeeeeeeeee"
+};

@@ -1,0 +1,29 @@
+/* XPM */
+static char *tlAddNodeLoad[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18        4            1",
+/* colors */
+"` c #000081",
+". c #810000",
+"# c #ff0000",
+"a c none",
+/* pixels */
+"aaaaaaaaaaaaaaaaaa",
+"aaaaa#.aaaaaa``aaa",
+"aaaaa#.aaaaaa``aaa",
+"aaaaa#.aaaa``````a",
+"aaaaa#.aaaa``````a",
+"aaaaa#.aaaaaa``aaa",
+"aaaaa#.aaaaaa``aaa",
+"aaaaa#.aaaaaaaaaaa",
+"aaaaa#.aaaaaaaaaaa",
+"aaaaa#.aaaaaaaaaaa",
+"aaaaa#.aaaaaaaaaaa",
+"aaaaa#.aaaaaaaaaaa",
+"aaaaa#.aaaaaaaaaaa",
+"aa##......aaaaaaaa",
+"aaa##....aaaaaaaaa",
+"aaaa##..aaaaaaaaaa",
+"aaaaa#.aaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa"
+};

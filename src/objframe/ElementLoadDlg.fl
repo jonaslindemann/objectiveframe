@@ -1,0 +1,168 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#include <FemBeamLoad.h>} {public local
+} 
+
+decl {\#include <FL/fl_show_colormap.H>} {private local
+} 
+
+class CElementLoadDlg {open
+} {
+  decl {CFemBeamLoad* m_load} {private local
+  }
+  decl {Fl_Widget* m_workspace} {private local
+  }
+  decl {int m_modalResult} {private local
+  }
+  decl {Fl_Color m_colorIndex} {private local
+  }
+  Function {CElementLoadDlg()} {open
+  } {
+    Fl_Window wndElementLoad {
+      label {Beam load} open
+      xywh {523 205 258 218} type Double modal visible
+    } {
+      Fl_Button btnApply {
+        label Ok
+        callback {if (m_load!=NULL)
+{
+	if (m_workspace!=NULL)
+	{
+		m_workspace->set_changed();
+		m_workspace->redraw();
+	}
+	uchar r, g, b;
+	Fl::get_color(boxColor->color(), r, g, b);
+	m_load->setValue(edtValue->value());
+	if (rbXDirection->value()>0)
+		m_load->setLocalDirection(1.0, 0.0, 0.0);
+	else if (rbYDirection->value()>0)
+		m_load->setLocalDirection(0.0, 1.0, 0.0);
+	else if (rbZDirection->value()>0)
+		m_load->setLocalDirection(0.0, 0.0, 1.0);
+	m_load->setColor((int) boxColor->color());
+}
+m_modalResult = MR_OK;
+wndElementLoad->hide();}
+        xywh {119 188 67 25} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Button btnClose {
+        label Cancel
+        callback {m_modalResult = MR_CANCEL;
+wndElementLoad->hide();}
+        xywh {191 188 61 25} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Tabs tbElementLoad {open
+        xywh {4 4 248 179} box UP_BOX labelsize 12
+      } {
+        Fl_Group grpGeneral {
+          label General
+          xywh {11 28 241 155} labelsize 12
+        } {
+          Fl_Input edtName {
+            label Name
+            xywh {12 47 232 24} labelsize 12 align 5 textsize 12
+          }
+          Fl_Box boxColor {
+            label Color
+            xywh {12 75 198 24} box DOWN_BOX color 93 labelsize 12
+          }
+          Fl_Button btnSetColor {
+            label {...}
+            callback {if (m_load!=NULL)
+{
+	m_colorIndex = boxColor->color();
+	m_colorIndex = fl_show_colormap(m_colorIndex);
+	boxColor->color(m_colorIndex);
+	wndElementLoad->redraw();
+}}
+            xywh {215 75 28 24} down_box PLASTIC_DOWN_BOX labelsize 12
+          }
+        }
+        Fl_Group grpData {
+          label Data open
+          xywh {16 28 236 155} labelsize 12 hide
+        } {
+          Fl_Value_Input edtValue {
+            label {Load value}
+            xywh {69 50 116 24} labelsize 12 align 5 textsize 12
+          }
+          Fl_Group grpLoadDirection {
+            label {Load direction} open
+            xywh {69 96 116 76} box DOWN_FRAME labelsize 12 align 5
+          } {
+            Fl_Round_Button rbXDirection {
+              label {Local X}
+              xywh {77 104 68 24} type Radio down_box DOWN_BOX labelsize 12
+            }
+            Fl_Round_Button rbYDirection {
+              label {Local Y}
+              xywh {77 124 72 24} type Radio down_box DOWN_BOX labelsize 12
+            }
+            Fl_Round_Button rbZDirection {
+              label {Local Z}
+              xywh {77 144 72 24} type Radio down_box DOWN_BOX labelsize 12
+            }
+          }
+        }
+      }
+    }
+    code {m_load = NULL;} {}
+  }
+  Function {show()} {selected
+  } {
+    code {this->setLoad(m_load);
+wndElementLoad->show();
+while (wndElementLoad->visible()) Fl::wait();} {}
+  }
+  Function {setLoad(CFemBeamLoad* load)} {} {
+    code {m_load = load;
+if (m_load==NULL)
+{
+	btnApply->deactivate();
+	tbElementLoad->deactivate();
+}
+else
+{
+	std::string loadName;
+	double value;
+	double ex, ey, ez;
+	loadName = m_load->getName();
+	m_load->getLocalDirection(ex, ey, ez);
+	value = m_load->getValue();
+	btnApply->activate();
+	tbElementLoad->activate();
+	edtName->value(loadName.c_str());
+	edtValue->value(value);
+	if (ex>0)
+		rbXDirection->value(1);
+	else if (ey>0)
+		rbYDirection->value(1);
+	else if (ez>0)
+		rbZDirection->value(1);
+	boxColor->color((Fl_Color) m_load->getColor());
+}} {}
+  }
+  Function {getLoad()} {return_type {CFemBeamLoad*}
+  } {
+    code {return m_load;} {}
+  }
+  Function {setWorkspace(Fl_Widget* widget)} {} {
+    code {m_workspace = widget;} {}
+  }
+  Function {hide()} {} {
+    code {wndElementLoad->hide();} {}
+  }
+  Function {getModalResult()} {return_type int
+  } {
+    code {return m_modalResult;} {}
+  }
+} 

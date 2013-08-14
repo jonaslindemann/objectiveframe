@@ -1,0 +1,138 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0100 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public
+} 
+
+decl {\#define MR_CANCEL 1} {public
+} 
+
+decl {\#include <IvfFemNode.h>} {public
+} 
+
+class CNodePropDlg {open
+} {
+  decl {CIvfFemNode* m_node} {}
+  decl {Fl_Widget* m_workspace} {}
+  Function {CNodePropDlg()} {open
+  } {
+    Fl_Window wndNodeProp {
+      label {Node properties} open
+      xywh {414 285 178 261} non_modal visible
+    } {
+      Fl_Button btnApply {
+        label Apply
+        callback {if (m_node!=NULL)
+{
+	m_node->setPosition(
+		edtXCoord->value(),
+		edtYCoord->value(),
+		edtZCoord->value());
+	if (m_workspace!=NULL)
+	{
+		m_workspace->set_changed();
+		m_workspace->redraw();
+	}
+}} selected
+        xywh {105 231 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+      }
+      Fl_Group grpWorkspace {
+        label Coordinates open
+        xywh {4 19 169 96} box PLASTIC_DOWN_FRAME labelsize 12 align 5
+      } {
+        Fl_Value_Input edtXCoord {
+          label {X-Coordinate}
+          xywh {90 26 74 24} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+        Fl_Value_Input edtZCoord {
+          label {Z-Coordinate}
+          xywh {90 82 74 25} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+        }
+        Fl_Value_Input edtYCoord {
+          label {Y-Coordinate}
+          xywh {90 54 74 25} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+        }
+      }
+      Fl_Button btnClose {
+        label Close
+        callback {wndNodeProp->hide();} selected
+        xywh {38 231 61 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+      }
+      Fl_Group grpDisplacements {
+        label {Computed displacements} open
+        xywh {5 132 168 93} box PLASTIC_DOWN_FRAME labelsize 12 align 5
+      } {
+        Fl_Value_Input edtXDispl {
+          label {X-Displ.}
+          xywh {87 138 78 25} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+        Fl_Value_Input edtYDispl {
+          label {Y-Displ.}
+          xywh {87 166 78 25} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+        Fl_Value_Input edtZDispl {
+          label {Z-Displ.}
+          xywh {87 194 78 25} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+      }
+    }
+    code {m_node = NULL;} {}
+  }
+  Function {show()} {} {
+    code {this->setNode(m_node);
+wndNodeProp->show();} {}
+  }
+  Function {setNode(CIvfFemNode* node)} {open
+  } {
+    code {m_node = node;
+if (m_node==NULL)
+{
+	edtXCoord->deactivate();
+	edtYCoord->deactivate();
+	edtZCoord->deactivate();
+	edtXDispl->deactivate();
+	edtYDispl->deactivate();
+	edtZDispl->deactivate();
+	btnApply->deactivate();
+	edtXCoord->value(0);
+	edtYCoord->value(0);
+	edtZCoord->value(0);
+	edtXDispl->value(0);
+	edtYDispl->value(0);
+	edtZDispl->value(0);
+}
+else
+{
+	edtXCoord->activate();
+	edtYCoord->activate();
+	edtZCoord->activate();
+	edtXDispl->activate();
+	edtYDispl->activate();
+	edtZDispl->activate();
+	btnApply->activate();
+	double x, y, z;
+	double dx, dy, dz;
+	m_node->getPosition(x, y, z);
+	dx = m_node->getFemNode()->getValue(0);
+	dy = m_node->getFemNode()->getValue(1);
+	dz = m_node->getFemNode()->getValue(2);
+	edtXCoord->value(x);
+	edtYCoord->value(y);
+	edtZCoord->value(z);
+	edtXDispl->value(dx);
+	edtYDispl->value(dy);
+	edtZDispl->value(dz);
+}} {}
+  }
+  Function {getNode()} {return_type {CIvfFemNode*}
+  } {
+    code {return m_node;} {}
+  }
+  Function {setWorkspace(Fl_Widget* widget)} {} {
+    code {m_workspace = widget;} {}
+  }
+  Function {hide()} {} {
+    code {wndNodeProp->hide();} {}
+  }
+} 

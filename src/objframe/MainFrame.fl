@@ -1,0 +1,310 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cpp}
+decl {\#include "WorkspaceDlg.h"} {public local
+} 
+
+decl {\#include "NodePropDlg.h"} {private local
+} 
+
+decl {\#include "BeamPropDlg.h"} {private local
+} 
+
+decl {\#include "MaterialsDlg.h"} {private local
+} 
+
+decl {\#include "SplashFrame.h"} {public local
+} 
+
+Function {cb_wndMain(Fl_Widget* widget, void* p)} {open private
+} {
+  code {CMainFrame* mainFrame = (CMainFrame*)p;
+mainFrame->close();} {}
+} 
+
+class CMainFrame {open
+} {
+  decl {CNodePropDlg* m_dlgNodeProp} {public local
+  }
+  decl {CBeamPropDlg* m_dlgBeamProp} {private local
+  }
+  decl {CMaterialsDlg* m_dlgMaterials} {private local
+  }
+  decl {int m_argc} {private local
+  }
+  decl {char** m_argv} {private local
+  }
+  decl {CSplashFrame* m_splash} {private local
+  }
+  Function {CMainFrame()} {open
+  } {
+    Fl_Window wndMain {
+      label ObjectiveFrame
+      xywh {403 258 746 583} type Double resizable visible
+    } {
+      Fl_Menu_Bar mnuMain {open
+        xywh {0 0 746 25} box FLAT_BOX down_box FLAT_BOX selection_color 136 labelsize 12 textsize 12
+      } {
+        Submenu mnuFile {
+          label {&File} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuFileNew {
+            label {&New}
+            callback {CWorkspaceDlg* dlg = new CWorkspaceDlg();
+dlg->setWorkspaceSize(ivfWorkspace->getWorkspace());
+dlg->show();
+if (dlg->getModalResult()==MR_OK)
+{
+	ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	ivfWorkspace->newModel();
+}
+delete dlg;}
+            xywh {0 0 100 20} shortcut 0x4006e
+          }
+          MenuItem mnuFileOpen {
+            label {&Open...}
+            callback {ivfWorkspace->open();}
+            xywh {0 0 100 20} shortcut 0x4006f
+          }
+          MenuItem mnuFileSave {
+            label {&Save}
+            callback {ivfWorkspace->save();}
+            xywh {0 0 100 20} shortcut 0x40073
+          }
+          MenuItem mnuFileSaveAs {
+            label {Save &as...}
+            callback {ivfWorkspace->saveAs();}
+            xywh {0 0 100 20} divider
+          }
+          MenuItem mnuFileQuit {
+            label {&Quit}
+            callback {ivfWorkspace->hideAllDialogs();
+this->close();}
+            xywh {0 0 100 20} shortcut 0x40071
+          }
+        }
+        Submenu mnuEdit {
+          label {&Edit} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuEditSelectAllNodes {
+            label {Select all nodes}
+            callback {ivfWorkspace->selectAllNodes();}
+            xywh {0 0 100 20} shortcut 0x4006e
+          }
+          MenuItem mnuEditSelectAllElements {
+            label {Select all elements}
+            callback {ivfWorkspace->selectAllElements();}
+            xywh {0 0 100 20} shortcut 0x40065
+          }
+        }
+        Submenu mnuMode {
+          label {&Mode} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuModeModel {
+            label {&Model}
+            callback {ivfWorkspace->setRepresentation(FRAME_FEM);}
+            xywh {0 0 100 20}
+          }
+          MenuItem mnuModeGeometry {
+            label {&Geometry}
+            callback {ivfWorkspace->setRepresentation(FRAME_GEOMETRY);}
+            xywh {0 0 100 20}
+          }
+          MenuItem mnuModeResults {
+            label {&Results}
+            callback {ivfWorkspace->setRepresentation(FRAME_DISPLACEMENTS);}
+            xywh {0 0 100 20}
+          }
+          MenuItem mnuModeFeedback {
+            label {&Feedback}
+            callback {ivfWorkspace->setCustomMode(OF_FEEDBACK);}
+            xywh {0 0 100 20}
+          }
+        }
+        Submenu mnuTools {
+          label Tools open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuToolsStructure {
+            label {Create structure}
+            callback {ivfWorkspace->showStructureDlg();}
+            xywh {0 0 100 20}
+          }
+        }
+        Submenu mnuCalc {
+          label {&Calculation} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuCalcExecute {
+            label {&Execute}
+            callback {ivfWorkspace->executeCalc();}
+            xywh {0 0 100 20}
+          }
+        }
+        Submenu mnuResults {
+          label {&Results} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuResultN {
+            label {&Normal}
+            callback {ivfWorkspace->setResultType(IVF_BEAM_N);}
+            xywh {0 0 100 20} type Radio
+          }
+          MenuItem mnuResultT {
+            label {&Torsion}
+            callback {ivfWorkspace->setResultType(IVF_BEAM_T);}
+            xywh {0 0 100 20} type Radio
+          }
+          MenuItem mnuResultV {
+            label {&Shear}
+            callback {ivfWorkspace->setResultType(IVF_BEAM_V);}
+            xywh {0 0 100 20} type Radio
+          }
+          MenuItem mnuResultM {
+            label {&Moment}
+            callback {ivfWorkspace->setResultType(IVF_BEAM_M);}
+            xywh {0 0 100 20} type Radio
+          }
+          MenuItem mnuResultNavier {
+            label {N&avier formula}
+            callback {ivfWorkspace->setResultType(IVF_BEAM_NAVIER);}
+            xywh {0 0 100 20} type Radio
+          }
+          MenuItem mnuResultNoResults {
+            label {No results}
+            callback {ivfWorkspace->setResultType(IVF_BEAM_NO_RESULT);}
+            xywh {0 0 100 20} type Radio value 1
+          }
+        }
+        Submenu mnuOptions {
+          label {&Options} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuOptionsWorkspace {
+            label {&Workspace}
+            callback {CWorkspaceDlg* dlg = new CWorkspaceDlg();
+dlg->setWorkspaceSize(ivfWorkspace->getWorkspace());
+dlg->setNodeSize(ivfWorkspace->getRelNodeSize());
+dlg->setLineRadius(ivfWorkspace->getRelLineRadius());
+dlg->setLoadSize(ivfWorkspace->getRelLoadSize());
+dlg->show();
+if (dlg->getModalResult()==MR_OK)
+{
+	ivfWorkspace->setRelNodeSize(dlg->getNodeSize());
+	ivfWorkspace->setRelLineRadius(dlg->getLineRadius());
+	ivfWorkspace->setRelLoadSize(dlg->getLoadSize());
+	ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+}
+delete dlg;}
+            xywh {10 10 100 20}
+          }
+          MenuItem mnuOptionsScalefactor {
+            label Scalefactor
+            callback {ivfWorkspace->showScalefactorDlg();}
+            xywh {0 0 100 20}
+          }
+          MenuItem mnuOptionsFullscreen {
+            label Fullscreen
+            callback {\#ifdef WIN32
+DEVMODE dmScreenSettings;
+EnumDisplaySettings(
+	NULL,
+	ENUM_CURRENT_SETTINGS,
+	&dmScreenSettings
+);
+int width = dmScreenSettings.dmPelsWidth;
+int height = dmScreenSettings.dmPelsHeight;
+\#else
+int width = Fl::w();
+int height = Fl::h();
+\#endif
+wndMain->resize(0,0,width,height);
+wndMain->border(0);}
+            xywh {0 0 100 20} divider
+          }
+          MenuItem mnuOptionsLockScale {
+            label {&Lock scalefactor}
+            callback {if (mnuOptionsLockScale->value()>0)
+	ivfWorkspace->lockScaleFactor();
+else
+	ivfWorkspace->unlockScaleFactor();}
+            xywh {0 0 100 20} type Toggle
+          }
+        }
+        Submenu mnuHelp {
+          label {&Help} open
+          xywh {0 0 100 20}
+        } {
+          MenuItem mnuHelpAbout {
+            label {&About...}
+            callback {if (m_splash!=NULL)
+{
+	m_splash->hide();
+	delete m_splash;
+}
+m_splash = new CSplashFrame();
+m_splash->setTimer(false);
+m_splash->center();
+m_splash->show();}
+            xywh {0 0 100 20}
+          }
+        }
+      }
+      Fl_Box ivfWorkspace {
+        xywh {0 26 746 557} color 0 resizable
+        code0 {\#include "IvfFemWidget.h"}
+        class CIvfFemWidget
+      }
+    }
+    code {wndMain->callback(cb_wndMain, this);
+
+m_splash = NULL;} {}
+  }
+  Function {show()} {open
+  } {
+    code {\#ifdef WIN32
+extern HINSTANCE fl_display;
+//wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
+\#endif
+wndMain->size(Fl::w()-40, Fl::h()-40);
+wndMain->position(20,40);
+wndMain->show();
+ivfWorkspace->show();} {selected
+    }
+  }
+  Function {updateToggles()} {} {
+    code {} {}
+  }
+  Function {close()} {} {
+    code {ivfWorkspace->hideAllDialogs();
+wndMain->hide();} {}
+  }
+  Function {setArguments(int argc, char** argv)} {} {
+    code {m_argc = argc;
+m_argv = argv;
+ivfWorkspace->setArguments(m_argc, m_argv);} {}
+  }
+  Function {~CMainFrame()} {} {
+    code {if (m_splash!=NULL)
+	delete m_splash;} {}
+  }
+  Function {setProgramPath(const std::string& path)} {open
+  } {
+    code {ivfWorkspace->setProgramPath(path);} {}
+  }
+  Function {show_fullscreen(int x, int y, int width, int height)} {open
+  } {
+    code {\#ifdef WIN32
+//extern HINSTANCE fl_display;
+//wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
+\#endif
+wndMain->show();
+wndMain->resize(x,y,width,height);
+wndMain->border(0);
+ivfWorkspace->show();} {}
+  }
+} 

@@ -1,0 +1,165 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#include <IvfFemBeam.h>} {public local
+} 
+
+decl {\#include "MaterialDlg.h"} {private local
+} 
+
+decl {\#include "IvfFemWidget.h"} {private local
+} 
+
+class CBeamPropDlg {open
+} {
+  decl {CIvfFemBeam* m_beam} {private local
+  }
+  decl {void* m_femWidget} {private local
+  }
+  Function {CBeamPropDlg()} {open
+  } {
+    Fl_Window wndBeamProp {
+      label {Beam information} open
+      xywh {666 72 212 360} type Double non_modal visible
+    } {
+      Fl_Button btnClose {
+        label Close
+        callback {wndBeamProp->hide();}
+        xywh {72 330 61 25} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Group grpBeamRotation {open
+        xywh {4 4 204 93} box DOWN_FRAME
+      } {
+        Fl_Value_Slider sldBeamRotation {
+          label {Beam rotation}
+          callback {CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+femWidget->setRotationSelected(sldBeamRotation->value());}
+          xywh {12 24 188 24} type Horizontal labelsize 12 align 5 maximum 360 step 5
+        }
+        Fl_Button btnShowMaterialDlg {
+          label {Edit assigned beam property}
+          callback {if (this->getBeam()->getMaterial()!=NULL)
+{
+	CMaterialDlg* dlg = new CMaterialDlg();
+	dlg->setMaterial(this->getBeam()->getBeam()->getMaterial());
+	dlg->setWorkspace((Fl_Widget*)m_femWidget);
+	dlg->show();
+	if (dlg->getModalResult()==MR_OK)
+	{
+		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	}
+	delete dlg;
+	CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+	femWidget->setNeedRecalc(true);
+}} selected
+          xywh {12 61 188 27} down_box DOWN_BOX labelsize 12
+        }
+        Fl_Box boxDivider {
+          xywh {12 54 188 2} box ENGRAVED_BOX
+        }
+      }
+      Fl_Tabs tabResults {open
+        xywh {4 104 204 221} box UP_BOX
+      } {
+        Fl_Group grpSectionForces {
+          label {Section forces} open
+          xywh {8 127 199 196} labelsize 12 hide
+        } {
+          Fl_Browser lbSectionForces {
+            xywh {9 131 194 189} labelsize 12 textfont 4 textsize 10
+          }
+        }
+        Fl_Group grpDisplacements {
+          label Displacements open
+          xywh {6 128 200 194} labelsize 12
+        } {
+          Fl_Browser lbDisplacements {
+            xywh {9 131 194 189} textfont 4 textsize 10
+          }
+        }
+      }
+    }
+    code {m_beam = NULL;
+m_femWidget = NULL;} {}
+  }
+  Function {show()} {} {
+    code {this->setBeam(m_beam);
+wndBeamProp->show();} {}
+  }
+  Function {setBeam(CIvfFemBeam* beam)} {} {
+    code {m_beam = beam;
+if (m_beam==NULL)
+{
+	btnShowMaterialDlg->deactivate();
+	sldBeamRotation->deactivate();
+	lbSectionForces->clear();
+	lbDisplacements->clear();
+}
+else
+{
+	btnShowMaterialDlg->activate();
+	sldBeamRotation->activate();
+	sldBeamRotation->value(m_beam->getBeam()->getBeamRotation());
+	this->fillListboxes();
+}} {}
+  }
+  Function {getBeam()} {return_type {CIvfFemBeam*}
+  } {
+    code {return m_beam;} {}
+  }
+  Function {hide()} {} {
+    code {wndBeamProp->hide();} {}
+  }
+  Function {setFemWidget(void* femWidget)} {} {
+    code {m_femWidget = femWidget;} {}
+  }
+  Function {fillListboxes()} {} {
+    code {if (m_beam!=NULL)
+{
+	if (m_beam->getBeam()->getValueSize()>0)
+	{
+		int k,j;
+		int pos = 0;
+		double values[6];
+		char buffer[200];
+		int n = m_beam->getBeam()->getEvaluationPoints();
+		lbSectionForces->clear();
+		lbSectionForces->add("      N          Vy         Vz         T          My         Mz");
+		lbDisplacements->clear();
+		lbDisplacements->add("      u          v          w          fi");
+		for (k=1; k<=n; k++)
+		{
+			for (j=1; j<=6; j++)
+			{
+				values[j-1] = m_beam->getBeam()->getValue(pos++);
+			}
+			sprintf(
+				buffer, 
+				"%10.3f %10.3f %10.3f %10.3f %10.3f %10.3f", 
+				values[0],values[1],values[2],values[3],values[4],values[5]);
+			lbSectionForces->add(buffer);  
+		}
+
+		for (k=1; k<=n; k++)
+		{
+			for (j=1; j<=4; j++)
+			{
+				values[j-1] = m_beam->getBeam()->getValue(pos++);
+			}
+			sprintf(
+				buffer, 
+				"%10.3f %10.3f %10.3f %10.3f", 
+				values[0],values[1],values[2],values[3]);
+			lbDisplacements->add(buffer);  
+		}
+	}
+}} {}
+  }
+} 

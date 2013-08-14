@@ -1,0 +1,41 @@
+/* XPM */
+static char *tlSurfload[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18       16            1",
+/* colors */
+"` c #000000",
+". c #800000",
+"# c #008000",
+"a c None",
+"b c #000080",
+"c c #800080",
+"d c #008080",
+"e c #c0c0c0",
+"f c #808080",
+"g c #ff0000",
+"h c #00ff00",
+"i c #ffff00",
+"j c #0000ff",
+"k c #ff00ff",
+"l c #00ffff",
+"m c #ffffff",
+/* pixels */
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaa``aaaaaa",
+"aaaaaaaa``aa`aaaaa",
+"aaaaaa``aaaaa`aaaa",
+"aaaa``aaaaaaaa`aaa",
+"aa``aaaaaaaaaaa`aa",
+"a`aaaaaaaaaaaaa``a",
+"a``aaaaaaaaaa``a`a",
+"a`a`aaaaaaa``aaa`a",
+"a`aa`aaaa``aaaa``a",
+"aa`aa`a``aaaa``aaa",
+"aag`aa`aaaa``aagaa",
+"agaa`a`aa``aaaagga",
+"aagaa````aaaaggaaa",
+"aaagaa`aaaaggaaaaa",
+"aaaagaaaaggaaaaaaa",
+"aaaaagaggaaaaaaaaa",
+"aaaaaagaaaaaaaaaaa"
+};

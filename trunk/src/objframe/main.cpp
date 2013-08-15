@@ -68,7 +68,7 @@ main(int argc, char **argv)
 	//
 
 	so_print("Main: Setting visual.");
-	Fl::visual(FL_DEPTH|FL_DOUBLE|FL_RGB|FL_ALPHA|FL_MULTISAMPLE);
+	Fl::visual(FL_DEPTH|FL_DOUBLE|FL_RGB|FL_MULTISAMPLE);
 
 	//
 	// Retrieve system colors, if any.
@@ -91,7 +91,7 @@ main(int argc, char **argv)
 	
 	so_print("Main: Creating main window.");
 	CMainFrame *frame = new CMainFrame();
-	frame->ivfWorkspace->mode(FL_RGB | FL_DEPTH | FL_MULTISAMPLE | FL_DOUBLE );
+	//frame->ivfWorkspace->mode(FL_RGB | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE | FL_DOUBLE );
 	frame->setArguments(argc, argv);
 	frame->setProgramPath(progPath);
 	if (fullscreen)

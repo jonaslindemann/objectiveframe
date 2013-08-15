@@ -30,6 +30,13 @@ CIvfFltkWidget::CIvfFltkWidget(int X, int Y, int W, int H, const char *L) :
 Fl_Gl_Window(X, Y, W, H, L)
 {
 	// State variables
+    
+    int oldMode = this->mode();
+    this->mode(FL_RGB8 | FL_DOUBLE | FL_STENCIL | FL_MULTISAMPLE);
+    int newMode = this->mode();
+    
+    std::cout << "oldMode = " << oldMode << endl;
+    std::cout << "newMode = " << newMode << endl;
 	
 	m_currentButton = IVF_NO_BUTTON;
 	m_currentModifier = IVF_NO_BUTTON;
@@ -506,7 +513,7 @@ int CIvfFltkWidget::handle(int event)
 	case FL_MOVE:
 		m_beginX = Fl::event_x();
 		m_beginY = Fl::event_y();
-		if (Fl::get_key(FL_Shift_L)==FALSE)
+		if (!Fl::get_key(FL_Shift_L))
 			m_scene->unlockCursor();
 		this->doPassiveMotion(m_beginX, m_beginY);
 		return 1;
@@ -525,7 +532,7 @@ int CIvfFltkWidget::handle(int event)
 		if (Fl::get_key(FL_Control_R))
 			m_currentModifier = IVF_CTRL;
 
-		if (Fl::get_key(FL_Shift_L)==FALSE)
+		if (!Fl::get_key(FL_Shift_L))
 			m_scene->unlockCursor();
 		if (Fl::event_button()==FL_LEFT_MOUSE)
 			m_currentButton = IVF_BUTTON1;
@@ -533,6 +540,24 @@ int CIvfFltkWidget::handle(int event)
 			m_currentButton = IVF_BUTTON2;
 		if (Fl::event_button()==FL_RIGHT_MOUSE)
 			m_currentButton = IVF_BUTTON3;
+            
+            if (Fl::get_key(FL_Shift_L))
+                cout << "SHIFT_LEFT" << endl;
+            if (Fl::get_key(FL_Shift_R))
+                cout << "SHIFT_RIGHT" << endl;
+            if (Fl::get_key(FL_Control_L))
+                cout << "CONTROL_LEFT" << endl;
+            if (Fl::get_key(FL_Control_R))
+                cout << "CONTROL_RIGHT" << endl;
+            
+            if (Fl::event_button()==FL_LEFT_MOUSE)
+                cout << "LEFT_MOUSE" << endl;
+            if (Fl::event_button()==FL_MIDDLE_MOUSE)
+                cout << "MIDDLE_MOUSE" << endl;
+            if (Fl::event_button()==FL_RIGHT_MOUSE)
+                cout << "RIGHT_MOUSE" << endl;
+            
+        
 		this->doMouseDown(m_beginX, m_beginY);
 		this->doMouse(m_beginX, m_beginY);
 		return 1;
@@ -898,6 +923,16 @@ void CIvfFltkWidget::onCoordinate(double x, double y, double z)
 void CIvfFltkWidget::onInitContext()
 {
 	glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_MULTISAMPLE);
+    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    GLint  iMultiSample = 0;
+    GLint  iNumSamples = 0;
+    glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
+    glGetIntegerv(GL_SAMPLES, &iNumSamples);
+    
+    cout << "mode after context init = " << this->mode() << endl;
+    
 	m_lighting->enable();
 }
 

@@ -1311,7 +1311,7 @@ void CIvfFemWidget::setupOverlay()
 	m_objectButtons = new CIvfButtonGroup();
 
 	button= new CIvfPlaneButton(BTN_CREATE_NODE, "images/tlnode.png");
-	button->setSize(65.0,65.0);
+	button->setSize(50.0,50.0);
 	button->setPosition(30.0,30.0,0.0);
 	button->setHint("Create node");
 	m_objectButtons->addChild(button);

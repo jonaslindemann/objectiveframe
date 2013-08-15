@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
+version 1.0302 
 header_name {.h} 
 code_name {.cpp}
 decl {\#include "WorkspaceDlg.h"} {public local
@@ -40,11 +40,11 @@ class CMainFrame {open
   Function {CMainFrame()} {open
   } {
     Fl_Window wndMain {
-      label ObjectiveFrame
-      xywh {403 258 746 583} type Double resizable visible
+      label ObjectiveFrame open
+      xywh {336 134 746 583} type Double resizable visible
     } {
-      Fl_Menu_Bar mnuMain {open
-        xywh {0 0 746 25} box FLAT_BOX down_box FLAT_BOX selection_color 136 labelsize 12 textsize 12
+      Fl_Menu_Bar mnuMain {open selected
+        xywh {0 0 746 25} box FLAT_BOX down_box FLAT_BOX color 0 selection_color 136 labelsize 12 labelcolor 7 textsize 12 textcolor 7
       } {
         Submenu mnuFile {
           label {&File} open
@@ -255,7 +255,7 @@ m_splash->show();}
         }
       }
       Fl_Box ivfWorkspace {
-        xywh {0 26 746 557} color 0 resizable
+        xywh {0 25 746 558} color 0 resizable
         code0 {\#include "IvfFemWidget.h"}
         class CIvfFemWidget
       }
@@ -273,8 +273,7 @@ extern HINSTANCE fl_display;
 wndMain->size(Fl::w()-40, Fl::h()-40);
 wndMain->position(20,40);
 wndMain->show();
-ivfWorkspace->show();} {selected
-    }
+ivfWorkspace->show();} {}
   }
   Function {updateToggles()} {} {
     code {} {}

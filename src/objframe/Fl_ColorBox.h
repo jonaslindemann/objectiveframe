@@ -4,7 +4,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Gl_Window.H>
 #include <FL/gl.h>
-#include <GL/glu.h>
+//#include <GL/glu.h>
 #include <FL/fl_draw.H>
 
 class Fl_ColorBox : public Fl_Widget {

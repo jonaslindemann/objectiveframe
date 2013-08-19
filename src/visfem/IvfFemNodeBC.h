@@ -22,7 +22,6 @@ IvfSmartPointer(CIVfFemNodeBC);
 class CIvfFemNodeBC : public CIvfShape {
 private:
 	CFemBeamNodeBC* m_nodeBC;
-	CIvfColorTable* m_colorTable;
 	vector<CIvfBC*> m_bc;
 	CIvfMaterial* m_bcMaterial;
 

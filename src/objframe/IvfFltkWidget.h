@@ -30,7 +30,7 @@
 
 #include <FL/Fl.H>
 #include <FL/gl.h>
-#include <GL/glu.h>
+//#include <GL/glu.h>
 #include <FL/Fl_Gl_Window.H>
 
 namespace std {};

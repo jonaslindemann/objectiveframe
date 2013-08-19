@@ -124,7 +124,7 @@ bool CFemNodeLoad::removeNode(CFemNode *node)
 // ------------------------------------------------------------
 CFemNode* CFemNodeLoad::getNode(unsigned int idx)
 {
-	if ( (idx>=0)&&(idx<m_nodes.size()) )
+	if (idx<m_nodes.size())
 		return m_nodes[idx];
 	else
 		return NULL;
@@ -133,7 +133,7 @@ CFemNode* CFemNodeLoad::getNode(unsigned int idx)
 // ------------------------------------------------------------
 long CFemNodeLoad::getNodeIndex(unsigned int idx)
 {
-	if ( (idx>=0)&&(idx<m_nodeIndex.size()) )
+	if (idx<m_nodeIndex.size())
 		return m_nodeIndex[idx];
 	else
 		return -1;

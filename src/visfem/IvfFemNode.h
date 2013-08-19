@@ -34,7 +34,7 @@ public:
 
 	virtual void setPosition (const double x, const double y, const double z);
 	virtual void setPosition (CIvfShape* shape);
-	virtual void setPosition (CIvfVec3d* point);
+	virtual void setPositionVec (CIvfVec3d* point);
 protected:
 	virtual void doCreateGeometry();
 };

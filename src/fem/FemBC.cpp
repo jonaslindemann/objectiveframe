@@ -134,7 +134,7 @@ void CFemBC::print(std::ostream &out)
 // ------------------------------------------------------------
 CFemDof* CFemBC::getDof(unsigned int idx)
 {
-	if ( (idx>=0)&&(idx<m_prescribedDofs.size()) )
+	if (idx<m_prescribedDofs.size())
 		return m_prescribedDofs[idx];
 	else
 		return NULL;
@@ -143,7 +143,7 @@ CFemDof* CFemBC::getDof(unsigned int idx)
 // ------------------------------------------------------------
 double CFemBC::getValue(unsigned int idx)
 {
-	if ( (idx>=0)&&(idx<m_prescribedDofs.size()) )
+	if (idx<m_prescribedDofs.size())
 		return m_prescribedValues[idx];
 	else 
 		return 0.0;

@@ -264,8 +264,6 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   else
   {
   	std::string bcName;
-  	double value;
-  	double ex, ey, ez;
   	bcName = m_bc->getName();
   	btnApply->activate();
   	tbElementBC->activate();

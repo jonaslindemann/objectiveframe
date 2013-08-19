@@ -372,8 +372,6 @@ void CIvfFemBeam::initResults()
 {
 	if (m_beamModel!=NULL)
 	{
-		int resultType = m_beamModel->getResultType();
-
 		CColorMap* colorMapPos = m_beamModel->getColorMapPos();
 		CColorMap* colorMapNeg = m_beamModel->getColorMapNeg();
 		CColorMap* colorMapStd = m_beamModel->getColorMapStd();

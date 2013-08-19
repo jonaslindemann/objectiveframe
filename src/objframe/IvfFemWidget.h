@@ -35,7 +35,7 @@
 #include "IvfArea2D.h"
 #include "IvfPlaneButton.h"
 #include "IvfButtonGroup.h"
-#endif ADVANCED_GL
+#endif
 
 #ifdef ADVANCED_GL
 //#include <FTGL/FTFace.h>
@@ -86,7 +86,6 @@ private:
 	std::string   m_fileName;
 	std::string   m_progPath;
 	bool    m_overlaySelected;
-	double  m_scalefactor;
 	bool    m_haveScaleFactor;
 	bool    m_needRecalc;
 	bool    m_overWorkspace;
@@ -143,7 +142,6 @@ private:
 	CIvfQuadPlanePtr    m_plane;
 	CIvfSpherePtr       m_sphere;
 	CIvfExtrArrowPtr    m_tactileForce;
-	CIvfLightingPtr		m_lighting;
 
 	// Overlay stuff
 #ifdef ADVANCED_GL
@@ -160,18 +158,12 @@ private:
 	CIvfArea2D* m_editArea;
 	CIvfArea2D* m_objectArea;
 	CIvfArea2D* m_viewArea;
-	CIvfArea2D* m_workspaceArea;
 #endif
 
 	float m_hintColor[3];
 	bool m_hintFinished;
 
 	// Result visualisation
-
-	CColorMap* m_colorMapPos;
-	CColorMap* m_colorMapNeg;
-	CColorMap* m_colorMapStd;
-	CResultInfo* m_resultInfo;
 
 	// Private methods
 

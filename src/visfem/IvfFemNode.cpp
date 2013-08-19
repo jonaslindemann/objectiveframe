@@ -56,7 +56,7 @@ void CIvfFemNode::setPosition (CIvfShape* shape)
 }
 
 // ------------------------------------------------------------
-void CIvfFemNode::setPosition (CIvfVec3d* point)
+void CIvfFemNode::setPositionVec (CIvfVec3d* point)
 {
 	if (m_femNode!=NULL)
 	{

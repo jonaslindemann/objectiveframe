@@ -44,7 +44,7 @@ void CFemSection::clear()
 void CFemSection::getCoord(unsigned int idx, double &x, double &y)
 {
 	double z;
-	if ( (idx>=0)&&(idx<m_coords.size()) )
+	if (idx<m_coords.size())
 		m_coords[idx]->getCoord(x, y, z);
 }
 
@@ -59,7 +59,7 @@ void CFemSection::getNormal(unsigned int idx, double &ex, double &ey)
 {
 	double x1, y1, z;
 	double x2, y2, l;
-	if ( (idx>=0)&&(idx<m_coords.size()-1) )
+	if (idx<m_coords.size()-1)
 	{
 		m_coords[idx]->getCoord(x1, y1, z);
 		m_coords[idx+1]->getCoord(x2, y2, z);

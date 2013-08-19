@@ -138,7 +138,7 @@ void CFemElement::readFromStream(std::istream &in)
 // ------------------------------------------------------------
 long CFemElement::getElementIndex(unsigned int node)
 {
-	if ((node>=0)&&(node<m_nodeIndex.size()))
+	if (node<m_nodeIndex.size())
 		return m_nodeIndex[node];
 	else
 		return -1;
@@ -159,7 +159,7 @@ unsigned int CFemElement::getIndexSize()
 // ------------------------------------------------------------
 CFemNode* CFemElement::getNode(unsigned int index)
 {
-	if ( (index>=0)&&(index<m_nodes.size()) )
+	if (index<m_nodes.size())
 	{
 		return m_nodes[index];
 	}
@@ -217,14 +217,14 @@ void CFemElement::setPropertySize(unsigned int size)
 // ------------------------------------------------------------
 void CFemElement::setProperty(unsigned int idx, double value)
 {
-	if ( (idx>=0)&&(idx<m_properties.size()) )
+	if (idx<m_properties.size())
 		m_properties[idx] = value;
 }
 
 // ------------------------------------------------------------
 void CFemElement::addInternalDof(unsigned int localIdx, int localDof)
 {
-	if ( (localIdx>=0)&&(localIdx<m_internalDofs.size()) )
+	if (localIdx<m_internalDofs.size())
 	{
 		m_internalDofs[localIdx]->add(localDof);
 	}
@@ -233,7 +233,7 @@ void CFemElement::addInternalDof(unsigned int localIdx, int localDof)
 // ------------------------------------------------------------
 void CFemElement::clearInternalDof(unsigned int localIdx, int localDof)
 {
-	if ( (localIdx>=0)&&(localIdx<m_internalDofs.size()) )
+	if (localIdx<m_internalDofs.size())
 	{
 		m_internalDofs[localIdx]->clear(localDof);
 	}	
@@ -242,7 +242,7 @@ void CFemElement::clearInternalDof(unsigned int localIdx, int localDof)
 // ------------------------------------------------------------
 bool CFemElement::hasInternalDof(unsigned int localIdx, int localDof)
 {
-	if ( (localIdx>=0)&&(localIdx<m_internalDofs.size()) )
+	if (localIdx<m_internalDofs.size())
 	{
 		return m_internalDofs[localIdx]->isAssigned(localDof);
 	}
@@ -263,7 +263,7 @@ long CFemElement::enumerateDofs(long count)
 // ------------------------------------------------------------
 long CFemElement::getInternalDof(unsigned int localIdx, int localDof)
 {
-	if ( (localIdx>=0)&&(localIdx<m_internalDofs.size()) )
+	if (localIdx<m_internalDofs.size())
 	{
 		if (m_internalDofs[localIdx]->isAssigned(localDof))
 			return m_internalDofs[localIdx]->getDof(localDof)->getNumber();
@@ -283,7 +283,7 @@ void CFemElement::setValueSize(int size)
 // ------------------------------------------------------------
 double CFemElement::getValue(unsigned int idx)
 {
-	if ((idx>=0)&&(idx<m_values.size()))
+	if (idx<m_values.size())
 		return m_values[idx];
 	else
 		return 0.0;
@@ -292,7 +292,7 @@ double CFemElement::getValue(unsigned int idx)
 // ------------------------------------------------------------
 void CFemElement::setValue(unsigned int idx, double value)
 {
-	if ((idx>=0)&&(idx<m_values.size()))
+	if (idx<m_values.size())
 		m_values[idx] = value;
 }
 

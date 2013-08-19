@@ -13,8 +13,6 @@ class CMainFrame {
 public:
   CNodePropDlg* m_dlgNodeProp; 
 private:
-  CBeamPropDlg* m_dlgBeamProp; 
-  CMaterialsDlg* m_dlgMaterials; 
   int m_argc; 
   char** m_argv; 
   CSplashFrame* m_splash; 

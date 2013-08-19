@@ -17,8 +17,6 @@
 #include <FL/Fl.H>
 #include <FL/x.H>
 
-static char g_szFile[260];       // buffer for file name
-
 char *fl_file_chooser(const char *message,const char *pat,const char *fname)
 {
 #ifdef WIN32

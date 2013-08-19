@@ -62,10 +62,11 @@ bool CIvfArea2D::inside(int x, int y)
 		if (j==m_xCoords.size()) j=0;
 		if ( ((m_yCoords[i]<y) && (m_yCoords[j]>=y))||((m_yCoords[j]<y) && (m_yCoords[i]>=y)))
 		{
-			if (m_xCoords[i]+(y-m_yCoords[i])/(m_yCoords[j]-m_yCoords[i])*(m_xCoords[j]-m_xCoords[i])<x) 
-			{
-				oddNODES=!oddNODES; 
-			}
+            if (i!=j)
+            {
+                if (m_xCoords[i]+(y-m_yCoords[i])/(m_yCoords[j]-m_yCoords[i])*(m_xCoords[j]-m_xCoords[i])<x)
+                    oddNODES=!oddNODES;
+            }
 		}
 	}
 	return oddNODES; 

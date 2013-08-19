@@ -448,22 +448,18 @@ void CIvfFemWidget::setRepresentation(int repr)
 
 	m_representation = repr;
 
-	int nodeType;
-
 	switch (m_representation) {
 	case FRAME_FEM:
 		so_print("FemWidget: Setting representation to FRAME_FEM.");
 		ivfSetGLEJoinStyle(TUBE_JN_CAP|TUBE_NORM_EDGE|TUBE_JN_ANGLE);
 		m_beamModel->setBeamType(IVF_BEAM_SOLID);
 		m_beamModel->setNodeType(CIvfNode::NT_CUBE);
-		nodeType = IVF_NODE_GEOMETRY;
 		break;
 	case FRAME_GEOMETRY:
 		so_print("FemWidget: Setting representation to FRAME_GEOMETRY.");
 		ivfSetGLEJoinStyle(TUBE_JN_CAP|TUBE_NORM_FACET|TUBE_JN_ANGLE);
 		m_beamModel->setBeamType(IVF_BEAM_EXTRUSION);
 		m_beamModel->setNodeType(CIvfNode::NT_CUBE);
-		nodeType = IVF_NODE_GEOMETRY;
 		break;
 	case FRAME_DISPLACEMENTS:
 		so_print("FemWidget: Setting representation to FRAME_DISPLACEMENTS.");

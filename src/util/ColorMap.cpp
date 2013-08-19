@@ -85,6 +85,8 @@ void CColorMap::getColor(double value, float &r, float &g, float &b)
 		int colorIndex;
 		CColor* color;
 		float a;
+        
+		r = g = b = 1.0;
 
 		// Clamp value
 

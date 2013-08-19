@@ -69,10 +69,11 @@ void CIvfFemBeamLoad::refresh()
 	}
 	else
 	{
-		colorTable->assignColor(
-			m_beamLoad->getColor(), m_extrMaterial);
-		colorTable->assignColor(
-			m_beamLoad->getColor(), m_arrowMaterial);
+        if (colorTable!=NULL)
+        {
+            colorTable->assignColor(m_beamLoad->getColor(), m_extrMaterial);
+            colorTable->assignColor(m_beamLoad->getColor(), m_arrowMaterial);
+        }
 	}
 	this->setBeamLoad(m_beamLoad);
 	this->initExtrusion();

@@ -2698,7 +2698,10 @@ void CMaterialDlg::setSectionProps(double width, double height, double UFW, doub
   CFemSection* tempSection;
   	CFemRectSection* rectSection;
   	
-  	tempSection = (m_material->getSection());
+    if (m_material!=0)
+        tempSection = (m_material->getSection());
+    else
+        return;
   
   	switch (repr) {
   	case 0:

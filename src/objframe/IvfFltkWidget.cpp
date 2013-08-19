@@ -407,6 +407,10 @@ int CIvfFltkWidget::getCurrentModifier()
 		m_currentModifier = IVF_CTRL;
 	if (Fl::get_key(FL_Control_R))
 		m_currentModifier = IVF_CTRL;
+	if (Fl::get_key(FL_Alt_R))
+		m_currentModifier = IVF_ALT;
+	if (Fl::get_key(FL_Alt_L))
+		m_currentModifier = IVF_ALT;
 	
 	return m_currentModifier;
 }
@@ -531,6 +535,10 @@ int CIvfFltkWidget::handle(int event)
                 m_currentModifier = IVF_CTRL;
             if (Fl::get_key(FL_Control_R))
                 m_currentModifier = IVF_CTRL;
+            if (Fl::get_key(FL_Alt_L))
+                m_currentModifier = IVF_ALT;
+            if (Fl::get_key(FL_Alt_R))
+                m_currentModifier = IVF_ALT;
             
             if (!Fl::get_key(FL_Shift_L))
                 m_scene->unlockCursor();
@@ -549,6 +557,10 @@ int CIvfFltkWidget::handle(int event)
                 cout << "CONTROL_LEFT" << endl;
             if (Fl::get_key(FL_Control_R))
                 cout << "CONTROL_RIGHT" << endl;
+            if (Fl::get_key(FL_Alt_L))
+                cout << "ALT_LEFT" << endl;
+            if (Fl::get_key(FL_Alt_R))
+                cout << "ALT_RIGHT" << endl;
             
             if (Fl::event_button()==FL_LEFT_MOUSE)
                 cout << "LEFT_MOUSE" << endl;
@@ -711,6 +723,33 @@ void CIvfFltkWidget::doMotion(int x, int y)
 	if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
 	{
 		if (Fl::event_state(FL_BUTTON1)>0) {
+            if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
+            {
+                if (getCurrentModifier()==IVF_ALT)
+                {
+                    m_zoomX = (x - m_beginX);
+                    m_zoomY = (y - m_beginY);
+                }
+                else if (getCurrentModifier()==IVF_SHIFT)
+                {
+                    m_moveX = (x - m_beginX);
+                    m_moveY = (y - m_beginY);
+                }
+                else
+                {
+                    m_angleX = (x - m_beginX);
+                    m_angleY = (y - m_beginY);
+                }
+            }
+            m_beginX = x;
+            m_beginY = y;
+            
+            m_scene->updateSizes();
+            redraw();
+        }
+                
+#ifdef OLD_VIEW_HANDLING
+		if (Fl::event_state(FL_BUTTON1)>0) {
 			m_angleX = (x - m_beginX);
 			m_angleY = (y - m_beginY);
 			m_beginX = x;
@@ -740,6 +779,7 @@ void CIvfFltkWidget::doMotion(int x, int y)
 			m_scene->updateSizes();
 			redraw();
 		}
+#endif
 	}
 	
 	if (getEditMode()==IVF_MOVE)

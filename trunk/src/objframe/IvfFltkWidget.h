@@ -86,6 +86,7 @@ using namespace std;
 #define IVF_NO_BUTTON				-1
 #define IVF_SHIFT					0
 #define IVF_CTRL					1
+#define IVF_ALT                     2
 
 #include <ivf/IvfBase.h>
 #include <ivf/IvfComposite.h>

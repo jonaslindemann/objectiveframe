@@ -145,7 +145,7 @@ int CFemElementLoad::getElementsSize()
 // ------------------------------------------------------------
 CFemElement* CFemElementLoad::getElement(unsigned int idx)
 {
-	if ( (idx>=0)&&(idx<m_elements.size()) )
+	if (idx<m_elements.size())
 		return m_elements[idx];
 	else
 		return NULL;
@@ -160,7 +160,7 @@ unsigned int CFemElementLoad::getElementIndexSize()
 // ------------------------------------------------------------
 unsigned int CFemElementLoad::getElementIndex(unsigned int idx)
 {
-	if ( (idx>=0)&&(idx<m_elementIndex.size()) )
+	if (idx<m_elementIndex.size())
 		return m_elementIndex[idx];
 	else
 		return -1;

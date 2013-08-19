@@ -919,10 +919,12 @@ void CFemInternalSolver::update()
 	//
 	
 	CFemElementSet* elementSet = femModel->getElementSet();
+    /*
 	CFemNodeSet* nodeSet = femModel->getNodeSet();
 	CFemMaterialSet* materialSet = femModel->getMaterialSet();
 	CFemNodeBCSet* bcSet = femModel->getNodeBCSet();
 	CFemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
+    */
 	CFemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
 	RowVector Ex(2);
@@ -1140,7 +1142,7 @@ void CFemInternalSolver::printMaxMin()
 	cout << "Vmax,min = " << m_maxV << ", " << m_minV << endl;
 	cout << "Mmax,min = " << m_maxM << ", " << m_minM << endl;
 	cout << "Navier,max,min = " << m_maxNavier << ", " << m_minNavier << endl;
-#endif DEBUG_OUTPUT
+#endif
 }
 
 void CFemInternalSolver::setResultInfo(CResultInfo *resultInfo)

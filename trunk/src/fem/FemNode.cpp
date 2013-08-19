@@ -135,7 +135,7 @@ int CFemNode::getKind()
 // ------------------------------------------------------------
 CFemDof* CFemNode::getDof(unsigned int dof)
 {
-	if ( (dof>=0)&&(dof<m_dofs.size()) )
+	if (dof<m_dofs.size())
 		return m_dofs[dof];
 	else
 		return NULL;
@@ -227,7 +227,7 @@ void CFemNode::setValueSize(int size)
 // ------------------------------------------------------------
 double CFemNode::getValue(unsigned int idx)
 {
-	if ((idx>=0)&&(idx<m_values.size()))
+	if (idx<m_values.size())
 		return m_values[idx];
 	else
 		return 0.0;
@@ -236,7 +236,7 @@ double CFemNode::getValue(unsigned int idx)
 // ------------------------------------------------------------
 void CFemNode::setValue(unsigned int idx, double value)
 {
-	if ((idx>=0)&&(idx<m_values.size()))
+	if (idx<m_values.size())
 		m_values[idx] = value;
 }
 

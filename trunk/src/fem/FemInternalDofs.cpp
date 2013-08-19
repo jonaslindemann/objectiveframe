@@ -63,7 +63,7 @@ void CFemInternalDofs::add(unsigned int localDof)
 {
 	// Add an extra dof to a specified local dof
 
-	if ( (localDof>=0)&&(localDof<m_dofs.size()) )
+	if (localDof<m_dofs.size())
 	{
 		CFemDof* dof = new CFemDof();
 		if (m_dofs[localDof]!=NULL)
@@ -77,7 +77,7 @@ void CFemInternalDofs::clear(unsigned int localDof)
 {
 	// Clear extra dof at local dof
 
-	if ( (localDof>=0)&&(localDof<m_dofs.size()) )
+	if (localDof<m_dofs.size())
 	{
 		if (m_dofs[localDof]!=NULL)
 			delete m_dofs[localDof];
@@ -102,7 +102,7 @@ long CFemInternalDofs::enumerateDofs(long count)
 // ------------------------------------------------------------
 bool CFemInternalDofs::isAssigned(unsigned int localDof)
 {
-	if ( (localDof>=0)&&(localDof<m_dofs.size()) )
+	if (localDof<m_dofs.size())
 	{
 		if (m_dofs[localDof]!=NULL)
 			return true;
@@ -113,7 +113,7 @@ bool CFemInternalDofs::isAssigned(unsigned int localDof)
 // ------------------------------------------------------------
 CFemDof* CFemInternalDofs::getDof(unsigned int localDof)
 {
-	if ( (localDof>=0)&&(localDof<m_dofs.size()) )
+	if (localDof<m_dofs.size())
 	{
 		if (m_dofs[localDof]!=NULL)
 			return m_dofs[localDof];

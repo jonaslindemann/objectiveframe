@@ -10,6 +10,7 @@ CStatusOutput::CStatusOutput(int x, int y, int w, int h, char *l):
         Fl_Window(x, y, w, h, l)
 {
     box(FL_FLAT_BOX);
+    label("Status");
     user_data((void*)(this));
 	m_output = new Fl_Browser(5, 5, 400,150);
 	m_output->color(FL_BLACK);
@@ -31,10 +32,10 @@ CStatusOutput* CStatusOutput::getInstance()
 }
 
 
-void CStatusOutput::print(char* txt)
+void CStatusOutput::print(std::string text)
 {
-	char* buffer = new char[255];
-    sprintf(buffer, "@s@f@B%d@C%d@.%s", FL_BLACK, FL_GREEN, txt);
+	char* buffer = new char[512];
+    sprintf(buffer, "@s@f@B%d@C%d@.%s", FL_BLACK, FL_GREEN, text.c_str());
     m_output->add(buffer);
 	m_output->bottomline(m_output->size());
 	delete [] buffer;

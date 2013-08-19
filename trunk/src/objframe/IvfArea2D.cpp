@@ -60,8 +60,7 @@ bool CIvfArea2D::inside(int x, int y)
 	for (i=0; i<m_xCoords.size(); i++) {
 		j++; 
 		if (j==m_xCoords.size()) j=0;
-		if (m_yCoords[i]<y && m_yCoords[j]>=y
-			||  m_yCoords[j]<y && m_yCoords[i]>=y) 
+		if ( ((m_yCoords[i]<y) && (m_yCoords[j]>=y))||((m_yCoords[j]<y) && (m_yCoords[i]>=y)))
 		{
 			if (m_xCoords[i]+(y-m_yCoords[i])/(m_yCoords[j]-m_yCoords[i])*(m_xCoords[j]-m_xCoords[i])<x) 
 			{

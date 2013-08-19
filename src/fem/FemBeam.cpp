@@ -114,8 +114,6 @@ void CFemBeam::getOrientationZ(double &ex, double &ey, double &ez)
 	dy = dy / l;
 	dz = dz / l;
 
-	alfa = atan2(dy, dx) - M_PI/2.0;
-
 	if ((dx==0.0)&&(dz==0.0))
 		alfa = M_PI;
 	else
@@ -171,8 +169,6 @@ void CFemBeam::getOrientationY(double &ex, double &ey, double &ez)
 	dx = dx / l;
 	dy = dy / l;
 	dz = dz / l;
-
-	alfa = atan2(dy, dx) - M_PI/2.0;
 
 	if ((dx==0.0)&&(dz==0.0))
 		alfa = M_PI;

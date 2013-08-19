@@ -385,6 +385,8 @@ void CIvfFemBeam::initResults()
 			GLubyte r, g, b;
 			double value, v1, v2;
 			double N, My, Mz;
+            
+            red = green = blue = 0.0;
 			
 			for (k=0; k<n; k++)
 			{
@@ -427,7 +429,7 @@ void CIvfFemBeam::initResults()
 					value = (fabs(value)-resultInfo->getMinNavier())/resultInfo->getMaxNavier();
 					break;
 				default:
-					
+                    value = 0.0;
 					break;
 				}
 				

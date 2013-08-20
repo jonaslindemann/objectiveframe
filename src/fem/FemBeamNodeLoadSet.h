@@ -10,12 +10,12 @@ class CFemBeamNodeLoadSet : public CFemNodeLoadSet {
 private:
 
 public:
-	CFemBeamNodeLoadSet();
-	virtual ~CFemBeamNodeLoadSet();
+    CFemBeamNodeLoadSet();
+    virtual ~CFemBeamNodeLoadSet();
 
-	FemClassInfo("CFemBeamNodeLoadSet",CFemNodeLoadSet);
+    FemClassInfo("CFemBeamNodeLoadSet",CFemNodeLoadSet);
 protected:
-	CFemLoad* createLoad();
+    CFemLoad* createLoad();
 };
 
-#endif 
+#endif

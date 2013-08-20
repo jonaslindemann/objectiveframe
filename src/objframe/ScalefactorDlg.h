@@ -11,25 +11,25 @@
 #include <FL/Fl_Value_Slider.H>
 
 class CScalefactorDlg {
-  void* m_femWidget;
-  double m_maxValue;
+    void* m_femWidget;
+    double m_maxValue;
 public:
-  CScalefactorDlg();
-  Fl_Window *wndWorkspace;
-  Fl_Button *btnClose;
+    CScalefactorDlg();
+    Fl_Window *wndWorkspace;
+    Fl_Button *btnClose;
 private:
-  inline void cb_btnClose_i(Fl_Button*, void*);
-  static void cb_btnClose(Fl_Button*, void*);
+    inline void cb_btnClose_i(Fl_Button*, void*);
+    static void cb_btnClose(Fl_Button*, void*);
 public:
-  Fl_Group *grpWorkspace;
-  Fl_Value_Slider *sldScalefactor;
+    Fl_Group *grpWorkspace;
+    Fl_Value_Slider *sldScalefactor;
 private:
-  inline void cb_sldScalefactor_i(Fl_Value_Slider*, void*);
-  static void cb_sldScalefactor(Fl_Value_Slider*, void*);
+    inline void cb_sldScalefactor_i(Fl_Value_Slider*, void*);
+    static void cb_sldScalefactor(Fl_Value_Slider*, void*);
 public:
-  ~CScalefactorDlg();
-  void show();
-  void setFemWidget(void* femWidget);
-  void setScaling(double maxValue);
+    ~CScalefactorDlg();
+    void show();
+    void setFemWidget(void* femWidget);
+    void setScaling(double maxValue);
 };
 #endif

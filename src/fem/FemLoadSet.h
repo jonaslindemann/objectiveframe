@@ -10,35 +10,35 @@ FemSmartPointer(CFemLoadSet);
 
 class CFemLoadSet : public CFemObject {
 private:
-	std::vector<CFemLoad*> m_loads;
+    std::vector<CFemLoad*> m_loads;
 public:
-	bool removeLoad(CFemLoad* load);
-	void connectElements(CFemElementSet *elements);
-	void connectNodes(CFemNodeSet* nodes);
-	CFemLoadSet ();
-	virtual ~CFemLoadSet ();
+    bool removeLoad(CFemLoad* load);
+    void connectElements(CFemElementSet *elements);
+    void connectNodes(CFemNodeSet* nodes);
+    CFemLoadSet ();
+    virtual ~CFemLoadSet ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemLoadSet",CFemObject);
+    FemClassInfo("CFemLoadSet",CFemObject);
 
-	// Methods
+    // Methods
 
-	void deleteAll();
-	CFemLoad* removeLoad(long i);
-	bool deleteLoad(long i);
-	CFemLoad* getLoad(long i);
-	void addLoad(CFemLoad* element);
-	long getSize();
-	void clear();
-	long enumerateLoads(long count=1);
+    void deleteAll();
+    CFemLoad* removeLoad(long i);
+    bool deleteLoad(long i);
+    CFemLoad* getLoad(long i);
+    void addLoad(CFemLoad* element);
+    long getSize();
+    void clear();
+    long enumerateLoads(long count=1);
 
-	// IO methods
+    // IO methods
 
-	void readFromStream(std::istream &in);
-	void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    void readFromStream(std::istream &in);
+    void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 protected:
-	virtual CFemLoad* createLoad();
+    virtual CFemLoad* createLoad();
 };
 #endif

@@ -12,33 +12,33 @@
 #include <FL/Fl_Value_Input.H>
 
 class CNodePropDlg {
-  CIvfFemNode* m_node;
-  Fl_Widget* m_workspace;
+    CIvfFemNode* m_node;
+    Fl_Widget* m_workspace;
 public:
-  CNodePropDlg();
-  Fl_Window *wndNodeProp;
-  Fl_Button *btnApply;
+    CNodePropDlg();
+    Fl_Window *wndNodeProp;
+    Fl_Button *btnApply;
 private:
-  inline void cb_btnApply_i(Fl_Button*, void*);
-  static void cb_btnApply(Fl_Button*, void*);
+    inline void cb_btnApply_i(Fl_Button*, void*);
+    static void cb_btnApply(Fl_Button*, void*);
 public:
-  Fl_Group *grpWorkspace;
-  Fl_Value_Input *edtXCoord;
-  Fl_Value_Input *edtZCoord;
-  Fl_Value_Input *edtYCoord;
-  Fl_Button *btnClose;
+    Fl_Group *grpWorkspace;
+    Fl_Value_Input *edtXCoord;
+    Fl_Value_Input *edtZCoord;
+    Fl_Value_Input *edtYCoord;
+    Fl_Button *btnClose;
 private:
-  inline void cb_btnClose_i(Fl_Button*, void*);
-  static void cb_btnClose(Fl_Button*, void*);
+    inline void cb_btnClose_i(Fl_Button*, void*);
+    static void cb_btnClose(Fl_Button*, void*);
 public:
-  Fl_Group *grpDisplacements;
-  Fl_Value_Input *edtXDispl;
-  Fl_Value_Input *edtYDispl;
-  Fl_Value_Input *edtZDispl;
-  void show();
-  void setNode(CIvfFemNode* node);
-  CIvfFemNode* getNode();
-  void setWorkspace(Fl_Widget* widget);
-  void hide();
+    Fl_Group *grpDisplacements;
+    Fl_Value_Input *edtXDispl;
+    Fl_Value_Input *edtYDispl;
+    Fl_Value_Input *edtZDispl;
+    void show();
+    void setNode(CIvfFemNode* node);
+    CIvfFemNode* getNode();
+    void setWorkspace(Fl_Widget* widget);
+    void hide();
 };
 #endif

@@ -7,14 +7,14 @@
 CStatusOutput* CStatusOutput::m_instance=0;
 
 CStatusOutput::CStatusOutput(int x, int y, int w, int h, char *l):
-        Fl_Window(x, y, w, h, l)
+    Fl_Window(x, y, w, h, l)
 {
     box(FL_FLAT_BOX);
     label("Status");
     user_data((void*)(this));
-	m_output = new Fl_Browser(5, 5, 400,150);
-	m_output->color(FL_BLACK);
-	Fl_Group::current()->resizable(m_output);
+    m_output = new Fl_Browser(5, 5, 400,150);
+    m_output->color(FL_BLACK);
+    Fl_Group::current()->resizable(m_output);
     end();
 }
 
@@ -27,21 +27,21 @@ CStatusOutput* CStatusOutput::getInstance()
 {
     if (m_instance==0)
         m_instance = new CStatusOutput();
-    
+
     return m_instance;
 }
 
 
 void CStatusOutput::print(std::string text)
 {
-	char* buffer = new char[512];
+    char* buffer = new char[512];
     sprintf(buffer, "@s@f@B%d@C%d@.%s", FL_BLACK, FL_GREEN, text.c_str());
     m_output->add(buffer);
-	m_output->bottomline(m_output->size());
-	delete [] buffer;
+    m_output->bottomline(m_output->size());
+    delete [] buffer;
 }
 
 void CStatusOutput::show()
 {
-	Fl_Window::show();
+    Fl_Window::show();
 }

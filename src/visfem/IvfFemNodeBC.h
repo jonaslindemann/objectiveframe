@@ -21,22 +21,22 @@ IvfSmartPointer(CIVfFemNodeBC);
 // public class: CIvfFemNodeBC
 class CIvfFemNodeBC : public CIvfShape {
 private:
-	CFemBeamNodeBC* m_nodeBC;
-	vector<CIvfBC*> m_bc;
-	CIvfMaterial* m_bcMaterial;
+    CFemBeamNodeBC* m_nodeBC;
+    vector<CIvfBC*> m_bc;
+    CIvfMaterial* m_bcMaterial;
 
-	CIvfBeamModel* m_beamModel;
+    CIvfBeamModel* m_beamModel;
 public:
-	CIvfFemNodeBC();
-	virtual ~CIvfFemNodeBC();
+    CIvfFemNodeBC();
+    virtual ~CIvfFemNodeBC();
 
-	IvfClassInfo("CIvfFemNodeBC",CIvfShape);
+    IvfClassInfo("CIvfFemNodeBC",CIvfShape);
 
-	void refresh();
+    void refresh();
 
-	void setNodeBC(CFemBeamNodeBC* bc);
-	void setBeamModel(CIvfBeamModel* model);
+    void setNodeBC(CFemBeamNodeBC* bc);
+    void setBeamModel(CIvfBeamModel* model);
 protected:
-	virtual void doCreateGeometry();
+    virtual void doCreateGeometry();
 };
 #endif

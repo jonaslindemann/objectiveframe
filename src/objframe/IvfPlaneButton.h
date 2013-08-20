@@ -10,23 +10,23 @@
 
 class CIvfPlaneButton : public CIvfGenericButton {
 private:
-	CIvfQuadPlanePtr m_normalShape;
-	CIvfQuadPlanePtr m_pressedShape;
-	CIvfQuadPlanePtr m_disabledShape;
-	CIvfCompositePtr m_checkedShape;
-	CIvfQuadPlanePtr m_checkedPlane;
-	CIvfLineSetPtr m_checkedFrame;
-	CIvfTexturePtr m_buttonTexture;
-	std::string m_hint;
+    CIvfQuadPlanePtr m_normalShape;
+    CIvfQuadPlanePtr m_pressedShape;
+    CIvfQuadPlanePtr m_disabledShape;
+    CIvfCompositePtr m_checkedShape;
+    CIvfQuadPlanePtr m_checkedPlane;
+    CIvfLineSetPtr m_checkedFrame;
+    CIvfTexturePtr m_buttonTexture;
+    std::string m_hint;
 public:
-	const std::string getHint();
-	void setHint(const std::string& hintText);
-	CIvfPlaneButton(int id);
-	CIvfPlaneButton(int id, const std::string& name);
-	virtual ~CIvfPlaneButton();
+    const std::string getHint();
+    void setHint(const std::string& hintText);
+    CIvfPlaneButton(int id);
+    CIvfPlaneButton(int id, const std::string& name);
+    virtual ~CIvfPlaneButton();
 
-	void setSize(double width, double height);
-	void setTexture(CIvfTexture* texture);
+    void setSize(double width, double height);
+    void setTexture(CIvfTexture* texture);
 };
 
-#endif 
+#endif

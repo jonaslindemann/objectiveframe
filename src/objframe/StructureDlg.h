@@ -12,33 +12,33 @@
 #include <FL/Fl_Value_Input.H>
 
 class CStructureDlg {
-  int m_modalResult;
-  int m_size[3];
-  double m_spacing[3];
+    int m_modalResult;
+    int m_size[3];
+    double m_spacing[3];
 public:
-  CStructureDlg();
-  Fl_Window *wndWorkspace;
-  Fl_Button *btnOk;
+    CStructureDlg();
+    Fl_Window *wndWorkspace;
+    Fl_Button *btnOk;
 private:
-  inline void cb_btnOk_i(Fl_Button*, void*);
-  static void cb_btnOk(Fl_Button*, void*);
+    inline void cb_btnOk_i(Fl_Button*, void*);
+    static void cb_btnOk(Fl_Button*, void*);
 public:
-  Fl_Button *btnCancel;
+    Fl_Button *btnCancel;
 private:
-  inline void cb_btnCancel_i(Fl_Button*, void*);
-  static void cb_btnCancel(Fl_Button*, void*);
+    inline void cb_btnCancel_i(Fl_Button*, void*);
+    static void cb_btnCancel(Fl_Button*, void*);
 public:
-  Fl_Group *grpWorkspace;
-  Fl_Value_Slider *sldRows;
-  Fl_Value_Slider *sldColumns;
-  Fl_Value_Slider *sldStacks;
-  Fl_Value_Input *edtZspacing;
-  Fl_Value_Input *edtXspacing;
-  Fl_Value_Input *edtYspacing;
-  void show();
-  int getModalResult();
-  ~CStructureDlg();
-  void getSize(int &rows, int &cols, int &stacks);
-  void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
+    Fl_Group *grpWorkspace;
+    Fl_Value_Slider *sldRows;
+    Fl_Value_Slider *sldColumns;
+    Fl_Value_Slider *sldStacks;
+    Fl_Value_Input *edtZspacing;
+    Fl_Value_Input *edtXspacing;
+    Fl_Value_Input *edtYspacing;
+    void show();
+    int getModalResult();
+    ~CStructureDlg();
+    void getSize(int &rows, int &cols, int &stacks);
+    void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
 };
 #endif

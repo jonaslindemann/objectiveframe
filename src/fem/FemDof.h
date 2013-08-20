@@ -14,26 +14,26 @@ FemSmartPointer(CFemDof);
 
 class CFemDof : public CFemObject {
 private:
-	int m_kind;
-	long m_number;
+    int m_kind;
+    long m_number;
 public:
-	CFemDof ();
-	CFemDof (int kind, int number=-1);
-	virtual ~CFemDof ();
+    CFemDof ();
+    CFemDof (int kind, int number=-1);
+    virtual ~CFemDof ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemDof",CFemObject);
+    FemClassInfo("CFemDof",CFemObject);
 
-	// Methods
+    // Methods
 
-	virtual void print(std::ostream &out);
+    virtual void print(std::ostream &out);
 
-	// Get/Set methods
+    // Get/Set methods
 
-	void setKind(int kind);
-	int getKind();
-	void setNumber(long number);
-	long getNumber();
+    void setKind(int kind);
+    int getKind();
+    void setNumber(long number);
+    long getNumber();
 };
 #endif

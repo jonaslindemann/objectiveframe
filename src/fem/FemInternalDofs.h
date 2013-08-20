@@ -14,30 +14,30 @@ FemSmartPointer(CFemInternalDofs);
 
 class CFemInternalDofs : public CFemObject  {
 private:
-	std::vector<CFemDof*> m_dofs;
-	int m_kind;
+    std::vector<CFemDof*> m_dofs;
+    int m_kind;
 public:
-	CFemInternalDofs();
-	virtual ~CFemInternalDofs();
+    CFemInternalDofs();
+    virtual ~CFemInternalDofs();
 
-	FemClassInfo("CFemInternalDofs",CFemObject);
+    FemClassInfo("CFemInternalDofs",CFemObject);
 
-	// Get/set methods
+    // Get/set methods
 
-	int getKind();
-	void setKind(int kind);
-	CFemDof* getDof(unsigned int localDof);
+    int getKind();
+    void setKind(int kind);
+    CFemDof* getDof(unsigned int localDof);
 
-	// Methods
+    // Methods
 
-	long enumerateDofs(long count);
-	void clear(unsigned int localDof);
-	void add(unsigned int localDof);
-	bool isAssigned(unsigned int localDof);
+    long enumerateDofs(long count);
+    void clear(unsigned int localDof);
+    void add(unsigned int localDof);
+    bool isAssigned(unsigned int localDof);
 
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
 
 };
 
-#endif 
+#endif

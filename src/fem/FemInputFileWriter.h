@@ -11,15 +11,15 @@ FemSmartPointer(CFemInputFileWriter);
 
 class CFemInputFileWriter : public CFemObject {
 private:
-	CFemModel* m_femModel;
+    CFemModel* m_femModel;
 public:
-	CFemInputFileWriter ();
-	virtual ~CFemInputFileWriter ();
+    CFemInputFileWriter ();
+    virtual ~CFemInputFileWriter ();
 
-	FemClassInfo("CFemInputFileWriter",CFemObject);
+    FemClassInfo("CFemInputFileWriter",CFemObject);
 
-	void setFemModel(CFemModel* model);
-	CFemModel* getFemModel();
-	virtual void saveToStream (std::ostream &out);
+    void setFemModel(CFemModel* model);
+    CFemModel* getFemModel();
+    virtual void saveToStream (std::ostream &out);
 };
 #endif

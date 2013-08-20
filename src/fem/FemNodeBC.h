@@ -8,39 +8,39 @@ FemSmartPointer(CFemNodeBC);
 
 class CFemNodeBC : public CFemBC {
 private:
-	std::vector<CFemNode*> m_nodes;
-	std::vector<long> m_nodeIndex;
-	bool m_prescribedDof[6];
-	double m_prescribedValues[6];
+    std::vector<CFemNode*> m_nodes;
+    std::vector<long> m_nodeIndex;
+    bool m_prescribedDof[6];
+    double m_prescribedValues[6];
 public:
-	CFemNodeBC ();
-	virtual ~CFemNodeBC ();
+    CFemNodeBC ();
+    virtual ~CFemNodeBC ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemNodeBC",CFemBC);
+    FemClassInfo("CFemNodeBC",CFemBC);
 
-	// Methods
+    // Methods
 
-	bool removeNode(CFemNode* node);
-	void clearNodes();
-	void addNode(CFemNode* node);
-	bool isPrescribed(int dof);
-	void unprescribe(int dof);
-	void prescribe(int dof, double value);
+    bool removeNode(CFemNode* node);
+    void clearNodes();
+    void addNode(CFemNode* node);
+    bool isPrescribed(int dof);
+    void unprescribe(int dof);
+    void prescribe(int dof, double value);
 
-	// Get/set methods
+    // Get/set methods
 
-	long getNodeIndex(unsigned int idx);
-	CFemNode* getNode(unsigned int idx);
-	int getNodeSize();
-	int getNodeIndexSize();
-	double getPrescribedValue(int dof);
+    long getNodeIndex(unsigned int idx);
+    CFemNode* getNode(unsigned int idx);
+    int getNodeSize();
+    int getNodeIndexSize();
+    double getPrescribedValue(int dof);
 
-	// IO Methods
+    // IO Methods
 
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 };
 #endif

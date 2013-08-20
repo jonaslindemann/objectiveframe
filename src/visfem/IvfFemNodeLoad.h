@@ -15,31 +15,31 @@ IvfSmartPointer(CIvfFemNodeLoad);
 // public class: CIvfFemNodeLoad
 class CIvfFemNodeLoad : public CIvfShape {
 private:
-	CFemBeamNodeLoad* m_nodeLoad;
-	vector<CIvfExtrArrow*> m_arrow;
-	CIvfMaterial* m_arrowMaterial;
-	CIvfBeamModel* m_beamModel;
+    CFemBeamNodeLoad* m_nodeLoad;
+    vector<CIvfExtrArrow*> m_arrow;
+    CIvfMaterial* m_arrowMaterial;
+    CIvfBeamModel* m_beamModel;
 
-	void initArrow();
+    void initArrow();
 public:
-	CIvfFemNodeLoad ();
-	virtual ~CIvfFemNodeLoad ();
+    CIvfFemNodeLoad ();
+    virtual ~CIvfFemNodeLoad ();
 
-	// Class info
+    // Class info
 
-	IvfClassInfo("CIvfFemNodeLoad",CIvfShape);
+    IvfClassInfo("CIvfFemNodeLoad",CIvfShape);
 
-	// Get/set methods
+    // Get/set methods
 
-	void setBeamModel(CIvfBeamModel* model);
-	void setNodeLoad(CFemBeamNodeLoad* nodeLoad);
+    void setBeamModel(CIvfBeamModel* model);
+    void setNodeLoad(CFemBeamNodeLoad* nodeLoad);
 
-	// Methods
-	
-	void refresh();
+    // Methods
+
+    void refresh();
 
 protected:
-	virtual void doCreateSelect();
-	virtual void doCreateGeometry();
+    virtual void doCreateSelect();
+    virtual void doCreateGeometry();
 };
 #endif

@@ -25,41 +25,41 @@ IvfSmartPointer(CIvfFemBeam);
 
 class CIvfFemBeam : public CIvfComposite {
 private:
-	CFemBeam*			m_femBeam;
-	CIvfSimpleLineSet*	m_lineSet;
-	CIvfSolidLine*		m_solidLine;
-	CIvfFemNode*		m_nodes[2];
-	CIvfMaterial*		m_beamMaterial;
-	CIvfExtrusion*		m_extrusion;
+    CFemBeam*			m_femBeam;
+    CIvfSimpleLineSet*	m_lineSet;
+    CIvfSolidLine*		m_solidLine;
+    CIvfFemNode*		m_nodes[2];
+    CIvfMaterial*		m_beamMaterial;
+    CIvfExtrusion*		m_extrusion;
 
-	CIvfTexture*		m_beamTexture;
-	CIvfImage*			m_beamImage;
+    CIvfTexture*		m_beamTexture;
+    CIvfImage*			m_beamImage;
 
-	CIvfBeamModel*		m_beamModel;
+    CIvfBeamModel*		m_beamModel;
 
-	void initResults();
-	double calcNavier(double N, double My, double Mz);
+    void initResults();
+    double calcNavier(double N, double My, double Mz);
 public:
-	CIvfFemBeam ();
-	virtual ~CIvfFemBeam ();
+    CIvfFemBeam ();
+    virtual ~CIvfFemBeam ();
 
-	IvfClassInfo("CIvfFemBeam",CIvfComposite);
+    IvfClassInfo("CIvfFemBeam",CIvfComposite);
 
-	// Methods
+    // Methods
 
-	virtual void refresh();
-	void initExtrusion();
+    virtual void refresh();
+    void initExtrusion();
 
-	// Get/set methods
+    // Get/set methods
 
-	void setBeam(CFemBeam* beam);
-	CFemBeam* getBeam();
-	void setNodes(CIvfFemNode* node1, CIvfFemNode* node2);
+    void setBeam(CFemBeam* beam);
+    CFemBeam* getBeam();
+    void setNodes(CIvfFemNode* node1, CIvfFemNode* node2);
 
-	void setBeamModel(CIvfBeamModel* beamModel);
+    void setBeamModel(CIvfBeamModel* beamModel);
 
 protected:
-	virtual void doCreateSelect();
-	virtual void doCreateGeometry();
+    virtual void doCreateSelect();
+    virtual void doCreateGeometry();
 };
 #endif

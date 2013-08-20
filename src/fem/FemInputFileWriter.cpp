@@ -5,7 +5,7 @@
 // ------------------------------------------------------------
 CFemInputFileWriter::CFemInputFileWriter ()
 {
-	m_femModel = NULL;
+    m_femModel = NULL;
 }
 
 // ------------------------------------------------------------
@@ -21,11 +21,11 @@ void CFemInputFileWriter::saveToStream (std::ostream &out)
 // ------------------------------------------------------------
 void CFemInputFileWriter::setFemModel(CFemModel *model)
 {
-	m_femModel = model;
+    m_femModel = model;
 }
 
 // ------------------------------------------------------------
 CFemModel* CFemInputFileWriter::getFemModel()
 {
-	return m_femModel;
+    return m_femModel;
 }

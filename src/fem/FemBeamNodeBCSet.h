@@ -10,12 +10,12 @@ class CFemBeamNodeBCSet : public CFemNodeBCSet {
 private:
 
 public:
-	CFemBeamNodeBCSet();
-	virtual ~CFemBeamNodeBCSet();
+    CFemBeamNodeBCSet();
+    virtual ~CFemBeamNodeBCSet();
 
-	FemClassInfo("CFemBeamNodeBCSet",CFemNodeBCSet);
+    FemClassInfo("CFemBeamNodeBCSet",CFemNodeBCSet);
 protected:
-	CFemBC* createBC();
+    CFemBC* createBC();
 };
 
-#endif 
+#endif

@@ -15,38 +15,38 @@
 #include <FL/Fl_Browser.H>
 
 class CBeamPropDlg {
-  CIvfFemBeam* m_beam; 
-  void* m_femWidget; 
+    CIvfFemBeam* m_beam;
+    void* m_femWidget;
 public:
-  CBeamPropDlg();
-  Fl_Double_Window *wndBeamProp;
-  Fl_Button *btnClose;
+    CBeamPropDlg();
+    Fl_Double_Window *wndBeamProp;
+    Fl_Button *btnClose;
 private:
-  void cb_btnClose_i(Fl_Button*, void*);
-  static void cb_btnClose(Fl_Button*, void*);
+    void cb_btnClose_i(Fl_Button*, void*);
+    static void cb_btnClose(Fl_Button*, void*);
 public:
-  Fl_Group *grpBeamRotation;
-  Fl_Value_Slider *sldBeamRotation;
+    Fl_Group *grpBeamRotation;
+    Fl_Value_Slider *sldBeamRotation;
 private:
-  void cb_sldBeamRotation_i(Fl_Value_Slider*, void*);
-  static void cb_sldBeamRotation(Fl_Value_Slider*, void*);
+    void cb_sldBeamRotation_i(Fl_Value_Slider*, void*);
+    static void cb_sldBeamRotation(Fl_Value_Slider*, void*);
 public:
-  Fl_Button *btnShowMaterialDlg;
+    Fl_Button *btnShowMaterialDlg;
 private:
-  void cb_btnShowMaterialDlg_i(Fl_Button*, void*);
-  static void cb_btnShowMaterialDlg(Fl_Button*, void*);
+    void cb_btnShowMaterialDlg_i(Fl_Button*, void*);
+    static void cb_btnShowMaterialDlg(Fl_Button*, void*);
 public:
-  Fl_Box *boxDivider;
-  Fl_Tabs *tabResults;
-  Fl_Group *grpSectionForces;
-  Fl_Browser *lbSectionForces;
-  Fl_Group *grpDisplacements;
-  Fl_Browser *lbDisplacements;
-  void show();
-  void setBeam(CIvfFemBeam* beam);
-  CIvfFemBeam* getBeam();
-  void hide();
-  void setFemWidget(void* femWidget);
-  void fillListboxes();
+    Fl_Box *boxDivider;
+    Fl_Tabs *tabResults;
+    Fl_Group *grpSectionForces;
+    Fl_Browser *lbSectionForces;
+    Fl_Group *grpDisplacements;
+    Fl_Browser *lbDisplacements;
+    void show();
+    void setBeam(CIvfFemBeam* beam);
+    CIvfFemBeam* getBeam();
+    void hide();
+    void setFemWidget(void* femWidget);
+    void fillListboxes();
 };
 #endif

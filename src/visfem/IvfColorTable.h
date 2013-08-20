@@ -6,19 +6,19 @@
 
 IvfSmartPointer(CIvfColorTable);
 
-class CIvfColorTable : public CIvfBase  
+class CIvfColorTable : public CIvfBase
 {
 private:
-	float m_colorTable[256][3];
+    float m_colorTable[256][3];
 public:
-	CIvfColorTable();
-	virtual ~CIvfColorTable();
+    CIvfColorTable();
+    virtual ~CIvfColorTable();
 
-	IvfClassInfo("CIvfColorTable",CIvfBase);
+    IvfClassInfo("CIvfColorTable",CIvfBase);
 
-	void setColor(int idx, float r, float g, float b);
-	void assignColor(int idx, CIvfMaterial* material);
-	void getColor(int idx, float &r, float &g, float &b);
+    void setColor(int idx, float r, float g, float b);
+    void assignColor(int idx, CIvfMaterial* material);
+    void getColor(int idx, float &r, float &g, float &b);
 };
 
-#endif 
+#endif

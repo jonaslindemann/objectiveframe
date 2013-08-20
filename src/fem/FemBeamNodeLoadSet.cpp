@@ -2,7 +2,7 @@
 
 // ------------------------------------------------------------
 CFemBeamNodeLoadSet::CFemBeamNodeLoadSet()
-:CFemNodeLoadSet()
+    :CFemNodeLoadSet()
 {
 
 }
@@ -16,6 +16,6 @@ CFemBeamNodeLoadSet::~CFemBeamNodeLoadSet()
 // ------------------------------------------------------------
 CFemLoad* CFemBeamNodeLoadSet::createLoad()
 {
-	return new CFemBeamNodeLoad();
+    return new CFemBeamNodeLoad();
 }
 

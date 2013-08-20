@@ -61,14 +61,25 @@ CIvfFemBeam::CIvfFemBeam ()
 
 	for (i=0; i<8; i++)
 	{
+        /*
 		m_beamImage->setPixel(0,i,255,255,255);
-		m_beamImage->setPixel(1,i,255,255,255);
+		m_beamImage->setPixel(1,i,0,0,0);
 		m_beamImage->setPixel(2,i,255,255,255);
-		m_beamImage->setPixel(3,i,255,255,255);
+		m_beamImage->setPixel(3,i,0,0,0);
 		m_beamImage->setPixel(4,i,255,255,255);
-		m_beamImage->setPixel(5,i,255,255,255);
+		m_beamImage->setPixel(5,i,0,0,0);
 		m_beamImage->setPixel(6,i,255,255,255);
-		m_beamImage->setPixel(7,i,255,255,255);
+		m_beamImage->setPixel(7,i,0,0,0);
+        */
+        
+		m_beamImage->setPixel(i,0,255,255,255);
+		m_beamImage->setPixel(i,1,0,0,0);
+		m_beamImage->setPixel(i,2,255,255,255);
+		m_beamImage->setPixel(i,3,0,0,0);
+		m_beamImage->setPixel(i,4,255,255,255);
+		m_beamImage->setPixel(i,5,0,0,0);
+		m_beamImage->setPixel(i,6,255,255,255);
+		m_beamImage->setPixel(i,7,0,0,0);
 	}
 
 	m_beamTexture = new CIvfTexture();
@@ -78,6 +89,9 @@ CIvfFemBeam::CIvfFemBeam ()
 	m_beamTexture->deactivate();
 
 	m_solidLine->setTexture(m_beamTexture);
+    m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_NORMAL_CYL);
+    //m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_VERTEX_MODEL_CYL);
+    
 
 	// Create a line indicating z-axis
 
@@ -190,7 +204,7 @@ void CIvfFemBeam::refresh()
 						m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 						m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
 						m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_VERTEX_MODEL_CYL);
-						//m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_NORMAL_CYL);
+						//m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_NORMAL_FLAT);
 						initResults();
 					} else {
 						m_solidLine->setRadius(m_beamModel->getLineRadius());
@@ -439,8 +453,8 @@ void CIvfFemBeam::initResults()
 				r = (GLubyte)(255.0f*red);
 				g = (GLubyte)(255.0f*green);
 				b = (GLubyte)(255.0f*blue);
-				
-                /*
+
+				/*
 				m_beamImage->setPixel(k, 0, r, g, b);
 				m_beamImage->setPixel(k, 1, r, g, b);
 				m_beamImage->setPixel(k, 2, r, g, b);
@@ -450,7 +464,6 @@ void CIvfFemBeam::initResults()
 				m_beamImage->setPixel(k, 6, r, g, b);
 				m_beamImage->setPixel(k, 7, r, g, b);
                 */
-                
 				m_beamImage->setPixel(0, k, r, g, b);
 				m_beamImage->setPixel(1, k, r, g, b);
 				m_beamImage->setPixel(2, k, r, g, b);

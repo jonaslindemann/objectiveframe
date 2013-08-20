@@ -7,22 +7,22 @@ FemSmartPointer(CFemMaterial);
 
 class CFemMaterial : public CFemObject {
 private:
-	long m_number;
+    long m_number;
 public:
-	CFemMaterial ();
-	virtual ~CFemMaterial ();
+    CFemMaterial ();
+    virtual ~CFemMaterial ();
 
-	FemClassInfo("CFemMaterial",CFemObject);
+    FemClassInfo("CFemMaterial",CFemObject);
 
-	// Get/set methods
-	
-	long getNumber();
-	void setNumber(long number);
+    // Get/set methods
 
-	// IO Methods
+    long getNumber();
+    void setNumber(long number);
 
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    // IO Methods
+
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 };
 #endif

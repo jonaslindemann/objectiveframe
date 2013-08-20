@@ -7,9 +7,9 @@ FemSmartPointer(CFemTubeSection);
 
 class CFemTubeSection : public CFemSection {
 public:
-	CFemTubeSection ();
-	virtual ~CFemTubeSection ();
+    CFemTubeSection ();
+    virtual ~CFemTubeSection ();
 
-	FemClassInfo("CFemTubeSection",CFemSection);
+    FemClassInfo("CFemTubeSection",CFemSection);
 };
 #endif

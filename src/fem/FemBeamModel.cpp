@@ -5,8 +5,8 @@
 
 // ------------------------------------------------------------
 CFemBeamModel::CFemBeamModel ()
-		:CFemModel()
-		//TODO: check and complete member initialisation list!
+    :CFemModel()
+    //TODO: check and complete member initialisation list!
 {
 }
 
@@ -18,48 +18,48 @@ CFemBeamModel::~CFemBeamModel ()
 // ------------------------------------------------------------
 void CFemBeamModel::connectMaterials()
 {
-	CFemBeamSet* elementSet = this->getElementSet();
-	elementSet->connectMaterials(this->getMaterialSet());
+    CFemBeamSet* elementSet = this->getElementSet();
+    elementSet->connectMaterials(this->getMaterialSet());
 }
 
 // ------------------------------------------------------------
 CFemElementSet* CFemBeamModel::createElementSet()
 {
-	return new CFemBeamSet();
+    return new CFemBeamSet();
 }
 
 // ------------------------------------------------------------
 CFemMaterialSet* CFemBeamModel::createMaterialSet()
 {
-	return new CFemBeamMaterialSet();
+    return new CFemBeamMaterialSet();
 }
 
 // ------------------------------------------------------------
 CFemBeamSet* CFemBeamModel::getElementSet()
 {
-	return (CFemBeamSet*)(CFemModel::getElementSet());
+    return (CFemBeamSet*)(CFemModel::getElementSet());
 }
 
 // ------------------------------------------------------------
 CFemBeamMaterialSet* CFemBeamModel::getMaterialSet()
 {
-	return (CFemBeamMaterialSet*)(CFemModel::getMaterialSet());
+    return (CFemBeamMaterialSet*)(CFemModel::getMaterialSet());
 }
 
 // ------------------------------------------------------------
 CFemElementLoadSet* CFemBeamModel::createElementLoadSet()
 {
-	return new CFemBeamLoadSet();
+    return new CFemBeamLoadSet();
 }
 
 // ------------------------------------------------------------
 CFemNodeLoadSet* CFemBeamModel::createNodeLoadSet()
 {
-	return new CFemBeamNodeLoadSet();
+    return new CFemBeamNodeLoadSet();
 }
 
 // ------------------------------------------------------------
 CFemNodeBCSet* CFemBeamModel::createBCSet()
 {
-	return new CFemBeamNodeBCSet();
+    return new CFemBeamNodeBCSet();
 }

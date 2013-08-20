@@ -5,14 +5,14 @@
 
 class CIvfButtonGroup : public CIvfComposite {
 private:
-	int m_checkIdx;
+    int m_checkIdx;
 public:
-	void recheck();
-	CIvfButtonGroup();
-	virtual ~CIvfButtonGroup();
+    void recheck();
+    CIvfButtonGroup();
+    virtual ~CIvfButtonGroup();
 
-	void check(int idx);
-	void clearChecked();
+    void check(int idx);
+    void clearChecked();
 };
 
-#endif 
+#endif

@@ -9,15 +9,15 @@ FemSmartPointer(CFemBeamSet);
 
 class CFemBeamSet : public CFemElementSet {
 protected:
-	virtual CFemElement* createElement();
+    virtual CFemElement* createElement();
 public:
-	CFemBeamSet ();
-	virtual ~CFemBeamSet ();
+    CFemBeamSet ();
+    virtual ~CFemBeamSet ();
 
-	FemClassInfo("CFemBeamSet",CFemElementSet);
+    FemClassInfo("CFemBeamSet",CFemElementSet);
 
-	// Methods
+    // Methods
 
-	void connectMaterials(CFemBeamMaterialSet* materialSet);
+    void connectMaterials(CFemBeamMaterialSet* materialSet);
 };
 #endif

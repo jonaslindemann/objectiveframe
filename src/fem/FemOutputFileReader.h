@@ -2,23 +2,23 @@
 #define _CFemOutputFileReader_h_
 
 #include "FemObject.h"
-#include "FemModel.h"	
+#include "FemModel.h"
 
 FemSmartPointer(CFemOutputFileReader);
 
 class CFemOutputFileReader : public CFemObject {
 private:
-	CFemModel* m_femModel;
+    CFemModel* m_femModel;
 public:
-	CFemOutputFileReader();
-	virtual ~CFemOutputFileReader();
+    CFemOutputFileReader();
+    virtual ~CFemOutputFileReader();
 
-	FemClassInfo("CFemOutputFileReader",CFemObject);
+    FemClassInfo("CFemOutputFileReader",CFemObject);
 
-	CFemModel* getFemModel();
-	void setFemModel(CFemModel* model);
+    CFemModel* getFemModel();
+    void setFemModel(CFemModel* model);
 
-	virtual void readFromStream(istream &in);
+    virtual void readFromStream(istream &in);
 };
 
-#endif 
+#endif

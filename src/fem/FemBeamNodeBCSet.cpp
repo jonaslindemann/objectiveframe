@@ -20,6 +20,6 @@ CFemBeamNodeBCSet::~CFemBeamNodeBCSet()
 
 CFemBC* CFemBeamNodeBCSet::createBC()
 {
-	return new CFemBeamNodeBC();
+    return new CFemBeamNodeBC();
 }
 

@@ -10,36 +10,36 @@ FemSmartPointer(CFemMaterialSet);
 
 class CFemMaterialSet : public CFemObject {
 private:
-	std::vector<CFemMaterial*> m_materials;
+    std::vector<CFemMaterial*> m_materials;
 protected:
 
-	// Allocators
+    // Allocators
 
-	virtual CFemMaterial* createMaterial();
+    virtual CFemMaterial* createMaterial();
 public:
-	CFemMaterialSet ();
-	virtual ~CFemMaterialSet ();
+    CFemMaterialSet ();
+    virtual ~CFemMaterialSet ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemMaterialSet",CFemObject);
+    FemClassInfo("CFemMaterialSet",CFemObject);
 
-	// Methods
+    // Methods
 
-	void deleteAll();
-	CFemMaterial* removeMaterial(long i);
-	bool deleteMaterial(long i);
-	CFemMaterial* getMaterial(long i);
-	void addMaterial(CFemMaterial* material);
-	long getSize();
-	void clear();
-	long enumerateMaterials(long count=1);
-	bool removeMaterial(CFemMaterial* material);
+    void deleteAll();
+    CFemMaterial* removeMaterial(long i);
+    bool deleteMaterial(long i);
+    CFemMaterial* getMaterial(long i);
+    void addMaterial(CFemMaterial* material);
+    long getSize();
+    void clear();
+    long enumerateMaterials(long count=1);
+    bool removeMaterial(CFemMaterial* material);
 
-	// IO methods
+    // IO methods
 
-	void readFromStream(std::istream &in);
-	void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    void readFromStream(std::istream &in);
+    void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 };
 #endif

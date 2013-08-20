@@ -10,10 +10,10 @@
 
 class CFeedbackDlg {
 public:
-  CFeedbackDlg();
-  Fl_Window *wndProcessing;
-  ~CFeedbackDlg();
-  void show();
-  void hide();
+    CFeedbackDlg();
+    Fl_Window *wndProcessing;
+    ~CFeedbackDlg();
+    void show();
+    void hide();
 };
 #endif

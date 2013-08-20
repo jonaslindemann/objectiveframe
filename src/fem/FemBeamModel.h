@@ -12,22 +12,22 @@ FemSmartPointer(CFemBeamModel);
 
 class CFemBeamModel : public CFemModel {
 protected:
-	virtual CFemNodeBCSet* createBCSet();
-	virtual CFemElementLoadSet* createElementLoadSet();
-	virtual CFemNodeLoadSet* createNodeLoadSet();
-	virtual CFemMaterialSet* createMaterialSet();
-	virtual CFemElementSet* createElementSet();
-	void connectMaterials();
+    virtual CFemNodeBCSet* createBCSet();
+    virtual CFemElementLoadSet* createElementLoadSet();
+    virtual CFemNodeLoadSet* createNodeLoadSet();
+    virtual CFemMaterialSet* createMaterialSet();
+    virtual CFemElementSet* createElementSet();
+    void connectMaterials();
 public:
-	CFemBeamModel ();
-	virtual ~CFemBeamModel ();
+    CFemBeamModel ();
+    virtual ~CFemBeamModel ();
 
-	FemClassInfo("CFemBeamModel",CFemModel);
+    FemClassInfo("CFemBeamModel",CFemModel);
 
-	// Get/set methods
+    // Get/set methods
 
-	CFemBeamMaterialSet* getMaterialSet();
-	CFemBeamSet* getElementSet();
+    CFemBeamMaterialSet* getMaterialSet();
+    CFemBeamSet* getElementSet();
 
 };
 #endif

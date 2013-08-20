@@ -4,128 +4,128 @@
 #include <iostream.h>
 
 inline void CWorkspaceDlg::cb_btnOk_i(Fl_Button*, void*) {
-  m_modalResult = MR_OK;
-wndWorkspace->hide();
-m_workspaceSize = (double)(sldWorkspaceSize->value());
+    m_modalResult = MR_OK;
+    wndWorkspace->hide();
+    m_workspaceSize = (double)(sldWorkspaceSize->value());
 }
 void CWorkspaceDlg::cb_btnOk(Fl_Button* o, void* v) {
-  ((CWorkspaceDlg*)(o->parent()->user_data()))->cb_btnOk_i(o,v);
+    ((CWorkspaceDlg*)(o->parent()->user_data()))->cb_btnOk_i(o,v);
 }
 
 inline void CWorkspaceDlg::cb_btnCancel_i(Fl_Button*, void*) {
-  m_modalResult = MR_CANCEL;
-wndWorkspace->hide();
+    m_modalResult = MR_CANCEL;
+    wndWorkspace->hide();
 }
 void CWorkspaceDlg::cb_btnCancel(Fl_Button* o, void* v) {
-  ((CWorkspaceDlg*)(o->parent()->user_data()))->cb_btnCancel_i(o,v);
+    ((CWorkspaceDlg*)(o->parent()->user_data()))->cb_btnCancel_i(o,v);
 }
 
 CWorkspaceDlg::CWorkspaceDlg() {
-  Fl_Window* w;
-  { Fl_Window* o = wndWorkspace = new Fl_Window(309, 186, "Workspace");
-    w = o;
-    o->user_data((void*)(this));
-    { Fl_Button* o = btnOk = new Fl_Button(236, 6, 67, 25, "OK");
-      o->box(FL_PLASTIC_UP_BOX);
-      o->down_box(FL_PLASTIC_DOWN_BOX);
-      o->callback((Fl_Callback*)cb_btnOk);
+    Fl_Window* w;
+    {   Fl_Window* o = wndWorkspace = new Fl_Window(309, 186, "Workspace");
+        w = o;
+        o->user_data((void*)(this));
+        {   Fl_Button* o = btnOk = new Fl_Button(236, 6, 67, 25, "OK");
+            o->box(FL_PLASTIC_UP_BOX);
+            o->down_box(FL_PLASTIC_DOWN_BOX);
+            o->callback((Fl_Callback*)cb_btnOk);
+        }
+        {   Fl_Button* o = btnCancel = new Fl_Button(236, 37, 67, 25, "Cancel");
+            o->box(FL_PLASTIC_UP_BOX);
+            o->down_box(FL_PLASTIC_DOWN_BOX);
+            o->callback((Fl_Callback*)cb_btnCancel);
+        }
+        {   Fl_Group* o = grpWorkspace = new Fl_Group(5, 5, 225, 175);
+            o->box(FL_PLASTIC_DOWN_FRAME);
+            {   Fl_Value_Slider* o = sldWorkspaceSize = new Fl_Value_Slider(17, 28, 201, 20, "Size (units)");
+                o->type(5);
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(1);
+                o->maximum(100);
+                o->step(1);
+                o->value(10);
+                o->align(FL_ALIGN_TOP_LEFT);
+            }
+            {   Fl_Value_Slider* o = sldNodeSize = new Fl_Value_Slider(17, 68, 201, 20, "Node size (% of workspace)");
+                o->type(5);
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(0.1);
+                o->maximum(2);
+                o->step(0.05);
+                o->value(0.5);
+                o->align(FL_ALIGN_TOP_LEFT);
+            }
+            {   Fl_Value_Slider* o = sldLineRadius = new Fl_Value_Slider(17, 107, 201, 20, "Line radius (% of workspace)");
+                o->type(5);
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(0.1);
+                o->maximum(2);
+                o->step(0.05);
+                o->value(0.15);
+                o->align(FL_ALIGN_TOP_LEFT);
+            }
+            {   Fl_Value_Slider* o = sldLoadSize = new Fl_Value_Slider(18, 146, 201, 20, "Load size (% of workspace)");
+                o->type(5);
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(1);
+                o->maximum(10);
+                o->step(1);
+                o->value(7);
+                o->align(FL_ALIGN_TOP_LEFT);
+            }
+            o->end();
+        }
+        o->set_modal();
+        o->end();
     }
-    { Fl_Button* o = btnCancel = new Fl_Button(236, 37, 67, 25, "Cancel");
-      o->box(FL_PLASTIC_UP_BOX);
-      o->down_box(FL_PLASTIC_DOWN_BOX);
-      o->callback((Fl_Callback*)cb_btnCancel);
-    }
-    { Fl_Group* o = grpWorkspace = new Fl_Group(5, 5, 225, 175);
-      o->box(FL_PLASTIC_DOWN_FRAME);
-      { Fl_Value_Slider* o = sldWorkspaceSize = new Fl_Value_Slider(17, 28, 201, 20, "Size (units)");
-        o->type(5);
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(1);
-        o->maximum(100);
-        o->step(1);
-        o->value(10);
-        o->align(FL_ALIGN_TOP_LEFT);
-      }
-      { Fl_Value_Slider* o = sldNodeSize = new Fl_Value_Slider(17, 68, 201, 20, "Node size (% of workspace)");
-        o->type(5);
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(0.1);
-        o->maximum(2);
-        o->step(0.05);
-        o->value(0.5);
-        o->align(FL_ALIGN_TOP_LEFT);
-      }
-      { Fl_Value_Slider* o = sldLineRadius = new Fl_Value_Slider(17, 107, 201, 20, "Line radius (% of workspace)");
-        o->type(5);
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(0.1);
-        o->maximum(2);
-        o->step(0.05);
-        o->value(0.15);
-        o->align(FL_ALIGN_TOP_LEFT);
-      }
-      { Fl_Value_Slider* o = sldLoadSize = new Fl_Value_Slider(18, 146, 201, 20, "Load size (% of workspace)");
-        o->type(5);
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(1);
-        o->maximum(10);
-        o->step(1);
-        o->value(7);
-        o->align(FL_ALIGN_TOP_LEFT);
-      }
-      o->end();
-    }
-    o->set_modal();
-    o->end();
-  }
 }
 
 CWorkspaceDlg::~CWorkspaceDlg() {
-  delete wndWorkspace;
+    delete wndWorkspace;
 }
 
 void CWorkspaceDlg::show() {
-  wndWorkspace->show();
-while (wndWorkspace->visible()) Fl::wait();
+    wndWorkspace->show();
+    while (wndWorkspace->visible()) Fl::wait();
 }
 
 int CWorkspaceDlg::getModalResult() {
-  return m_modalResult;
+    return m_modalResult;
 }
 
 void CWorkspaceDlg::setWorkspaceSize(double size) {
-  m_workspaceSize = size;
-sldWorkspaceSize->value(size);
+    m_workspaceSize = size;
+    sldWorkspaceSize->value(size);
 }
 
 double CWorkspaceDlg::getWorkspaceSize() {
-  return m_workspaceSize;
+    return m_workspaceSize;
 }
 
 void CWorkspaceDlg::setNodeSize(double size) {
-  sldNodeSize->value(size*100.0);
+    sldNodeSize->value(size*100.0);
 }
 
 void CWorkspaceDlg::setLineRadius(double radius) {
-  sldLineRadius->value(radius*100.0);
+    sldLineRadius->value(radius*100.0);
 }
 
 void CWorkspaceDlg::setLoadSize(double size) {
-  sldLoadSize->value(size*100.0);
+    sldLoadSize->value(size*100.0);
 }
 
 double CWorkspaceDlg::getNodeSize() {
-  return (double)sldNodeSize->value()/100.0;
+    return (double)sldNodeSize->value()/100.0;
 }
 
 double CWorkspaceDlg::getLineRadius() {
-  return (double)sldLineRadius->value()/100.0;
+    return (double)sldLineRadius->value()/100.0;
 }
 
 double CWorkspaceDlg::getLoadSize() {
-  return (double)sldLoadSize->value()/100.0;
+    return (double)sldLoadSize->value()/100.0;
 }

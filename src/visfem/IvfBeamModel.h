@@ -28,80 +28,80 @@ FemSmartPointer(CIvfBeamModel);
 
 class CIvfBeamModel : public CFemBeamModel {
 private:
-	double m_nodeSize;
-	double m_lineRadius;
-	int m_lineSides;
-	double m_loadSize;
-	double m_beamLoadSize;
-	double m_scaleFactor;
+    double m_nodeSize;
+    double m_lineRadius;
+    int m_lineSides;
+    double m_loadSize;
+    double m_beamLoadSize;
+    double m_scaleFactor;
 
-	int m_beamType;
-	int m_resultType;
-	CIvfNode::TNodeType m_nodeType;
+    int m_beamType;
+    int m_resultType;
+    int m_nodeType;
 
-	CIvfCompositePtr m_scene;
-	CIvfMaterialPtr m_nodeMaterial;
-	CIvfMaterialPtr m_beamMaterial;
-	CIvfColorTablePtr m_colorTable;
+    CIvfCompositePtr m_scene;
+    CIvfMaterialPtr m_nodeMaterial;
+    CIvfMaterialPtr m_beamMaterial;
+    CIvfColorTablePtr m_colorTable;
 
-	CColorMap* m_colorMapPos;
-	CColorMap* m_colorMapNeg;
-	CColorMap* m_colorMapStd;
-	CResultInfo* m_resultInfo;
+    CColorMap* m_colorMapPos;
+    CColorMap* m_colorMapNeg;
+    CColorMap* m_colorMapStd;
+    CResultInfo* m_resultInfo;
 
-	std::string m_colorMapPath;
+    std::string m_colorMapPath;
 
 public:
-	CIvfBeamModel ();
-	virtual ~CIvfBeamModel ();
+    CIvfBeamModel ();
+    virtual ~CIvfBeamModel ();
 
-	FemClassInfo("CIvfBeamModel",CFemBeamModel);
+    FemClassInfo("CIvfBeamModel",CFemBeamModel);
 
-	void generateModel();
+    void generateModel();
 
-	void setScene(CIvfComposite* scene);
-	CIvfComposite* getScene();
+    void setScene(CIvfComposite* scene);
+    CIvfComposite* getScene();
 
-	void setResultInfo(CResultInfo* resultInfo);
-	void setColorMaps(CColorMap* pos, CColorMap* neg, CColorMap* std);
+    void setResultInfo(CResultInfo* resultInfo);
+    void setColorMaps(CColorMap* pos, CColorMap* neg, CColorMap* std);
 
-	void setLineRadius(double radius);
-	double getLineRadius();
+    void setLineRadius(double radius);
+    double getLineRadius();
 
-	void setNodeSize(double size);
-	double getNodeSize();
+    void setNodeSize(double size);
+    double getNodeSize();
 
-	void setNodeMaterial(CIvfMaterial* material);
-	CIvfMaterial* getNodeMaterial();
+    void setNodeMaterial(CIvfMaterial* material);
+    CIvfMaterial* getNodeMaterial();
 
-	int getNodeType();
-	void setNodeType(CIvfNode::TNodeType type);
+    int getNodeType();
+    void setNodeType(int type);
 
-	void setBeamLoadSize(double size);
-	double getBeamLoadSize();
+    void setBeamLoadSize(double size);
+    double getBeamLoadSize();
 
-	void setLoadSize(double size);
-	double getLoadSize();
-	
-	void setBeamMaterial(CIvfMaterial* material);
-	void setLineSides(int sides);
+    void setLoadSize(double size);
+    double getLoadSize();
 
-	CIvfColorTable* getColorTable();
+    void setBeamMaterial(CIvfMaterial* material);
+    void setLineSides(int sides);
 
-	void setPath(const std::string& path);
+    CIvfColorTable* getColorTable();
 
-	void setScaleFactor(double factor);
-	double getScaleFactor();
-	
-	CColorMap* getColorMapStd();
-	CColorMap* getColorMapNeg();
-	CColorMap* getColorMapPos();
-	CResultInfo* getResultInfo();
-	
-	void setResultType(int type);
-	int getResultType();
+    void setPath(const std::string& path);
 
-	void setBeamType(int type);
-	int getBeamType();
+    void setScaleFactor(double factor);
+    double getScaleFactor();
+
+    CColorMap* getColorMapStd();
+    CColorMap* getColorMapNeg();
+    CColorMap* getColorMapPos();
+    CResultInfo* getResultInfo();
+
+    void setResultType(int type);
+    int getResultType();
+
+    void setBeamType(int type);
+    int getBeamType();
 };
 #endif

@@ -4,7 +4,7 @@
 
 // ------------------------------------------------------------
 CFemNodeBCSet::CFemNodeBCSet()
-:CFemBCSet()
+    :CFemBCSet()
 {
 
 }
@@ -18,6 +18,6 @@ CFemNodeBCSet::~CFemNodeBCSet()
 // ------------------------------------------------------------
 CFemBC* CFemNodeBCSet::createBC()
 {
-	return (CFemBC*) new CFemNodeBC();
+    return (CFemBC*) new CFemNodeBC();
 }
 

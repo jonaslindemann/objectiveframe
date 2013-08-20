@@ -9,19 +9,19 @@
 
 class Fl_ColorBox : public Fl_Widget {
 private:
-	double m_color[3];
+    double m_color[3];
 public:
-	Fl_ColorBox(int,int,int,int,const char * = 0);
-	/** Fl_HoverButton class constructor. */
-	virtual ~Fl_ColorBox();
+    Fl_ColorBox(int,int,int,int,const char * = 0);
+    /** Fl_HoverButton class constructor. */
+    virtual ~Fl_ColorBox();
 
-	void setColor(double red, double green, double blue);
+    void setColor(double red, double green, double blue);
 
 protected:
-	/** Overridden FLTK handle method. */
-	int handle(int event);
+    /** Overridden FLTK handle method. */
+    int handle(int event);
 
-	/** Overridden FLTK draw method. */
-	void draw();
+    /** Overridden FLTK draw method. */
+    void draw();
 };
-#endif 
+#endif

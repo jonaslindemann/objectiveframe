@@ -4,7 +4,7 @@
 
 // ------------------------------------------------------------
 CFemBeamLoadSet::CFemBeamLoadSet()
-:CFemElementLoadSet()
+    :CFemElementLoadSet()
 {
 
 }
@@ -18,6 +18,6 @@ CFemBeamLoadSet::~CFemBeamLoadSet()
 // ------------------------------------------------------------
 CFemLoad* CFemBeamLoadSet::createLoad()
 {
-	return new CFemBeamLoad();
+    return new CFemBeamLoad();
 }
 

@@ -16,43 +16,43 @@
 #include <FL/Fl_Round_Button.H>
 
 class CNodeLoadDlg {
-  CFemBeamNodeLoad* m_load; 
-  Fl_Widget* m_workspace; 
-  int m_modalResult; 
-  Fl_Color m_colorIndex; 
+    CFemBeamNodeLoad* m_load;
+    Fl_Widget* m_workspace;
+    int m_modalResult;
+    Fl_Color m_colorIndex;
 public:
-  CNodeLoadDlg();
-  Fl_Double_Window *wndNodeLoad;
-  Fl_Button *btnApply;
+    CNodeLoadDlg();
+    Fl_Double_Window *wndNodeLoad;
+    Fl_Button *btnApply;
 private:
-  void cb_btnApply_i(Fl_Button*, void*);
-  static void cb_btnApply(Fl_Button*, void*);
+    void cb_btnApply_i(Fl_Button*, void*);
+    static void cb_btnApply(Fl_Button*, void*);
 public:
-  Fl_Button *btnClose;
+    Fl_Button *btnClose;
 private:
-  void cb_btnClose_i(Fl_Button*, void*);
-  static void cb_btnClose(Fl_Button*, void*);
+    void cb_btnClose_i(Fl_Button*, void*);
+    static void cb_btnClose(Fl_Button*, void*);
 public:
-  Fl_Tabs *tbElementLoad;
-  Fl_Group *grpGeneral;
-  Fl_Input *edtName;
-  Fl_Box *boxColor;
-  Fl_Button *btnSetColor;
+    Fl_Tabs *tbElementLoad;
+    Fl_Group *grpGeneral;
+    Fl_Input *edtName;
+    Fl_Box *boxColor;
+    Fl_Button *btnSetColor;
 private:
-  void cb_btnSetColor_i(Fl_Button*, void*);
-  static void cb_btnSetColor(Fl_Button*, void*);
+    void cb_btnSetColor_i(Fl_Button*, void*);
+    static void cb_btnSetColor(Fl_Button*, void*);
 public:
-  Fl_Group *grpData;
-  Fl_Value_Input *edtValue;
-  Fl_Group *grpLoadDirection;
-  Fl_Round_Button *rbXDirection;
-  Fl_Round_Button *rbYDirection;
-  Fl_Round_Button *rbZDirection;
-  void show();
-  void setLoad(CFemBeamNodeLoad* load);
-  CFemBeamNodeLoad* getLoad();
-  void setWorkspace(Fl_Widget* widget);
-  void hide();
-  int getModalResult();
+    Fl_Group *grpData;
+    Fl_Value_Input *edtValue;
+    Fl_Group *grpLoadDirection;
+    Fl_Round_Button *rbXDirection;
+    Fl_Round_Button *rbYDirection;
+    Fl_Round_Button *rbZDirection;
+    void show();
+    void setLoad(CFemBeamNodeLoad* load);
+    CFemBeamNodeLoad* getLoad();
+    void setWorkspace(Fl_Widget* widget);
+    void hide();
+    int getModalResult();
 };
 #endif

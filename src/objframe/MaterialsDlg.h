@@ -15,50 +15,50 @@
 #include "Fl_HoverButton.h"
 
 class CMaterialsDlg {
-  CFemBeamMaterialSet* m_materials; 
-  void* m_femWidget; 
-  CFemBeamMaterial* m_currentMaterial; 
+    CFemBeamMaterialSet* m_materials;
+    void* m_femWidget;
+    CFemBeamMaterial* m_currentMaterial;
 public:
-  CMaterialsDlg();
-  Fl_Double_Window *wndMaterials;
-  Fl_Browser *lbMaterials;
+    CMaterialsDlg();
+    Fl_Double_Window *wndMaterials;
+    Fl_Browser *lbMaterials;
 private:
-  void cb_lbMaterials_i(Fl_Browser*, void*);
-  static void cb_lbMaterials(Fl_Browser*, void*);
+    void cb_lbMaterials_i(Fl_Browser*, void*);
+    static void cb_lbMaterials(Fl_Browser*, void*);
 public:
-  Fl_HoverButton *btnAddMaterial;
+    Fl_HoverButton *btnAddMaterial;
 private:
-  void cb_btnAddMaterial_i(Fl_HoverButton*, void*);
-  static void cb_btnAddMaterial(Fl_HoverButton*, void*);
+    void cb_btnAddMaterial_i(Fl_HoverButton*, void*);
+    static void cb_btnAddMaterial(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnRemoveMaterial;
+    Fl_HoverButton *btnRemoveMaterial;
 private:
-  void cb_btnRemoveMaterial_i(Fl_HoverButton*, void*);
-  static void cb_btnRemoveMaterial(Fl_HoverButton*, void*);
+    void cb_btnRemoveMaterial_i(Fl_HoverButton*, void*);
+    static void cb_btnRemoveMaterial(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnEditMaterial;
+    Fl_HoverButton *btnEditMaterial;
 private:
-  void cb_btnEditMaterial_i(Fl_HoverButton*, void*);
-  static void cb_btnEditMaterial(Fl_HoverButton*, void*);
+    void cb_btnEditMaterial_i(Fl_HoverButton*, void*);
+    static void cb_btnEditMaterial(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnAssignMaterial;
+    Fl_HoverButton *btnAssignMaterial;
 private:
-  void cb_btnAssignMaterial_i(Fl_HoverButton*, void*);
-  static void cb_btnAssignMaterial(Fl_HoverButton*, void*);
+    void cb_btnAssignMaterial_i(Fl_HoverButton*, void*);
+    static void cb_btnAssignMaterial(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnClearMaterial;
+    Fl_HoverButton *btnClearMaterial;
 private:
-  void cb_btnClearMaterial_i(Fl_HoverButton*, void*);
-  static void cb_btnClearMaterial(Fl_HoverButton*, void*);
+    void cb_btnClearMaterial_i(Fl_HoverButton*, void*);
+    static void cb_btnClearMaterial(Fl_HoverButton*, void*);
 public:
-  void show();
-  void setMaterials(CFemBeamMaterialSet* materials);
-  CFemBeamMaterialSet* getMaterials();
-  void hide();
+    void show();
+    void setMaterials(CFemBeamMaterialSet* materials);
+    CFemBeamMaterialSet* getMaterials();
+    void hide();
 private:
-  void fillListBox();
+    void fillListBox();
 public:
-  CFemBeamMaterial* getCurrentMaterial();
-  void setFemWidget(void* femWidget);
+    CFemBeamMaterial* getCurrentMaterial();
+    void setFemWidget(void* femWidget);
 };
 #endif

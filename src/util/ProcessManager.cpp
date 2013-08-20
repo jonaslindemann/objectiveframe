@@ -39,7 +39,7 @@ CProcessManager::~CProcessManager()
 void CProcessManager::executeWait(char *commandLine)
 {
 
-	// Code ripped from FLTK demo, demo.cxx
+    // Code ripped from FLTK demo, demo.cxx
 
 #ifdef WIN32
     STARTUPINFO		suInfo;		// Process startup information
@@ -57,7 +57,7 @@ void CProcessManager::executeWait(char *commandLine)
 
     // On WIN32 the .exe suffix needs to be appended to the command
     // whilst leaving any additional parameters unchanged - this
-    // is required to handle the correct conversion of cases such as : 
+    // is required to handle the correct conversion of cases such as :
     // `../fluid/fluid valuators.fl' to '../fluid/fluid.exe valuators.fl'.
 
     // skip leading spaces.
@@ -70,22 +70,22 @@ void CProcessManager::executeWait(char *commandLine)
     char* command = new char[icommand_length+6]; // 6 for extra 'd.exe\0'
 
     if (start_parameters==NULL) { // no parameters required.
-      sprintf(command, "%s.exe", start_command);
+        sprintf(command, "%s.exe", start_command);
     } else { // parameters required.
-      // break the start_command at the intermediate space between
-      // start_command and start_parameters.
-      *start_parameters = 0;
-      // move start_paremeters to skip over the intermediate space.
-      ++start_parameters;
+        // break the start_command at the intermediate space between
+        // start_command and start_parameters.
+        *start_parameters = 0;
+        // move start_paremeters to skip over the intermediate space.
+        ++start_parameters;
     }
 
     sprintf(command, "%s.exe %s", start_command, start_parameters);
 
-	CreateProcess(NULL, command, NULL, NULL, FALSE,
+    CreateProcess(NULL, command, NULL, NULL, FALSE,
                   NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
 
-	// Wait for program to finish....
-	
+    // Wait for program to finish....
+
     exitCode = STILL_ACTIVE;
     while ( exitCode == STILL_ACTIVE )
     {
@@ -93,19 +93,19 @@ void CProcessManager::executeWait(char *commandLine)
         if ( !GetExitCodeProcess(prInfo.hProcess, &exitCode) )
         {
             sprintf(commandLine, "Decompress: GetExitCodeProcess failed: %i",
-                GetLastError());
+                    GetLastError());
         }
     }
 
     delete command;
     delete copy_of_icommand;
-	
+
 #else // NON WIN32 systems.
 #ifdef __APPLE__
 
 #else
     int icommand_length = strlen(commandLine);
-    char* command = new char[icommand_length+5]; // 5 for extra './' and ' &\0' 
+    char* command = new char[icommand_length+5]; // 5 for extra './' and ' &\0'
 
     sprintf(command, "./%s", commandLine);
     system(command);
@@ -119,7 +119,7 @@ void CProcessManager::executeWait(char *commandLine)
 void CProcessManager::execute(char *commandLine)
 {
 
-	// Code ripped from FLTK demo, demo.cxx
+    // Code ripped from FLTK demo, demo.cxx
 
 #ifdef WIN32
     STARTUPINFO		suInfo;		// Process startup information
@@ -136,7 +136,7 @@ void CProcessManager::execute(char *commandLine)
 
     // On WIN32 the .exe suffix needs to be appended to the command
     // whilst leaving any additional parameters unchanged - this
-    // is required to handle the correct conversion of cases such as : 
+    // is required to handle the correct conversion of cases such as :
     // `../fluid/fluid valuators.fl' to '../fluid/fluid.exe valuators.fl'.
 
     // skip leading spaces.
@@ -149,29 +149,29 @@ void CProcessManager::execute(char *commandLine)
     char* command = new char[icommand_length+6]; // 6 for extra 'd.exe\0'
 
     if (start_parameters==NULL) { // no parameters required.
-      sprintf(command, "%s.exe", start_command);
+        sprintf(command, "%s.exe", start_command);
     } else { // parameters required.
-      // break the start_command at the intermediate space between
-      // start_command and start_parameters.
-      *start_parameters = 0;
-      // move start_paremeters to skip over the intermediate space.
-      ++start_parameters;
+        // break the start_command at the intermediate space between
+        // start_command and start_parameters.
+        *start_parameters = 0;
+        // move start_paremeters to skip over the intermediate space.
+        ++start_parameters;
     }
 
     sprintf(command, "%s.exe %s", start_command, start_parameters);
 
-	CreateProcess(NULL, command, NULL, NULL, FALSE,
+    CreateProcess(NULL, command, NULL, NULL, FALSE,
                   NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
 
     delete command;
     delete copy_of_icommand;
-	
+
 #else // NON WIN32 systems.
 #ifdef __APPLE__
 
 #else
     int icommand_length = strlen(commandLine);
-    char* command = new char[icommand_length+5]; // 5 for extra './' and ' &\0' 
+    char* command = new char[icommand_length+5]; // 5 for extra './' and ' &\0'
 
     sprintf(command, "./%s &", commandLine);
     system(command);

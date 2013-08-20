@@ -11,17 +11,17 @@ FemSmartPointer(CFemSLFFEAWriter);
 
 class CFemSLFFEAWriter : public CFemInputFileWriter {
 private:
-	string m_fileName;
+    string m_fileName;
 public:
-	CFemSLFFEAWriter ();
-	virtual ~CFemSLFFEAWriter ();
+    CFemSLFFEAWriter ();
+    virtual ~CFemSLFFEAWriter ();
 
-	FemClassInfo("CFemSLFFEAWriter",CFemInputFileWriter);
+    FemClassInfo("CFemSLFFEAWriter",CFemInputFileWriter);
 
-	void save();
+    void save();
 
-	void setFileName(const char* fileName);
+    void setFileName(const char* fileName);
 
-	void saveToStream(std::ostream &out);
+    void saveToStream(std::ostream &out);
 };
 #endif

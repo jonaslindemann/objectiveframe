@@ -3,7 +3,7 @@
 #include "FemElementLoad.h"
 
 CFemElementLoadSet::CFemElementLoadSet()
-:CFemLoadSet()
+    :CFemLoadSet()
 {
 
 }
@@ -15,5 +15,5 @@ CFemElementLoadSet::~CFemElementLoadSet()
 
 CFemLoad* CFemElementLoadSet::createLoad()
 {
-	return new CFemElementLoad();
+    return new CFemElementLoad();
 }

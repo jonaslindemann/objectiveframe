@@ -13,43 +13,44 @@ FemSmartPointer(CFemNode);
 
 class CFemNode : public CFemObject {
 private:
-	long m_number;
-	int m_kind;
-	double m_coord[3];
-	std::vector<double> m_values;
-	std::vector<CFemDof*> m_dofs;
+    long m_number;
+    int m_kind;
+    double m_coord[3];
+    std::vector<double> m_values;
+    std::vector<CFemDof*> m_dofs;
 public:
-	int getValueSize();
-	CFemNode ();
-	CFemNode (double x, double y, double z);
-	virtual ~CFemNode ();
+    int getValueSize();
+    CFemNode ();
+    CFemNode (double x, double y, double z);
+    virtual ~CFemNode ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemNode",CFemObject);
+    FemClassInfo("CFemNode",CFemObject);
 
-	// Methods
+    // Methods
 
-	virtual void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
-	long enumerateDofs(long count);
+    virtual void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
+    long enumerateDofs(long count);
 
-	void setValueSize(int size);
-	double getValue(unsigned int idx);
-	void setValue(unsigned int idx, double value);
+    void setValueSize(int size);
+    double getValue(unsigned int idx);
+    void setValue(unsigned int idx, double value);
+    void clearValues();
 
-	// Get/Set methods
+    // Get/Set methods
 
-	void setCoord(double x, double y, double z);
-	void getCoord(double &x, double &y, double &z);
-	void setNumber(long number);
-	long getNumber();
-	int getKind();
-	void setKind(int kind);
-	CFemDof* getDof(unsigned int dof);
+    void setCoord(double x, double y, double z);
+    void getCoord(double &x, double &y, double &z);
+    void setNumber(long number);
+    long getNumber();
+    int getKind();
+    void setKind(int kind);
+    CFemDof* getDof(unsigned int dof);
 
-	// IO methods
+    // IO methods
 
-	virtual void readFromStream(std::istream &in);
+    virtual void readFromStream(std::istream &in);
 };
 #endif

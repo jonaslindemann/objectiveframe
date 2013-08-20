@@ -16,50 +16,50 @@
 #include "Fl_HoverButton.h"
 
 class CElementLoadsDlg {
-  CFemElementLoadSet* m_loadSet; 
-  void* m_femWidget; 
-  CFemBeamLoad* m_currentLoad; 
+    CFemElementLoadSet* m_loadSet;
+    void* m_femWidget;
+    CFemBeamLoad* m_currentLoad;
 public:
-  CElementLoadsDlg();
-  Fl_Double_Window *wndElementLoads;
-  Fl_Browser *lbLoadSet;
+    CElementLoadsDlg();
+    Fl_Double_Window *wndElementLoads;
+    Fl_Browser *lbLoadSet;
 private:
-  void cb_lbLoadSet_i(Fl_Browser*, void*);
-  static void cb_lbLoadSet(Fl_Browser*, void*);
+    void cb_lbLoadSet_i(Fl_Browser*, void*);
+    static void cb_lbLoadSet(Fl_Browser*, void*);
 public:
-  Fl_HoverButton *btnAddLoad;
+    Fl_HoverButton *btnAddLoad;
 private:
-  void cb_btnAddLoad_i(Fl_HoverButton*, void*);
-  static void cb_btnAddLoad(Fl_HoverButton*, void*);
+    void cb_btnAddLoad_i(Fl_HoverButton*, void*);
+    static void cb_btnAddLoad(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnRemoveLoad;
+    Fl_HoverButton *btnRemoveLoad;
 private:
-  void cb_btnRemoveLoad_i(Fl_HoverButton*, void*);
-  static void cb_btnRemoveLoad(Fl_HoverButton*, void*);
+    void cb_btnRemoveLoad_i(Fl_HoverButton*, void*);
+    static void cb_btnRemoveLoad(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnEditLoad;
+    Fl_HoverButton *btnEditLoad;
 private:
-  void cb_btnEditLoad_i(Fl_HoverButton*, void*);
-  static void cb_btnEditLoad(Fl_HoverButton*, void*);
+    void cb_btnEditLoad_i(Fl_HoverButton*, void*);
+    static void cb_btnEditLoad(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnAssignLoad;
+    Fl_HoverButton *btnAssignLoad;
 private:
-  void cb_btnAssignLoad_i(Fl_HoverButton*, void*);
-  static void cb_btnAssignLoad(Fl_HoverButton*, void*);
+    void cb_btnAssignLoad_i(Fl_HoverButton*, void*);
+    static void cb_btnAssignLoad(Fl_HoverButton*, void*);
 public:
-  Fl_HoverButton *btnClearElements;
+    Fl_HoverButton *btnClearElements;
 private:
-  void cb_btnClearElements_i(Fl_HoverButton*, void*);
-  static void cb_btnClearElements(Fl_HoverButton*, void*);
+    void cb_btnClearElements_i(Fl_HoverButton*, void*);
+    static void cb_btnClearElements(Fl_HoverButton*, void*);
 public:
-  void show();
-  void setLoadSet(CFemElementLoadSet* loadSet);
-  CFemElementLoadSet* getLoadSet();
-  void hide();
+    void show();
+    void setLoadSet(CFemElementLoadSet* loadSet);
+    CFemElementLoadSet* getLoadSet();
+    void hide();
 private:
-  void fillListBox();
+    void fillListBox();
 public:
-  CFemBeamLoad* getCurrentLoad();
-  void setFemWidget(void* femWidget);
+    CFemBeamLoad* getCurrentLoad();
+    void setFemWidget(void* femWidget);
 };
 #endif

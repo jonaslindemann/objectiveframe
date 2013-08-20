@@ -20,31 +20,31 @@ IvfSmartPointer(CIvfFemBeamLoad);
 // public class: CIvfFemBeamLoad
 class CIvfFemBeamLoad : public CIvfShape {
 private:
-	vector<CIvfQuadSet*> m_q;
-	CFemBeamLoad* m_beamLoad;
-	vector<CIvfExtrArrow*> m_arrow;
-	CIvfMaterial* m_extrMaterial;
-	CIvfMaterial* m_arrowMaterial;
-	CIvfColorTable* m_colorTable;
+    vector<CIvfQuadSet*> m_q;
+    CFemBeamLoad* m_beamLoad;
+    vector<CIvfExtrArrow*> m_arrow;
+    CIvfMaterial* m_extrMaterial;
+    CIvfMaterial* m_arrowMaterial;
+    CIvfColorTable* m_colorTable;
 
-	CIvfBeamModel* m_beamModel;
+    CIvfBeamModel* m_beamModel;
 
-	void initExtrusion();
+    void initExtrusion();
 public:
-	CIvfFemBeamLoad ();
-	virtual ~CIvfFemBeamLoad ();
+    CIvfFemBeamLoad ();
+    virtual ~CIvfFemBeamLoad ();
 
-	IvfClassInfo("CIvfFemBeamLoad",CIvfShape);
+    IvfClassInfo("CIvfFemBeamLoad",CIvfShape);
 
-	void setColorTable(CIvfColorTable* colorTable);
-	void setBeamModel(CIvfBeamModel* model);
+    void setColorTable(CIvfColorTable* colorTable);
+    void setBeamModel(CIvfBeamModel* model);
 
 
-	void setBeamLoad(CFemBeamLoad* load);
+    void setBeamLoad(CFemBeamLoad* load);
 
-	virtual void refresh();
+    virtual void refresh();
 protected:
-	virtual void createSelect();
-	virtual void createGeometry();
+    virtual void createSelect();
+    virtual void createGeometry();
 };
 #endif

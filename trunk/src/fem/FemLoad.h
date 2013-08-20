@@ -7,25 +7,25 @@ FemSmartPointer(CFemLoad);
 
 class CFemLoad : public CFemObject {
 private:
-	long m_number;
-	double m_value;
+    long m_number;
+    double m_value;
 public:
-	CFemLoad ();
-	virtual ~CFemLoad ();
+    CFemLoad ();
+    virtual ~CFemLoad ();
 
-	FemClassInfo("CFemLoad",CFemObject);
+    FemClassInfo("CFemLoad",CFemObject);
 
-	// Get/set methods
+    // Get/set methods
 
-	long getNumber();
-	void setNumber(long number);
-	double getValue();
-	void setValue(double value);
+    long getNumber();
+    void setNumber(long number);
+    double getValue();
+    void setValue(double value);
 
-	// IO Methods
+    // IO Methods
 
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 };
 #endif

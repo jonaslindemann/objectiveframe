@@ -11,35 +11,35 @@ FemSmartPointer(CFemBCSet);
 
 class CFemBCSet : public CFemObject {
 private:
-	std::vector<CFemBCPtr> m_bcs;
+    std::vector<CFemBCPtr> m_bcs;
 public:
-	CFemBCSet ();
-	virtual ~CFemBCSet ();
+    CFemBCSet ();
+    virtual ~CFemBCSet ();
 
-	FemClassInfo("CFemBCSet",CFemObject);
+    FemClassInfo("CFemBCSet",CFemObject);
 
-	// Methods
+    // Methods
 
-	void deleteAll();
-	CFemBCPtr removeBC(long i);
-	bool deleteBC(long i);
-	void addBC(CFemBC* element);
-	void clear();
-	long enumerateBCs(long count=1);
-	bool removeBC(CFemBC* bc);
-	void connectNodes(CFemNodeSet* nodes);
+    void deleteAll();
+    CFemBCPtr removeBC(long i);
+    bool deleteBC(long i);
+    void addBC(CFemBC* element);
+    void clear();
+    long enumerateBCs(long count=1);
+    bool removeBC(CFemBC* bc);
+    void connectNodes(CFemNodeSet* nodes);
 
-	// Get/set methods
+    // Get/set methods
 
-	CFemBC* getBC(long i);
-	long getSize();
+    CFemBC* getBC(long i);
+    long getSize();
 
-	// IO methods
+    // IO methods
 
-	void readFromStream(std::istream &in);
-	void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    void readFromStream(std::istream &in);
+    void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 protected:
-	virtual CFemBC* createBC();
+    virtual CFemBC* createBC();
 };
 #endif

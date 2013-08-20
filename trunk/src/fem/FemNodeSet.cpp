@@ -4,185 +4,195 @@
 
 // ------------------------------------------------------------
 CFemNodeSet::CFemNodeSet ()
-		:CFemObject()
+    :CFemObject()
 {
 }
 
 // ------------------------------------------------------------
 CFemNodeSet::~CFemNodeSet ()
 {
-	deleteAll();
+    deleteAll();
 }
 
 // ------------------------------------------------------------
 void CFemNodeSet::print(std::ostream &out)
 {
-	using namespace std;
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-		out << m_nodes[i];
-	out << endl;
+    using namespace std;
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+        out << m_nodes[i];
+    out << endl;
 }
 
 // ------------------------------------------------------------
 void CFemNodeSet::addNode(CFemNode *node)
 {
-	node->addReference();
-	m_nodes.push_back(node);
+    node->addReference();
+    m_nodes.push_back(node);
 }
 
 // ------------------------------------------------------------
 CFemNode* CFemNodeSet::getNode(long i)
 {
-	if ( (i>=0)&&(i<(long)m_nodes.size()) )
-		return m_nodes[i];
-	else
-		return NULL;
+    if ( (i>=0)&&(i<(long)m_nodes.size()) )
+        return m_nodes[i];
+    else
+        return NULL;
 }
 
 // ------------------------------------------------------------
 bool CFemNodeSet::deleteNode(long i)
 {
-	std::vector<CFemNode*>::iterator p = m_nodes.begin();
+    std::vector<CFemNode*>::iterator p = m_nodes.begin();
 
-	if ( (i>=0)&&(i<(long)m_nodes.size()) )
-	{
-		CFemNode* node = m_nodes[i];
+    if ( (i>=0)&&(i<(long)m_nodes.size()) )
+    {
+        CFemNode* node = m_nodes[i];
 
-		node->deleteReference();
-		if (!node->isReferenced())
-		{		
-			p += i;
-			m_nodes.erase(p);
-			delete node;
-			return true;
-		}
-		node->addReference();
-	}
-	return false;
+        node->deleteReference();
+        if (!node->isReferenced())
+        {
+            p += i;
+            m_nodes.erase(p);
+            delete node;
+            return true;
+        }
+        node->addReference();
+    }
+    return false;
 }
 
 // ------------------------------------------------------------
 CFemNode* CFemNodeSet::removeNode(long i)
 {
-	std::vector<CFemNode*>::iterator p = m_nodes.begin();
+    std::vector<CFemNode*>::iterator p = m_nodes.begin();
 
-	if ( (i>=0)&&(i<(long)m_nodes.size()) )
-	{
-		CFemNode* node = m_nodes[i];
-		node->deleteReference();
-		if (!node->isReferenced())
-		{		
-			p += i;
-			m_nodes.erase(p);
-			return node;
-		}
-		node->addReference();
-		return NULL;
-	}
-	else
-		return NULL;
+    if ( (i>=0)&&(i<(long)m_nodes.size()) )
+    {
+        CFemNode* node = m_nodes[i];
+        node->deleteReference();
+        if (!node->isReferenced())
+        {
+            p += i;
+            m_nodes.erase(p);
+            return node;
+        }
+        node->addReference();
+        return NULL;
+    }
+    else
+        return NULL;
 }
 
 // ------------------------------------------------------------
 bool CFemNodeSet::removeNode(CFemNode* node)
 {
-	std::vector<CFemNode*>::iterator p = m_nodes.begin();
+    std::vector<CFemNode*>::iterator p = m_nodes.begin();
 
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-	{
-		if (node==m_nodes[i])
-		{	
-			node->deleteReference();
-			if (!node->isReferenced())
-			{
-				p = m_nodes.begin();
-				p += i;
-				m_nodes.erase(p);
-				delete node;
-				return true;
-			}
-			else
-			{
-				node->addReference();
-				return false;
-			}
-		}
-	}
-	return false;
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+    {
+        if (node==m_nodes[i])
+        {
+            node->deleteReference();
+            if (!node->isReferenced())
+            {
+                p = m_nodes.begin();
+                p += i;
+                m_nodes.erase(p);
+                delete node;
+                return true;
+            }
+            else
+            {
+                node->addReference();
+                return false;
+            }
+        }
+    }
+    return false;
 }
 // ------------------------------------------------------------
 void CFemNodeSet::deleteAll()
 {
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-	{
-		CFemNode* node = m_nodes[i];
-		node->deleteReference();
-		if (!node->isReferenced())
-			delete node;
-	}
-	m_nodes.clear();
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+    {
+        CFemNode* node = m_nodes[i];
+        node->deleteReference();
+        if (!node->isReferenced())
+            delete node;
+    }
+    m_nodes.clear();
 }
 
 // ------------------------------------------------------------
 void CFemNodeSet::clear()
 {
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-	{
-		CFemNode* node = m_nodes[i];
-		node->deleteReference();
-	}
-	m_nodes.clear();
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+    {
+        CFemNode* node = m_nodes[i];
+        node->deleteReference();
+    }
+    m_nodes.clear();
+}
+
+// ------------------------------------------------------------
+void CFemNodeSet::clearNodeValues()
+{
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+    {
+        CFemNode* node = m_nodes[i];
+        node->clearValues();
+    }
 }
 
 // ------------------------------------------------------------
 long CFemNodeSet::getSize()
 {
-	return m_nodes.size();
+    return m_nodes.size();
 }
 
 // ------------------------------------------------------------
 long CFemNodeSet::enumerateNodes(long count)
 {
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-		m_nodes[i]->setNumber(count++);
-	return count;
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+        m_nodes[i]->setNumber(count++);
+    return count;
 }
 
 // ------------------------------------------------------------
 long CFemNodeSet::enumerateDofs(long count)
 {
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-		count = m_nodes[i]->enumerateDofs(count);
-	return count;
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+        count = m_nodes[i]->enumerateDofs(count);
+    return count;
 }
 
 // ------------------------------------------------------------
 void CFemNodeSet::saveToStream(std::ostream &out)
 {
-	using namespace std;
-	CFemObject::saveToStream(out);
-	out << m_nodes.size() << endl;
-	for (unsigned int i=0; i<m_nodes.size(); i++)
-	{
-		CFemNode* node = m_nodes[i];
-		node->saveToStream(out);
-	}
+    using namespace std;
+    CFemObject::saveToStream(out);
+    out << m_nodes.size() << endl;
+    for (unsigned int i=0; i<m_nodes.size(); i++)
+    {
+        CFemNode* node = m_nodes[i];
+        node->saveToStream(out);
+    }
 }
 
 // ------------------------------------------------------------
 void CFemNodeSet::readFromStream(std::istream &in)
 {
-	long nNodes;
+    long nNodes;
 
-	CFemObject::readFromStream(in);
-	deleteAll();
-	in >> nNodes;
-	for (int i=0; i<nNodes; i++)
-	{
-		CFemNode* node = new CFemNode();
-		node->addReference();
-		node->readFromStream(in);
-		m_nodes.push_back(node);
-	}
+    CFemObject::readFromStream(in);
+    deleteAll();
+    in >> nNodes;
+    for (int i=0; i<nNodes; i++)
+    {
+        CFemNode* node = new CFemNode();
+        node->addReference();
+        node->readFromStream(in);
+        m_nodes.push_back(node);
+    }
 }
 

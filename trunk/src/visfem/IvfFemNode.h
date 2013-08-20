@@ -13,29 +13,29 @@ IvfSmartPointer(CIvfFemNode);
 // public class: CIvfFemNode
 class CIvfFemNode : public CIvfNode {
 private:
-	CFemNode* m_femNode;
-	bool m_directRefresh;
-	CIvfBeamModel* m_beamModel;
+    CFemNode* m_femNode;
+    bool m_directRefresh;
+    CIvfBeamModel* m_beamModel;
 public:
 
-	CIvfFemNode ();
-	virtual ~CIvfFemNode ();
+    CIvfFemNode ();
+    virtual ~CIvfFemNode ();
 
-	IvfClassInfo("CIvfFemNode",CIvfNode);
+    IvfClassInfo("CIvfFemNode",CIvfNode);
 
-	void refresh();
+    void refresh();
 
-	CFemNode* getFemNode();
-	void setFemNode(CFemNode* node);
+    CFemNode* getFemNode();
+    void setFemNode(CFemNode* node);
 
-	void setBeamModel(CIvfBeamModel* model);
-	void setDirectRefresh(bool flag);
-	void getDisplacedPosition(double &x, double &y, double &z);
+    void setBeamModel(CIvfBeamModel* model);
+    void setDirectRefresh(bool flag);
+    void getDisplacedPosition(double &x, double &y, double &z);
 
-	virtual void setPosition (const double x, const double y, const double z);
-	virtual void setPosition (CIvfShape* shape);
-	virtual void setPositionVec (CIvfVec3d* point);
+    virtual void setPosition (const double x, const double y, const double z);
+    virtual void setPosition (CIvfShape* shape);
+    virtual void setPositionVec (CIvfVec3d* point);
 protected:
-	virtual void doCreateGeometry();
+    virtual void doCreateGeometry();
 };
 #endif

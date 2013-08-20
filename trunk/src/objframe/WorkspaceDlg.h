@@ -11,36 +11,36 @@
 #include <FL/Fl_Value_Slider.H>
 
 class CWorkspaceDlg {
-  int m_modalResult;
-  double m_workspaceSize;
+    int m_modalResult;
+    double m_workspaceSize;
 public:
-  CWorkspaceDlg();
-  Fl_Window *wndWorkspace;
-  Fl_Button *btnOk;
+    CWorkspaceDlg();
+    Fl_Window *wndWorkspace;
+    Fl_Button *btnOk;
 private:
-  inline void cb_btnOk_i(Fl_Button*, void*);
-  static void cb_btnOk(Fl_Button*, void*);
+    inline void cb_btnOk_i(Fl_Button*, void*);
+    static void cb_btnOk(Fl_Button*, void*);
 public:
-  Fl_Button *btnCancel;
+    Fl_Button *btnCancel;
 private:
-  inline void cb_btnCancel_i(Fl_Button*, void*);
-  static void cb_btnCancel(Fl_Button*, void*);
+    inline void cb_btnCancel_i(Fl_Button*, void*);
+    static void cb_btnCancel(Fl_Button*, void*);
 public:
-  Fl_Group *grpWorkspace;
-  Fl_Value_Slider *sldWorkspaceSize;
-  Fl_Value_Slider *sldNodeSize;
-  Fl_Value_Slider *sldLineRadius;
-  Fl_Value_Slider *sldLoadSize;
-  ~CWorkspaceDlg();
-  void show();
-  int getModalResult();
-  void setWorkspaceSize(double size);
-  double getWorkspaceSize();
-  void setNodeSize(double size);
-  void setLineRadius(double radius);
-  void setLoadSize(double size);
-  double getNodeSize();
-  double getLineRadius();
-  double getLoadSize();
+    Fl_Group *grpWorkspace;
+    Fl_Value_Slider *sldWorkspaceSize;
+    Fl_Value_Slider *sldNodeSize;
+    Fl_Value_Slider *sldLineRadius;
+    Fl_Value_Slider *sldLoadSize;
+    ~CWorkspaceDlg();
+    void show();
+    int getModalResult();
+    void setWorkspaceSize(double size);
+    double getWorkspaceSize();
+    void setNodeSize(double size);
+    void setLineRadius(double radius);
+    void setLoadSize(double size);
+    double getNodeSize();
+    double getLineRadius();
+    double getLoadSize();
 };
 #endif

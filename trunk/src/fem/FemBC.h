@@ -10,37 +10,37 @@ FemSmartPointer(CFemBC);
 
 class CFemBC : public CFemObject {
 private:
-	long m_number;
-	std::vector<CFemDofPtr> m_prescribedDofs;
-	std::vector<double>   m_prescribedValues;
+    long m_number;
+    std::vector<CFemDofPtr> m_prescribedDofs;
+    std::vector<double>   m_prescribedValues;
 public:
-	CFemBC ();
-	virtual ~CFemBC ();
+    CFemBC ();
+    virtual ~CFemBC ();
 
-	FemClassInfo("CFemBC",CFemObject);
+    FemClassInfo("CFemBC",CFemObject);
 
-	// Methods
+    // Methods
 
-	bool isPrescribed(CFemDof* dof);
-	void prescribeDof(CFemDof* dof, double value);
-	void unprescribeDof(CFemDof* dof);
-	void clearDofs();
+    bool isPrescribed(CFemDof* dof);
+    void prescribeDof(CFemDof* dof, double value);
+    void unprescribeDof(CFemDof* dof);
+    void clearDofs();
 
-	// Get/set methods
+    // Get/set methods
 
-	void setNumber(long number);
-	long getNumber();
+    void setNumber(long number);
+    long getNumber();
 
-	int getSize();
+    int getSize();
 
-	double getValue(unsigned int idx);
+    double getValue(unsigned int idx);
 
-	CFemDof* getDof(unsigned int idx);
+    CFemDof* getDof(unsigned int idx);
 
-	// IO Methods
+    // IO Methods
 
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 };
 #endif

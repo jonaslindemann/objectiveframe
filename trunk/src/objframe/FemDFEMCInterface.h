@@ -5,20 +5,20 @@
 
 class CFemDFEMCInterface {
 private:
-	CFemBeamModel* m_beamModel;
-	int m_argc;
-	char** m_argv;
-	double m_maxNodeValue;
+    CFemBeamModel* m_beamModel;
+    int m_argc;
+    char** m_argv;
+    double m_maxNodeValue;
 public:
-	CFemDFEMCInterface();
-	virtual ~CFemDFEMCInterface();
+    CFemDFEMCInterface();
+    virtual ~CFemDFEMCInterface();
 
-	void setBeamModel(CFemBeamModel* model);
-	void setArguments(int argc, char** argv);
+    void setBeamModel(CFemBeamModel* model);
+    void setArguments(int argc, char** argv);
 
-	void execute();
+    void execute();
 
-	double getMaxNodeValue();
+    double getMaxNodeValue();
 };
 
-#endif 
+#endif

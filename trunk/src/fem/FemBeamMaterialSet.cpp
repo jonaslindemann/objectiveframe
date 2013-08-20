@@ -2,7 +2,7 @@
 
 // ------------------------------------------------------------
 CFemBeamMaterialSet::CFemBeamMaterialSet()
-:CFemMaterialSet()
+    :CFemMaterialSet()
 {
 
 }
@@ -16,5 +16,5 @@ CFemBeamMaterialSet::~CFemBeamMaterialSet()
 // ------------------------------------------------------------
 CFemMaterial* CFemBeamMaterialSet::createMaterial()
 {
-	return new CFemBeamMaterial();
+    return new CFemBeamMaterial();
 }

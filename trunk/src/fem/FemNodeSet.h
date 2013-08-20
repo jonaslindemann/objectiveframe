@@ -10,34 +10,36 @@ FemSmartPointer(CFemNodeSet);
 
 class CFemNodeSet : public CFemObject {
 private:
-	std::vector<CFemNode*> m_nodes;
+    std::vector<CFemNode*> m_nodes;
 public:
-	CFemNodeSet ();
-	virtual ~CFemNodeSet ();
+    CFemNodeSet ();
+    virtual ~CFemNodeSet ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemNodeSet",CFemObject);
+    FemClassInfo("CFemNodeSet",CFemObject);
 
-	// Methods
+    // Methods
 
-	void deleteAll();
-	CFemNode* removeNode(long i);
-	bool removeNode(CFemNode* node);
-	bool deleteNode(long i);
-	CFemNode* getNode(long i);
-	void addNode(CFemNode* node);
-	void clear();
+    void deleteAll();
+    CFemNode* removeNode(long i);
+    bool removeNode(CFemNode* node);
+    bool deleteNode(long i);
+    CFemNode* getNode(long i);
+    void addNode(CFemNode* node);
+    void clear();
 
-	long enumerateNodes(long count=1);
-	long enumerateDofs(long count=1);
+    void clearNodeValues();
 
-	// Get/set methods
+    long enumerateNodes(long count=1);
+    long enumerateDofs(long count=1);
 
-	long getSize();
+    // Get/set methods
 
-	virtual void print(std::ostream &out);
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
+    long getSize();
+
+    virtual void print(std::ostream &out);
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
 };
 #endif

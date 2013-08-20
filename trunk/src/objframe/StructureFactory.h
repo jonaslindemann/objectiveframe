@@ -9,27 +9,27 @@
 
 class CStructureFactory {
 private:
-	int m_size[3];
-	double m_spacing[3];
-	CIvfBeamModel* m_beamModel;
-	CFemBeamMaterial* m_currentMaterial;
+    int m_size[3];
+    double m_spacing[3];
+    CIvfBeamModel* m_beamModel;
+    CFemBeamMaterial* m_currentMaterial;
 public:
-	void setCurrentMaterial(CFemBeamMaterial* material);
-	CStructureFactory();
-	virtual ~CStructureFactory();
+    void setCurrentMaterial(CFemBeamMaterial* material);
+    CStructureFactory();
+    virtual ~CStructureFactory();
 
-	// Methods
+    // Methods
 
-	void create();
+    void create();
 
-	// Get/set methods
+    // Get/set methods
 
-	void setSize(int rows, int cols, int stacks);
-	void getSize(int &rows, int &cols, int &stacks);
-	void setSpacing(double xSpacing, double ySpacing, double zSpacing);
-	void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
-	void setBeamModel(CIvfBeamModel* model);
-	CIvfBeamModel* getBeamModel();
+    void setSize(int rows, int cols, int stacks);
+    void getSize(int &rows, int &cols, int &stacks);
+    void setSpacing(double xSpacing, double ySpacing, double zSpacing);
+    void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
+    void setBeamModel(CIvfBeamModel* model);
+    CIvfBeamModel* getBeamModel();
 };
 
-#endif 
+#endif

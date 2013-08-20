@@ -4,140 +4,140 @@
 
 CColorMap::CColorMap()
 {
-	m_reverseColors = false;
-	m_progPath = "";
-	m_fileName = "";
-	m_error = false;
+    m_reverseColors = false;
+    m_progPath = "";
+    m_fileName = "";
+    m_error = false;
 }
 
 CColorMap::~CColorMap()
 {
-	this->clear();
+    this->clear();
 }
 
 void CColorMap::open(const std::string& fname)
 {
-	using namespace std;
+    using namespace std;
 
-	int nColors;
-	int i;
-	float r, g, b;
-	CColor* color;
+    int nColors;
+    int i;
+    float r, g, b;
+    CColor* color;
 
-	this->setFileName(fname);
+    this->setFileName(fname);
 
-	m_error = false;
+    m_error = false;
 
-	// Clear previous color map
-	
-	this->clear();
+    // Clear previous color map
 
-	// Open color map file
+    this->clear();
 
-	std::string fileName = "";
+    // Open color map file
 
-	if (m_progPath!="")
-		fileName = m_progPath;
+    std::string fileName = "";
 
-	fileName = fileName + "/" + fname;
+    if (m_progPath!="")
+        fileName = m_progPath;
 
-	m_mapFile.open(fileName.c_str(), ios::in);
-	if (m_mapFile.fail())
-	{
-		cout << "Could not open colormap file:" << endl;
-		cout << "\t" << fileName << endl;
-		m_error = true;
-		return;
-	}
+    fileName = fileName + "/" + fname;
 
-	// Read colors
-	
-	m_mapFile >> nColors;
+    m_mapFile.open(fileName.c_str(), ios::in);
+    if (m_mapFile.fail())
+    {
+        cout << "Could not open colormap file:" << endl;
+        cout << "\t" << fileName << endl;
+        m_error = true;
+        return;
+    }
 
-	for (i=0; i<nColors; i++)
-	{
-		m_mapFile >> r >> g >> b;
-		color = new CColor();
-		color->setColor(r, g, b, 1.0f);
-		m_colors.push_back(color);
-	}
+    // Read colors
 
-	// Close file
+    m_mapFile >> nColors;
 
-	m_mapFile.close();
+    for (i=0; i<nColors; i++)
+    {
+        m_mapFile >> r >> g >> b;
+        color = new CColor();
+        color->setColor(r, g, b, 1.0f);
+        m_colors.push_back(color);
+    }
+
+    // Close file
+
+    m_mapFile.close();
 }
 
 void CColorMap::clear()
 {
-	unsigned int i;
+    unsigned int i;
 
-	for (i=0; i<m_colors.size(); i++)
-		delete m_colors[i];
+    for (i=0; i<m_colors.size(); i++)
+        delete m_colors[i];
 
-	m_colors.clear();
+    m_colors.clear();
 }
 
 void CColorMap::getColor(double value, float &r, float &g, float &b)
 {
-	if (m_colors.size()>0)
-	{
-		double clampedValue;
-		int colorIndex;
-		CColor* color;
-		float a;
-        
-		r = g = b = 1.0;
+    if (m_colors.size()>0)
+    {
+        double clampedValue;
+        int colorIndex;
+        CColor* color;
+        float a;
 
-		// Clamp value
+        r = g = b = 1.0;
 
-		clampedValue = value;
-		
-		if (value>1)
-			clampedValue = 1.0;
+        // Clamp value
 
-		if (value<0)
-			clampedValue = 0.0;
+        clampedValue = value;
 
-		if (m_reverseColors)
-			clampedValue = 1-clampedValue;
+        if (value>1)
+            clampedValue = 1.0;
 
-		colorIndex = (int)( (double)(m_colors.size()-1)*clampedValue );
+        if (value<0)
+            clampedValue = 0.0;
 
-		color = m_colors[colorIndex];
-		color->getColor(r, g, b, a);
-	}
-	else
-		r = g = b = 1.0;
+        if (m_reverseColors)
+            clampedValue = 1-clampedValue;
+
+        colorIndex = (int)( (double)(m_colors.size()-1)*clampedValue );
+
+        color = m_colors[colorIndex];
+        color->getColor(r, g, b, a);
+    }
+    else
+        r = g = b = 1.0;
 }
 
 void CColorMap::setReverseColors(bool flag)
 {
-	m_reverseColors = flag;
+    m_reverseColors = flag;
 }
 
 void CColorMap::setValue(double value)
 {
-	m_value = value;
-	this->getColor(m_value, m_currentColor[0], m_currentColor[1], m_currentColor[2]);
+    m_value = value;
+    this->getColor(m_value, m_currentColor[0], m_currentColor[1], m_currentColor[2]);
 }
 
 void CColorMap::setPath(const std::string& path)
 {
-	m_progPath = path;
+    m_progPath = path;
 }
 
 void CColorMap::setFileName(const std::string& fileName)
 {
-	m_fileName = fileName;
+    m_fileName = fileName;
 }
 
 bool CColorMap::open()
 {
-	if (m_fileName!="")
-	{
-		this->open(m_fileName);
-		return m_error;
-	}
-	else
-		return false;
+    if (m_fileName!="")
+    {
+        this->open(m_fileName);
+        return m_error;
+    }
+    else
+        return false;
 }

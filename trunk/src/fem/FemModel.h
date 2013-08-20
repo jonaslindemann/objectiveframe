@@ -21,57 +21,59 @@ FemSmartPointer(CFemModel);
 
 class CFemModel : public CFemObject {
 private:
-	CFemNodeSet* m_nodeSet;
-	CFemElementSet* m_elementSet;
-	CFemMaterialSet* m_materialSet;
-	CFemNodeLoadSet* m_nodeLoadSet;
-	CFemElementLoadSet* m_elementLoadSet;
-	CFemNodeBCSet* m_bcSet;
-	std::string m_fileName;
+    CFemNodeSet* m_nodeSet;
+    CFemElementSet* m_elementSet;
+    CFemMaterialSet* m_materialSet;
+    CFemNodeLoadSet* m_nodeLoadSet;
+    CFemElementLoadSet* m_elementLoadSet;
+    CFemNodeBCSet* m_bcSet;
+    std::string m_fileName;
 protected:
-	virtual CFemNodeBCSet* createBCSet();
-	virtual CFemElementLoadSet* createElementLoadSet();
-	virtual CFemNodeLoadSet* createNodeLoadSet();
-	virtual CFemMaterialSet* createMaterialSet();
-	virtual CFemNodeSet* createNodeSet();
-	virtual CFemElementSet* createElementSet();
-	virtual void connectElementLoads();
-	virtual void connectNodeLoads();
-	virtual void connectMaterials();
-	virtual void connectElements();
-	virtual void connectNodeBCs();
+    virtual CFemNodeBCSet* createBCSet();
+    virtual CFemElementLoadSet* createElementLoadSet();
+    virtual CFemNodeLoadSet* createNodeLoadSet();
+    virtual CFemMaterialSet* createMaterialSet();
+    virtual CFemNodeSet* createNodeSet();
+    virtual CFemElementSet* createElementSet();
+    virtual void connectElementLoads();
+    virtual void connectNodeLoads();
+    virtual void connectMaterials();
+    virtual void connectElements();
+    virtual void connectNodeBCs();
 public:
-	CFemModel ();
-	virtual ~CFemModel ();
+    CFemModel ();
+    virtual ~CFemModel ();
 
-	// Class info
+    // Class info
 
-	FemClassInfo("CFemModel",CFemObject);
+    FemClassInfo("CFemModel",CFemObject);
 
-	// Methods
+    // Methods
 
-	void initialize();
-	void save();
-	void open();
-	void deleteAll();
+    void initialize();
+    void save();
+    void open();
+    void deleteAll();
 
-	// Get/set methods
+    void clearNodeValues();
 
-	CFemMaterialSet* getMaterialSet();
-	CFemElementSet* getElementSet();
-	CFemNodeSet* getNodeSet();
-	CFemNodeLoadSet* getNodeLoadSet();
-	CFemElementLoadSet* getElementLoadSet();
-	CFemNodeBCSet* getBCSet();
-	CFemNodeBCSet* getNodeBCSet();
-	
-	const std::string getFileName();
-	void setFileName(const::string& fname);
+    // Get/set methods
 
-	// IO Methods
+    CFemMaterialSet* getMaterialSet();
+    CFemElementSet* getElementSet();
+    CFemNodeSet* getNodeSet();
+    CFemNodeLoadSet* getNodeLoadSet();
+    CFemElementLoadSet* getElementLoadSet();
+    CFemNodeBCSet* getBCSet();
+    CFemNodeBCSet* getNodeBCSet();
 
-	virtual void readFromStream(std::istream &in);
-	virtual void saveToStream(std::ostream &out);
-	virtual void print(std::ostream &out);
+    const std::string getFileName();
+    void setFileName(const::string& fname);
+
+    // IO Methods
+
+    virtual void readFromStream(std::istream &in);
+    virtual void saveToStream(std::ostream &out);
+    virtual void print(std::ostream &out);
 };
 #endif

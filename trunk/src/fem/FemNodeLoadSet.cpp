@@ -4,7 +4,7 @@
 
 // ------------------------------------------------------------
 CFemNodeLoadSet::CFemNodeLoadSet()
-:CFemLoadSet()
+    :CFemLoadSet()
 {
 
 }
@@ -18,5 +18,5 @@ CFemNodeLoadSet::~CFemNodeLoadSet()
 // ------------------------------------------------------------
 CFemLoad* CFemNodeLoadSet::createLoad()
 {
-	return new CFemNodeLoad();
+    return new CFemNodeLoad();
 }

@@ -3,158 +3,158 @@
 #include "NodePropDlg.h"
 
 inline void CNodePropDlg::cb_btnApply_i(Fl_Button*, void*) {
-  if (m_node!=NULL)
-{
-	m_node->setPosition(
-		edtXCoord->value(),
-		edtYCoord->value(),
-		edtZCoord->value());
-	if (m_workspace!=NULL)
-	{
-		m_workspace->set_changed();
-		m_workspace->redraw();
-	}
-};
+    if (m_node!=NULL)
+    {
+        m_node->setPosition(
+            edtXCoord->value(),
+            edtYCoord->value(),
+            edtZCoord->value());
+        if (m_workspace!=NULL)
+        {
+            m_workspace->set_changed();
+            m_workspace->redraw();
+        }
+    };
 }
 void CNodePropDlg::cb_btnApply(Fl_Button* o, void* v) {
-  ((CNodePropDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
+    ((CNodePropDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
 }
 
 inline void CNodePropDlg::cb_btnClose_i(Fl_Button*, void*) {
-  wndNodeProp->hide();
+    wndNodeProp->hide();
 }
 void CNodePropDlg::cb_btnClose(Fl_Button* o, void* v) {
-  ((CNodePropDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
+    ((CNodePropDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
 }
 
 CNodePropDlg::CNodePropDlg() {
-  Fl_Window* w;
-  { Fl_Window* o = wndNodeProp = new Fl_Window(178, 261, "Node properties");
-    w = o;
-    o->user_data((void*)(this));
-    { Fl_Button* o = btnApply = new Fl_Button(105, 231, 67, 25, "Apply");
-      o->box(FL_PLASTIC_UP_BOX);
-      o->down_box(FL_PLASTIC_DOWN_BOX);
-      o->labelsize(12);
-      o->callback((Fl_Callback*)cb_btnApply);
+    Fl_Window* w;
+    {   Fl_Window* o = wndNodeProp = new Fl_Window(178, 261, "Node properties");
+        w = o;
+        o->user_data((void*)(this));
+        {   Fl_Button* o = btnApply = new Fl_Button(105, 231, 67, 25, "Apply");
+            o->box(FL_PLASTIC_UP_BOX);
+            o->down_box(FL_PLASTIC_DOWN_BOX);
+            o->labelsize(12);
+            o->callback((Fl_Callback*)cb_btnApply);
+        }
+        {   Fl_Group* o = grpWorkspace = new Fl_Group(4, 19, 169, 96, "Coordinates");
+            o->box(FL_PLASTIC_DOWN_FRAME);
+            o->labelsize(12);
+            o->align(FL_ALIGN_TOP_LEFT);
+            {   Fl_Value_Input* o = edtXCoord = new Fl_Value_Input(90, 26, 74, 24, "X-Coordinate");
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(-1e+300);
+                o->maximum(1e+300);
+                o->textsize(12);
+            }
+            {   Fl_Value_Input* o = edtZCoord = new Fl_Value_Input(90, 82, 74, 25, "Z-Coordinate");
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->textsize(12);
+            }
+            {   Fl_Value_Input* o = edtYCoord = new Fl_Value_Input(90, 54, 74, 25, "Y-Coordinate");
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->textsize(12);
+            }
+            o->end();
+        }
+        {   Fl_Button* o = btnClose = new Fl_Button(38, 231, 61, 25, "Close");
+            o->box(FL_PLASTIC_UP_BOX);
+            o->down_box(FL_PLASTIC_DOWN_BOX);
+            o->labelsize(12);
+            o->callback((Fl_Callback*)cb_btnClose);
+        }
+        {   Fl_Group* o = grpDisplacements = new Fl_Group(5, 132, 168, 93, "Computed displacements");
+            o->box(FL_PLASTIC_DOWN_FRAME);
+            o->labelsize(12);
+            o->align(FL_ALIGN_TOP_LEFT);
+            {   Fl_Value_Input* o = edtXDispl = new Fl_Value_Input(87, 138, 78, 25, "X-Displ.");
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(-1e+300);
+                o->maximum(1e+300);
+                o->textsize(12);
+            }
+            {   Fl_Value_Input* o = edtYDispl = new Fl_Value_Input(87, 166, 78, 25, "Y-Displ.");
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(-1e+300);
+                o->maximum(1e+300);
+                o->textsize(12);
+            }
+            {   Fl_Value_Input* o = edtZDispl = new Fl_Value_Input(87, 194, 78, 25, "Z-Displ.");
+                o->box(FL_PLASTIC_DOWN_BOX);
+                o->labelsize(12);
+                o->minimum(-1e+300);
+                o->maximum(1e+300);
+                o->textsize(12);
+            }
+            o->end();
+        }
+        o->set_non_modal();
+        o->end();
     }
-    { Fl_Group* o = grpWorkspace = new Fl_Group(4, 19, 169, 96, "Coordinates");
-      o->box(FL_PLASTIC_DOWN_FRAME);
-      o->labelsize(12);
-      o->align(FL_ALIGN_TOP_LEFT);
-      { Fl_Value_Input* o = edtXCoord = new Fl_Value_Input(90, 26, 74, 24, "X-Coordinate");
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(-1e+300);
-        o->maximum(1e+300);
-        o->textsize(12);
-      }
-      { Fl_Value_Input* o = edtZCoord = new Fl_Value_Input(90, 82, 74, 25, "Z-Coordinate");
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->textsize(12);
-      }
-      { Fl_Value_Input* o = edtYCoord = new Fl_Value_Input(90, 54, 74, 25, "Y-Coordinate");
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->textsize(12);
-      }
-      o->end();
-    }
-    { Fl_Button* o = btnClose = new Fl_Button(38, 231, 61, 25, "Close");
-      o->box(FL_PLASTIC_UP_BOX);
-      o->down_box(FL_PLASTIC_DOWN_BOX);
-      o->labelsize(12);
-      o->callback((Fl_Callback*)cb_btnClose);
-    }
-    { Fl_Group* o = grpDisplacements = new Fl_Group(5, 132, 168, 93, "Computed displacements");
-      o->box(FL_PLASTIC_DOWN_FRAME);
-      o->labelsize(12);
-      o->align(FL_ALIGN_TOP_LEFT);
-      { Fl_Value_Input* o = edtXDispl = new Fl_Value_Input(87, 138, 78, 25, "X-Displ.");
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(-1e+300);
-        o->maximum(1e+300);
-        o->textsize(12);
-      }
-      { Fl_Value_Input* o = edtYDispl = new Fl_Value_Input(87, 166, 78, 25, "Y-Displ.");
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(-1e+300);
-        o->maximum(1e+300);
-        o->textsize(12);
-      }
-      { Fl_Value_Input* o = edtZDispl = new Fl_Value_Input(87, 194, 78, 25, "Z-Displ.");
-        o->box(FL_PLASTIC_DOWN_BOX);
-        o->labelsize(12);
-        o->minimum(-1e+300);
-        o->maximum(1e+300);
-        o->textsize(12);
-      }
-      o->end();
-    }
-    o->set_non_modal();
-    o->end();
-  }
-  m_node = NULL;
+    m_node = NULL;
 }
 
 void CNodePropDlg::show() {
-  this->setNode(m_node);
-wndNodeProp->show();
+    this->setNode(m_node);
+    wndNodeProp->show();
 }
 
 void CNodePropDlg::setNode(CIvfFemNode* node) {
-  m_node = node;
-if (m_node==NULL)
-{
-	edtXCoord->deactivate();
-	edtYCoord->deactivate();
-	edtZCoord->deactivate();
-	edtXDispl->deactivate();
-	edtYDispl->deactivate();
-	edtZDispl->deactivate();
-	btnApply->deactivate();
-	edtXCoord->value(0);
-	edtYCoord->value(0);
-	edtZCoord->value(0);
-	edtXDispl->value(0);
-	edtYDispl->value(0);
-	edtZDispl->value(0);
-}
-else
-{
-	edtXCoord->activate();
-	edtYCoord->activate();
-	edtZCoord->activate();
-	edtXDispl->activate();
-	edtYDispl->activate();
-	edtZDispl->activate();
-	btnApply->activate();
-	double x, y, z;
-	double dx, dy, dz;
-	m_node->getPosition(x, y, z);
-	dx = m_node->getFemNode()->getValue(0);
-	dy = m_node->getFemNode()->getValue(1);
-	dz = m_node->getFemNode()->getValue(2);
-	edtXCoord->value(x);
-	edtYCoord->value(y);
-	edtZCoord->value(z);
-	edtXDispl->value(dx);
-	edtYDispl->value(dy);
-	edtZDispl->value(dz);
-}
+    m_node = node;
+    if (m_node==NULL)
+    {
+        edtXCoord->deactivate();
+        edtYCoord->deactivate();
+        edtZCoord->deactivate();
+        edtXDispl->deactivate();
+        edtYDispl->deactivate();
+        edtZDispl->deactivate();
+        btnApply->deactivate();
+        edtXCoord->value(0);
+        edtYCoord->value(0);
+        edtZCoord->value(0);
+        edtXDispl->value(0);
+        edtYDispl->value(0);
+        edtZDispl->value(0);
+    }
+    else
+    {
+        edtXCoord->activate();
+        edtYCoord->activate();
+        edtZCoord->activate();
+        edtXDispl->activate();
+        edtYDispl->activate();
+        edtZDispl->activate();
+        btnApply->activate();
+        double x, y, z;
+        double dx, dy, dz;
+        m_node->getPosition(x, y, z);
+        dx = m_node->getFemNode()->getValue(0);
+        dy = m_node->getFemNode()->getValue(1);
+        dz = m_node->getFemNode()->getValue(2);
+        edtXCoord->value(x);
+        edtYCoord->value(y);
+        edtZCoord->value(z);
+        edtXDispl->value(dx);
+        edtYDispl->value(dy);
+        edtZDispl->value(dz);
+    }
 }
 
 CIvfFemNode* CNodePropDlg::getNode() {
-  return m_node;
+    return m_node;
 }
 
 void CNodePropDlg::setWorkspace(Fl_Widget* widget) {
-  m_workspace = widget;
+    m_workspace = widget;
 }
 
 void CNodePropDlg::hide() {
-  wndNodeProp->hide();
+    wndNodeProp->hide();
 }

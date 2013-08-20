@@ -9,11 +9,11 @@ class CProcessManager {
 private:
 
 public:
-	CProcessManager();
-	virtual ~CProcessManager();
+    CProcessManager();
+    virtual ~CProcessManager();
 
-	void executeWait(char* commandLine);
-	void execute(char* commandLine);
+    void executeWait(char* commandLine);
+    void execute(char* commandLine);
 };
 
-#endif 
+#endif

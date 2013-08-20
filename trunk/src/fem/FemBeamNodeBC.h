@@ -7,21 +7,21 @@ FemSmartPointer(CFemBeamNodeBC);
 
 class CFemBeamNodeBC : public CFemNodeBC {
 private:
-	int m_color;
-	std::string m_name;
+    int m_color;
+    std::string m_name;
 public:
-	CFemBeamNodeBC();
-	virtual ~CFemBeamNodeBC();
+    CFemBeamNodeBC();
+    virtual ~CFemBeamNodeBC();
 
-	FemClassInfo("CFemBeamNodeBC",CFemNodeBC);
+    FemClassInfo("CFemBeamNodeBC",CFemNodeBC);
 
-	int getColor();
-	void setColor(int color);
-	const std::string getName();
-	void setName(const std::string& name);
+    int getColor();
+    void setColor(int color);
+    const std::string getName();
+    void setName(const std::string& name);
 
-	void readFromStream(std::istream &in);
-	void saveToStream(std::ostream &out);
+    void readFromStream(std::istream &in);
+    void saveToStream(std::ostream &out);
 };
 
-#endif 
+#endif

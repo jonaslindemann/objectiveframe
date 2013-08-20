@@ -646,6 +646,7 @@ void CIvfFemWidget::setCustomMode(int mode)
         this->clearSelection();
         this->redraw();
         m_beamModel->clearNodeValues();
+        this->setResultType(IVF_BEAM_NO_RESULT);
         this->setEditMode(IVF_SELECT);
     }
 }

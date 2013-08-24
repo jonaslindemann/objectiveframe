@@ -86,7 +86,7 @@ CIvfFemWidget::CIvfFemWidget(int X, int Y, int W, int H, const char *L) :
     so_print("FemWidget: Initializing variables.");
     m_tactileForce = NULL;
     m_internalSolver = NULL;
-    m_relNodeSize = 0.005;
+    m_relNodeSize = 0.004;
     m_relLineRadius = 0.0015;
     m_relLoadSize = 0.07;
     m_customMode = OF_NORMAL;
@@ -96,7 +96,7 @@ CIvfFemWidget::CIvfFemWidget(int X, int Y, int W, int H, const char *L) :
     m_startAlfa = 0.0;
     m_startBeta = M_PI/2.0;;
     m_haveScaleFactor = false;
-    m_needRecalc = true;
+    m_needRecalc = true; 
     m_selectFilter = SF_ALL;
     m_deleteFilter = DF_ALL;
     m_highlightFilter = HF_ALL;
@@ -1371,14 +1371,8 @@ void CIvfFemWidget::setupOverlay()
 
     button= new CIvfPlaneButton(BTN_VIEW_ZOOM, "images/tlviewzoom.png");
     button->setSize(40.0,40.0);
-    button->setPosition(30.0,30.0,0.0);
-    button->setHint("View/Zoom mode");
-    m_viewButtons->addChild(button);
-
-    button= new CIvfPlaneButton(BTN_VIEW_PAN, "images/tlviewpan.png");
-    button->setSize(40.0,40.0);
     button->setPosition(90.0,30.0,0.0);
-    button->setHint("View/Pan mode");
+    button->setHint("View/Zoom mode");
     m_viewButtons->addChild(button);
 
     button= new CIvfPlaneButton(BTN_VIEW_RESET, "images/tlviewreset.png");

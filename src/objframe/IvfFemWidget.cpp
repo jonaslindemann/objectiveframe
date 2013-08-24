@@ -131,7 +131,7 @@ void CIvfFemWidget::onInit()
     CIvfMaterialPtr material;
 #endif
 
-#ifdef ADVANCED_GL
+#ifdef SIMPLE_GRID
     CIvfSgiImagePtr image = new CIvfSgiImage();
     image->setFileName("images/grid.rgb");
     image->read();
@@ -143,7 +143,7 @@ void CIvfFemWidget::onInit()
     texture->setTextureMode(GL_DECAL);
 #endif
 
-#ifdef ADVANCED_GL
+#ifdef SIMPLE_GRID
     m_plane = new CIvfQuadPlane();
     m_plane->setMaterial(material);
     m_plane->setSize(20.0, 20.0);
@@ -158,6 +158,9 @@ void CIvfFemWidget::onInit()
     this->getScene()->getPostComposite()->addChild(m_plane);
     this->getScene()->getCurrentPlane()->getGrid()->setUseGrid(false);
 #endif
+    this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
+    this->getScene()->setRenderFlatShadow(true);
+    this->getScene()->setShadowColor(0.35, 0.35, 0.35);
 
     // Common 3D gui state variables
 
@@ -377,7 +380,7 @@ const std::string CIvfFemWidget::getFileName()
 void CIvfFemWidget::setWorkspace(double size)
 {
     CIvfFltkWidget::setWorkspace(size);
-#ifdef ADVANCED_GL
+#ifdef SIMPLE_GRID
     m_plane->setSize(size, size);
     m_plane->setTextureCoord(0,0.0,0.0);
     m_plane->setTextureCoord(1,20.0,0.0);
@@ -2042,7 +2045,8 @@ void CIvfFemWidget::onInitContext()
 {
     CIvfFltkWidget::onInitContext();
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_LINE_SMOOTH);
+    glClearColor(0.4, 0.4, 0.4, 1.0);
 #ifdef ADVANCED_GL
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

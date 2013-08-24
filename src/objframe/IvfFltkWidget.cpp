@@ -990,6 +990,7 @@ void CIvfFltkWidget::onInitContext()
     glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
     glGetIntegerv(GL_SAMPLES, &iNumSamples);
 
+
     cout << "mode after context init = " << this->mode() << endl;
 
     m_lighting->enable();

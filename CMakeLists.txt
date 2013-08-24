@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6)
 set( LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib )
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
-set( IVF_ROOT /Users/lindemann/Development/ivf )
+set( IVF_ROOT /Users/jonas/Development/ivf )
 set( IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include )
 set( IVF_LIBS ${IVF_ROOT}/lib )
 

@@ -101,9 +101,10 @@ void CIvfFemNode::refresh()
         if (m_beamModel->getNodeType() == IVF_NODE_DISPLACEMENT)
         {
             if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT)
-                this->setSize(m_beamModel->getLineRadius());
+                this->setState(CIvfShape::OS_OFF);
             else
-                this->setSize(m_beamModel->getNodeSize());
+                this->setState(CIvfShape::OS_ON);
+            
             CIvfShape::setPosition(x + dx*scalefactor, y + dy*scalefactor,  z + dz*scalefactor);
         }
         else

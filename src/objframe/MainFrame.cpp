@@ -6,267 +6,267 @@
 #include "MaterialsDlg.h"
 
 static void cb_wndMain(Fl_Widget* widget, void* p) {
-    CMainFrame* mainFrame = (CMainFrame*)p;
-    mainFrame->close();
+  CMainFrame* mainFrame = (CMainFrame*)p;
+  mainFrame->close();
 }
 
 void CMainFrame::cb_mnuFileNew_i(Fl_Menu_*, void*) {
-    CWorkspaceDlg* dlg = new CWorkspaceDlg();
-    dlg->setWorkspaceSize(ivfWorkspace->getWorkspace());
-    dlg->show();
-    if (dlg->getModalResult()==MR_OK)
-    {
-        ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
-        ivfWorkspace->newModel();
-    }
-    delete dlg;
+  CWorkspaceDlg* dlg = new CWorkspaceDlg();
+dlg->setWorkspaceSize(ivfWorkspace->getWorkspace());
+dlg->show();
+if (dlg->getModalResult()==MR_OK)
+{
+	ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	ivfWorkspace->newModel();
+}
+delete dlg;
 }
 void CMainFrame::cb_mnuFileNew(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileNew_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileNew_i(o,v);
 }
 
 void CMainFrame::cb_mnuFileOpen_i(Fl_Menu_*, void*) {
-    ivfWorkspace->open();
+  ivfWorkspace->open();
 }
 void CMainFrame::cb_mnuFileOpen(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileOpen_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileOpen_i(o,v);
 }
 
 void CMainFrame::cb_mnuFileSave_i(Fl_Menu_*, void*) {
-    ivfWorkspace->save();
+  ivfWorkspace->save();
 }
 void CMainFrame::cb_mnuFileSave(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileSave_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileSave_i(o,v);
 }
 
 void CMainFrame::cb_mnuFileSaveAs_i(Fl_Menu_*, void*) {
-    ivfWorkspace->saveAs();
+  ivfWorkspace->saveAs();
 }
 void CMainFrame::cb_mnuFileSaveAs(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileSaveAs_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileSaveAs_i(o,v);
 }
 
 void CMainFrame::cb_mnuFileQuit_i(Fl_Menu_*, void*) {
-    ivfWorkspace->hideAllDialogs();
-    this->close();
+  ivfWorkspace->hideAllDialogs();
+this->close();
 }
 void CMainFrame::cb_mnuFileQuit(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileQuit_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuFileQuit_i(o,v);
 }
 
 void CMainFrame::cb_mnuEditSelectAllNodes_i(Fl_Menu_*, void*) {
-    ivfWorkspace->selectAllNodes();
+  ivfWorkspace->selectAllNodes();
 }
 void CMainFrame::cb_mnuEditSelectAllNodes(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditSelectAllNodes_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditSelectAllNodes_i(o,v);
 }
 
 void CMainFrame::cb_mnuEditSelectAllElements_i(Fl_Menu_*, void*) {
-    ivfWorkspace->selectAllElements();
+  ivfWorkspace->selectAllElements();
 }
 void CMainFrame::cb_mnuEditSelectAllElements(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditSelectAllElements_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditSelectAllElements_i(o,v);
 }
 
 void CMainFrame::cb_mnuModeModel_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setRepresentation(FRAME_FEM);
+  ivfWorkspace->setRepresentation(FRAME_FEM);
 }
 void CMainFrame::cb_mnuModeModel(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeModel_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeModel_i(o,v);
 }
 
 void CMainFrame::cb_mnuModeGeometry_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setRepresentation(FRAME_GEOMETRY);
+  ivfWorkspace->setRepresentation(FRAME_GEOMETRY);
 }
 void CMainFrame::cb_mnuModeGeometry(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeGeometry_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeGeometry_i(o,v);
 }
 
 void CMainFrame::cb_mnuModeResults_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setRepresentation(FRAME_DISPLACEMENTS);
+  ivfWorkspace->setRepresentation(FRAME_DISPLACEMENTS);
 }
 void CMainFrame::cb_mnuModeResults(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeResults_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeResults_i(o,v);
 }
 
 void CMainFrame::cb_mnuModeFeedback_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setCustomMode(OF_FEEDBACK);
+  ivfWorkspace->setCustomMode(OF_FEEDBACK);
 }
 void CMainFrame::cb_mnuModeFeedback(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeFeedback_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuModeFeedback_i(o,v);
 }
 
 void CMainFrame::cb_mnuToolsStructure_i(Fl_Menu_*, void*) {
-    ivfWorkspace->showStructureDlg();
+  ivfWorkspace->showStructureDlg();
 }
 void CMainFrame::cb_mnuToolsStructure(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuToolsStructure_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuToolsStructure_i(o,v);
 }
 
 void CMainFrame::cb_mnuCalcExecute_i(Fl_Menu_*, void*) {
-    ivfWorkspace->executeCalc();
+  ivfWorkspace->executeCalc();
 }
 void CMainFrame::cb_mnuCalcExecute(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuCalcExecute_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuCalcExecute_i(o,v);
 }
 
 void CMainFrame::cb_mnuResultN_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setResultType(IVF_BEAM_N);
+  ivfWorkspace->setResultType(IVF_BEAM_N);
 }
 void CMainFrame::cb_mnuResultN(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultN_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultN_i(o,v);
 }
 
 void CMainFrame::cb_mnuResultT_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setResultType(IVF_BEAM_T);
+  ivfWorkspace->setResultType(IVF_BEAM_T);
 }
 void CMainFrame::cb_mnuResultT(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultT_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultT_i(o,v);
 }
 
 void CMainFrame::cb_mnuResultV_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setResultType(IVF_BEAM_V);
+  ivfWorkspace->setResultType(IVF_BEAM_V);
 }
 void CMainFrame::cb_mnuResultV(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultV_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultV_i(o,v);
 }
 
 void CMainFrame::cb_mnuResultM_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setResultType(IVF_BEAM_M);
+  ivfWorkspace->setResultType(IVF_BEAM_M);
 }
 void CMainFrame::cb_mnuResultM(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultM_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultM_i(o,v);
 }
 
 void CMainFrame::cb_mnuResultNavier_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setResultType(IVF_BEAM_NAVIER);
+  ivfWorkspace->setResultType(IVF_BEAM_NAVIER);
 }
 void CMainFrame::cb_mnuResultNavier(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultNavier_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultNavier_i(o,v);
 }
 
 void CMainFrame::cb_mnuResultNoResults_i(Fl_Menu_*, void*) {
-    ivfWorkspace->setResultType(IVF_BEAM_NO_RESULT);
+  ivfWorkspace->setResultType(IVF_BEAM_NO_RESULT);
 }
 void CMainFrame::cb_mnuResultNoResults(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultNoResults_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuResultNoResults_i(o,v);
 }
 
 void CMainFrame::cb_mnuOptionsWorkspace_i(Fl_Menu_*, void*) {
-    CWorkspaceDlg* dlg = new CWorkspaceDlg();
-    dlg->setWorkspaceSize(ivfWorkspace->getWorkspace());
-    dlg->setNodeSize(ivfWorkspace->getRelNodeSize());
-    dlg->setLineRadius(ivfWorkspace->getRelLineRadius());
-    dlg->setLoadSize(ivfWorkspace->getRelLoadSize());
-    dlg->show();
-    if (dlg->getModalResult()==MR_OK)
-    {
-        ivfWorkspace->setRelNodeSize(dlg->getNodeSize());
-        ivfWorkspace->setRelLineRadius(dlg->getLineRadius());
-        ivfWorkspace->setRelLoadSize(dlg->getLoadSize());
-        ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
-    }
-    delete dlg;
+  CWorkspaceDlg* dlg = new CWorkspaceDlg();
+dlg->setWorkspaceSize(ivfWorkspace->getWorkspace());
+dlg->setNodeSize(ivfWorkspace->getRelNodeSize());
+dlg->setLineRadius(ivfWorkspace->getRelLineRadius());
+dlg->setLoadSize(ivfWorkspace->getRelLoadSize());
+dlg->show();
+if (dlg->getModalResult()==MR_OK)
+{
+	ivfWorkspace->setRelNodeSize(dlg->getNodeSize());
+	ivfWorkspace->setRelLineRadius(dlg->getLineRadius());
+	ivfWorkspace->setRelLoadSize(dlg->getLoadSize());
+	ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+}
+delete dlg;
 }
 void CMainFrame::cb_mnuOptionsWorkspace(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsWorkspace_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsWorkspace_i(o,v);
 }
 
 void CMainFrame::cb_mnuOptionsScalefactor_i(Fl_Menu_*, void*) {
-    ivfWorkspace->showScalefactorDlg();
+  ivfWorkspace->showScalefactorDlg();
 }
 void CMainFrame::cb_mnuOptionsScalefactor(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsScalefactor_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsScalefactor_i(o,v);
 }
 
 void CMainFrame::cb_mnuOptionsFullscreen_i(Fl_Menu_*, void*) {
-#ifdef WIN32
-    DEVMODE dmScreenSettings;
-    EnumDisplaySettings(
-        NULL,
-        ENUM_CURRENT_SETTINGS,
-        &dmScreenSettings
-    );
-    int width = dmScreenSettings.dmPelsWidth;
-    int height = dmScreenSettings.dmPelsHeight;
+  #ifdef WIN32
+DEVMODE dmScreenSettings;
+EnumDisplaySettings(
+	NULL,
+	ENUM_CURRENT_SETTINGS,
+	&dmScreenSettings
+);
+int width = dmScreenSettings.dmPelsWidth;
+int height = dmScreenSettings.dmPelsHeight;
 #else
-    int width = Fl::w();
-    int height = Fl::h();
+int width = Fl::w();
+int height = Fl::h();
 #endif
-    wndMain->resize(0,0,width,height);
-    wndMain->border(0);
+wndMain->resize(0,0,width,height);
+wndMain->border(0);
 }
 void CMainFrame::cb_mnuOptionsFullscreen(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsFullscreen_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsFullscreen_i(o,v);
 }
 
 void CMainFrame::cb_mnuOptionsLockScale_i(Fl_Menu_*, void*) {
-    if (mnuOptionsLockScale->value()>0)
-        ivfWorkspace->lockScaleFactor();
-    else
-        ivfWorkspace->unlockScaleFactor();
+  if (mnuOptionsLockScale->value()>0)
+	ivfWorkspace->lockScaleFactor();
+else
+	ivfWorkspace->unlockScaleFactor();
 }
 void CMainFrame::cb_mnuOptionsLockScale(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsLockScale_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuOptionsLockScale_i(o,v);
 }
 
 void CMainFrame::cb_mnuHelpAbout_i(Fl_Menu_*, void*) {
-    if (m_splash!=NULL)
-    {
-        m_splash->hide();
-        delete m_splash;
-    }
-    m_splash = new CSplashFrame();
-    m_splash->setTimer(false);
-    m_splash->center();
-    m_splash->show();
+  if (m_splash!=NULL)
+{
+	m_splash->hide();
+	delete m_splash;
+}
+m_splash = new CSplashFrame();
+m_splash->setTimer(false);
+m_splash->center();
+m_splash->show();
 }
 void CMainFrame::cb_mnuHelpAbout(Fl_Menu_* o, void* v) {
-    ((CMainFrame*)(o->parent()->user_data()))->cb_mnuHelpAbout_i(o,v);
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuHelpAbout_i(o,v);
 }
 
 Fl_Menu_Item CMainFrame::menu_mnuMain[] = {
-    {"&File", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&New", 0x4006e,  (Fl_Callback*)CMainFrame::cb_mnuFileNew, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Open...", 0x4006f,  (Fl_Callback*)CMainFrame::cb_mnuFileOpen, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Save", 0x40073,  (Fl_Callback*)CMainFrame::cb_mnuFileSave, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"Save &as...", 0,  (Fl_Callback*)CMainFrame::cb_mnuFileSaveAs, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Quit", 0x40071,  (Fl_Callback*)CMainFrame::cb_mnuFileQuit, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"&Edit", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"Select all nodes", 0x4006e,  (Fl_Callback*)CMainFrame::cb_mnuEditSelectAllNodes, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"Select all elements", 0x40065,  (Fl_Callback*)CMainFrame::cb_mnuEditSelectAllElements, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"&Mode", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Model", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeModel, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Geometry", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeGeometry, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Results", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeResults, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Feedback", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeFeedback, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"Tools", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"Create structure", 0,  (Fl_Callback*)CMainFrame::cb_mnuToolsStructure, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"&Calculation", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Execute", 0,  (Fl_Callback*)CMainFrame::cb_mnuCalcExecute, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"&Results", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Normal", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultN, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Torsion", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultT, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Shear", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultV, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Moment", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultM, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
-    {"N&avier formula", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultNavier, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
-    {"No results", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultNoResults, 0, 12, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"&Options", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Workspace", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsWorkspace, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"Scalefactor", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsScalefactor, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {"Fullscreen", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsFullscreen, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&Lock scalefactor", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsLockScale, 0, 2, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {"&Help", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
-    {"&About...", 0,  (Fl_Callback*)CMainFrame::cb_mnuHelpAbout, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-    {0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0}
+ {"&File", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&New", 0x4006e,  (Fl_Callback*)CMainFrame::cb_mnuFileNew, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Open...", 0x4006f,  (Fl_Callback*)CMainFrame::cb_mnuFileOpen, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Save", 0x40073,  (Fl_Callback*)CMainFrame::cb_mnuFileSave, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Save &as...", 0,  (Fl_Callback*)CMainFrame::cb_mnuFileSaveAs, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Quit", 0x40071,  (Fl_Callback*)CMainFrame::cb_mnuFileQuit, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"&Edit", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Select all nodes", 0x4006e,  (Fl_Callback*)CMainFrame::cb_mnuEditSelectAllNodes, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Select all elements", 0x40065,  (Fl_Callback*)CMainFrame::cb_mnuEditSelectAllElements, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"&Mode", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Model", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeModel, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Geometry", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeGeometry, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Results", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeResults, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Feedback", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeFeedback, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"Tools", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Create structure", 0,  (Fl_Callback*)CMainFrame::cb_mnuToolsStructure, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"&Calculation", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Execute", 0,  (Fl_Callback*)CMainFrame::cb_mnuCalcExecute, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"&Results", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Normal", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultN, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Torsion", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultT, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Shear", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultV, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Moment", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultM, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
+ {"N&avier formula", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultNavier, 0, 8, FL_NORMAL_LABEL, 0, 14, 0},
+ {"No results", 0,  (Fl_Callback*)CMainFrame::cb_mnuResultNoResults, 0, 12, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"&Options", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Workspace", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsWorkspace, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Scalefactor", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsScalefactor, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Fullscreen", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsFullscreen, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Lock scalefactor", 0,  (Fl_Callback*)CMainFrame::cb_mnuOptionsLockScale, 0, 2, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {"&Help", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&About...", 0,  (Fl_Callback*)CMainFrame::cb_mnuHelpAbout, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {0,0,0,0,0,0,0,0,0}
 };
 Fl_Menu_Item* CMainFrame::mnuFile = CMainFrame::menu_mnuMain + 0;
 Fl_Menu_Item* CMainFrame::mnuFileNew = CMainFrame::menu_mnuMain + 1;
@@ -302,79 +302,79 @@ Fl_Menu_Item* CMainFrame::mnuHelp = CMainFrame::menu_mnuMain + 37;
 Fl_Menu_Item* CMainFrame::mnuHelpAbout = CMainFrame::menu_mnuMain + 38;
 
 CMainFrame::CMainFrame() {
-    {   wndMain = new Fl_Double_Window(746, 583, "ObjectiveFrame");
-        wndMain->user_data((void*)(this));
-        {   mnuMain = new Fl_Menu_Bar(0, 0, 746, 25);
-            mnuMain->box(FL_FLAT_BOX);
-            mnuMain->down_box(FL_FLAT_BOX);
-            mnuMain->color(FL_FOREGROUND_COLOR);
-            mnuMain->selection_color(FL_DARK_BLUE);
-            mnuMain->labelsize(12);
-            mnuMain->labelcolor(FL_BACKGROUND2_COLOR);
-            mnuMain->textsize(12);
-            mnuMain->textcolor(FL_BACKGROUND2_COLOR);
-            mnuMain->menu(menu_mnuMain);
-        } // Fl_Menu_Bar* mnuMain
-        {   ivfWorkspace = new CIvfFemWidget(0, 25, 746, 558);
-            ivfWorkspace->box(FL_NO_BOX);
-            ivfWorkspace->color(FL_FOREGROUND_COLOR);
-            ivfWorkspace->selection_color(FL_BACKGROUND_COLOR);
-            ivfWorkspace->labeltype(FL_NORMAL_LABEL);
-            ivfWorkspace->labelfont(0);
-            ivfWorkspace->labelsize(14);
-            ivfWorkspace->labelcolor(FL_FOREGROUND_COLOR);
-            ivfWorkspace->align(Fl_Align(FL_ALIGN_CENTER));
-            ivfWorkspace->when(FL_WHEN_RELEASE);
-            Fl_Group::current()->resizable(ivfWorkspace);
-        } // CIvfFemWidget* ivfWorkspace
-        wndMain->end();
-    } // Fl_Double_Window* wndMain
-    wndMain->callback(cb_wndMain, this);
-
-    m_splash = NULL;
+  { wndMain = new Fl_Double_Window(746, 583, "ObjectiveFrame");
+    wndMain->user_data((void*)(this));
+    { mnuMain = new Fl_Menu_Bar(0, 0, 746, 25);
+      mnuMain->box(FL_FLAT_BOX);
+      mnuMain->down_box(FL_FLAT_BOX);
+      mnuMain->color(FL_FOREGROUND_COLOR);
+      mnuMain->selection_color(FL_DARK_BLUE);
+      mnuMain->labelsize(12);
+      mnuMain->labelcolor(FL_BACKGROUND2_COLOR);
+      mnuMain->textsize(12);
+      mnuMain->textcolor(FL_BACKGROUND2_COLOR);
+      mnuMain->menu(menu_mnuMain);
+    } // Fl_Menu_Bar* mnuMain
+    { ivfWorkspace = new CIvfFemWidget(0, 25, 746, 558);
+      ivfWorkspace->box(FL_NO_BOX);
+      ivfWorkspace->color(FL_FOREGROUND_COLOR);
+      ivfWorkspace->selection_color(FL_BACKGROUND_COLOR);
+      ivfWorkspace->labeltype(FL_NORMAL_LABEL);
+      ivfWorkspace->labelfont(0);
+      ivfWorkspace->labelsize(14);
+      ivfWorkspace->labelcolor(FL_FOREGROUND_COLOR);
+      ivfWorkspace->align(Fl_Align(FL_ALIGN_CENTER));
+      ivfWorkspace->when(FL_WHEN_RELEASE);
+      Fl_Group::current()->resizable(ivfWorkspace);
+    } // CIvfFemWidget* ivfWorkspace
+    wndMain->end();
+  } // Fl_Double_Window* wndMain
+  wndMain->callback(cb_wndMain, this);
+  
+  m_splash = NULL;
 }
 
 void CMainFrame::show() {
-#ifdef WIN32
-    extern HINSTANCE fl_display;
-    //wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
-#endif
-    wndMain->size(Fl::w()-40, Fl::h()-40);
-    wndMain->position(20,40);
-    wndMain->show();
-    ivfWorkspace->show();
+  #ifdef WIN32
+  extern HINSTANCE fl_display;
+  //wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
+  #endif
+  wndMain->size(Fl::w()-40, Fl::h()-40);
+  wndMain->position(20,40);
+  wndMain->show();
+  ivfWorkspace->show();
 }
 
 void CMainFrame::updateToggles() {
 }
 
 void CMainFrame::close() {
-    ivfWorkspace->hideAllDialogs();
-    wndMain->hide();
+  ivfWorkspace->hideAllDialogs();
+  wndMain->hide();
 }
 
 void CMainFrame::setArguments(int argc, char** argv) {
-    m_argc = argc;
-    m_argv = argv;
-    ivfWorkspace->setArguments(m_argc, m_argv);
+  m_argc = argc;
+  m_argv = argv;
+  ivfWorkspace->setArguments(m_argc, m_argv);
 }
 
 CMainFrame::~CMainFrame() {
-    if (m_splash!=NULL)
-        delete m_splash;
+  if (m_splash!=NULL)
+  	delete m_splash;
 }
 
 void CMainFrame::setProgramPath(const std::string& path) {
-    ivfWorkspace->setProgramPath(path);
+  ivfWorkspace->setProgramPath(path);
 }
 
 void CMainFrame::show_fullscreen(int x, int y, int width, int height) {
-#ifdef WIN32
-    //extern HINSTANCE fl_display;
-    //wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
-#endif
-    wndMain->show();
-    wndMain->resize(x,y,width,height);
-    wndMain->border(0);
-    ivfWorkspace->show();
+  #ifdef WIN32
+  //extern HINSTANCE fl_display;
+  //wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
+  #endif
+  wndMain->show();
+  wndMain->resize(x,y,width,height);
+  wndMain->border(0);
+  ivfWorkspace->show();
 }

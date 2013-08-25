@@ -26,8 +26,7 @@ void CFemElementSet::print(std::ostream &out)
 // ------------------------------------------------------------
 void CFemElementSet::addElement(CFemElement *element)
 {
-    element->addReference();
-    m_elements.push_back(element);
+    m_elements.push_back(CFemElementPtr(element));
 }
 
 // ------------------------------------------------------------
@@ -42,21 +41,15 @@ CFemElement* CFemElementSet::getElement(long i)
 // ------------------------------------------------------------
 bool CFemElementSet::deleteElement(long i)
 {
-    std::vector<CFemElement*>::iterator p = m_elements.begin();
-
     if ( (i>=0)&&(i<(long)m_elements.size()) )
     {
-        CFemElement* element = m_elements[i];
-
-        element->deleteReference();
-        if (!element->isReferenced())
+        if (m_elements[i]->getRefCount()==1)
         {
-            p += i;
-            m_elements.erase(p);
-            delete element;
+            m_elements.erase(m_elements.begin()+i);
             return true;
         }
-        element->addReference();
+        else
+            return false;
     }
     return false;
 }
@@ -64,15 +57,18 @@ bool CFemElementSet::deleteElement(long i)
 // ------------------------------------------------------------
 CFemElement* CFemElementSet::removeElement(long i)
 {
-    std::vector<CFemElement*>::iterator p = m_elements.begin();
-
     if ( (i>=0)&&(i<(long)m_elements.size()) )
     {
-        CFemElement* element = m_elements[i];
-        element->deleteReference();
-        p += i;
-        m_elements.erase(p);
-        return element;
+        if (m_elements[i]->getRefCount()==1)
+        {
+            CFemElement* element = m_elements[i];
+            element->addReference();
+            m_elements.erase(m_elements.begin()+i);
+            element->deleteReference();
+            return element;
+        }
+        else
+            return NULL;
     }
     else
         return NULL;
@@ -81,24 +77,12 @@ CFemElement* CFemElementSet::removeElement(long i)
 // ------------------------------------------------------------
 void CFemElementSet::deleteAll()
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
-    {
-        CFemElement* element = m_elements[i];
-        element->deleteReference();
-        if (!element->isReferenced())
-            delete element;
-    }
     m_elements.clear();
 }
 
 // ------------------------------------------------------------
 void CFemElementSet::clear()
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
-    {
-        CFemElement* element = m_elements[i];
-        element->deleteReference();
-    }
     m_elements.clear();
 }
 
@@ -135,8 +119,7 @@ void CFemElementSet::readFromStream(std::istream &in)
     deleteAll();
     for (int i=0; i<nElements; i++)
     {
-        CFemElement* element = createElement();
-        element->addReference();
+        CFemElementPtr element = createElement();
         element->readFromStream(in);
         m_elements.push_back(element);
     }
@@ -162,31 +145,13 @@ CFemElement* CFemElementSet::createElement()
 // ------------------------------------------------------------
 bool CFemElementSet::removeElement(CFemElement *element)
 {
-    std::vector<CFemElement*>::iterator p = m_elements.begin();
-
     for (unsigned int i=0; i<m_elements.size(); i++)
     {
         if (element==m_elements[i])
-        {
-            element->deleteReference();
-            if (!element->isReferenced())
-            {
-                p = m_elements.begin();
-                p += i;
-                m_elements.erase(p);
-                delete element;
-                return true;
-            }
-            else
-            {
-                element->addReference();
-                return false;
-            }
-        }
+            return this->deleteElement(i);
     }
     return false;
 }
-
 
 // ------------------------------------------------------------
 long CFemElementSet::enumerateDofs(long count)

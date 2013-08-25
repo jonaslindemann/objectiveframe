@@ -17,9 +17,8 @@ private:
     int m_kind;
     double m_coord[3];
     std::vector<double> m_values;
-    std::vector<CFemDof*> m_dofs;
+    std::vector<CFemDofPtr> m_dofs;
 public:
-    int getValueSize();
     CFemNode ();
     CFemNode (double x, double y, double z);
     virtual ~CFemNode ();
@@ -38,6 +37,7 @@ public:
     double getValue(unsigned int idx);
     void setValue(unsigned int idx, double value);
     void clearValues();
+    int getValueSize();
 
     // Get/Set methods
 

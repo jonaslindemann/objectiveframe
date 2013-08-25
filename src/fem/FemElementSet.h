@@ -9,7 +9,7 @@ FemSmartPointer(CFemElementSet);
 
 class CFemElementSet : public CFemObject {
 private:
-    std::vector<CFemElement*> m_elements;
+    std::vector<CFemElementPtr> m_elements;
 public:
     CFemElementSet ();
     virtual ~CFemElementSet ();

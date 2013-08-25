@@ -25,14 +25,7 @@ CFemNode::CFemNode (double x, double y, double z)
 // ------------------------------------------------------------
 CFemNode::~CFemNode ()
 {
-    // Delete dofs
 
-    for (unsigned int i=0; i<m_dofs.size(); i++)
-    {
-        CFemDof* dof = m_dofs[i];
-        delete dof;
-    }
-    m_dofs.clear();
 }
 
 // ------------------------------------------------------------
@@ -91,11 +84,6 @@ void CFemNode::setKind(int kind)
 
     unsigned int i;
 
-    for (i=0; i<m_dofs.size(); i++)
-    {
-        CFemDof* dof = m_dofs[i];
-        delete dof;
-    }
     m_dofs.clear();
 
     // Create new dofs
@@ -105,21 +93,21 @@ void CFemNode::setKind(int kind)
     case FEM_DISPL_NODE:
         for (i=0; i<3; i++)
         {
-            CFemDof* dof = new CFemDof(i);
+            CFemDofPtr dof = new CFemDof(i);
             m_dofs.push_back(dof);
         }
         break;
     case FEM_DISPL_ROT_NODE:
         for (i=0; i<6; i++)
         {
-            CFemDof* dof = new CFemDof(i);
+            CFemDofPtr dof = new CFemDof(i);
             m_dofs.push_back(dof);
         }
         break;
     default:
         for (i=0; i<3; i++)
         {
-            CFemDof* dof = new CFemDof(i);
+            CFemDofPtr dof = new CFemDof(i);
             m_dofs.push_back(dof);
         }
         break;
@@ -187,32 +175,6 @@ void CFemNode::readFromStream(std::istream &in)
     for (int i=0; i<3; i++)
         in >> m_coord[i];
     this->setKind(m_kind);
-    /*
-    switch (m_kind)
-    {
-    case FEM_DISPL_ROT_NODE:
-    	for (i=0; i<6; i++)
-    	{
-    		in >> number;
-    		m_dofs[i]->setNumber(number);
-    	}
-    	break;
-    case FEM_DISPL_NODE:
-    	for (i=0; i<3; i++)
-    	{
-    		in >> number;
-    		m_dofs[i]->setNumber(number);
-    	}
-    	break;
-    default:
-    	for (i=0; i<6; i++)
-    	{
-    		in >> number;
-    		m_dofs[i]->setNumber(number);
-    	}
-    	break;
-    }
-    */
 }
 
 // ------------------------------------------------------------

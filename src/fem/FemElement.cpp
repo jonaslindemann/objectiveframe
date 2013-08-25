@@ -32,20 +32,14 @@ void CFemElement::print(std::ostream &out)
 // ------------------------------------------------------------
 void CFemElement::addNode(CFemNode *node)
 {
-    node->addReference();
-    m_nodes.push_back(node);
-    CFemInternalDofs* iDof = new CFemInternalDofs();
+    m_nodes.push_back(CFemNodePtr(node));
+    CFemInternalDofsPtr iDof = new CFemInternalDofs();
     m_internalDofs.push_back(iDof);
 }
 
 // ------------------------------------------------------------
 void CFemElement::clear()
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
-    {
-        m_nodes[i]->deleteReference();
-        delete m_internalDofs[i];
-    }
     m_nodes.clear();
     m_internalDofs.clear();
 }
@@ -53,13 +47,6 @@ void CFemElement::clear()
 // ------------------------------------------------------------
 void CFemElement::deleteAll()
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
-    {
-        m_nodes[i]->deleteReference();
-        if (!m_nodes[i]->isReferenced())
-            delete m_nodes[i];
-        delete m_internalDofs[i];
-    }
     m_nodes.clear();
     m_internalDofs.clear();
 }
@@ -124,12 +111,11 @@ void CFemElement::readFromStream(std::istream &in)
         in >> prop;
         m_properties.push_back(prop);
     }
-    for (i=0; i<(long)m_internalDofs.size(); i++)
-        delete m_internalDofs[i];
     m_internalDofs.clear();
+
     for (i=0; i<nNodes; i++)
     {
-        CFemInternalDofs* intDof = new CFemInternalDofs();
+        CFemInternalDofsPtr intDof = new CFemInternalDofs();
         m_internalDofs.push_back(intDof);
         intDof->readFromStream(in);
     }
@@ -160,10 +146,9 @@ unsigned int CFemElement::getIndexSize()
 CFemNode* CFemElement::getNode(unsigned int index)
 {
     if (index<m_nodes.size())
-    {
         return m_nodes[index];
-    }
-    else return NULL;
+    else
+        return NULL;
 }
 
 // ------------------------------------------------------------

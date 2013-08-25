@@ -42,21 +42,15 @@ CFemNode* CFemNodeSet::getNode(long i)
 // ------------------------------------------------------------
 bool CFemNodeSet::deleteNode(long i)
 {
-    std::vector<CFemNode*>::iterator p = m_nodes.begin();
-
     if ( (i>=0)&&(i<(long)m_nodes.size()) )
     {
-        CFemNode* node = m_nodes[i];
-
-        node->deleteReference();
-        if (!node->isReferenced())
+        if (m_nodes[i]->getRefCount()==1)
         {
-            p += i;
-            m_nodes.erase(p);
-            delete node;
+            m_nodes.erase(m_nodes.begin()+i);
             return true;
         }
-        node->addReference();
+        else
+            return false;
     }
     return false;
 }
@@ -64,73 +58,42 @@ bool CFemNodeSet::deleteNode(long i)
 // ------------------------------------------------------------
 CFemNode* CFemNodeSet::removeNode(long i)
 {
-    std::vector<CFemNode*>::iterator p = m_nodes.begin();
-
     if ( (i>=0)&&(i<(long)m_nodes.size()) )
     {
-        CFemNode* node = m_nodes[i];
-        node->deleteReference();
-        if (!node->isReferenced())
+        if (m_nodes[i]->getRefCount()==1)
         {
-            p += i;
-            m_nodes.erase(p);
+            CFemNode* node = m_nodes[i];
+            node->addReference();
+            m_nodes.erase(m_nodes.begin()+i);
+            node->deleteReference();
             return node;
         }
-        node->addReference();
-        return NULL;
+        else
+            return 0;
     }
     else
-        return NULL;
+        return 0;
 }
 
 // ------------------------------------------------------------
 bool CFemNodeSet::removeNode(CFemNode* node)
 {
-    std::vector<CFemNode*>::iterator p = m_nodes.begin();
-
     for (unsigned int i=0; i<m_nodes.size(); i++)
     {
         if (node==m_nodes[i])
-        {
-            node->deleteReference();
-            if (!node->isReferenced())
-            {
-                p = m_nodes.begin();
-                p += i;
-                m_nodes.erase(p);
-                delete node;
-                return true;
-            }
-            else
-            {
-                node->addReference();
-                return false;
-            }
-        }
+            return this->deleteNode(i);
     }
     return false;
 }
 // ------------------------------------------------------------
 void CFemNodeSet::deleteAll()
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
-    {
-        CFemNode* node = m_nodes[i];
-        node->deleteReference();
-        if (!node->isReferenced())
-            delete node;
-    }
     m_nodes.clear();
 }
 
 // ------------------------------------------------------------
 void CFemNodeSet::clear()
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
-    {
-        CFemNode* node = m_nodes[i];
-        node->deleteReference();
-    }
     m_nodes.clear();
 }
 
@@ -189,8 +152,7 @@ void CFemNodeSet::readFromStream(std::istream &in)
     in >> nNodes;
     for (int i=0; i<nNodes; i++)
     {
-        CFemNode* node = new CFemNode();
-        node->addReference();
+        CFemNodePtr node = new CFemNode();
         node->readFromStream(in);
         m_nodes.push_back(node);
     }

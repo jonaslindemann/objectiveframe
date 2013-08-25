@@ -6,6 +6,7 @@
 CFemMaterialSet::CFemMaterialSet ()
     :CFemObject()
 {
+    m_currentMaterialIdx = -1;
 }
 
 // ------------------------------------------------------------
@@ -171,3 +172,27 @@ bool CFemMaterialSet::removeMaterial(CFemMaterial *material)
     }
     return false;
 }
+
+// ------------------------------------------------------------
+void CFemMaterialSet::setCurrentMaterial(long i)
+{
+    if ( (i>=0)&&(i<(long)m_materials.size()) )
+        m_currentMaterialIdx = i;
+    else
+        m_currentMaterialIdx = -1;
+}
+
+// ------------------------------------------------------------
+CFemMaterial* CFemMaterialSet::currentMaterial()
+{
+    if (m_currentMaterialIdx!=-1)
+    {
+        if ( (m_currentMaterialIdx>=0)&&(m_currentMaterialIdx<(long)m_materials.size()) )
+            return m_materials[m_currentMaterialIdx];
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+

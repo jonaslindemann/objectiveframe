@@ -1925,10 +1925,8 @@ void CIvfFemWidget::onDeleteShape(CIvfShape* shape, bool &doit)
         if (shape->isClass("CIvfFemNode"))
         {
             CIvfFemNode* ivfNode = (CIvfFemNode*) shape;
-            CFemNode* femNode = ivfNode->getFemNode();
-            CFemNodeSet* nodeSet = m_beamModel->getNodeSet();
 
-            if (nodeSet->removeNode(femNode))
+            if (m_beamModel->getNodeSet()->removeNode(ivfNode->getFemNode()))
                 doit = true;
             else
                 doit = false;

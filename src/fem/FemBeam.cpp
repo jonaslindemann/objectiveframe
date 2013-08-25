@@ -12,7 +12,6 @@
 CFemBeam::CFemBeam ()
     :CFemElement()
 {
-    m_material = NULL;
     m_beamRotation = 0.0;
     m_evaluationPoints = 8;
 }
@@ -20,12 +19,6 @@ CFemBeam::CFemBeam ()
 // ------------------------------------------------------------
 CFemBeam::~CFemBeam ()
 {
-    // Delete extra dofs
-    /*
-    	for (int i=0; i<2; i++)
-    		for (int j=0; j<2; j++)
-    			delete m_extraDof[i][j];
-    */
 }
 
 // ------------------------------------------------------------
@@ -56,12 +49,7 @@ void CFemBeam::readFromStream(std::istream &in)
 // ------------------------------------------------------------
 void CFemBeam::setMaterial(CFemBeamMaterial *material)
 {
-    if (m_material!=NULL)
-        m_material->deleteReference();
-
     m_material = material;
-    if (material!=NULL)
-        m_material->addReference();
 }
 
 // ------------------------------------------------------------

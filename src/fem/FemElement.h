@@ -11,8 +11,8 @@ FemSmartPointer(CFemElement);
 
 class CFemElement : public CFemObject {
 private:
-    std::vector<CFemNode*> m_nodes;
-    std::vector<CFemInternalDofs*> m_internalDofs;
+    std::vector<CFemNodePtr> m_nodes;
+    std::vector<CFemInternalDofsPtr> m_internalDofs;
     std::vector<long> m_nodeIndex;
     std::vector<double> m_properties;
     std::vector<double> m_values;

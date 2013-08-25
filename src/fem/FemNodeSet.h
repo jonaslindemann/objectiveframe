@@ -10,7 +10,7 @@ FemSmartPointer(CFemNodeSet);
 
 class CFemNodeSet : public CFemObject {
 private:
-    std::vector<CFemNode*> m_nodes;
+    std::vector<CFemNodePtr> m_nodes;
 public:
     CFemNodeSet ();
     virtual ~CFemNodeSet ();

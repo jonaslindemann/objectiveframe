@@ -16,8 +16,7 @@ FemSmartPointer(CFemBeam);
 class CFemBeam : public CFemElement {
 private:
     void eulrot(double *axis, double angle, double *u, double *v);
-    //vector<CFemDof*>      m_extraDof[2];
-    CFemBeamMaterial*     m_material;
+    CFemBeamMaterialPtr     m_material;
     long				  m_materialIndex;
     double                m_beamRotation;
     int					  m_evaluationPoints;

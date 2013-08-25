@@ -11,6 +11,7 @@ FemSmartPointer(CFemMaterialSet);
 class CFemMaterialSet : public CFemObject {
 private:
     std::vector<CFemMaterial*> m_materials;
+    long m_currentMaterialIdx;
 protected:
 
     // Allocators
@@ -35,6 +36,9 @@ public:
     void clear();
     long enumerateMaterials(long count=1);
     bool removeMaterial(CFemMaterial* material);
+    
+    void setCurrentMaterial(long i);
+    CFemMaterial* currentMaterial();
 
     // IO methods
 

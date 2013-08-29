@@ -1,36 +1,40 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0100 
+version 1.0302 
 header_name {.h} 
 code_name {.cpp}
-decl {\#define MR_OK 0} {public
+decl {\#define MR_OK 0} {public local
 } 
 
-decl {\#define MR_CANCEL 1} {public
+decl {\#define MR_CANCEL 1} {public local
 } 
 
-decl {\#include <iostream.h>} {} 
+decl {\#include <iostream>} {private local
+} 
 
 class CStructureDlg {open
 } {
-  decl {int m_modalResult} {}
-  decl {int m_size[3]} {}
-  decl {double m_spacing[3]} {}
+  decl {int m_modalResult} {private local
+  }
+  decl {int m_size[3]} {private local
+  }
+  decl {double m_spacing[3]} {private local
+  }
   Function {CStructureDlg()} {open
   } {
     Fl_Window wndWorkspace {
       label {Create structure} open
-      xywh {396 63 312 231} modal visible
+      xywh {396 63 312 231} type Double modal visible
     } {
       Fl_Button btnOk {
         label OK
         callback {m_modalResult = MR_OK;
-wndWorkspace->hide();} selected
+wndWorkspace->hide();}
         xywh {239 5 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
       }
       Fl_Button btnCancel {
         label Cancel
         callback {m_modalResult = MR_CANCEL;
-wndWorkspace->hide();} selected
+wndWorkspace->hide();}
         xywh {239 36 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
       }
       Fl_Group grpWorkspace {open
@@ -72,7 +76,8 @@ while (wndWorkspace->visible()) Fl::wait();} {}
   } {
     code {return m_modalResult;} {}
   }
-  Function {~CStructureDlg()} {} {
+  Function {~CStructureDlg()} {open
+  } {
     code {delete wndWorkspace;} {}
   }
   Function {getSize(int &rows, int &cols, int &stacks)} {open return_type void
@@ -91,6 +96,7 @@ m_spacing[1] = edtYspacing->value();
 m_spacing[2] = edtZspacing->value();
 xSpacing = m_spacing[0];
 ySpacing = m_spacing[1];
-zSpacing = m_spacing[2];} {}
+zSpacing = m_spacing[2];} {selected
+    }
   }
 } 

@@ -10,7 +10,7 @@ FemSmartPointer(CFemMaterialSet);
 
 class CFemMaterialSet : public CFemObject {
 private:
-    std::vector<CFemMaterial*> m_materials;
+    std::vector<CFemMaterialPtr> m_materials;
     long m_currentMaterialIdx;
 protected:
 

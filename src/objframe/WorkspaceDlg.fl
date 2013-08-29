@@ -1,24 +1,27 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0100 
+version 1.0302 
 header_name {.h} 
 code_name {.cpp}
-decl {\#define MR_OK 0} {public
+decl {\#define MR_OK 0} {public local
 } 
 
-decl {\#define MR_CANCEL 1} {public
+decl {\#define MR_CANCEL 1} {public local
 } 
 
-decl {\#include <iostream.h>} {} 
+decl {\#include <iostream>} {selected private local
+} 
 
 class CWorkspaceDlg {open
 } {
-  decl {int m_modalResult} {}
-  decl {double m_workspaceSize} {}
+  decl {int m_modalResult} {private local
+  }
+  decl {double m_workspaceSize} {private local
+  }
   Function {CWorkspaceDlg()} {open
   } {
     Fl_Window wndWorkspace {
-      label Workspace open selected
-      xywh {457 121 309 186} modal visible
+      label Workspace open
+      xywh {457 121 309 186} type Double modal visible
     } {
       Fl_Button btnOk {
         label OK

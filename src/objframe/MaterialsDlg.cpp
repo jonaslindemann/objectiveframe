@@ -210,6 +210,7 @@ void CMaterialsDlg::cb_btnAssignMaterial_i(Fl_HoverButton*, void*) {
 		CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
 		femWidget->assignMaterialToSelected();
 		femWidget->setNeedRecalc(true);
+		this->fillListBox();
 	}
 };
 }
@@ -252,6 +253,7 @@ void CMaterialsDlg::cb_btnClearMaterial_i(Fl_HoverButton*, void*) {
 	CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
 	femWidget->removeMaterialFromSelected();
 	femWidget->setNeedRecalc(true);
+	this->fillListBox();
 };
 }
 void CMaterialsDlg::cb_btnClearMaterial(Fl_HoverButton* o, void* v) {
@@ -421,7 +423,7 @@ void CMaterialsDlg::fillListBox() {
   	{
   		CFemBeamMaterial* material = 
   			(CFemBeamMaterial*)m_materials->getMaterial(i);
-  		materialName = material->getName()+":"+to_string<int>(material->getRefCount());
+  		materialName = material->getName()+" ("+to_string<int>(material->getRefCount()-2)+")";
   		lbMaterials->add(materialName.c_str(), material);
   	}
   }

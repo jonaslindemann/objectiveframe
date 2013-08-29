@@ -107,10 +107,12 @@ void CFemBeamMaterial::saveToStream(std::ostream &out)
 void CFemBeamMaterial::readFromStream(std::istream &in)
 {
     int sectionType;
-    char matName[255];
+    string matName;
     CFemMaterial::readFromStream(in);
-    in.getline(matName, 255, '\n');
-    in.getline(matName, 255, '\n');
+    in.ignore(1000,'\n');
+    getline(in, matName);
+    //in.getline(matName, 255, '\n');
+    //in.getline(matName, 255, '\n');
     //in >> matName;
     this->setName(matName);
     in >> m_color;

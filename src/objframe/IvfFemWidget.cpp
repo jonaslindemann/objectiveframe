@@ -160,7 +160,7 @@ void CIvfFemWidget::onInit()
 #endif
     this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
     this->getScene()->setRenderFlatShadow(true);
-    this->getScene()->setShadowColor(0.35, 0.35, 0.35);
+    this->getScene()->setShadowColor(0.3, 0.3, 0.3);
 
     // Common 3D gui state variables
 

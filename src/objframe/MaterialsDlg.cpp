@@ -3,6 +3,7 @@
 #include "MaterialsDlg.h"
 #include "IvfFemWidget.h"
 #include "MaterialDlg.h"
+#include <string>
 
 void CMaterialsDlg::cb_lbMaterials_i(Fl_Browser*, void*) {
   if (m_materials!=NULL)
@@ -420,7 +421,7 @@ void CMaterialsDlg::fillListBox() {
   	{
   		CFemBeamMaterial* material = 
   			(CFemBeamMaterial*)m_materials->getMaterial(i);
-  		materialName = material->getName();
+  		materialName = material->getName()+":"+to_string<int>(material->getRefCount());
   		lbMaterials->add(materialName.c_str(), material);
   	}
   }

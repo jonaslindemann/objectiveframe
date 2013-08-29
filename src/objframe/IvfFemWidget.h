@@ -7,6 +7,7 @@
 #include <ivf/ivfconfig.h>
 
 #include <string>
+#include <sstream>
 
 #include <ivf/IvfBase.h>
 #include <ivf/IvfShape.h>
@@ -76,6 +77,14 @@
 #define HF_ALL      0
 #define HF_NODES    1
 #define HF_ELEMENTS 2
+
+template <typename T>
+string to_string ( T Number )
+{
+    ostringstream ss;
+    ss << Number;
+    return ss.str();
+}
 
 #include "IvfFltkWidget.h"
 

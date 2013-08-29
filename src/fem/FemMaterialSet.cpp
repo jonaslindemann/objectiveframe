@@ -27,8 +27,7 @@ void CFemMaterialSet::print(std::ostream &out)
 // ------------------------------------------------------------
 void CFemMaterialSet::addMaterial(CFemMaterial *material)
 {
-    material->addReference();
-    m_materials.push_back(material);
+    m_materials.push_back(CFemMaterialPtr(material));
 }
 
 // ------------------------------------------------------------
@@ -43,21 +42,15 @@ CFemMaterial* CFemMaterialSet::getMaterial(long i)
 // ------------------------------------------------------------
 bool CFemMaterialSet::deleteMaterial(long i)
 {
-    std::vector<CFemMaterial*>::iterator p = m_materials.begin();
-
     if ( (i>=0)&&(i<(long)m_materials.size()) )
     {
-        CFemMaterial* material = m_materials[i];
-
-        material->deleteReference();
-        if (!material->isReferenced())
+        if (m_materials[i]->getRefCount()==1)
         {
-            p += i;
-            m_materials.erase(p);
-            delete material;
+            m_materials.erase(m_materials.begin()+i);
             return true;
         }
-        material->addReference();
+        else
+            return false;
     }
     return false;
 }
@@ -65,15 +58,19 @@ bool CFemMaterialSet::deleteMaterial(long i)
 // ------------------------------------------------------------
 CFemMaterial* CFemMaterialSet::removeMaterial(long i)
 {
-    std::vector<CFemMaterial*>::iterator p = m_materials.begin();
-
     if ( (i>=0)&&(i<(long)m_materials.size()) )
     {
         CFemMaterial* material = m_materials[i];
-        material->deleteReference();
-        p += i;
-        m_materials.erase(p);
-        return material;
+        
+        if (material->getRefCount()==1)
+        {
+            material->addReference();
+            m_materials.erase(m_materials.begin()+i);
+            material->deleteReference();
+            return material;
+        }
+        else
+            return NULL;
     }
     else
         return NULL;
@@ -82,24 +79,12 @@ CFemMaterial* CFemMaterialSet::removeMaterial(long i)
 // ------------------------------------------------------------
 void CFemMaterialSet::deleteAll()
 {
-    for (unsigned int i=0; i<m_materials.size(); i++)
-    {
-        CFemMaterial* material = m_materials[i];
-        material->deleteReference();
-        if (!material->isReferenced())
-            delete material;
-    }
     m_materials.clear();
 }
 
 // ------------------------------------------------------------
 void CFemMaterialSet::clear()
 {
-    for (unsigned int i=0; i<m_materials.size(); i++)
-    {
-        CFemMaterial* material = m_materials[i];
-        material->deleteReference();
-    }
     m_materials.clear();
 }
 
@@ -136,10 +121,10 @@ void CFemMaterialSet::readFromStream(std::istream &in)
     deleteAll();
     for (int i=0; i<nMaterials; i++)
     {
-        CFemMaterial* material = createMaterial();
-        material->addReference();
+        CFemMaterialPtr material = createMaterial();
         material->readFromStream(in);
         m_materials.push_back(material);
+        std::cout << "material ref count = " << material->getRefCount() << std::endl;        
     }
 }
 
@@ -152,7 +137,7 @@ CFemMaterial* CFemMaterialSet::createMaterial()
 // ------------------------------------------------------------
 bool CFemMaterialSet::removeMaterial(CFemMaterial *material)
 {
-    std::vector<CFemMaterial*>::iterator p = m_materials.begin();
+    std::vector<CFemMaterialPtr>::iterator p = m_materials.begin();
 
     while ( (p!=m_materials.end())&&(*p!=material) )
         p++;
@@ -160,15 +145,14 @@ bool CFemMaterialSet::removeMaterial(CFemMaterial *material)
     if (p!=m_materials.end())
     {
         CFemMaterial* material = *p;
-        material->deleteReference();
-        if (!material->isReferenced())
+        
+        if (material->getRefCount()==1)
         {
             m_materials.erase(p);
-            delete material;
             return true;
         }
         else
-            material->addReference();
+            return false;
     }
     return false;
 }

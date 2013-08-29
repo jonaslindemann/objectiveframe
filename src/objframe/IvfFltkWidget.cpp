@@ -656,7 +656,7 @@ void CIvfFltkWidget::doMouse(int x, int y)
 
     // Handle node creation
 
-    if (m_editMode == IVF_CREATE_NODE)
+    if ((m_editMode == IVF_CREATE_NODE)&&(Fl::event_state(FL_BUTTON1)>0))
     {
         double vx, vy, vz;
         CIvfNode* node = NULL;
@@ -727,10 +727,10 @@ void CIvfFltkWidget::doMotion(int x, int y)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
+    //if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
     {
-        if (Fl::event_state(FL_BUTTON1)>0) {
-            if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
+        if (Fl::event_state(FL_BUTTON3)>0) {
+            //if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
             {
                 if (getCurrentModifier()==IVF_ALT)
                 {
@@ -789,7 +789,7 @@ void CIvfFltkWidget::doMotion(int x, int y)
 #endif
     }
 
-    if (getEditMode()==IVF_MOVE)
+    if (getEditMode()==IVF_MOVE&&(Fl::event_state(FL_BUTTON1)>0))
     {
         m_scene->updateCursor(x, y);
         double x, y, z;

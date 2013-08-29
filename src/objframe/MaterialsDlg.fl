@@ -29,7 +29,7 @@ decl {\#include "IvfFemWidget.h"} {private local
 decl {\#include "MaterialDlg.h"} {private local
 } 
 
-decl {\#include <string>} {selected private local
+decl {\#include <string>} {private local
 } 
 
 class CMaterialsDlg {open
@@ -44,7 +44,7 @@ class CMaterialsDlg {open
   } {
     Fl_Window wndMaterials {
       label {Beam properties} open
-      xywh {323 44 184 211} type Double non_modal visible
+      xywh {1180 296 184 211} type Double non_modal visible
     } {
       Fl_Browser lbMaterials {
         label Properties
@@ -128,6 +128,7 @@ class CMaterialsDlg {open
 		CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
 		femWidget->assignMaterialToSelected();
 		femWidget->setNeedRecalc(true);
+		this->fillListBox();
 	}
 }}
         image {../../images/tlAssignMaterial.xpm} xywh {152 84 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
@@ -140,6 +141,7 @@ class CMaterialsDlg {open
 	CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
 	femWidget->removeMaterialFromSelected();
 	femWidget->setNeedRecalc(true);
+	this->fillListBox();
 }}
         image {../../images/tlClearMaterial.xpm} xywh {152 116 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
         code0 {\#include "Fl_HoverButton.h"}
@@ -193,11 +195,12 @@ else
 	{
 		CFemBeamMaterial* material = 
 			(CFemBeamMaterial*)m_materials->getMaterial(i);
-		materialName = material->getName()+std::to_string(material->getRefCount());
+		materialName = material->getName()+" ("+to_string<int>(material->getRefCount()-2)+")";
 		lbMaterials->add(materialName.c_str(), material);
 	}
 }
-m_currentMaterial = NULL;} {}
+m_currentMaterial = NULL;} {selected
+    }
   }
   Function {getCurrentMaterial()} {return_type {CFemBeamMaterial*}
   } {

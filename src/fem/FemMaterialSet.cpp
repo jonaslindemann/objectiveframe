@@ -146,7 +146,7 @@ bool CFemMaterialSet::removeMaterial(CFemMaterial *material)
     {
         CFemMaterial* material = *p;
         
-        if (material->getRefCount()==1)
+        if (material->getRefCount()==2)
         {
             m_materials.erase(p);
             return true;

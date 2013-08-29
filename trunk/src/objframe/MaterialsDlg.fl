@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
+version 1.0302 
 header_name {.h} 
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
@@ -29,6 +29,9 @@ decl {\#include "IvfFemWidget.h"} {private local
 decl {\#include "MaterialDlg.h"} {private local
 } 
 
+decl {\#include <string>} {selected private local
+} 
+
 class CMaterialsDlg {open
 } {
   decl {CFemBeamMaterialSet* m_materials} {private local
@@ -41,7 +44,7 @@ class CMaterialsDlg {open
   } {
     Fl_Window wndMaterials {
       label {Beam properties} open
-      xywh {323 43 184 211} type Double non_modal visible
+      xywh {323 44 184 211} type Double non_modal visible
     } {
       Fl_Browser lbMaterials {
         label Properties
@@ -58,7 +61,7 @@ class CMaterialsDlg {open
 		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
 		femWidget->setCurrentMaterial(m_currentMaterial);
 	}
-}} selected
+}}
         xywh {4 20 144 187} type Hold box DOWN_BOX labelsize 12 align 5 textsize 12
       }
       Fl_Button btnAddMaterial {
@@ -190,7 +193,7 @@ else
 	{
 		CFemBeamMaterial* material = 
 			(CFemBeamMaterial*)m_materials->getMaterial(i);
-		materialName = material->getName();
+		materialName = material->getName()+std::to_string(material->getRefCount());
 		lbMaterials->add(materialName.c_str(), material);
 	}
 }

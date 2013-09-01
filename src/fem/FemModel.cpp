@@ -261,6 +261,14 @@ void CFemModel::initialize()
     m_materialSet = this->createMaterialSet();
     m_nodeLoadSet = this->createNodeLoadSet();
     m_bcSet = this->createBCSet();
+    
+    this->onInitialised();
+}
+
+// ------------------------------------------------------------
+void CFemModel::onInitialised()
+{
+    
 }
 
 // ------------------------------------------------------------

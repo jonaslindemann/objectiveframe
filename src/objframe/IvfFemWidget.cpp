@@ -181,17 +181,17 @@ void CIvfFemWidget::onInit()
     so_print("FemWidget: Defining node material.");
     m_nodeMaterial = new CIvfMaterial();
     m_nodeMaterial->addReference();
-    m_nodeMaterial->setDiffuseColor(0.8f, 0.0f, 0.0f, 1.0f);
-    m_nodeMaterial->setSpecularColor(1.0f, 0.0f, 1.0f, 1.0f);
-    m_nodeMaterial->setAmbientColor(0.2f, 0.0f, 0.0f, 1.0f);
+    m_nodeMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
+    m_nodeMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_nodeMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
 
     // Define line material
 
     so_print("FemWidget: Defining line material.");
     m_lineMaterial = new CIvfMaterial();
     m_lineMaterial->addReference();
-    m_lineMaterial->setDiffuseColor(0.6f, 0.6f, 0.0f, 1.0f);
-    m_lineMaterial->setAmbientColor(0.2f, 0.2f, 0.0f, 1.0f);
+    m_lineMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
+    m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
     m_lineMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Initialize beam model
@@ -261,6 +261,7 @@ void CIvfFemWidget::onInit()
     material = new CIvfMaterial();
     material->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
     material->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+    material->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
 
     so_print("FemWidget: Creating tactile force.");
 
@@ -1830,8 +1831,11 @@ void CIvfFemWidget::onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &n
 
     // Set the material
 
+    femBeam->setMaterial((CFemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
+    /*
     femBeam->setMaterial(
         m_dlgMaterials->getCurrentMaterial());
+    */
 
     // Add beam element to beam model
 

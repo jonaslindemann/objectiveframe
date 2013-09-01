@@ -50,7 +50,8 @@ private:
     CResultInfo* m_resultInfo;
 
     std::string m_colorMapPath;
-
+protected:
+    virtual void onInitialised();
 public:
     CIvfBeamModel ();
     virtual ~CIvfBeamModel ();

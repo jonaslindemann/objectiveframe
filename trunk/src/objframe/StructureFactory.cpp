@@ -54,6 +54,8 @@ void CStructureFactory::create()
         //
         // Create nodes
         //
+        
+        m_currentMaterial = (CFemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial();
 
         vector<CIvfFemNode*> nodes;
 

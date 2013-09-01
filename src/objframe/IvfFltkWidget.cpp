@@ -822,7 +822,7 @@ void CIvfFltkWidget::doMotion(int x, int y)
 
     // Call onMotion event method
 
-    onMotion(x, y);
+    onMotion(x, y); 
 }
 
 // ------------------------------------------------------------

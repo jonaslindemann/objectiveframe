@@ -40,6 +40,7 @@ protected:
     virtual void connectMaterials();
     virtual void connectElements();
     virtual void connectNodeBCs();
+    virtual void onInitialised();
 public:
     CFemModel ();
     virtual ~CFemModel ();

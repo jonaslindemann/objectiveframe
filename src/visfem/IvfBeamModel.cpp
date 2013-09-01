@@ -12,6 +12,7 @@
 #include <FemBeamLoad.h>
 #include <FemElementLoadSet.h>
 #include <FemNodeBCSet.h>
+#include <FemSolidPipeSection.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
@@ -49,6 +50,19 @@ CIvfBeamModel::~CIvfBeamModel ()
     delete m_colorMapNeg;
     delete m_colorMapStd;
     delete m_resultInfo;
+}
+
+// ------------------------------------------------------------
+void CIvfBeamModel::onInitialised()
+{
+    CFemBeamMaterialPtr material = new CFemBeamMaterial();
+    CFemSolidPipeSectionPtr section = new CFemSolidPipeSection(0.05);
+    material->setProperties(2.1e9, 8.1e7, 1.0, 1.0, 1.0, 1.0 );
+    material->setSection(section);
+    material->setName("default");
+    material->setColor(52);
+    this->getMaterialSet()->addMaterial(material);
+    this->getMaterialSet()->setCurrentMaterial(0);
 }
 
 // ------------------------------------------------------------

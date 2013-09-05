@@ -8,6 +8,8 @@
 
 #include "LeapInteraction.h"
 
+#ifdef USE_LEAP
+
 LeapInteraction::LeapInteraction()
 {
     m_lastDistance = 10000;
@@ -314,3 +316,5 @@ Vector LeapInteraction::adjustPosition(Vector inputVector)
     return returnVector;
     
 }
+
+#endif

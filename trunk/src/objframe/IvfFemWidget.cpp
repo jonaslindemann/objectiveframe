@@ -29,7 +29,9 @@
 
 #include "StatusOutput.h"
 
+#ifdef USE_LEAP
 #include "LeapInteraction.h"
+#endif
 
 #ifdef HAVE_CORBA
 #include "FemDFEMCInterface.h"
@@ -66,6 +68,7 @@ void feedbackCallback(void* pointer)
     Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
 
+#ifdef USE_LEAP
 void callbackLeapLoop(void* pointer)
 {
     CIvfFemWidget* widget = (CIvfFemWidget*) pointer;
@@ -73,6 +76,7 @@ void callbackLeapLoop(void* pointer)
     widget->getLeapInteraction()->refresh();
     Fl::add_timeout(0.01f, callbackLeapLoop, widget);
 }
+#endif USE_LEAP
 
 // ------------------------------------------------------------
 
@@ -128,8 +132,9 @@ CIvfFemWidget::CIvfFemWidget(int X, int Y, int W, int H, const char *L) :
     m_coordWidget = NULL;
 
     m_progPath = "";
+#ifdef USE_LEAP
     Fl::add_timeout(0.01, callbackLeapLoop, this);
-
+#endif
 }
 
 void CIvfFemWidget::onInit()
@@ -328,7 +333,9 @@ void CIvfFemWidget::onInit()
     so_print("FemWidget: Setting initial edit mode.");
     this->setEditMode(IVF_VIEW_ZOOM);
     
+#ifdef USE_LEAP
     m_leapinteraction = new LeapInteraction(this);
+#endif
 }
 
 // ------------------------------------------------------------
@@ -1699,6 +1706,7 @@ void CIvfFemWidget::doFeedback()
 
 // ------------------------------------------------------------
 
+#ifdef USE_LEAP
 LeapInteraction* CIvfFemWidget::getLeapInteraction()
 {
     return m_leapinteraction;
@@ -1708,6 +1716,7 @@ void CIvfFemWidget::updateLeapFrame(Frame leapFrame)
 {
     m_leapinteraction->updateLeapFrame(leapFrame);
 }
+#endif
 
 CIvfExtrArrowPtr CIvfFemWidget::getTactileForce()
 {

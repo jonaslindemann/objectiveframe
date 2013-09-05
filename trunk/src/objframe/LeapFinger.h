@@ -9,6 +9,10 @@
 #ifndef __objframe2__LeapFinger__
 #define __objframe2__LeapFinger__
 
+#include "ObjframeConfig.h"
+
+#ifdef USE_LEAP
+
 #include <iostream>
 #include "Leap.h"
 #include "IvfFemWidget.h"
@@ -40,5 +44,7 @@ public:
     CIvfVec3d getPosition();
     void setPosition(double x, double y, double z);
 };
+
+#endif
 
 #endif /* defined(__objframe2__LeapFinger__) */

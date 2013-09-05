@@ -9,6 +9,10 @@
 #ifndef _CLeapInteraction_H_
 #define _CLeapInteraction_H_
 
+#include "ObjframeConfig.h"
+
+#ifdef USE_LEAP
+
 #include <iostream>
 #include "Leap.h"
 #include "IvfFemWidget.h"
@@ -58,5 +62,7 @@ public:
     void LeapToScene(Vector leapVector, CIvfVec3d* returnVector);
     Vector adjustPosition(Vector inputVector);
 };
+
+#endif
 
 #endif

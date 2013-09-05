@@ -3,7 +3,7 @@
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.4.0"
 #define ADVANCED_GL
-#define LEAP
+#include "ObjframeConfig.h"
 
 #include <ivf/ivfconfig.h>
 
@@ -49,10 +49,11 @@
 #include "FemInternalSolver.h"
 #endif
 
-
+#ifdef USE_LEAP
 #include "Leap.h"
 using namespace Leap;
 class LeapInteraction;
+#endif
 
 
 #include "NodePropDlg.h"
@@ -143,8 +144,9 @@ private:
     CFemBeamNodeLoadPtr m_currentNodeLoad;
     CFemBeamNodeBCPtr   m_currentNodeBC;
     CIvfFemNodePtr      m_interactionNode;
-    
+#ifdef USE_LEAP
     LeapInteraction* m_leapinteraction;
+#endif
     
 
 #ifndef HAVE_CORBA
@@ -285,15 +287,19 @@ public:
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void doFeedback();
     
+#ifdef USE_LEAP
     LeapInteraction* getLeapInteraction();
     void updateLeapFrame(Frame leapFrame);
+#endif
     CIvfExtrArrowPtr getTactileForce();
     void setTactileForce(CIvfExtrArrowPtr force);
     CIvfFemNodePtr getInteractionNode();
     void setInteractionNode(CIvfFemNode* interactionNode);
     
     // Implemented widget events
+#ifdef USE_LEAP
     void fingerMove(Finger finger);
+#endif
     void onCreateNode(double x, double y, double z, CIvfNode* &newNode);
     void onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine);
     void onSelect(CIvfComposite* selectedShapes);

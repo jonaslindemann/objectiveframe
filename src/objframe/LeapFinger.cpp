@@ -8,6 +8,8 @@
 
 #include "LeapFinger.h"
 
+#ifdef USE_LEAP
+
 LeapFinger::LeapFinger(CIvfFemWidget *widget)
 {
     m_widget = widget;
@@ -115,3 +117,5 @@ void LeapFinger::setPosition(double x, double y, double z)
 
     m_fingerShape->setPosition(x-d[0], y-d[1], z-d[2]);
 }
+
+#endif

@@ -17,6 +17,8 @@
 #include <windows.h>
 #endif
 
+#include "LeapListener.h"
+
 int
 main(int argc, char **argv)
 {
@@ -109,6 +111,15 @@ main(int argc, char **argv)
         frame->show_fullscreen(0,0,width,height);
     else
         frame->show();
+    
+    
+    // Setup leap motion
+    Controller controller;
+    LeapListener listener;
+    controller.addListener(listener);
+    listener.setWorkspace(frame->ivfWorkspace);
+
+
 
     //
     // Show a splash screen
@@ -125,6 +136,7 @@ main(int argc, char **argv)
     //
 
     so_print("Main: Entering main loop.");
+    
     return Fl::run();
 
     //

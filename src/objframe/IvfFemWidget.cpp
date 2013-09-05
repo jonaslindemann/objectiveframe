@@ -29,6 +29,8 @@
 
 #include "StatusOutput.h"
 
+#include "LeapInteraction.h"
+
 #ifdef HAVE_CORBA
 #include "FemDFEMCInterface.h"
 #endif
@@ -55,12 +57,25 @@
 // ------------------------------------------------------------
 // ------------------------------------------------------------
 
+
+
 void feedbackCallback(void* pointer)
 {
     CIvfFemWidget* widget = (CIvfFemWidget*) pointer;
     widget->doFeedback();
-    Fl::add_timeout(0.1f, feedbackCallback, widget);
+    Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
+
+void callbackLeapLoop(void* pointer)
+{
+    CIvfFemWidget* widget = (CIvfFemWidget*) pointer;
+    
+    widget->getLeapInteraction()->refresh();
+    Fl::add_timeout(0.01f, callbackLeapLoop, widget);
+}
+
+// ------------------------------------------------------------
+
 
 #ifdef ADVANCED_GL
 void hintCallback(void* pointer)
@@ -107,12 +122,13 @@ CIvfFemWidget::CIvfFemWidget(int X, int Y, int W, int H, const char *L) :
     m_saneModel = false;
 
     m_tactileForceValue = 1000.0;
-
+    
     // Initialize GUI variables
 
     m_coordWidget = NULL;
 
     m_progPath = "";
+    Fl::add_timeout(0.01, callbackLeapLoop, this);
 
 }
 
@@ -311,6 +327,8 @@ void CIvfFemWidget::onInit()
 
     so_print("FemWidget: Setting initial edit mode.");
     this->setEditMode(IVF_VIEW_ZOOM);
+    
+    m_leapinteraction = new LeapInteraction(this);
 }
 
 // ------------------------------------------------------------
@@ -352,6 +370,7 @@ CIvfFemWidget::~CIvfFemWidget()
 // ------------------------------------------------------------
 
 // ------------------------------------------------------------
+
 void CIvfFemWidget::setCoordWidget(Fl_Widget* widget)
 {
     m_coordWidget = widget;
@@ -1679,6 +1698,40 @@ void CIvfFemWidget::doFeedback()
 }
 
 // ------------------------------------------------------------
+
+LeapInteraction* CIvfFemWidget::getLeapInteraction()
+{
+    return m_leapinteraction;
+}
+
+void CIvfFemWidget::updateLeapFrame(Frame leapFrame)
+{
+    m_leapinteraction->updateLeapFrame(leapFrame);
+}
+
+CIvfExtrArrowPtr CIvfFemWidget::getTactileForce()
+{
+    return m_tactileForce;
+}
+
+void CIvfFemWidget::setTactileForce(CIvfExtrArrowPtr force)
+{
+    m_tactileForce = force;
+}
+
+
+
+CIvfFemNodePtr CIvfFemWidget::getInteractionNode()
+{
+    return m_interactionNode;
+}
+
+void CIvfFemWidget::setInteractionNode(CIvfFemNode* interactionNode)
+{
+    m_interactionNode = interactionNode;
+}
+
+// ------------------------------------------------------------
 void CIvfFemWidget::showStructureDlg()
 {
     int size[3];
@@ -1772,6 +1825,7 @@ void CIvfFemWidget::doMouse(int x, int y)
     if (!m_overlaySelected)
         CIvfFltkWidget::doMouse(x, y);
 }
+
 
 // ------------------------------------------------------------
 void CIvfFemWidget::onCreateNode(double x, double y, double z, CIvfNode* &newNode)
@@ -2220,6 +2274,7 @@ void CIvfFemWidget::onMotion(int x, int y)
         this->redraw();
     }
 }
+
 
 // ------------------------------------------------------------
 void CIvfFemWidget::onDeSelect()

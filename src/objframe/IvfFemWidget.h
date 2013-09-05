@@ -3,6 +3,7 @@
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.4.0"
 #define ADVANCED_GL
+#define LEAP
 
 #include <ivf/ivfconfig.h>
 
@@ -48,6 +49,12 @@
 #include "FemInternalSolver.h"
 #endif
 
+
+#include "Leap.h"
+using namespace Leap;
+class LeapInteraction;
+
+
 #include "NodePropDlg.h"
 #include "BeamPropDlg.h"
 #include "MaterialsDlg.h"
@@ -87,6 +94,7 @@ string to_string ( T Number )
 }
 
 #include "IvfFltkWidget.h"
+
 
 class CIvfFemWidget : public CIvfFltkWidget {
 private:
@@ -135,6 +143,9 @@ private:
     CFemBeamNodeLoadPtr m_currentNodeLoad;
     CFemBeamNodeBCPtr   m_currentNodeBC;
     CIvfFemNodePtr      m_interactionNode;
+    
+    LeapInteraction* m_leapinteraction;
+    
 
 #ifndef HAVE_CORBA
     CFemInternalSolver* m_internalSolver;
@@ -195,7 +206,6 @@ public:
     virtual ~CIvfFemWidget();
 
     // Get set methods
-
     void setCoordWidget(Fl_Widget* widget);
     void setFileName(const std::string& name);
     void setCurrentMaterial(CFemBeamMaterial* material);
@@ -274,9 +284,16 @@ public:
     void assignNodeLoadSelected();
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void doFeedback();
-
+    
+    LeapInteraction* getLeapInteraction();
+    void updateLeapFrame(Frame leapFrame);
+    CIvfExtrArrowPtr getTactileForce();
+    void setTactileForce(CIvfExtrArrowPtr force);
+    CIvfFemNodePtr getInteractionNode();
+    void setInteractionNode(CIvfFemNode* interactionNode);
+    
     // Implemented widget events
-
+    void fingerMove(Finger finger);
     void onCreateNode(double x, double y, double z, CIvfNode* &newNode);
     void onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine);
     void onSelect(CIvfComposite* selectedShapes);
@@ -298,6 +315,8 @@ public:
     virtual void onInit();
     virtual void onInitContext();
     virtual void onOverlay();
+
+    
 };
 
 #endif

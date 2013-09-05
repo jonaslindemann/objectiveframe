@@ -189,7 +189,6 @@ void CIvfFltkWidget::centerSelected()
     if (m_selectedShapes->getSize()==1)
     {
         CIvfShape* shape = (CIvfShape*)m_selectedShapes->getChild(0);
-
         double x, y, z;
         shape->getPosition(x, y, z);
         m_camera->setTarget(x, y, z);

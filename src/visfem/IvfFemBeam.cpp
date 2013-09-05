@@ -276,6 +276,7 @@ void CIvfFemBeam::doCreateSelect()
             m_solidLine->setSelect(CIvfShape::SS_ON);
             m_solidLine->render();
             m_solidLine->setSelect(CIvfShape::SS_OFF);
+
             break;
         case IVF_BEAM_EXTRUSION:
             if (m_femBeam->getMaterial()!=NULL)

@@ -8,6 +8,8 @@
 
 #include "LeapInteraction.h"
 
+#ifdef USE_LEAP
+
 LeapInteraction::LeapInteraction()
 {
     m_animation = 0;
@@ -19,14 +21,14 @@ LeapInteraction::LeapInteraction(CIvfFemWidget *widget)
     
     m_finger1 = new LeapFinger(widget);
     m_finger2 = new LeapFinger(widget);
-
+    
     //m_finger1->highlight();
     m_forceVector = new CIvfVec3d;
     
     setupOverlay();
     m_editMode = LEAP_MOVE;
     reCheck();
-
+    
 }
 
 LeapInteraction::~LeapInteraction()
@@ -45,7 +47,7 @@ void LeapInteraction::refresh()
     if (m_gesture)
     {
         m_widget->getCamera()->getAbsoluteRotation(m_alpha, m_beta);
-        bool menu = menuUp || *m_gesture == GEST_SWIPE_UP || *m_gesture == GEST_SWIPE_DOWN; 
+        bool menu = menuUp || *m_gesture == GEST_SWIPE_UP || *m_gesture == GEST_SWIPE_DOWN;
         
         if (!menu)
         {
@@ -73,7 +75,7 @@ void LeapInteraction::refresh()
         //Redraw
         if (m_leapFrame.fingers().count() > 0)
             m_widget->redraw();
-    
+        
     }
 }
 
@@ -87,7 +89,7 @@ void LeapInteraction::setupOverlay()
     m_widget->removeMenus();
     
     CIvfPlaneButton* button;
-
+    
     
     m_objectButtons = new CIvfButtonGroup();
     
@@ -96,7 +98,7 @@ void LeapInteraction::setupOverlay()
     button->setPosition(30.0,30.0,0.0);
     button->setHint("Create element");
     m_objectButtons->addChild(button);
-
+    
     button= new CIvfPlaneButton(LEAP_MOVE, "images/tlmove.png");
     button->setSize(50.0,50.0);
     button->setPosition(90.0,30.0,0.0);
@@ -129,7 +131,7 @@ void LeapInteraction::reCheck()
             button->setButtonState(CIvfGenericButton::BS_NORMAL);
         }
     }
-
+    
 }
 
 void LeapInteraction::viewInteraction()
@@ -143,7 +145,7 @@ void LeapInteraction::viewInteraction()
             
             m_widget->getCamera()->moveForward(hand.palmVelocity()[2]/250);
             m_widget->getCamera()->rotatePositionY(hand.palmVelocity()[0]/4500);
-
+            
         }
         
         
@@ -157,7 +159,7 @@ void LeapInteraction::viewInteraction()
             m_widget->getCamera()->moveVertical(-palmVelocity[1]/2500);
         }
     }
-
+    
 }
 
 void LeapInteraction::highlightCloseNodes()
@@ -188,7 +190,7 @@ void LeapInteraction::highlightCloseNodes()
 void LeapInteraction::findNode(double v[3], double &distance, CIvfFemNode* &closestNode)
 {
     distance = 100000;
-
+    
     double coord[3];
     double tempDistance;
     
@@ -211,15 +213,15 @@ void LeapInteraction::findNode(double v[3], double &distance, CIvfFemNode* &clos
                 distance = tempDistance;
                 closestNode = ivfNode;
             }
-
+            
         }
     }
-
+    
 }
 
 void LeapInteraction::gestures()
 {
-
+    
     switch (*m_gesture) {
         case GEST_PINCH_HAND1:
         {
@@ -238,7 +240,7 @@ void LeapInteraction::gestures()
         {
             if (!menuUp)
                 animateMenuUp();
-
+            
             break;
         }
         case GEST_SWIPE_DOWN:
@@ -248,25 +250,25 @@ void LeapInteraction::gestures()
             break;
         }
     }
-
-
+    
+    
     
     if (m_interact)
         interactNode();
     
-
+    
 }
 
 void LeapInteraction::animateMenuUp()
 {
     double scale = 1+m_animation/ANIMATE_SPEED;
     double menuWidth = m_objectButtons->getSize()*150*scale/2;
-        
+    
     double menuHeight = m_widget->h()-70-(m_widget->h()/2+100)/(ANIMATE_SPEED/m_animation);
     m_objectButtons->setPosition(m_widget->w()/2-menuWidth/2,menuHeight,0.0);
     m_animation++;
     
-
+    
     m_objectButtons->setScale(scale, scale, scale);
     
     if (m_animation == ANIMATE_SPEED)
@@ -317,15 +319,15 @@ void LeapInteraction::interactMenu()
 
 void LeapInteraction::startGrasp()
 {
-
+    
     double searchP[3];
     m_finger1->getPosition().getComponents(searchP[0],searchP[1],searchP[2]);
-
+    
     double distance = 10000;
     CIvfFemNode *closestNode;
     
     findNode(searchP, distance, closestNode);
-
+    
     if (distance < SNAP_DIST)
     {
         
@@ -350,19 +352,19 @@ void LeapInteraction::startGrasp()
                 m_startDraw = closestNode;
             }
         }
-
+        
     } else {
         
         m_interact = false;
-
+        
         //Did not snap to a node
         switch (m_editMode) {
             case LEAP_LINE:
             {
-
+                
                 m_widget->onCreateNode(searchP[0],searchP[1],searchP[2], m_startDraw);
                 m_widget->getScene()->addChild(m_startDraw);
-
+                
                 break;
             }
         }
@@ -432,9 +434,9 @@ void LeapInteraction::interactNode()
                 
                 double fx,fy,fz;
                 m_forceVector->getComponents(fx, fy, fz);
-
+                
                 m_interactionNode->setPosition(fx,fy,fz);
-
+                
                 m_widget->setNeedRecalc(true);
                 m_widget->set_changed();
                 
@@ -450,7 +452,7 @@ void LeapInteraction::interactNode()
                 CIvfVec3d* fingerPos = new CIvfVec3d;
                 
                 LeapToScene(adjustPosition(m_leapFrame.fingers()[0].stabilizedTipPosition()), fingerPos);
-
+                
                 double pos[3];
                 fingerPos->getComponents(pos[0],pos[1],pos[2]);
                 
@@ -458,10 +460,10 @@ void LeapInteraction::interactNode()
                 CIvfFemNode* closestNode;
                 findNode(pos, distance, closestNode);
                 
-
+                
                 cout << "Distance" << distance << endl;
                 m_endDraw->setPosition(pos[0],pos[1],pos[2]);
-
+                
                 m_widget->setNeedRecalc(true);
                 m_widget->set_changed();
                 
@@ -519,3 +521,6 @@ Vector LeapInteraction::adjustPosition(Vector inputVector)
     return returnVector;
     
 }
+
+
+#endif

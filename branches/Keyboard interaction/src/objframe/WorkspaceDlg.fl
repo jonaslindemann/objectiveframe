@@ -1,0 +1,102 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#include <iostream>} {selected private local
+} 
+
+class CWorkspaceDlg {open
+} {
+  decl {int m_modalResult} {private local
+  }
+  decl {double m_workspaceSize} {private local
+  }
+  Function {CWorkspaceDlg()} {open
+  } {
+    Fl_Window wndWorkspace {
+      label Workspace open
+      xywh {457 121 309 186} type Double modal visible
+    } {
+      Fl_Button btnOk {
+        label OK
+        callback {m_modalResult = MR_OK;
+wndWorkspace->hide();
+m_workspaceSize = (double)(sldWorkspaceSize->value());}
+        xywh {236 6 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
+      }
+      Fl_Button btnCancel {
+        label Cancel
+        callback {m_modalResult = MR_CANCEL;
+wndWorkspace->hide();}
+        xywh {236 37 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
+      }
+      Fl_Group grpWorkspace {open
+        xywh {5 5 225 175} box PLASTIC_DOWN_FRAME
+      } {
+        Fl_Value_Slider sldWorkspaceSize {
+          label {Size (units)}
+          xywh {17 28 201 20} type {Horz Knob} box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 1 maximum 100 step 1 value 10
+        }
+        Fl_Value_Slider sldNodeSize {
+          label {Node size (% of workspace)}
+          xywh {17 68 201 20} type {Horz Knob} box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 0.1 maximum 2 step 0.05 value 0.5
+        }
+        Fl_Value_Slider sldLineRadius {
+          label {Line radius (% of workspace)}
+          xywh {17 107 201 20} type {Horz Knob} box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 0.1 maximum 2 step 0.05 value 0.15
+        }
+        Fl_Value_Slider sldLoadSize {
+          label {Load size (% of workspace)}
+          xywh {18 146 201 20} type {Horz Knob} box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 1 maximum 10 step 1 value 7
+        }
+      }
+    }
+  }
+  Function {~CWorkspaceDlg()} {} {
+    code {delete wndWorkspace;} {}
+  }
+  Function {show()} {} {
+    code {wndWorkspace->show();
+while (wndWorkspace->visible()) Fl::wait();} {}
+  }
+  Function {getModalResult()} {return_type int
+  } {
+    code {return m_modalResult;} {}
+  }
+  Function {setWorkspaceSize(double size)} {} {
+    code {m_workspaceSize = size;
+sldWorkspaceSize->value(size);} {}
+  }
+  Function {getWorkspaceSize()} {return_type double
+  } {
+    code {return m_workspaceSize;} {}
+  }
+  Function {setNodeSize(double size)} {} {
+    code {sldNodeSize->value(size*100.0);} {}
+  }
+  Function {setLineRadius(double radius)} {} {
+    code {sldLineRadius->value(radius*100.0);} {}
+  }
+  Function {setLoadSize(double size)} {open
+  } {
+    code {sldLoadSize->value(size*100.0);} {}
+  }
+  Function {getNodeSize()} {return_type double
+  } {
+    code {return (double)sldNodeSize->value()/100.0;} {}
+  }
+  Function {getLineRadius()} {return_type double
+  } {
+    code {return (double)sldLineRadius->value()/100.0;} {}
+  }
+  Function {getLoadSize()} {return_type double
+  } {
+    code {return (double)sldLoadSize->value()/100.0;} {}
+  }
+} 

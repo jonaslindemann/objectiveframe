@@ -1,0 +1,32 @@
+/* XPM */
+static char *tlClearBC[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18        7            1",
+/* colors */
+"` c #000081",
+". c #008100",
+"# c #00ff00",
+"a c #810000",
+"b c #ff0000",
+"c c none",
+"d c #ffffff",
+/* pixels */
+"cccccccccccccccccc",
+"cccccccccccccccccc",
+"cccccccccccccccccc",
+"cccccccccccccccccc",
+"ccccaaaac`dcc`cccc",
+"cccbbbbacd`c`#cccc",
+"cccbbbbad##`##cccc",
+"cccbbbbac.`c`.cccc",
+"cccbbbbcc`.cc`cccc",
+"cccccdcccccccccccc",
+"ccc`d#.`cccccccccc",
+"cccd`#`.cccccccccc",
+"ccccc`cccccccccccc",
+"cccc`#`ccccccccccc",
+"ccc`##.`cccccccccc",
+"cccccccccccccccccc",
+"cccccccccccccccccc",
+"cccccccccccccccccc"
+};

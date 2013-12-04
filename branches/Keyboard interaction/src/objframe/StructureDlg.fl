@@ -1,0 +1,102 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#include <iostream>} {private local
+} 
+
+class CStructureDlg {open
+} {
+  decl {int m_modalResult} {private local
+  }
+  decl {int m_size[3]} {private local
+  }
+  decl {double m_spacing[3]} {private local
+  }
+  Function {CStructureDlg()} {open
+  } {
+    Fl_Window wndWorkspace {
+      label {Create structure} open
+      xywh {396 63 312 231} type Double modal visible
+    } {
+      Fl_Button btnOk {
+        label OK
+        callback {m_modalResult = MR_OK;
+wndWorkspace->hide();}
+        xywh {239 5 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+      }
+      Fl_Button btnCancel {
+        label Cancel
+        callback {m_modalResult = MR_CANCEL;
+wndWorkspace->hide();}
+        xywh {239 36 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+      }
+      Fl_Group grpWorkspace {open
+        xywh {4 5 228 222} box PLASTIC_DOWN_FRAME
+      } {
+        Fl_Value_Slider sldRows {
+          label {Number of rows }
+          xywh {16 28 201 20} type Horizontal box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 2 maximum 30 step 1 value 4
+        }
+        Fl_Value_Slider sldColumns {
+          label {Number of columns}
+          xywh {16 66 201 20} type Horizontal box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 2 maximum 30 step 1 value 4
+        }
+        Fl_Value_Slider sldStacks {
+          label {Number of stacks}
+          xywh {16 104 201 20} type Horizontal box PLASTIC_DOWN_BOX labelsize 12 align 5 minimum 2 maximum 30 step 1 value 4
+        }
+        Fl_Value_Input edtZspacing {
+          label {Z spacing (units)}
+          xywh {112 139 105 22} box PLASTIC_DOWN_BOX labelsize 12 minimum 0.1 maximum 1e+300 value 2
+        }
+        Fl_Value_Input edtXspacing {
+          label {X spacing (units)}
+          xywh {112 166 105 22} box PLASTIC_DOWN_BOX labelsize 12 minimum 0.1 maximum 1e+300 value 2
+        }
+        Fl_Value_Input edtYspacing {
+          label {Y spacing (units)}
+          xywh {112 193 105 22} box PLASTIC_DOWN_BOX labelsize 12 minimum 0.1 maximum 1e+300 value 2
+        }
+      }
+    }
+  }
+  Function {show()} {open
+  } {
+    code {wndWorkspace->show();
+while (wndWorkspace->visible()) Fl::wait();} {}
+  }
+  Function {getModalResult()} {open return_type int
+  } {
+    code {return m_modalResult;} {}
+  }
+  Function {~CStructureDlg()} {open
+  } {
+    code {delete wndWorkspace;} {}
+  }
+  Function {getSize(int &rows, int &cols, int &stacks)} {open return_type void
+  } {
+    code {m_size[0] = sldRows->value();
+m_size[1] = sldColumns->value();
+m_size[2] = sldStacks->value();
+rows = m_size[0];
+cols = m_size[1];
+stacks = m_size[2];} {}
+  }
+  Function {getSpacing(double &xSpacing, double &ySpacing, double &zSpacing)} {open
+  } {
+    code {m_spacing[0] = edtXspacing->value();
+m_spacing[1] = edtYspacing->value();
+m_spacing[2] = edtZspacing->value();
+xSpacing = m_spacing[0];
+ySpacing = m_spacing[1];
+zSpacing = m_spacing[2];} {selected
+    }
+  }
+} 

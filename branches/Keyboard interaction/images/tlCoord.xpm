@@ -1,0 +1,44 @@
+/* XPM */
+static char *tlCoord[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18       16            1",
+/* colors */
+"` c #000000",
+". c #800000",
+"# c #008000",
+"a c None",
+"b c #000080",
+"c c #800080",
+"d c #008080",
+"e c #c0c0c0",
+"f c #808080",
+"g c #ff0000",
+"h c #00ff00",
+"i c #ffff00",
+"j c #0000ff",
+"k c #ff00ff",
+"l c #00ffff",
+"m c #ffffff",
+/* pixels */
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aa`aaaaaaaaaaa`aaa",
+"a`aaaaaaaaaaaaa`aa",
+"a`aa`a`aaa`a`aa`aa",
+"a`aa`a`aaa`a`aa`aa",
+"a`aaa`aaaa`a`aa`aa",
+"a`aa`a`aaa`a`aa`aa",
+"a`aa`a`a`aa``aa`aa",
+"a`aaaaaa`aaa`aa`aa",
+"aa`aaaaaaa``aa`aaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaa"
+};
+aaaaaaaa",
+"aaaaaaaaaaaaaaaaaa"
+};

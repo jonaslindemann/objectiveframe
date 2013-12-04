@@ -1,0 +1,29 @@
+/* XPM */
+static char *tlClearNodes[] = {
+/* width height num_colors chars_per_pixel */
+"    18    18        4            1",
+/* colors */
+"` c #000081",
+". c #810000",
+"# c #ff0000",
+"a c none",
+/* pixels */
+"aaaaaaaa#.aaaaaaaa",
+"aaaaaa``#.``aaaaaa",
+"aaaaaaa````aaaaaaa",
+"aaaaaaaa``aaaaaaaa",
+"aaaaaaa````aaaaaaa",
+"aaaaaa``#.``aaaaaa",
+"aaaaaaaa#.aaaaaaaa",
+"aaaaa##......aaaaa",
+"aaaaaa##....aaaaaa",
+"aaaaaaa##..aaaaaaa",
+"aaaaaaaa#.aaaaaaaa",
+"aaaaaaaaaaaaaaaaaa",
+"aaaaaaa....aaaaaaa",
+"aaaaaa####.aaaaaaa",
+"aaaaaa####.aaaaaaa",
+"aaaaaa####.aaaaaaa",
+"aaaaaa####aaaaaaaa",
+"aaaaaaaaaaaaaaaaaa"
+};

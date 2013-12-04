@@ -1,0 +1,25 @@
+// FemBeamNodeBCSet.cpp: implementation of the CFemBeamNodeBCSet class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#include "FemBeamNodeBCSet.h"
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+
+CFemBeamNodeBCSet::CFemBeamNodeBCSet()
+{
+
+}
+
+CFemBeamNodeBCSet::~CFemBeamNodeBCSet()
+{
+
+}
+
+CFemBC* CFemBeamNodeBCSet::createBC()
+{
+    return new CFemBeamNodeBC();
+}
+

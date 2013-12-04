@@ -1,0 +1,212 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#include <FemBeamMaterialSet.h>} {public local
+} 
+
+decl {\#ifdef WIN32} {public local
+} 
+
+decl {\#include "fl_message_win.H"} {public local
+} 
+
+decl {\#endif} {public local
+} 
+
+decl {\#include <FL/fl_message.H>} {public local
+} 
+
+decl {\#include "IvfFemWidget.h"} {private local
+} 
+
+decl {\#include "MaterialDlg.h"} {private local
+} 
+
+decl {\#include <string>} {private local
+} 
+
+class CMaterialsDlg {open
+} {
+  decl {CFemBeamMaterialSet* m_materials} {private local
+  }
+  decl {void* m_femWidget} {private local
+  }
+  decl {CFemBeamMaterial* m_currentMaterial} {private local
+  }
+  Function {CMaterialsDlg()} {open
+  } {
+    Fl_Window wndMaterials {
+      label {Beam properties} open
+      xywh {1180 296 184 211} type Double non_modal visible
+    } {
+      Fl_Browser lbMaterials {
+        label Properties
+        callback {if (m_materials!=NULL)
+{
+	if (lbMaterials->value()>0)
+	{
+		m_currentMaterial = (CFemBeamMaterial*)
+			m_materials->getMaterial(lbMaterials->value()-1);
+	}
+	else m_currentMaterial = NULL;
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->setCurrentMaterial(m_currentMaterial);
+	}
+}}
+        xywh {4 20 144 187} type Hold box DOWN_BOX labelsize 12 align 5 textsize 12
+      }
+      Fl_Button btnAddMaterial {
+        callback {if (m_materials!=NULL)
+{
+	char materialName[255];
+	const char* result = fl_input("Beam property name");
+	if (result!=NULL)
+	{
+		strcpy(materialName, result);
+		if (materialName!=NULL)
+		{
+			CFemBeamMaterial* material = new CFemBeamMaterial();
+			material->setName(materialName);
+			m_materials->addMaterial(material);
+			this->fillListBox();
+		}
+	}
+}}
+        image {../../images/tlAddMaterial.xpm} xywh {152 20 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnRemoveMaterial {
+        callback {if (m_currentMaterial!=NULL)
+{
+	if (m_materials->removeMaterial(m_currentMaterial))
+		this->fillListBox();
+	else
+		fl_message("Material is used and can not be removed. Remove material references from elements.");
+}}
+        image {../..//images/tlDeleteMaterial.xpm} xywh {152 52 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnEditMaterial {
+        callback {if (this->getCurrentMaterial()!=NULL)
+{
+	CMaterialDlg* dlg = new CMaterialDlg();
+	dlg->setMaterial(this->getCurrentMaterial());
+	dlg->setWorkspace((Fl_Widget*)m_femWidget);
+	dlg->show();
+	if (dlg->getModalResult()==MR_OK)
+	{
+		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	}
+	delete dlg;
+	this->fillListBox();
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->setNeedRecalc(true);
+	}
+}}
+        image {../../images/tlInspMaterial.xpm} xywh {152 148 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnAssignMaterial {
+        callback {if (this->getCurrentMaterial()!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+		femWidget->assignMaterialToSelected();
+		femWidget->setNeedRecalc(true);
+		this->fillListBox();
+	}
+}}
+        image {../../images/tlAssignMaterial.xpm} xywh {152 84 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnClearMaterial {
+        callback {if (m_femWidget!=NULL)
+{
+	CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+	femWidget->removeMaterialFromSelected();
+	femWidget->setNeedRecalc(true);
+	this->fillListBox();
+}}
+        image {../../images/tlClearMaterial.xpm} xywh {152 116 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+    }
+    code {m_femWidget = NULL;
+m_materials = NULL;
+m_currentMaterial = NULL;} {}
+  }
+  Function {show()} {} {
+    code {wndMaterials->show();
+this->setMaterials(m_materials);
+this->fillListBox();} {}
+  }
+  Function {setMaterials(CFemBeamMaterialSet* materials)} {} {
+    code {m_materials = materials;
+if (m_materials==NULL)
+{
+	lbMaterials->clear();
+	lbMaterials->deactivate();
+	btnAddMaterial->deactivate();
+	btnRemoveMaterial->deactivate();
+	btnEditMaterial->deactivate();
+}
+else
+{
+	lbMaterials->activate();
+	btnAddMaterial->activate();
+	btnRemoveMaterial->activate();
+	btnEditMaterial->activate();
+	this->fillListBox();
+	m_currentMaterial = NULL;
+	wndMaterials->redraw();
+}} {}
+  }
+  Function {getMaterials()} {return_type {CFemBeamMaterialSet*}
+  } {
+    code {return m_materials;} {}
+  }
+  Function {hide()} {} {
+    code {wndMaterials->hide();} {}
+  }
+  Function {fillListBox()} {open private
+  } {
+    code {if (m_materials!=NULL)
+{
+	std::string materialName;
+	lbMaterials->clear();
+	for (int i=0; i<m_materials->getSize(); i++)
+	{
+		CFemBeamMaterial* material = 
+			(CFemBeamMaterial*)m_materials->getMaterial(i);
+		materialName = material->getName()+" ("+to_string<int>(material->getRefCount()-2)+")";
+		lbMaterials->add(materialName.c_str(), material);
+	}
+}
+m_currentMaterial = NULL;} {selected
+    }
+  }
+  Function {getCurrentMaterial()} {return_type {CFemBeamMaterial*}
+  } {
+    code {return m_currentMaterial;} {}
+  }
+  Function {setFemWidget(void* femWidget)} {} {
+    code {m_femWidget = femWidget;} {}
+  }
+} 

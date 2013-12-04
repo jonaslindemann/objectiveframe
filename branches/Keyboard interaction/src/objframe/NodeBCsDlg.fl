@@ -1,0 +1,209 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+} 
+
+decl {\#define MR_CANCEL 1} {public local
+} 
+
+decl {\#include <FL/fl_message.H>} {public local
+} 
+
+decl {\#include <FemNodeBCSet.h>} {public local
+} 
+
+decl {\#include <FemBeamNodeBC.h>} {public local
+} 
+
+decl {\#include "IvfFemWidget.h"} {private local
+} 
+
+decl {\#include "NodeBCDlg.h"} {private local
+} 
+
+class CNodeBCsDlg {open
+} {
+  decl {CFemNodeBCSet* m_bcSet} {private local
+  }
+  decl {CFemBeamNodeBC* m_currentBC} {private local
+  }
+  decl {void* m_femWidget} {private local
+  }
+  Function {CNodeBCsDlg()} {open
+  } {
+    Fl_Window wndNodeBCs {
+      label {Node BCs} open
+      xywh {459 67 180 211} type Double non_modal visible
+    } {
+      Fl_Browser lbBCSet {
+        label BCs
+        callback {if (m_bcSet!=NULL)
+{
+	if (lbBCSet->value()>0)
+	{
+		m_currentBC = (CFemBeamNodeBC*)
+			m_bcSet->getBC(lbBCSet->value()-1);
+	}
+	else m_currentBC = NULL;
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->setCurrentNodeBC(m_currentBC);
+	}
+}}
+        xywh {4 17 143 190} type Hold box DOWN_BOX labelsize 12 align 5 textsize 12
+      }
+      Fl_Button btnAddBC {
+        callback {if (m_bcSet!=NULL)
+{
+	char loadName[255];
+	const char* result;
+	result = fl_input("BC name");
+	if (result!=NULL)
+	{
+		strcpy(loadName, result);
+		if (loadName!=NULL)
+		{
+			CFemBeamNodeBC* bc = new CFemBeamNodeBC();
+			bc->setName((char*)loadName);
+			m_bcSet->addBC(bc);
+			if (m_femWidget!=NULL)
+			{
+				CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+				femWidget->addNodeBC(bc);
+				this->fillListBox();
+			}
+		}
+	}
+}}
+        image {../../images/tlAddBC.xpm} xywh {150 17 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnRemoveBC {
+        callback {if (m_currentBC!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->deleteNodeBC(m_currentBC);
+		this->fillListBox();
+	}
+}}
+        image {../../images/tlDelBC.xpm} xywh {150 49 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnEditBC {
+        callback {if (this->getCurrentBC()!=NULL)
+{
+	CNodeBCDlg* dlg = new CNodeBCDlg();
+	dlg->setBC(this->getCurrentBC());
+	dlg->setWorkspace((Fl_Widget*)m_femWidget);
+	dlg->show();
+	if (dlg->getModalResult()==MR_OK)
+	{
+		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	}
+	delete dlg;
+	this->fillListBox();
+}}
+        image {../../images/tlInspBC.xpm} xywh {150 145 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnAssignBC {
+        callback {if (this->getCurrentBC()!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->assignNodeBCSelected();
+		femWidget->setNeedRecalc(true);
+	}
+}}
+        image {../../images/tlAssignBC.xpm} xywh {150 81 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+      Fl_Button btnClearElements {
+        callback {if (this->getCurrentBC()!=NULL)
+{
+	if (m_femWidget!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		femWidget->removeNodeBCsFromSelected();
+	}
+}}
+        image {../../images/tlClearBC.xpm} xywh {150 113 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
+        code0 {\#include "Fl_HoverButton.h"}
+        class Fl_HoverButton
+      }
+    }
+    code {m_bcSet = NULL;
+m_currentBC = NULL;
+m_femWidget = NULL;} {}
+  }
+  Function {show()} {open
+  } {
+    code {wndNodeBCs->show();
+this->setBCSet(m_bcSet);
+this->fillListBox();} {}
+  }
+  Function {setBCSet(CFemNodeBCSet* bcSet)} {open
+  } {
+    code {m_bcSet = bcSet;
+if (m_bcSet==NULL)
+{
+	lbBCSet->clear();
+	lbBCSet->deactivate();
+	btnAddBC->deactivate();
+	btnRemoveBC->deactivate();
+	btnEditBC->deactivate();
+}
+else
+{
+	lbBCSet->activate();
+	btnAddBC->activate();
+	btnRemoveBC->activate();
+	btnEditBC->activate();
+	this->fillListBox();
+	wndNodeBCs->redraw();
+}} {}
+  }
+  Function {getBCSet()} {open return_type {CFemNodeBCSet*}
+  } {
+    code {return m_bcSet;} {}
+  }
+  Function {hide()} {open
+  } {
+    code {wndNodeBCs->hide();} {}
+  }
+  Function {fillListBox()} {open private
+  } {
+    code {if (m_bcSet!=NULL)
+{
+	std::string bcName;
+	lbBCSet->clear();
+	for (int i=0; i<m_bcSet->getSize(); i++)
+	{
+		CFemBeamNodeBC* nodeBC = 
+			(CFemBeamNodeBC*) m_bcSet->getBC(i);
+		bcName = nodeBC->getName();
+		lbBCSet->add(bcName.c_str(),nodeBC);
+	}
+	m_currentBC = NULL;
+}} {selected
+    }
+  }
+  Function {getCurrentBC()} {open return_type {CFemBeamNodeBC*}
+  } {
+    code {return m_currentBC;} {}
+  }
+  Function {setFemWidget(void* femWidget)} {open
+  } {
+    code {m_femWidget = femWidget;} {}
+  }
+} 

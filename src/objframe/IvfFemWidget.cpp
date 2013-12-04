@@ -29,29 +29,11 @@
 
 #include "StatusOutput.h"
 
-#ifdef USE_LEAP
 #include "LeapInteraction.h"
-#endif
 
 #ifdef HAVE_CORBA
 #include "FemDFEMCInterface.h"
 #endif
-
-#define BTN_SELECT		  1001
-#define BTN_MOVE          1002
-#define BTN_CREATE_NODE   1003
-#define BTN_CREATE_BEAM   1004
-#define BTN_DELETE        1005
-#define BTN_INSPECT       1006
-#define BTN_NODE_BC       1007
-#define BTN_NODE_LOAD     1008
-#define BTN_BEAM_LOAD     1009
-#define BTN_VIEW_ZOOM     1010
-#define BTN_VIEW_PAN      1011
-#define BTN_VIEW_RESET    1012
-#define BTN_VIEW_CENTER   1013
-#define BTN_MATERIALS     1014
-#define BTN_FEEDBACK      1020
 
 // ------------------------------------------------------------
 // ------------------------------------------------------------
@@ -68,7 +50,6 @@ void feedbackCallback(void* pointer)
     Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
 
-#ifdef USE_LEAP
 void callbackLeapLoop(void* pointer)
 {
     CIvfFemWidget* widget = (CIvfFemWidget*) pointer;
@@ -76,7 +57,6 @@ void callbackLeapLoop(void* pointer)
     widget->getLeapInteraction()->refresh();
     Fl::add_timeout(0.01f, callbackLeapLoop, widget);
 }
-#endif USE_LEAP
 
 // ------------------------------------------------------------
 
@@ -132,9 +112,8 @@ CIvfFemWidget::CIvfFemWidget(int X, int Y, int W, int H, const char *L) :
     m_coordWidget = NULL;
 
     m_progPath = "";
-#ifdef USE_LEAP
     Fl::add_timeout(0.01, callbackLeapLoop, this);
-#endif
+
 }
 
 void CIvfFemWidget::onInit()
@@ -333,9 +312,7 @@ void CIvfFemWidget::onInit()
     so_print("FemWidget: Setting initial edit mode.");
     this->setEditMode(IVF_VIEW_ZOOM);
     
-#ifdef USE_LEAP
     m_leapinteraction = new LeapInteraction(this);
-#endif
 }
 
 // ------------------------------------------------------------
@@ -566,7 +543,10 @@ void CIvfFemWidget::setEditMode(int mode)
     // the custom mode is set to OF_NORMAL
 
     // set highlight filter
-
+    if (mode == 0)
+        cout << "NOLL" << endl;
+    
+    
     switch (mode) {
     case IVF_SELECT:
         setHighlightFilter(HF_ALL);
@@ -1412,6 +1392,7 @@ void CIvfFemWidget::setupOverlay()
     m_viewButtons->addChild(button);
 
     m_overlayScene->addChild(m_viewButtons);
+
 #endif
 }
 
@@ -1563,9 +1544,9 @@ void CIvfFemWidget::doFeedback()
     {
         if (m_interactionNode!=NULL)
         {
-            CFeedbackDlg* dlg = new CFeedbackDlg();
-            dlg->show();
-            Fl::wait();
+            //CFeedbackDlg* dlg = new CFeedbackDlg();
+            //dlg->show();
+            //Fl::wait();
 
             double maxNodeValue;
 
@@ -1635,9 +1616,9 @@ void CIvfFemWidget::doFeedback()
             }
 
             m_needRecalc = false;
-            dlg->hide();
+            //dlg->hide();
 
-            delete dlg;
+            //delete dlg;
 
             // Show displacements
 
@@ -1706,21 +1687,24 @@ void CIvfFemWidget::doFeedback()
 
 // ------------------------------------------------------------
 
-#ifdef USE_LEAP
 LeapInteraction* CIvfFemWidget::getLeapInteraction()
 {
     return m_leapinteraction;
 }
 
-void CIvfFemWidget::updateLeapFrame(Frame leapFrame)
+void CIvfFemWidget::updateLeapController(const Controller& leapController, int* gesture)
 {
-    m_leapinteraction->updateLeapFrame(leapFrame);
+    m_leapinteraction->updateLeapController(leapController, gesture);
 }
-#endif
 
 CIvfExtrArrowPtr CIvfFemWidget::getTactileForce()
 {
     return m_tactileForce;
+}
+
+CIvfSelectOrtho* CIvfFemWidget::getOverlay()
+{
+    return m_overlayScene;
 }
 
 void CIvfFemWidget::setTactileForce(CIvfExtrArrowPtr force)
@@ -1738,6 +1722,17 @@ CIvfFemNodePtr CIvfFemWidget::getInteractionNode()
 void CIvfFemWidget::setInteractionNode(CIvfFemNode* interactionNode)
 {
     m_interactionNode = interactionNode;
+}
+
+void CIvfFemWidget::removeMenus()
+{
+    m_editButtons->deleteAll();
+    m_objectButtons->deleteAll();
+    m_viewButtons->deleteAll();
+    
+
+    
+    
 }
 
 // ------------------------------------------------------------
@@ -2443,9 +2438,21 @@ void CIvfFemWidget::onHighlightFilter(CIvfShape *shape, bool &highlight)
 
 void CIvfFemWidget::onKeyboard(int key)
 {
+    if (key>0)
+        m_keysDown.push_back(key);
+    else
+        m_keysDown.erase(std::remove(m_keysDown.begin(), m_keysDown.end(), -key), m_keysDown.end());
+    
+    cout << key << endl;
     if (key == 122)
         this->setEditMode(IVF_VIEW_PAN);
 }
+
+vector<int>* CIvfFemWidget::getKeysDown()
+{
+    return &m_keysDown;
+}
+
 
 void CIvfFemWidget::setRelNodeSize(double size)
 {

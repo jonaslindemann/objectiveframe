@@ -9,25 +9,24 @@
 #ifndef _CLeapInteraction_H_
 #define _CLeapInteraction_H_
 
-#include "ObjframeConfig.h"
-
-#ifdef USE_LEAP
-
 #include <iostream>
-#include "Leap.h"
+
 #include "IvfFemWidget.h"
 #include "LeapFinger.h"
 
 #define SMALL_NUM   0.00000001 // anything that avoids division overflow
-#define SNAP_DIST 8
+#define SNAP_DIST 1
+#define ANIMATE_SPEED 10
 
 using namespace Leap;
 
 class LeapInteraction {
 private:
+    int                 m_editMode;
     double              m_alpha, m_beta;
     
     Frame               m_leapFrame;
+    Controller          m_leapController;
     CIvfFemWidget       *m_widget;
     
     LeapFinger          *m_finger1;
@@ -35,25 +34,44 @@ private:
     
     CIvfVec3d           *m_forceVector;
     
-    double              m_lastFingerCount;
-    double              m_lastDistance;
     bool                m_interact;
+    int                 *m_gesture;
     
-    Vector              m_graspPoint;
     CIvfFemNode         *m_interactionNode;
+    CIvfNode            *m_startDraw;
+    CIvfNode            *m_endDraw;
+    CIvfShape*          newLine;
+    CIvfFemNode         *m_moveNode;
+
+    //Menu
+    vector<int>         m_editModes;
+    vector<CIvfPlaneButton*> m_buttons;
+    CIvfButtonGroup* m_objectButtons;
+    bool                menuUp;
     
+    double              m_animation;
     
 public:
     LeapInteraction();
     LeapInteraction(CIvfFemWidget *widget);
     virtual ~LeapInteraction();
     
-    void updateLeapFrame(Frame leapFrame);
+    void updateLeapController(const Controller& leapController, int* gesture);
     void refresh();
+    
+    //Menu
+    void setupOverlay();
+    void reCheck();
+    void animateMenuUp();
+    void animateMenuDown();
+    void interactMenu();
+    
     void viewInteraction();
+    void highlightCloseNodes();
     void findNode(double v[3], double &distance, CIvfFemNode* &closestNode);
-    void graspGesture();
-    double vectorsIntersect(Vector p1, Vector p2, Vector dir1, Vector dir2);
+    void gestures();
+    bool grasp();
+
     
     void startGrasp();
     void interactNode();
@@ -62,7 +80,5 @@ public:
     void LeapToScene(Vector leapVector, CIvfVec3d* returnVector);
     Vector adjustPosition(Vector inputVector);
 };
-
-#endif
 
 #endif

@@ -3,7 +3,7 @@
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.4.0"
 #define ADVANCED_GL
-#include "ObjframeConfig.h"
+#define LEAP
 
 #include <ivf/ivfconfig.h>
 
@@ -49,11 +49,10 @@
 #include "FemInternalSolver.h"
 #endif
 
-#ifdef USE_LEAP
+
 #include "Leap.h"
 using namespace Leap;
 class LeapInteraction;
-#endif
 
 
 #include "NodePropDlg.h"
@@ -85,6 +84,39 @@ class LeapInteraction;
 #define HF_ALL      0
 #define HF_NODES    1
 #define HF_ELEMENTS 2
+
+#define GEST_NONE 0
+#define GEST_PINCH_HAND1 1
+#define GEST_PINCH_HAND2 2
+#define GEST_SPREAD_HAND1 3
+#define GEST_SPREAD_HAND2 4
+#define GEST_SWIPE_UP 5
+#define GEST_SWIPE_DOWN 6
+#define GEST_SWIPE_LEFT 7
+#define GEST_SWIPE_RIGHT 8
+
+#define LEAP_LINE 2001
+#define LEAP_MOVE 2002
+#define LEAP_INTERACT 2003
+
+
+#define BTN_SELECT		  1001
+#define BTN_MOVE          1002
+#define BTN_CREATE_NODE   1003
+#define BTN_CREATE_BEAM   1004
+#define BTN_DELETE        1005
+#define BTN_INSPECT       1006
+#define BTN_NODE_BC       1007
+#define BTN_NODE_LOAD     1008
+#define BTN_BEAM_LOAD     1009
+#define BTN_VIEW_ZOOM     1010
+#define BTN_VIEW_PAN      1011
+#define BTN_VIEW_RESET    1012
+#define BTN_VIEW_CENTER   1013
+#define BTN_MATERIALS     1014
+#define BTN_FEEDBACK      1020
+
+
 
 template <typename T>
 string to_string ( T Number )
@@ -118,6 +150,7 @@ private:
     double  m_startBeta;
 
     int     m_mouseDownPos[2];
+    vector<int>     m_keysDown;
 
     int     m_selectFilter;
     int     m_deleteFilter;
@@ -144,9 +177,9 @@ private:
     CFemBeamNodeLoadPtr m_currentNodeLoad;
     CFemBeamNodeBCPtr   m_currentNodeBC;
     CIvfFemNodePtr      m_interactionNode;
-#ifdef USE_LEAP
+    
     LeapInteraction* m_leapinteraction;
-#endif
+
     
 
 #ifndef HAVE_CORBA
@@ -287,19 +320,16 @@ public:
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void doFeedback();
     
-#ifdef USE_LEAP
     LeapInteraction* getLeapInteraction();
-    void updateLeapFrame(Frame leapFrame);
-#endif
+    void updateLeapController(const Controller& leapController, int* gesture);
     CIvfExtrArrowPtr getTactileForce();
+    CIvfSelectOrtho* getOverlay();
     void setTactileForce(CIvfExtrArrowPtr force);
     CIvfFemNodePtr getInteractionNode();
     void setInteractionNode(CIvfFemNode* interactionNode);
+    void removeMenus();
     
     // Implemented widget events
-#ifdef USE_LEAP
-    void fingerMove(Finger finger);
-#endif
     void onCreateNode(double x, double y, double z, CIvfNode* &newNode);
     void onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine);
     void onSelect(CIvfComposite* selectedShapes);
@@ -315,6 +345,8 @@ public:
     void onMotion(int x, int y);
     void onDeSelect();
     void onKeyboard(int key);
+    vector<int>* getKeysDown();
+    
 #ifdef ADVANCED_GL
     void onButton(int objectName, CIvfPlaneButton* button);
 #endif

@@ -9,10 +9,6 @@
 #ifndef __objframe2__LeapFinger__
 #define __objframe2__LeapFinger__
 
-#include "ObjframeConfig.h"
-
-#ifdef USE_LEAP
-
 #include <iostream>
 #include "Leap.h"
 #include "IvfFemWidget.h"
@@ -37,14 +33,13 @@ public:
     LeapFinger(CIvfFemWidget *widget);
     virtual ~LeapFinger();
     void fingerMove(Finger finger);
-    void LeapToScene(Vector leapVector, CIvfVec3d* sceneVector);
+    void leapToScene(Vector leapVector, CIvfVec3d* sceneVector);
     Vector adjustPosition(Vector height);
-    void Show(bool show);
+    void show(bool show);
+    void highlight();
     
     CIvfVec3d getPosition();
     void setPosition(double x, double y, double z);
 };
-
-#endif
 
 #endif /* defined(__objframe2__LeapFinger__) */

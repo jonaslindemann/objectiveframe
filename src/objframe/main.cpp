@@ -1,6 +1,5 @@
 #include <FL/Fl.H>
 
-#include "ObjframeConfig.h"
 #define ADVANCED_GL
 
 #ifdef ADVANCED_GL
@@ -18,9 +17,7 @@
 #include <windows.h>
 #endif
 
-#ifdef USE_LEAP
 #include "LeapListener.h"
-#endif
 
 int
 main(int argc, char **argv)
@@ -117,12 +114,10 @@ main(int argc, char **argv)
     
     
     // Setup leap motion
-#ifdef USE_LEAP
     Controller controller;
     LeapListener listener;
     controller.addListener(listener);
     listener.setWorkspace(frame->ivfWorkspace);
-#endif
 
 
 

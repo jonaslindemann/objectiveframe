@@ -8,8 +8,6 @@
 
 #include "LeapFinger.h"
 
-#ifdef USE_LEAP
-
 LeapFinger::LeapFinger(CIvfFemWidget *widget)
 {
     m_widget = widget;
@@ -47,18 +45,18 @@ void LeapFinger::fingerMove(Finger finger)
     
     //Set position finger 1
     m_fingerShape->setState(CIvfShape::OS_ON);
-    LeapToScene(adjustPosition(m_fingerData.stabilizedTipPosition()), m_fingerPos);
+    leapToScene(adjustPosition(m_fingerData.stabilizedTipPosition()), m_fingerPos);
     m_fingerShape->setPosition(*m_fingerPos);
     
     //Set rotation finger 1
-    LeapToScene(m_fingerData.direction(), m_fingerDir);
+    leapToScene(m_fingerData.direction(), m_fingerDir);
     double pitch, yaw;
     m_fingerDir->getEulerAngles(pitch, yaw);
     m_fingerShape->setRotation(-pitch-90,0,yaw);
     
 }
 
-void LeapFinger::LeapToScene(Vector leapVector, CIvfVec3d* returnVector)
+void LeapFinger::leapToScene(Vector leapVector, CIvfVec3d* returnVector)
 {
     
     returnVector->setX(leapVector.x);
@@ -88,7 +86,7 @@ Vector LeapFinger::adjustPosition(Vector inputVector)
     
 }
 
-void LeapFinger::Show(bool show)
+void LeapFinger::show(bool show)
 {
     if (show)
     {
@@ -98,6 +96,15 @@ void LeapFinger::Show(bool show)
     {
             m_fingerShape->setState(CIvfShape::OS_OFF);
     }
+}
+
+void LeapFinger::highlight()
+{
+    CIvfMaterialPtr material = new CIvfMaterial();
+    material->setDiffuseColor(1.0f, 0.3f, 0.3f, 0.8f);
+    material->setSpecularColor(1.0f, 1.0f, 1.0f, 0.8f);
+    material->setAmbientColor(0.3f, 0.1f, 0.1f, 0.8f);
+    m_fingerShape->setMaterial(material);
 }
 
 
@@ -117,5 +124,3 @@ void LeapFinger::setPosition(double x, double y, double z)
 
     m_fingerShape->setPosition(x-d[0], y-d[1], z-d[2]);
 }
-
-#endif

@@ -8,13 +8,15 @@
 
 #include "LeapFinger.h"
 
+#ifdef USE_LEAP
+
 LeapFinger::LeapFinger(CIvfFemWidget *widget)
 {
     m_widget = widget;
     
     m_fingerPos = new CIvfVec3d;
     m_fingerDir = new CIvfVec3d;
-        
+    
     m_fingerPos = new CIvfVec3d;
     m_fingerDir = new CIvfVec3d;
     m_fingerShape = new CIvfCylinder();
@@ -90,11 +92,11 @@ void LeapFinger::show(bool show)
 {
     if (show)
     {
-            m_fingerShape->setState(CIvfShape::OS_ON);
+        m_fingerShape->setState(CIvfShape::OS_ON);
     }
     else
     {
-            m_fingerShape->setState(CIvfShape::OS_OFF);
+        m_fingerShape->setState(CIvfShape::OS_OFF);
     }
 }
 
@@ -121,6 +123,8 @@ void LeapFinger::setPosition(double x, double y, double z)
     d[0]= m_fingerData.direction().x*adjust;
     d[1]= m_fingerData.direction().y;//*adjust;
     d[2]= m_fingerData.direction().z*adjust;
-
+    
     m_fingerShape->setPosition(x-d[0], y-d[1], z-d[2]);
 }
+
+#endif

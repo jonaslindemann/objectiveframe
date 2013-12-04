@@ -3,7 +3,7 @@
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.4.0"
 #define ADVANCED_GL
-#define LEAP
+#include "ObjframeConfig.h"
 
 #include <ivf/ivfconfig.h>
 
@@ -49,10 +49,11 @@
 #include "FemInternalSolver.h"
 #endif
 
-
+#ifdef USE_LEAP
 #include "Leap.h"
 using namespace Leap;
 class LeapInteraction;
+#endif
 
 
 #include "NodePropDlg.h"
@@ -99,25 +100,6 @@ class LeapInteraction;
 #define LEAP_MOVE 2002
 #define LEAP_INTERACT 2003
 
-
-#define BTN_SELECT		  1001
-#define BTN_MOVE          1002
-#define BTN_CREATE_NODE   1003
-#define BTN_CREATE_BEAM   1004
-#define BTN_DELETE        1005
-#define BTN_INSPECT       1006
-#define BTN_NODE_BC       1007
-#define BTN_NODE_LOAD     1008
-#define BTN_BEAM_LOAD     1009
-#define BTN_VIEW_ZOOM     1010
-#define BTN_VIEW_PAN      1011
-#define BTN_VIEW_RESET    1012
-#define BTN_VIEW_CENTER   1013
-#define BTN_MATERIALS     1014
-#define BTN_FEEDBACK      1020
-
-
-
 template <typename T>
 string to_string ( T Number )
 {
@@ -150,7 +132,6 @@ private:
     double  m_startBeta;
 
     int     m_mouseDownPos[2];
-    vector<int>     m_keysDown;
 
     int     m_selectFilter;
     int     m_deleteFilter;
@@ -177,9 +158,9 @@ private:
     CFemBeamNodeLoadPtr m_currentNodeLoad;
     CFemBeamNodeBCPtr   m_currentNodeBC;
     CIvfFemNodePtr      m_interactionNode;
-    
+#ifdef USE_LEAP
     LeapInteraction* m_leapinteraction;
-
+#endif
     
 
 #ifndef HAVE_CORBA
@@ -320,16 +301,22 @@ public:
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void doFeedback();
     
+#ifdef USE_LEAP
     LeapInteraction* getLeapInteraction();
     void updateLeapController(const Controller& leapController, int* gesture);
-    CIvfExtrArrowPtr getTactileForce();
+    void removeMenus();
     CIvfSelectOrtho* getOverlay();
+    
+#endif
+    CIvfExtrArrowPtr getTactileForce();
     void setTactileForce(CIvfExtrArrowPtr force);
     CIvfFemNodePtr getInteractionNode();
     void setInteractionNode(CIvfFemNode* interactionNode);
-    void removeMenus();
     
     // Implemented widget events
+#ifdef USE_LEAP
+    void fingerMove(Finger finger);
+#endif
     void onCreateNode(double x, double y, double z, CIvfNode* &newNode);
     void onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine);
     void onSelect(CIvfComposite* selectedShapes);
@@ -345,8 +332,6 @@ public:
     void onMotion(int x, int y);
     void onDeSelect();
     void onKeyboard(int key);
-    vector<int>* getKeysDown();
-    
 #ifdef ADVANCED_GL
     void onButton(int objectName, CIvfPlaneButton* button);
 #endif

@@ -13,6 +13,8 @@
 #include "Leap.h"
 #include "IvfFemWidget.h"
 
+#ifdef USE_LEAP
+
 #define leapSpeed 1/20
 #define leapHeightSpeed 1/60
 
@@ -43,3 +45,5 @@ public:
 };
 
 #endif /* defined(__objframe2__LeapFinger__) */
+
+#endif

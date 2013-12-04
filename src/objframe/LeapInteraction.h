@@ -18,6 +18,8 @@
 #define SNAP_DIST 1
 #define ANIMATE_SPEED 10
 
+#ifdef USE_LEAP
+
 using namespace Leap;
 
 class LeapInteraction {
@@ -42,7 +44,7 @@ private:
     CIvfNode            *m_endDraw;
     CIvfShape*          newLine;
     CIvfFemNode         *m_moveNode;
-
+    
     //Menu
     vector<int>         m_editModes;
     vector<CIvfPlaneButton*> m_buttons;
@@ -71,14 +73,15 @@ public:
     void findNode(double v[3], double &distance, CIvfFemNode* &closestNode);
     void gestures();
     bool grasp();
-
+    
     
     void startGrasp();
     void interactNode();
     void endGrasp();
-
+    
     void LeapToScene(Vector leapVector, CIvfVec3d* returnVector);
     Vector adjustPosition(Vector inputVector);
 };
 
+#endif
 #endif

@@ -520,7 +520,6 @@ int CIvfFltkWidget::handle(int event)
             m_scene->unlockCursor();
         this->doPassiveMotion(m_beginX, m_beginY);
         return 1;
-
     case FL_PUSH:
         m_beginX = Fl::event_x();
         m_beginY = Fl::event_y();
@@ -606,13 +605,8 @@ int CIvfFltkWidget::handle(int event)
         else
         {
             doKeyboard(Fl::event_key());
-            return 1;
+            return 0;
         }
-    
-        case FL_KEYUP:
-            doKeyboard(-Fl::event_key());
-            return 1;
-            
     case FL_SHORTCUT:
 
         return 0;
@@ -967,6 +961,7 @@ void CIvfFltkWidget::doMouseUp(int x, int y)
 void CIvfFltkWidget::doKeyboard(int key)
 {
     // Call onMouseUp event method
+
     onKeyboard(key);
 }
 

@@ -1,0 +1,5 @@
+bin/Debug/
+build-debug/
+*.pdb
+*.exe
+lib/

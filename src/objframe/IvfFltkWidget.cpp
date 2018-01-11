@@ -982,13 +982,14 @@ void CIvfFltkWidget::onInitContext()
 {
     glEnable(GL_DEPTH_TEST);
 
+#ifndef WIN32
     glEnable(GL_MULTISAMPLE);
     glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     GLint  iMultiSample = 0;
     GLint  iNumSamples = 0;
     glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
     glGetIntegerv(GL_SAMPLES, &iNumSamples);
-
+#endif
 
     cout << "mode after context init = " << this->mode() << endl;
 

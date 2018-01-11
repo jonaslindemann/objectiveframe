@@ -1,5 +1,7 @@
 #include "fl_file_chooser_win.H"
 
+#ifdef OLD_FS
+
 #ifdef WIN32
 #include <Windows.h>
 #endif
@@ -82,3 +84,5 @@ char *fl_file_chooser(const char *message,const char *pat,const char *fname)
     return NULL;
 #endif
 }
+
+#endif

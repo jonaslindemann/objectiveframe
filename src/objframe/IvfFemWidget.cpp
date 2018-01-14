@@ -1693,7 +1693,7 @@ void CIvfFemWidget::doFeedback()
 
                 this->redraw();         // set damage(FL_DAMAGE_ALL)
                 Fl::flush();
-                Fl::check();
+                //Fl::check();
             }
         }
     }
@@ -2110,7 +2110,7 @@ void CIvfFemWidget::onInitContext()
 {
     CIvfFltkWidget::onInitContext();
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LINE_SMOOTH);
+    //glEnable(GL_LINE_SMOOTH);
     glClearColor(0.4, 0.4, 0.4, 1.0);
 #ifdef ADVANCED_GL
     glEnable(GL_BLEND);

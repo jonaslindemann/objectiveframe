@@ -24,7 +24,7 @@ if (WIN32)
                 set(ZLIB_INCLUDE_DIR "d:/Libraries/fltk-1.4/zlib")
                 set(ZLIB_LIBRARY "d:/Libraries/fltk-1.4/build_debug/lib/Debug/fltk_zd.lib")
                 set(GLEW_INCLUDE_DIR "d:/Libraries/glew/include")
-                set(GLEW_LIBRARY "d:/Libraries/glew/lib/Debug/Win32/glew32d.lib")
+                set(GLEW_LIBRARY "d:/Libraries/glew/lib/Debug/Win32/glew32sd.lib")
                 #set(FREETYPE_INCLUDE_DIR
                 set(OPENGL_LIBRARY "opengl32" "glu32")
                 set(GLUT_INCLUDE_DIR "D:/Libraries/freeglut/include")

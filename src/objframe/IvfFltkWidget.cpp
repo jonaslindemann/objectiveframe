@@ -21,6 +21,7 @@
 
 #include "IvfFltkWidget.h"
 
+#include <FL/x.H>
 
 // ------------------------------------------------------------
 // Constructor/desctructor
@@ -418,6 +419,57 @@ int CIvfFltkWidget::getCurrentModifier()
 // Implemented FLTK methods
 // ------------------------------------------------------------
 
+
+void CIvfFltkWidget::initOffscreenBuffers()
+{
+	glGenFramebuffers(1, &m_multiFbo);
+	glGenTextures(1, &m_screenTexture);
+	glGenRenderbuffers(1, &m_colorBuffer);
+	glGenRenderbuffers(1, &m_depthBuffer);
+}
+
+void CIvfFltkWidget::updateOffscreenBuffers()
+{
+	// Create multisample texture
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, w(), h(), GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, w(), h());
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_colorBuffer);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w(), h());
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
+
+	// Bind Texture assuming we have created a texture
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_screenTexture, 0);
+
+}
+
+void CIvfFltkWidget::bindOffscreenBuffers()
+{
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
+
+	// Enable multisampling
+	glEnable(GL_MULTISAMPLE);
+}
+
+void CIvfFltkWidget::blitOffscreenBuffers()
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_multiFbo);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, w(), h(), 0, 0, w(), h(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+}
+
 void CIvfFltkWidget::draw()
 {
     if (this->changed())
@@ -443,9 +495,16 @@ void CIvfFltkWidget::draw()
             light->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
             light->enable();
 
-            onInit();
+			// Create and bind the FBO
+
+			initOffscreenBuffers();
+			updateOffscreenBuffers();
+			
+			onInit();
             m_initDone = true;
-        }
+			m_prevWindowSize[0] = w();
+			m_prevWindowSize[1] = h();
+		}
 
         // Set up camera
 
@@ -454,6 +513,15 @@ void CIvfFltkWidget::draw()
 
     }
 
+	if ((m_prevWindowSize[0] != w()) || (m_prevWindowSize[1] != h()))
+	{
+		m_prevWindowSize[0] = w();
+		m_prevWindowSize[1] = h();
+
+		updateOffscreenBuffers();
+	}
+
+	bindOffscreenBuffers();
 
     // Drawing code
 
@@ -494,12 +562,23 @@ void CIvfFltkWidget::draw()
     }
 
     glPopMatrix();
+
+	blitOffscreenBuffers();
 }
 
 // ------------------------------------------------------------
 int CIvfFltkWidget::handle(int event)
 {
-    switch(event)
+#ifndef __APPLE__
+	static int first = 1;
+	if (first && event == FL_SHOW && shown()) {
+		first = 0;
+		make_current();
+		glewInit(); // defines pters to functions of OpenGL V 1.2 and above
+	}
+#endif
+
+	switch(event)
     {
     case FL_ENTER:
         Fl::belowmouse(this);
@@ -982,16 +1061,14 @@ void CIvfFltkWidget::onInitContext()
 {
     glEnable(GL_DEPTH_TEST);
 
-#ifndef WIN32
-    glEnable(GL_MULTISAMPLE);
-    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-    GLint  iMultiSample = 0;
-    GLint  iNumSamples = 0;
-    glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
-    glGetIntegerv(GL_SAMPLES, &iNumSamples);
-#endif
+    glEnable(GL_MULTISAMPLE_ARB);
+    //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    //GLint  iMultiSample = 0;
+    //GLint  iNumSamples = 0;
+    //glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
+    //glGetIntegerv(GL_SAMPLES, &iNumSamples);
 
-    cout << "mode after context init = " << this->mode() << endl;
+    //cout << "mode after context init = " << this->mode() << endl;
 
     m_lighting->enable();
 }

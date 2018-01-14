@@ -24,10 +24,26 @@
 
 // Platform depenendant includes
 
+#define USE_GLEW
+
+#ifdef USE_GLEW
+#if defined(__APPLE__)
+#  include <OpenGL/gl3.h> // defines OpenGL 3.0+ functions
+#else
+#  if defined(WIN32)
+#    define GLEW_STATIC 1
+#  endif
+#  include <GL/glew.h>
+#  include <GL/wglew.h>
+#endif
+#else
+#include <FL/gl.h>
+#endif
+
 #include <ivf/ivfconfig.h>
 
 #include <FL/Fl.H>
-#include <FL/gl.h>
+
 
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
@@ -179,6 +195,11 @@ private:
 
     double m_controlSize;
 
+	GLuint m_screenTexture;
+	GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
+
+	int m_prevWindowSize[2];
+
     // Interaction objects
 
     CIvfWorkspacePtr			m_scene;
@@ -187,6 +208,11 @@ private:
     CIvfCompositePtr			m_selectedShapes;
     CIvfLightingPtr				m_lighting;
     CIvfShapePtr                m_lastShape;
+
+	void initOffscreenBuffers();
+	void updateOffscreenBuffers();
+	void bindOffscreenBuffers();
+	void blitOffscreenBuffers();
 
 protected:
 

@@ -97,9 +97,15 @@ main(int argc, char **argv)
     // Determine program path (and remember it...)
     //
 
+#ifdef WIN32
     std::string fullPath = argv[0];
-    std::string::size_type lastDelim = fullPath.rfind("/");
-    std::string progPath = fullPath.substr(0,lastDelim)+"/";
+    std::string::size_type lastDelim = fullPath.rfind("\\");
+    std::string progPath = fullPath.substr(0,lastDelim)+"\\";
+#else
+	std::string fullPath = argv[0];
+	std::string::size_type lastDelim = fullPath.rfind("/");
+	std::string progPath = fullPath.substr(0, lastDelim) + "/";
+#endif
 
     //
     // Create main window

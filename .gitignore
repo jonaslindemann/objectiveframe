@@ -3,3 +3,4 @@ build-debug/
 *.pdb
 *.exe
 lib/
+*.ilk

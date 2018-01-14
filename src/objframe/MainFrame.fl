@@ -1,27 +1,36 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#include "WorkspaceDlg.h"} {public local
-} 
+}
 
 decl {\#include "NodePropDlg.h"} {private local
-} 
+}
 
 decl {\#include "BeamPropDlg.h"} {private local
-} 
+}
 
 decl {\#include "MaterialsDlg.h"} {private local
-} 
+}
 
 decl {\#include "SplashFrame.h"} {public local
-} 
+}
+
+decl {\#ifdef WIN32} {selected private local
+}
+
+decl {\#include <windows.h>} {selected private local
+}
+
+decl {\#endif} {selected private local
+}
 
 Function {cb_wndMain(Fl_Widget* widget, void* p)} {open private
 } {
   code {CMainFrame* mainFrame = (CMainFrame*)p;
 mainFrame->close();} {}
-} 
+}
 
 class CMainFrame {open
 } {
@@ -41,9 +50,9 @@ class CMainFrame {open
   } {
     Fl_Window wndMain {
       label ObjectiveFrame open
-      xywh {336 134 746 583} type Double resizable visible
+      xywh {597 195 746 583} type Double resizable visible
     } {
-      Fl_Menu_Bar mnuMain {open selected
+      Fl_Menu_Bar mnuMain {open
         xywh {0 0 746 25} box FLAT_BOX down_box FLAT_BOX color 0 selection_color 136 labelsize 12 labelcolor 7 textsize 12 textcolor 7
       } {
         Submenu mnuFile {
@@ -306,4 +315,4 @@ wndMain->resize(x,y,width,height);
 wndMain->border(0);
 ivfWorkspace->show();} {}
   }
-} 
+}

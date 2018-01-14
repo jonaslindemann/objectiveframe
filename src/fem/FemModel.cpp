@@ -38,10 +38,20 @@ CFemNodeSet* CFemModel::getNodeSet()
     return m_nodeSet;
 }
 
+CFemNodeSet* CFemModel::nodeSet()
+{
+	return m_nodeSet;
+}
+
 // ------------------------------------------------------------
 CFemElementSet* CFemModel::getElementSet()
 {
-    return m_elementSet;
+	return m_elementSet;
+}
+
+CFemElementSet* CFemModel::elementSet()
+{
+	return m_elementSet;
 }
 
 // ------------------------------------------------------------
@@ -50,10 +60,20 @@ CFemMaterialSet* CFemModel::getMaterialSet()
     return m_materialSet;
 }
 
+CFemMaterialSet* CFemModel::materialSet()
+{
+	return m_materialSet;
+}
+
 // ------------------------------------------------------------
 CFemNodeLoadSet* CFemModel::getNodeLoadSet()
 {
     return m_nodeLoadSet;
+}
+
+CFemNodeLoadSet* CFemModel::nodeLoadSet()
+{
+	return m_nodeLoadSet;
 }
 
 // ------------------------------------------------------------
@@ -62,10 +82,20 @@ CFemElementLoadSet* CFemModel::getElementLoadSet()
     return m_elementLoadSet;
 }
 
+CFemElementLoadSet* CFemModel::elementLoadSet()
+{
+	return m_elementLoadSet;
+}
+
 // ------------------------------------------------------------
 CFemNodeBCSet* CFemModel::getBCSet()
 {
     return m_bcSet;
+}
+
+CFemNodeBCSet* CFemModel::BCSet()
+{
+	return m_bcSet;
 }
 
 // ------------------------------------------------------------
@@ -278,7 +308,14 @@ void CFemModel::clearNodeValues()
 }
 
 
+// ------------------------------------------------------------
 CFemNodeBCSet* CFemModel::getNodeBCSet()
 {
     return m_bcSet;
 }
+
+CFemNodeBCSet* CFemModel::nodeBCSet()
+{
+	return m_bcSet;
+}
+

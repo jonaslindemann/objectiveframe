@@ -136,33 +136,45 @@ void CNodeBCDlg::cb_btnZrot(Fl_Light_Button* o, void* v) {
 
 CNodeBCDlg::CNodeBCDlg() {
   { wndNodeBC = new Fl_Double_Window(257, 250, "Node BC");
+    wndNodeBC->color(FL_GRAY0);
     wndNodeBC->user_data((void*)(this));
     { btnApply = new Fl_Button(119, 223, 67, 23, "Ok");
-      btnApply->down_box(FL_PLASTIC_DOWN_BOX);
+      btnApply->box(FL_THIN_UP_BOX);
+      btnApply->down_box(FL_THIN_DOWN_BOX);
+      btnApply->color((Fl_Color)43);
       btnApply->labelsize(12);
       btnApply->callback((Fl_Callback*)cb_btnApply);
     } // Fl_Button* btnApply
     { btnClose = new Fl_Button(191, 223, 61, 23, "Cancel");
-      btnClose->down_box(FL_PLASTIC_DOWN_BOX);
+      btnClose->box(FL_THIN_UP_BOX);
+      btnClose->down_box(FL_THIN_DOWN_BOX);
+      btnClose->color((Fl_Color)43);
       btnClose->labelsize(12);
       btnClose->callback((Fl_Callback*)cb_btnClose);
     } // Fl_Button* btnClose
     { tbElementBC = new Fl_Tabs(4, 4, 248, 212);
-      tbElementBC->box(FL_UP_BOX);
+      tbElementBC->box(FL_FLAT_BOX);
+      tbElementBC->color(FL_DARK2);
+      tbElementBC->selection_color(FL_DARK2);
       tbElementBC->labelsize(12);
       { grpGeneral = new Fl_Group(13, 28, 239, 188, "General");
+        grpGeneral->color(FL_DARK2);
+        grpGeneral->selection_color((Fl_Color)42);
         grpGeneral->labelsize(12);
         { edtName = new Fl_Input(13, 46, 230, 24, "Name");
+          edtName->box(FL_FLAT_BOX);
+          edtName->color((Fl_Color)42);
           edtName->labelsize(12);
           edtName->textsize(12);
           edtName->align(Fl_Align(FL_ALIGN_TOP_LEFT));
         } // Fl_Input* edtName
         { boxColor = new Fl_Box(13, 74, 196, 24, "Color");
-          boxColor->box(FL_DOWN_BOX);
+          boxColor->box(FL_FLAT_BOX);
           boxColor->color((Fl_Color)93);
           boxColor->labelsize(12);
         } // Fl_Box* boxColor
         { btnSetColor = new Fl_Button(215, 74, 28, 24, "...");
+          btnSetColor->box(FL_THIN_UP_BOX);
           btnSetColor->down_box(FL_PLASTIC_DOWN_BOX);
           btnSetColor->labelsize(12);
           btnSetColor->callback((Fl_Callback*)cb_btnSetColor);
@@ -170,71 +182,85 @@ CNodeBCDlg::CNodeBCDlg() {
         grpGeneral->end();
       } // Fl_Group* grpGeneral
       { grpData = new Fl_Group(16, 28, 236, 188, "Data");
+        grpData->color(FL_DARK2);
+        grpData->selection_color((Fl_Color)34);
         grpData->labelsize(12);
         grpData->hide();
         { btnXdispl = new Fl_Light_Button(43, 40, 72, 24, "x-displ.");
-          btnXdispl->box(FL_PLASTIC_UP_BOX);
-          btnXdispl->down_box(FL_PLASTIC_DOWN_BOX);
+          btnXdispl->box(FL_THIN_UP_BOX);
+          btnXdispl->down_box(FL_THIN_DOWN_BOX);
+          btnXdispl->color((Fl_Color)43);
           btnXdispl->labelsize(12);
           btnXdispl->callback((Fl_Callback*)cb_btnXdispl);
         } // Fl_Light_Button* btnXdispl
         { btnYdispl = new Fl_Light_Button(43, 68, 72, 24, "y-displ.");
-          btnYdispl->box(FL_PLASTIC_UP_BOX);
-          btnYdispl->down_box(FL_PLASTIC_DOWN_BOX);
+          btnYdispl->box(FL_THIN_UP_BOX);
+          btnYdispl->down_box(FL_THIN_DOWN_BOX);
+          btnYdispl->color((Fl_Color)43);
           btnYdispl->labelsize(12);
           btnYdispl->callback((Fl_Callback*)cb_btnYdispl);
         } // Fl_Light_Button* btnYdispl
         { btnZdispl = new Fl_Light_Button(43, 96, 72, 24, "z-displ");
-          btnZdispl->box(FL_PLASTIC_UP_BOX);
-          btnZdispl->down_box(FL_PLASTIC_DOWN_BOX);
+          btnZdispl->box(FL_THIN_UP_BOX);
+          btnZdispl->down_box(FL_THIN_DOWN_BOX);
+          btnZdispl->color((Fl_Color)43);
           btnZdispl->labelsize(12);
           btnZdispl->callback((Fl_Callback*)cb_btnZdispl);
         } // Fl_Light_Button* btnZdispl
         { btnXrot = new Fl_Light_Button(43, 124, 72, 24, "x-rot.");
-          btnXrot->box(FL_PLASTIC_UP_BOX);
-          btnXrot->down_box(FL_PLASTIC_DOWN_BOX);
+          btnXrot->box(FL_THIN_UP_BOX);
+          btnXrot->down_box(FL_THIN_DOWN_BOX);
+          btnXrot->color((Fl_Color)43);
           btnXrot->labelsize(12);
           btnXrot->callback((Fl_Callback*)cb_btnXrot);
         } // Fl_Light_Button* btnXrot
         { btnYrot = new Fl_Light_Button(43, 152, 72, 24, "y-rot.");
-          btnYrot->box(FL_PLASTIC_UP_BOX);
-          btnYrot->down_box(FL_PLASTIC_DOWN_BOX);
+          btnYrot->box(FL_THIN_UP_BOX);
+          btnYrot->down_box(FL_THIN_DOWN_BOX);
+          btnYrot->color((Fl_Color)43);
           btnYrot->labelsize(12);
           btnYrot->callback((Fl_Callback*)cb_btnYrot);
         } // Fl_Light_Button* btnYrot
         { btnZrot = new Fl_Light_Button(43, 180, 72, 24, "z-rot.");
-          btnZrot->box(FL_PLASTIC_UP_BOX);
-          btnZrot->down_box(FL_PLASTIC_DOWN_BOX);
+          btnZrot->box(FL_THIN_UP_BOX);
+          btnZrot->down_box(FL_THIN_DOWN_BOX);
+          btnZrot->color((Fl_Color)43);
           btnZrot->labelsize(12);
           btnZrot->callback((Fl_Callback*)cb_btnZrot);
         } // Fl_Light_Button* btnZrot
         { edtZdispl = new Fl_Value_Input(140, 96, 76, 24);
-          edtZdispl->box(FL_PLASTIC_DOWN_BOX);
+          edtZdispl->box(FL_FLAT_BOX);
+          edtZdispl->color((Fl_Color)42);
           edtZdispl->labelsize(12);
           edtZdispl->textsize(12);
         } // Fl_Value_Input* edtZdispl
         { edtYdispl = new Fl_Value_Input(140, 68, 76, 24);
-          edtYdispl->box(FL_PLASTIC_DOWN_BOX);
+          edtYdispl->box(FL_FLAT_BOX);
+          edtYdispl->color((Fl_Color)42);
           edtYdispl->labelsize(12);
           edtYdispl->textsize(12);
         } // Fl_Value_Input* edtYdispl
         { edtXdispl = new Fl_Value_Input(140, 40, 76, 24);
-          edtXdispl->box(FL_PLASTIC_DOWN_BOX);
+          edtXdispl->box(FL_FLAT_BOX);
+          edtXdispl->color((Fl_Color)42);
           edtXdispl->labelsize(12);
           edtXdispl->textsize(12);
         } // Fl_Value_Input* edtXdispl
         { edtXrot = new Fl_Value_Input(140, 124, 76, 24);
-          edtXrot->box(FL_PLASTIC_DOWN_BOX);
+          edtXrot->box(FL_FLAT_BOX);
+          edtXrot->color((Fl_Color)42);
           edtXrot->labelsize(12);
           edtXrot->textsize(12);
         } // Fl_Value_Input* edtXrot
         { edtYrot = new Fl_Value_Input(140, 152, 76, 24);
-          edtYrot->box(FL_PLASTIC_DOWN_BOX);
+          edtYrot->box(FL_FLAT_BOX);
+          edtYrot->color((Fl_Color)42);
           edtYrot->labelsize(12);
           edtYrot->textsize(12);
         } // Fl_Value_Input* edtYrot
         { edtZrot = new Fl_Value_Input(140, 180, 76, 24);
-          edtZrot->box(FL_PLASTIC_DOWN_BOX);
+          edtZrot->box(FL_FLAT_BOX);
+          edtZrot->color((Fl_Color)42);
           edtZrot->labelsize(12);
           edtZrot->textsize(12);
         } // Fl_Value_Input* edtZrot

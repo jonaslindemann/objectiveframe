@@ -203,6 +203,8 @@ private:
     CScalefactorDlg* m_dlgScalefactor;
     CStructureDlg* m_dlgStructure;
 
+	void makeToolWindow(Fl_Window* window);
+
 public:
     CIvfFemWidget(int X, int Y, int W, int H, const char *L=0);
     virtual ~CIvfFemWidget();

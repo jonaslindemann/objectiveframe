@@ -143,6 +143,37 @@ void CFemNodeBC::prescribe(int dof, double value)
     }
 }
 
+void CFemNodeBC::prescribePos(double value)
+{
+	for (int i = 1; i <= 3; i++)
+		this->prescribe(i, value);
+}
+
+void CFemNodeBC::prescribeRot(double value)
+{
+	for (int i = 4; i <= 6; i++)
+		this->prescribe(i, value);
+}
+
+void CFemNodeBC::fixed()
+{
+	this->release();
+	this->prescribePos(0.0);
+	this->prescribeRot(0.0);
+}
+
+void CFemNodeBC::fixedPosition()
+{
+	this->release();
+	this->prescribePos(0.0);
+}
+
+void CFemNodeBC::release()
+{
+	for (int i = 1; i <= 6; i++)
+		this->unprescribe(i);
+}
+
 // ------------------------------------------------------------
 void CFemNodeBC::unprescribe(int dof)
 {

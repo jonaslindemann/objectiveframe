@@ -61,12 +61,24 @@ public:
     // Get/set methods
 
     CFemMaterialSet* getMaterialSet();
-    CFemElementSet* getElementSet();
-    CFemNodeSet* getNodeSet();
-    CFemNodeLoadSet* getNodeLoadSet();
-    CFemElementLoadSet* getElementLoadSet();
-    CFemNodeBCSet* getBCSet();
-    CFemNodeBCSet* getNodeBCSet();
+	CFemMaterialSet* materialSet();
+
+	CFemElementSet* getElementSet();
+	CFemElementSet* elementSet();
+
+	CFemNodeSet* getNodeSet();
+	CFemNodeSet* nodeSet();
+
+	CFemNodeLoadSet* getNodeLoadSet();
+	CFemNodeLoadSet* nodeLoadSet();
+
+	CFemElementLoadSet* getElementLoadSet();
+	CFemElementLoadSet* elementLoadSet();
+
+	CFemNodeBCSet* getBCSet();
+	CFemNodeBCSet* BCSet();
+	CFemNodeBCSet* getNodeBCSet();
+	CFemNodeBCSet* nodeBCSet();
 
     const std::string getFileName();
     void setFileName(const::string& fname);

@@ -28,6 +28,12 @@ public:
     bool isPrescribed(int dof);
     void unprescribe(int dof);
     void prescribe(int dof, double value);
+	void prescribePos(double value);
+	void prescribeRot(double value);
+
+	void fixed();
+	void fixedPosition();
+	void release();
 
     // Get/set methods
 

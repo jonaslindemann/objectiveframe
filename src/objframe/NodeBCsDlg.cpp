@@ -277,20 +277,26 @@ static Fl_Image *image_tlClearBC() {
 
 CNodeBCsDlg::CNodeBCsDlg() {
   { wndNodeBCs = new Fl_Double_Window(180, 211, "Node BCs");
+    wndNodeBCs->color(FL_FOREGROUND_COLOR);
+    wndNodeBCs->labelcolor(FL_BACKGROUND2_COLOR);
     wndNodeBCs->user_data((void*)(this));
+    wndNodeBCs->align(Fl_Align(FL_ALIGN_CLIP|FL_ALIGN_INSIDE));
     { lbBCSet = new Fl_Browser(4, 17, 143, 190, "BCs");
       lbBCSet->type(2);
-      lbBCSet->box(FL_DOWN_BOX);
+      lbBCSet->box(FL_FLAT_BOX);
+      lbBCSet->color((Fl_Color)38);
       lbBCSet->labelsize(12);
+      lbBCSet->labelcolor(FL_BACKGROUND2_COLOR);
       lbBCSet->textsize(12);
+      lbBCSet->textcolor(FL_BACKGROUND2_COLOR);
       lbBCSet->callback((Fl_Callback*)cb_lbBCSet);
       lbBCSet->align(Fl_Align(FL_ALIGN_TOP_LEFT));
     } // Fl_Browser* lbBCSet
     { btnAddBC = new Fl_HoverButton(150, 17, 28, 28);
       btnAddBC->box(FL_THIN_UP_BOX);
       btnAddBC->down_box(FL_THIN_DOWN_BOX);
-      btnAddBC->color(FL_BACKGROUND_COLOR);
-      btnAddBC->selection_color(FL_BACKGROUND_COLOR);
+      btnAddBC->color((Fl_Color)41);
+      btnAddBC->selection_color(FL_GRAY0);
       btnAddBC->image( image_tlAddBC() );
       btnAddBC->labeltype(FL_NORMAL_LABEL);
       btnAddBC->labelfont(0);
@@ -303,7 +309,7 @@ CNodeBCsDlg::CNodeBCsDlg() {
     { btnRemoveBC = new Fl_HoverButton(150, 49, 28, 28);
       btnRemoveBC->box(FL_THIN_UP_BOX);
       btnRemoveBC->down_box(FL_THIN_DOWN_BOX);
-      btnRemoveBC->color(FL_BACKGROUND_COLOR);
+      btnRemoveBC->color((Fl_Color)41);
       btnRemoveBC->selection_color(FL_BACKGROUND_COLOR);
       btnRemoveBC->image( image_tlDelBC() );
       btnRemoveBC->labeltype(FL_NORMAL_LABEL);
@@ -317,7 +323,7 @@ CNodeBCsDlg::CNodeBCsDlg() {
     { btnEditBC = new Fl_HoverButton(150, 145, 28, 28);
       btnEditBC->box(FL_THIN_UP_BOX);
       btnEditBC->down_box(FL_THIN_DOWN_BOX);
-      btnEditBC->color(FL_BACKGROUND_COLOR);
+      btnEditBC->color((Fl_Color)41);
       btnEditBC->selection_color(FL_BACKGROUND_COLOR);
       btnEditBC->image( image_tlInspBC() );
       btnEditBC->labeltype(FL_NORMAL_LABEL);
@@ -331,7 +337,7 @@ CNodeBCsDlg::CNodeBCsDlg() {
     { btnAssignBC = new Fl_HoverButton(150, 81, 28, 28);
       btnAssignBC->box(FL_THIN_UP_BOX);
       btnAssignBC->down_box(FL_THIN_DOWN_BOX);
-      btnAssignBC->color(FL_BACKGROUND_COLOR);
+      btnAssignBC->color((Fl_Color)41);
       btnAssignBC->selection_color(FL_BACKGROUND_COLOR);
       btnAssignBC->image( image_tlAssignBC() );
       btnAssignBC->labeltype(FL_NORMAL_LABEL);
@@ -345,7 +351,7 @@ CNodeBCsDlg::CNodeBCsDlg() {
     { btnClearElements = new Fl_HoverButton(150, 113, 28, 28);
       btnClearElements->box(FL_THIN_UP_BOX);
       btnClearElements->down_box(FL_THIN_DOWN_BOX);
-      btnClearElements->color(FL_BACKGROUND_COLOR);
+      btnClearElements->color((Fl_Color)41);
       btnClearElements->selection_color(FL_BACKGROUND_COLOR);
       btnClearElements->image( image_tlClearBC() );
       btnClearElements->labeltype(FL_NORMAL_LABEL);

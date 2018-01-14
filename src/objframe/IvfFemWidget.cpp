@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include <FL/x.H>
+
 #include <FL/Fl_Native_File_Chooser.H>
 
 #include <FL/fl_message.H>
@@ -96,6 +98,7 @@ void hintCallback(void* pointer)
 // IvfFemWidget constructor
 // ------------------------------------------------------------
 // ------------------------------------------------------------
+
 
 CIvfFemWidget::CIvfFemWidget(int X, int Y, int W, int H, const char *L) :
     CIvfFltkWidget(X, Y, W, H, L)
@@ -712,6 +715,16 @@ void CIvfFemWidget::setNeedRecalc(bool flag)
 // ------------------------------------------------------------
 
 // ------------------------------------------------------------
+void CIvfFemWidget::makeToolWindow(Fl_Window * window)
+{
+#ifdef WIN32
+	HWND windowHandle = fl_xid(window);
+	SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_PALETTEWINDOW);
+	SetWindowPos(windowHandle, 0, 0, 0, 0, 0, (SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_FRAMECHANGED));
+#endif
+}
+
+// ------------------------------------------------------------
 void CIvfFemWidget::save()
 {
     // Save model
@@ -809,7 +822,6 @@ void CIvfFemWidget::open()
 
         // Update dialogs
 
-
         m_dlgNodeProp->setNode(NULL);
         m_dlgBeamProp->setBeam(NULL);
         m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
@@ -851,11 +863,17 @@ void CIvfFemWidget::showProperties()
 
     if (this->getSelectedShape()!=NULL)
     {
-        if (this->getSelectedShape()->isClass("CIvfFemNode"))
-            m_dlgNodeProp->show();
+		if (this->getSelectedShape()->isClass("CIvfFemNode"))
+		{
+			m_dlgNodeProp->show();
+			makeToolWindow(m_dlgNodeProp->wndNodeProp);
+		}
 
-        if (this->getSelectedShape()->isClass("CIvfFemBeam"))
-            m_dlgBeamProp->show();
+		if (this->getSelectedShape()->isClass("CIvfFemBeam"))
+		{
+			m_dlgBeamProp->show();
+			makeToolWindow(m_dlgBeamProp->wndBeamProp);
+		}
     }
 }
 
@@ -867,6 +885,7 @@ void CIvfFemWidget::showMaterials()
     setRepresentation(FRAME_FEM);
     m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
     m_dlgMaterials->show();
+	makeToolWindow(m_dlgMaterials->wndMaterials);
 }
 
 // ------------------------------------------------------------
@@ -1129,6 +1148,7 @@ void CIvfFemWidget::showBeamLoads()
     setRepresentation(FRAME_FEM);
     m_dlgElementLoads->setLoadSet(m_beamModel->getElementLoadSet());
     m_dlgElementLoads->show();
+	makeToolWindow(m_dlgElementLoads->wndElementLoads);
 }
 
 // ------------------------------------------------------------
@@ -1237,6 +1257,7 @@ void CIvfFemWidget::showNodeLoads()
     setRepresentation(FRAME_FEM);
     m_dlgNodeLoads->setLoadSet(m_beamModel->getNodeLoadSet());
     m_dlgNodeLoads->show();
+	makeToolWindow(m_dlgNodeLoads->wndNodeLoads);
 }
 
 // ------------------------------------------------------------
@@ -1449,7 +1470,8 @@ void CIvfFemWidget::showNodeBCs()
 
     setRepresentation(FRAME_FEM);
     m_dlgNodeBCs->setBCSet(m_beamModel->getNodeBCSet());
-    m_dlgNodeBCs->show();
+	m_dlgNodeBCs->show();
+	makeToolWindow(m_dlgNodeBCs->wndNodeBCs);
 }
 
 // ------------------------------------------------------------

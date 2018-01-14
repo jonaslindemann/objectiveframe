@@ -1,27 +1,27 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <FL/fl_message.H>} {public local
-} 
+}
 
 decl {\#include <FemNodeBCSet.h>} {public local
-} 
+}
 
 decl {\#include <FemBeamNodeBC.h>} {public local
-} 
+}
 
 decl {\#include "IvfFemWidget.h"} {private local
-} 
+}
 
 decl {\#include "NodeBCDlg.h"} {private local
-} 
+}
 
 class CNodeBCsDlg {open
 } {
@@ -34,8 +34,8 @@ class CNodeBCsDlg {open
   Function {CNodeBCsDlg()} {open
   } {
     Fl_Window wndNodeBCs {
-      label {Node BCs} open
-      xywh {459 67 180 211} type Double non_modal visible
+      label {Node BCs} open selected
+      xywh {780 308 180 211} type Double color 0 labelcolor 7 align 80 non_modal visible
     } {
       Fl_Browser lbBCSet {
         label BCs
@@ -53,7 +53,7 @@ class CNodeBCsDlg {open
 		femWidget->setCurrentNodeBC(m_currentBC);
 	}
 }}
-        xywh {4 17 143 190} type Hold box DOWN_BOX labelsize 12 align 5 textsize 12
+        xywh {4 17 143 190} type Hold box FLAT_BOX color 38 labelsize 12 labelcolor 7 align 5 textsize 12 textcolor 7
       }
       Fl_Button btnAddBC {
         callback {if (m_bcSet!=NULL)
@@ -78,7 +78,7 @@ class CNodeBCsDlg {open
 		}
 	}
 }}
-        image {../../images/tlAddBC.xpm} xywh {150 17 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        image {../../images/tlAddBC.xpm} xywh {150 17 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 selection_color 32 labelsize 10
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton
       }
@@ -92,7 +92,7 @@ class CNodeBCsDlg {open
 		this->fillListBox();
 	}
 }}
-        image {../../images/tlDelBC.xpm} xywh {150 49 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        image {../../images/tlDelBC.xpm} xywh {150 49 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 labelsize 10
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton
       }
@@ -110,7 +110,7 @@ class CNodeBCsDlg {open
 	delete dlg;
 	this->fillListBox();
 }}
-        image {../../images/tlInspBC.xpm} xywh {150 145 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10
+        image {../../images/tlInspBC.xpm} xywh {150 145 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 labelsize 10
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton
       }
@@ -124,7 +124,7 @@ class CNodeBCsDlg {open
 		femWidget->setNeedRecalc(true);
 	}
 }}
-        image {../../images/tlAssignBC.xpm} xywh {150 81 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
+        image {../../images/tlAssignBC.xpm} xywh {150 81 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 labelsize 10 align 128
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton
       }
@@ -137,7 +137,7 @@ class CNodeBCsDlg {open
 		femWidget->removeNodeBCsFromSelected();
 	}
 }}
-        image {../../images/tlClearBC.xpm} xywh {150 113 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
+        image {../../images/tlClearBC.xpm} xywh {150 113 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 labelsize 10 align 128
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton
       }
@@ -195,8 +195,7 @@ else
 		lbBCSet->add(bcName.c_str(),nodeBC);
 	}
 	m_currentBC = NULL;
-}} {selected
-    }
+}} {}
   }
   Function {getCurrentBC()} {open return_type {CFemBeamNodeBC*}
   } {
@@ -206,4 +205,4 @@ else
   } {
     code {m_femWidget = femWidget;} {}
   }
-} 
+}

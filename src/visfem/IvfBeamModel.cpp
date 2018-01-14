@@ -61,8 +61,18 @@ void CIvfBeamModel::onInitialised()
     material->setSection(section);
     material->setName("default");
     material->setColor(52);
-    this->getMaterialSet()->addMaterial(material);
-    this->getMaterialSet()->setCurrentMaterial(0);
+    this->materialSet()->addMaterial(material);
+    this->materialSet()->setCurrentMaterial(0);
+
+	CFemBeamNodeBCPtr bc = new CFemBeamNodeBC();
+	bc->setName("fixed pos/rot");
+	bc->fixed();
+	this->nodeBCSet()->addBC(bc);
+
+	bc = new CFemBeamNodeBC();
+	bc->setName("fixed pos");
+	bc->fixedPosition();
+	this->nodeBCSet()->addBC(bc);
 }
 
 // ------------------------------------------------------------

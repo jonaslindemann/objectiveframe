@@ -82,7 +82,7 @@ main(int argc, char **argv)
 #ifdef __APPLE__
     Fl::scheme("default");
 #else
-    Fl::scheme("GTK+");
+    //Fl::scheme("GTK+");
 #endif
 
 #ifdef WIN32

@@ -1,5 +1,7 @@
 bin/Debug/
+bin/Release/
 build-debug/
+build-release/
 *.pdb
 *.exe
 lib/

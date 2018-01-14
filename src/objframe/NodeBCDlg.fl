@@ -1,18 +1,18 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <FemBeamNodeBC.h>} {public local
-} 
+}
 
 decl {\#include <FL/fl_show_colormap.H>} {private local
-} 
+}
 
 class CNodeBCDlg {open
 } {
@@ -28,7 +28,7 @@ class CNodeBCDlg {open
   } {
     Fl_Window wndNodeBC {
       label {Node BC} open
-      xywh {350 120 257 250} type Double modal visible
+      xywh {816 205 257 250} type Double color 32 modal visible
     } {
       Fl_Button btnApply {
         label Ok
@@ -76,28 +76,28 @@ class CNodeBCDlg {open
 }
 m_modalResult = MR_OK;
 wndNodeBC->hide();}
-        xywh {119 223 67 23} down_box PLASTIC_DOWN_BOX labelsize 12
+        xywh {119 223 67 23} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
       }
       Fl_Button btnClose {
         label Cancel
         callback {m_modalResult = MR_CANCEL;
 wndNodeBC->hide();}
-        xywh {191 223 61 23} down_box PLASTIC_DOWN_BOX labelsize 12
+        xywh {191 223 61 23} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
       }
-      Fl_Tabs tbElementBC {
-        xywh {4 4 248 212} box UP_BOX labelsize 12
+      Fl_Tabs tbElementBC {open
+        xywh {4 4 248 212} box FLAT_BOX color 45 selection_color 45 labelsize 12
       } {
         Fl_Group grpGeneral {
-          label General
-          xywh {13 28 239 188} labelsize 12
+          label General selected
+          xywh {13 28 239 188} color 45 selection_color 42 labelsize 12
         } {
           Fl_Input edtName {
             label Name
-            xywh {13 46 230 24} labelsize 12 align 5 textsize 12
+            xywh {13 46 230 24} box FLAT_BOX color 42 labelsize 12 align 5 textsize 12
           }
           Fl_Box boxColor {
             label Color
-            xywh {13 74 196 24} box DOWN_BOX color 93 labelsize 12
+            xywh {13 74 196 24} box FLAT_BOX color 93 labelsize 12
           }
           Fl_Button btnSetColor {
             label {...}
@@ -108,12 +108,12 @@ wndNodeBC->hide();}
 	boxColor->color(m_colorIndex);
 	wndNodeBC->redraw();
 }}
-            xywh {215 74 28 24} down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {215 74 28 24} box THIN_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
           }
         }
         Fl_Group grpData {
           label Data
-          xywh {16 28 236 188} labelsize 12 hide
+          xywh {16 28 236 188} color 45 selection_color 34 labelsize 12 hide
         } {
           Fl_Light_Button btnXdispl {
             label {x-displ.}
@@ -121,7 +121,7 @@ wndNodeBC->hide();}
 	edtXdispl->activate();
 else
 	edtXdispl->deactivate();}
-            xywh {43 40 72 24} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {43 40 72 24} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
           }
           Fl_Light_Button btnYdispl {
             label {y-displ.}
@@ -129,7 +129,7 @@ else
 	edtYdispl->activate();
 else
 	edtYdispl->deactivate();}
-            xywh {43 68 72 24} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {43 68 72 24} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
           }
           Fl_Light_Button btnZdispl {
             label {z-displ}
@@ -137,7 +137,7 @@ else
 	edtZdispl->activate();
 else
 	edtZdispl->deactivate();}
-            xywh {43 96 72 24} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {43 96 72 24} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
           }
           Fl_Light_Button btnXrot {
             label {x-rot.}
@@ -145,7 +145,7 @@ else
 	edtXrot->activate();
 else
 	edtXrot->deactivate();}
-            xywh {43 124 72 24} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {43 124 72 24} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
           }
           Fl_Light_Button btnYrot {
             label {y-rot.}
@@ -153,7 +153,7 @@ else
 	edtYrot->activate();
 else
 	edtYrot->deactivate();}
-            xywh {43 152 72 24} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {43 152 72 24} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
           }
           Fl_Light_Button btnZrot {
             label {z-rot.}
@@ -161,25 +161,25 @@ else
 	edtZrot->activate();
 else
 	edtZrot->deactivate();}
-            xywh {43 180 72 24} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+            xywh {43 180 72 24} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
           }
           Fl_Value_Input edtZdispl {
-            xywh {140 96 76 24} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+            xywh {140 96 76 24} box FLAT_BOX color 42 labelsize 12 textsize 12
           }
           Fl_Value_Input edtYdispl {
-            xywh {140 68 76 24} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+            xywh {140 68 76 24} box FLAT_BOX color 42 labelsize 12 textsize 12
           }
           Fl_Value_Input edtXdispl {
-            xywh {140 40 76 24} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+            xywh {140 40 76 24} box FLAT_BOX color 42 labelsize 12 textsize 12
           }
           Fl_Value_Input edtXrot {
-            xywh {140 124 76 24} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+            xywh {140 124 76 24} box FLAT_BOX color 42 labelsize 12 textsize 12
           }
           Fl_Value_Input edtYrot {
-            xywh {140 152 76 24} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+            xywh {140 152 76 24} box FLAT_BOX color 42 labelsize 12 textsize 12
           }
           Fl_Value_Input edtZrot {
-            xywh {140 180 76 24} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+            xywh {140 180 76 24} box FLAT_BOX color 42 labelsize 12 textsize 12
           }
         }
       }
@@ -284,8 +284,7 @@ else
 	edtYrot->value(m_bc->getPrescribedValue(5));
 	edtZrot->value(m_bc->getPrescribedValue(6));
 
-}} {selected
-    }
+}} {}
   }
   Function {getBC()} {return_type {CFemBeamNodeBC*}
   } {
@@ -301,4 +300,4 @@ else
   } {
     code {return m_modalResult;} {}
   }
-} 
+}

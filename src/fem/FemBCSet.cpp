@@ -158,8 +158,13 @@ bool CFemBCSet::removeBC(CFemBC *bc)
 
     if (p!=m_bcs.end())
     {
-        m_bcs.erase(p);
-        return true;
+		if (!bc->isReadOnly())
+		{
+			m_bcs.erase(p);
+			return true;
+		}
+		else
+			return false;
     }
     else
         return false;

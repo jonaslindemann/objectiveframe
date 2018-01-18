@@ -50,6 +50,9 @@ private:
     CResultInfo* m_resultInfo;
 
     std::string m_colorMapPath;
+
+	CFemBeamNodeBC* m_defaultNodePosBC;
+	CFemBeamNodeBC* m_defaultNodeFixedBC;
 protected:
     virtual void onInitialised();
 public:
@@ -104,5 +107,8 @@ public:
 
     void setBeamType(int type);
     int getBeamType();
+
+	CFemBeamNodeBC* defaultNodePosBC();
+	CFemBeamNodeBC* defaultNodeFixedBC();
 };
 #endif

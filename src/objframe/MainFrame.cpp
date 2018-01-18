@@ -71,6 +71,20 @@ void CMainFrame::cb_mnuEditSelectAllElements(Fl_Menu_* o, void* v) {
   ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditSelectAllElements_i(o,v);
 }
 
+void CMainFrame::cb_mnuEditFixSelected_i(Fl_Menu_*, void*) {
+  ivfWorkspace->assignNodeFixedBCSelected();
+}
+void CMainFrame::cb_mnuEditFixSelected(Fl_Menu_* o, void* v) {
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditFixSelected_i(o,v);
+}
+
+void CMainFrame::cb_mnuEditFixPosSelected_i(Fl_Menu_*, void*) {
+  ivfWorkspace->assignNodePosBCSelected();
+}
+void CMainFrame::cb_mnuEditFixPosSelected(Fl_Menu_* o, void* v) {
+  ((CMainFrame*)(o->parent()->user_data()))->cb_mnuEditFixPosSelected_i(o,v);
+}
+
 void CMainFrame::cb_mnuModeModel_i(Fl_Menu_*, void*) {
   ivfWorkspace->setRepresentation(FRAME_FEM);
 }
@@ -239,6 +253,8 @@ Fl_Menu_Item CMainFrame::menu_mnuMain[] = {
  {"&Edit", 0,  0, 0, 64, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Select all nodes", 0x4006e,  (Fl_Callback*)CMainFrame::cb_mnuEditSelectAllNodes, 0, 0, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"Select all elements", 0x40065,  (Fl_Callback*)CMainFrame::cb_mnuEditSelectAllElements, 0, 0, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
+ {"Fix selected nodes", 0x40066,  (Fl_Callback*)CMainFrame::cb_mnuEditFixSelected, 0, 0, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
+ {"Fix position selected nodes", 0x50066,  (Fl_Callback*)CMainFrame::cb_mnuEditFixPosSelected, 0, 0, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
  {"&Mode", 0,  0, 0, 64, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
  {"&Model", 0,  (Fl_Callback*)CMainFrame::cb_mnuModeModel, 0, 0, (uchar)FL_NORMAL_LABEL, 0, 14, 0},
@@ -280,29 +296,31 @@ Fl_Menu_Item* CMainFrame::mnuFileQuit = CMainFrame::menu_mnuMain + 5;
 Fl_Menu_Item* CMainFrame::mnuEdit = CMainFrame::menu_mnuMain + 7;
 Fl_Menu_Item* CMainFrame::mnuEditSelectAllNodes = CMainFrame::menu_mnuMain + 8;
 Fl_Menu_Item* CMainFrame::mnuEditSelectAllElements = CMainFrame::menu_mnuMain + 9;
-Fl_Menu_Item* CMainFrame::mnuMode = CMainFrame::menu_mnuMain + 11;
-Fl_Menu_Item* CMainFrame::mnuModeModel = CMainFrame::menu_mnuMain + 12;
-Fl_Menu_Item* CMainFrame::mnuModeGeometry = CMainFrame::menu_mnuMain + 13;
-Fl_Menu_Item* CMainFrame::mnuModeResults = CMainFrame::menu_mnuMain + 14;
-Fl_Menu_Item* CMainFrame::mnuModeFeedback = CMainFrame::menu_mnuMain + 15;
-Fl_Menu_Item* CMainFrame::mnuTools = CMainFrame::menu_mnuMain + 17;
-Fl_Menu_Item* CMainFrame::mnuToolsStructure = CMainFrame::menu_mnuMain + 18;
-Fl_Menu_Item* CMainFrame::mnuCalc = CMainFrame::menu_mnuMain + 20;
-Fl_Menu_Item* CMainFrame::mnuCalcExecute = CMainFrame::menu_mnuMain + 21;
-Fl_Menu_Item* CMainFrame::mnuResults = CMainFrame::menu_mnuMain + 23;
-Fl_Menu_Item* CMainFrame::mnuResultN = CMainFrame::menu_mnuMain + 24;
-Fl_Menu_Item* CMainFrame::mnuResultT = CMainFrame::menu_mnuMain + 25;
-Fl_Menu_Item* CMainFrame::mnuResultV = CMainFrame::menu_mnuMain + 26;
-Fl_Menu_Item* CMainFrame::mnuResultM = CMainFrame::menu_mnuMain + 27;
-Fl_Menu_Item* CMainFrame::mnuResultNavier = CMainFrame::menu_mnuMain + 28;
-Fl_Menu_Item* CMainFrame::mnuResultNoResults = CMainFrame::menu_mnuMain + 29;
-Fl_Menu_Item* CMainFrame::mnuOptions = CMainFrame::menu_mnuMain + 31;
-Fl_Menu_Item* CMainFrame::mnuOptionsWorkspace = CMainFrame::menu_mnuMain + 32;
-Fl_Menu_Item* CMainFrame::mnuOptionsScalefactor = CMainFrame::menu_mnuMain + 33;
-Fl_Menu_Item* CMainFrame::mnuOptionsFullscreen = CMainFrame::menu_mnuMain + 34;
-Fl_Menu_Item* CMainFrame::mnuOptionsLockScale = CMainFrame::menu_mnuMain + 35;
-Fl_Menu_Item* CMainFrame::mnuHelp = CMainFrame::menu_mnuMain + 37;
-Fl_Menu_Item* CMainFrame::mnuHelpAbout = CMainFrame::menu_mnuMain + 38;
+Fl_Menu_Item* CMainFrame::mnuEditFixSelected = CMainFrame::menu_mnuMain + 10;
+Fl_Menu_Item* CMainFrame::mnuEditFixPosSelected = CMainFrame::menu_mnuMain + 11;
+Fl_Menu_Item* CMainFrame::mnuMode = CMainFrame::menu_mnuMain + 13;
+Fl_Menu_Item* CMainFrame::mnuModeModel = CMainFrame::menu_mnuMain + 14;
+Fl_Menu_Item* CMainFrame::mnuModeGeometry = CMainFrame::menu_mnuMain + 15;
+Fl_Menu_Item* CMainFrame::mnuModeResults = CMainFrame::menu_mnuMain + 16;
+Fl_Menu_Item* CMainFrame::mnuModeFeedback = CMainFrame::menu_mnuMain + 17;
+Fl_Menu_Item* CMainFrame::mnuTools = CMainFrame::menu_mnuMain + 19;
+Fl_Menu_Item* CMainFrame::mnuToolsStructure = CMainFrame::menu_mnuMain + 20;
+Fl_Menu_Item* CMainFrame::mnuCalc = CMainFrame::menu_mnuMain + 22;
+Fl_Menu_Item* CMainFrame::mnuCalcExecute = CMainFrame::menu_mnuMain + 23;
+Fl_Menu_Item* CMainFrame::mnuResults = CMainFrame::menu_mnuMain + 25;
+Fl_Menu_Item* CMainFrame::mnuResultN = CMainFrame::menu_mnuMain + 26;
+Fl_Menu_Item* CMainFrame::mnuResultT = CMainFrame::menu_mnuMain + 27;
+Fl_Menu_Item* CMainFrame::mnuResultV = CMainFrame::menu_mnuMain + 28;
+Fl_Menu_Item* CMainFrame::mnuResultM = CMainFrame::menu_mnuMain + 29;
+Fl_Menu_Item* CMainFrame::mnuResultNavier = CMainFrame::menu_mnuMain + 30;
+Fl_Menu_Item* CMainFrame::mnuResultNoResults = CMainFrame::menu_mnuMain + 31;
+Fl_Menu_Item* CMainFrame::mnuOptions = CMainFrame::menu_mnuMain + 33;
+Fl_Menu_Item* CMainFrame::mnuOptionsWorkspace = CMainFrame::menu_mnuMain + 34;
+Fl_Menu_Item* CMainFrame::mnuOptionsScalefactor = CMainFrame::menu_mnuMain + 35;
+Fl_Menu_Item* CMainFrame::mnuOptionsFullscreen = CMainFrame::menu_mnuMain + 36;
+Fl_Menu_Item* CMainFrame::mnuOptionsLockScale = CMainFrame::menu_mnuMain + 37;
+Fl_Menu_Item* CMainFrame::mnuHelp = CMainFrame::menu_mnuMain + 39;
+Fl_Menu_Item* CMainFrame::mnuHelpAbout = CMainFrame::menu_mnuMain + 40;
 
 CMainFrame::CMainFrame() {
   { wndMain = new Fl_Double_Window(746, 583, "ObjectiveFrame");

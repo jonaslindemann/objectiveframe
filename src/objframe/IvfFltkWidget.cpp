@@ -76,6 +76,7 @@ CIvfFltkWidget::CIvfFltkWidget(int X, int Y, int W, int H, const char *L) :
     m_scene = new CIvfWorkspace();
     m_scene->setView(m_camera);
     m_scene->disableCursor();
+	//m_scene->getCurrentPlane()->getCursor()->setCursorType(CIvfCursor::CT_LINE_CURSOR);
 
     // Create selected shapes list.
 

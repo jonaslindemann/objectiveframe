@@ -2,11 +2,16 @@
 
 #include "FemObject.h"
 
+#include <iostream>
+
+using namespace std;
+
 // ------------------------------------------------------------
 CFemObject::CFemObject ()
 {
     m_ref = 0;
     m_user = NULL;
+	m_readOnly = false;
 }
 
 // ------------------------------------------------------------
@@ -18,13 +23,15 @@ CFemObject::~CFemObject ()
 void CFemObject::addReference()
 {
     m_ref++;
+	//cout << this->getClassName() << "->addReference() (refs = " << m_ref << ")" << endl;
 }
 
 // ------------------------------------------------------------
 void CFemObject::deleteReference()
 {
-    if (m_ref>0)
+	if (m_ref>0)
         m_ref--;
+	//cout << this->getClassName() << "->deleteReference() (refs = " << m_ref << ")" << endl;
 }
 
 // ------------------------------------------------------------
@@ -97,3 +104,14 @@ int CFemObject::getRefCount()
 {
     return m_ref;
 }
+
+bool CFemObject::isReadOnly()
+{
+	return m_readOnly;
+}
+
+void CFemObject::setReadOnly(bool flag)
+{
+	m_readOnly = flag;
+}
+

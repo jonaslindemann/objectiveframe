@@ -64,15 +64,19 @@ void CIvfBeamModel::onInitialised()
     this->materialSet()->addMaterial(material);
     this->materialSet()->setCurrentMaterial(0);
 
-	CFemBeamNodeBCPtr bc = new CFemBeamNodeBC();
-	bc->setName("fixed pos/rot");
-	bc->fixed();
-	this->nodeBCSet()->addBC(bc);
+	// Create default Node BCs
 
-	bc = new CFemBeamNodeBC();
-	bc->setName("fixed pos");
-	bc->fixedPosition();
-	this->nodeBCSet()->addBC(bc);
+	m_defaultNodeFixedBC = new CFemBeamNodeBC();
+	m_defaultNodeFixedBC->setName("fixed pos/rot");
+	m_defaultNodeFixedBC->fixed();
+	m_defaultNodeFixedBC->setReadOnly();
+	this->nodeBCSet()->addBC(m_defaultNodeFixedBC);
+
+	m_defaultNodePosBC = new CFemBeamNodeBC();
+	m_defaultNodePosBC->setName("fixed pos");
+	m_defaultNodePosBC->fixedPosition();
+	m_defaultNodePosBC->setReadOnly();
+	this->nodeBCSet()->addBC(m_defaultNodePosBC);
 }
 
 // ------------------------------------------------------------
@@ -276,6 +280,16 @@ void CIvfBeamModel::setBeamType(int type)
 int CIvfBeamModel::getBeamType()
 {
     return m_beamType;
+}
+
+CFemBeamNodeBC * CIvfBeamModel::defaultNodePosBC()
+{
+	return m_defaultNodePosBC;
+}
+
+CFemBeamNodeBC * CIvfBeamModel::defaultNodeFixedBC()
+{
+	return m_defaultNodeFixedBC;
 }
 
 void CIvfBeamModel::setResultType(int type)

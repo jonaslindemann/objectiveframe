@@ -60,6 +60,16 @@ private:
   inline void cb_mnuEditSelectAllElements_i(Fl_Menu_*, void*);
   static void cb_mnuEditSelectAllElements(Fl_Menu_*, void*);
 public:
+  static Fl_Menu_Item *mnuEditFixSelected;
+private:
+  inline void cb_mnuEditFixSelected_i(Fl_Menu_*, void*);
+  static void cb_mnuEditFixSelected(Fl_Menu_*, void*);
+public:
+  static Fl_Menu_Item *mnuEditFixPosSelected;
+private:
+  inline void cb_mnuEditFixPosSelected_i(Fl_Menu_*, void*);
+  static void cb_mnuEditFixPosSelected(Fl_Menu_*, void*);
+public:
   static Fl_Menu_Item *mnuMode;
   static Fl_Menu_Item *mnuModeModel;
 private:

@@ -17,13 +17,13 @@ decl {\#include "MaterialsDlg.h"} {private local
 decl {\#include "SplashFrame.h"} {public local
 }
 
-decl {\#ifdef WIN32} {selected private local
+decl {\#ifdef WIN32} {private local
 }
 
-decl {\#include <windows.h>} {selected private local
+decl {\#include <windows.h>} {private local
 }
 
-decl {\#endif} {selected private local
+decl {\#endif} {private local
 }
 
 Function {cb_wndMain(Fl_Widget* widget, void* p)} {open private
@@ -50,7 +50,7 @@ class CMainFrame {open
   } {
     Fl_Window wndMain {
       label ObjectiveFrame open
-      xywh {597 195 746 583} type Double resizable visible
+      xywh {757 267 746 583} type Double resizable visible
     } {
       Fl_Menu_Bar mnuMain {open
         xywh {0 0 746 25} box FLAT_BOX down_box FLAT_BOX color 0 selection_color 136 labelsize 12 labelcolor 7 textsize 12 textcolor 7
@@ -107,6 +107,16 @@ this->close();}
             label {Select all elements}
             callback {ivfWorkspace->selectAllElements();}
             xywh {0 0 100 20} shortcut 0x40065
+          }
+          MenuItem mnuEditFixSelected {
+            label {Fix selected nodes}
+            callback {ivfWorkspace->assignNodeFixedBCSelected();}
+            xywh {0 0 30 20} shortcut 0x40066
+          }
+          MenuItem mnuEditFixPosSelected {
+            label {Fix position selected nodes}
+            callback {ivfWorkspace->assignNodePosBCSelected();} selected
+            xywh {0 0 30 20} shortcut 0x50066
           }
         }
         Submenu mnuMode {

@@ -15,6 +15,7 @@ class CFemObject {
 private:
     int m_ref;
     void* m_user;
+	bool m_readOnly;
 public:
     CFemObject ();
     virtual ~CFemObject ();
@@ -46,6 +47,9 @@ public:
     int getRefCount();
 
     // Methods
+
+	bool isReadOnly();
+	void setReadOnly(bool flag = true);
 
     virtual void saveToStream(std::ostream &out);
     virtual void readFromStream(std::istream &in);

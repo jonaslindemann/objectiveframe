@@ -26,7 +26,7 @@ void CFemNodeSet::print(std::ostream &out)
 // ------------------------------------------------------------
 void CFemNodeSet::addNode(CFemNode *node)
 {
-    node->addReference();
+    //node->addReference();
     m_nodes.push_back(node);
 }
 

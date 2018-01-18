@@ -165,6 +165,8 @@ private:
     CIvfSpherePtr       m_sphere;
     CIvfExtrArrowPtr    m_tactileForce;
 
+	CIvfFemNodePtr		m_nodeCursor;
+
     // Overlay stuff
 #ifdef ADVANCED_GL
     //FTFace* m_logoFace;
@@ -284,7 +286,9 @@ public:
     void addNodeBC(CFemBeamNodeBC* bc);
     void showNodeBCs();
     void assignNodeBCSelected();
-    void deleteNodeLoad(CFemBeamNodeLoad* nodeLoad);
+	void assignNodeFixedBCSelected();
+	void assignNodePosBCSelected();
+	void deleteNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void assignNodeLoadSelected();
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void doFeedback();

@@ -11,6 +11,7 @@
 #include <ivf/IvfCoordinateSystem.h>
 #include <ivf/IvfTexture.h>
 #include <ivfimage/IvfSgiImage.h>
+#include <ivf/IvfFog.h>
 
 #include <FemBeam.h>
 #include <FemNode.h>
@@ -238,6 +239,8 @@ void CIvfFemWidget::onInit()
     m_beamModel->setBeamLoadSize(this->getWorkspace()*m_relLoadSize);
     m_beamModel->setNodeMaterial(m_nodeMaterial);
     m_beamModel->setBeamMaterial(m_lineMaterial);
+	m_beamModel->generateModel();
+
 
     // Initialize color table
 
@@ -300,6 +303,17 @@ void CIvfFemWidget::onInit()
     m_tactileForce->addReference();
     m_tactileForce->setState(CIvfShape::OS_OFF);
     this->getScene()->addChild(m_tactileForce);
+
+	CFemNode* node = new CFemNode();
+
+	m_nodeCursor = new CIvfFemNode();
+	m_nodeCursor->setBeamModel(m_beamModel);
+	m_nodeCursor->setFemNode(node);
+	//m_nodeCursor->setPosition(x, y, z);
+	m_nodeCursor->setMaterial(m_nodeMaterial);
+	m_nodeCursor->setDirectRefresh(true);
+	this->getScene()->addChild(m_nodeCursor);
+	m_nodeCursor->disable();
 
     so_print("DialogMgr: Creating element load dialog.");
     m_dlgElementLoads = new CElementLoadsDlg();
@@ -570,14 +584,16 @@ void CIvfFemWidget::setEditMode(int mode)
 
     // set highlight filter
 
-    switch (mode) {
+	m_nodeCursor->disable();
+	
+	switch (mode) {
     case IVF_SELECT:
         setHighlightFilter(HF_ALL);
         setSelectFilter(SF_ALL);
         setRepresentation(FRAME_FEM);
         break;
     case IVF_CREATE_NODE:
-    case IVF_CREATE_LINE:
+	case IVF_CREATE_LINE:
         setHighlightFilter(HF_NODES);
         setSelectFilter(SF_NODES);
         setRepresentation(FRAME_FEM);
@@ -613,6 +629,16 @@ void CIvfFemWidget::setEditMode(int mode)
     m_coordText = "";
 
     CIvfFltkWidget::setEditMode(mode);
+
+	if (mode == IVF_CREATE_NODE)
+	{
+		this->getScene()->disableCursor();
+		m_nodeCursor->enable();
+	}
+	if (mode == IVF_MOVE)
+	{
+		this->getScene()->disableCursor();
+	}
 }
 
 
@@ -951,6 +977,19 @@ void CIvfFemWidget::newModel()
     m_tactileForce->setRadius(loadSize*0.055, loadSize*0.035);
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize*0.7);
+
+	CFemNode* node = new CFemNode();
+
+	m_nodeCursor = new CIvfFemNode();
+	m_nodeCursor->setBeamModel(m_beamModel);
+	m_nodeCursor->setFemNode(node);
+	//m_nodeCursor->setPosition(x, y, z);
+	m_nodeCursor->setMaterial(m_nodeMaterial);
+	m_nodeCursor->setDirectRefresh(true);
+	this->getScene()->addChild(m_nodeCursor);
+	m_nodeCursor->disable();
+
+	this->getScene()->addChild(m_tactileForce);
 
     m_needRecalc = true;
 
@@ -1461,6 +1500,22 @@ void CIvfFemWidget::assignNodeBCSelected()
         this->set_changed();
         this->redraw();
     }
+}
+
+// ------------------------------------------------------------
+void CIvfFemWidget::assignNodeFixedBCSelected()
+{
+	this->setCurrentNodeBC(m_beamModel->defaultNodeFixedBC());
+	this->assignNodeBCSelected();
+	this->setCurrentNodeBC(nullptr);
+}
+
+// ------------------------------------------------------------
+void CIvfFemWidget::assignNodePosBCSelected()
+{
+	this->setCurrentNodeBC(m_beamModel->defaultNodePosBC());
+	this->assignNodeBCSelected();
+	this->setCurrentNodeBC(nullptr);
 }
 
 // ------------------------------------------------------------
@@ -2000,6 +2055,9 @@ void CIvfFemWidget::onCoordinate(double x, double y, double z)
         m_coordWidget->label(m_coordText.c_str());
         m_coordWidget->redraw();
     }
+
+	if (m_overWorkspace)
+		m_nodeCursor->setPosition(x, y, z);
 }
 
 // ------------------------------------------------------------
@@ -2138,6 +2196,14 @@ void CIvfFemWidget::onInitContext()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #endif
+
+	if (false)
+	{
+		CIvfFog::getInstance()->enable();
+		CIvfFog::getInstance()->setType(CIvfFog::FT_LINEAR);
+		CIvfFog::getInstance()->setColor(0.4, 0.4, 0.4, 1.0);
+		CIvfFog::getInstance()->setLimits(this->getWorkspace()*0.3, this->getWorkspace() * 2.0);
+	}
 }
 
 // ------------------------------------------------------------
@@ -2190,13 +2256,15 @@ void CIvfFemWidget::onPassiveMotion(int x, int y)
         }
     }
 
-    if (!inside)
-    {
-        m_overWorkspace = !inside;
-        if (m_overWorkspace!=m_lastOverWorkspace)
-            needInvalidate = true;
-        m_lastOverWorkspace = m_overWorkspace;
-    }
+	if (!inside)
+	{
+		m_overWorkspace = !inside;
+		if (m_overWorkspace != m_lastOverWorkspace)
+			needInvalidate = true;
+		m_lastOverWorkspace = m_overWorkspace;
+	}
+	else
+		m_overWorkspace = !inside;
 
     if (needInvalidate)
     {

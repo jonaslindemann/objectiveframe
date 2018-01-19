@@ -575,7 +575,13 @@ int CIvfFltkWidget::handle(int event)
 	if (first && event == FL_SHOW && shown()) {
 		first = 0;
 		make_current();
-		glewInit(); // defines pters to functions of OpenGL V 1.2 and above
+		GLenum err = glewInit();
+		if (GLEW_OK != err)
+		{
+			/* Problem: glewInit failed, something is seriously wrong. */
+			fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+		}
+		fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 	}
 #endif
 

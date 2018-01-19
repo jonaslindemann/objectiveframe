@@ -943,6 +943,7 @@ void CIvfFemWidget::newModel()
     m_beamModel->setBeamLoadSize(this->getWorkspace()*m_relLoadSize);
     m_beamModel->setNodeMaterial(m_nodeMaterial);
     m_beamModel->setBeamMaterial(m_lineMaterial);
+	m_beamModel->generateModel();
 
     m_currentMaterial = NULL;
 

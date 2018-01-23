@@ -229,7 +229,9 @@ void CNodeLoadsDlg::cb_btnClearElements_i(Fl_HoverButton*, void*) {
 	if (m_femWidget!=NULL)
 	{
 		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
-		femWidget->removeNodeLoadsFromSelected();
+		//femWidget->removeNodeLoadsFromSelected();
+		femWidget->removeNodesFromNodeLoad();
+		
 	}
 };
 }

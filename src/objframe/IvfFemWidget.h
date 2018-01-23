@@ -253,6 +253,8 @@ public:
     void removeBeamLoadsFromSelected();
     void removeNodeBCsFromSelected();
     void removeNodeLoadsFromSelected();
+	void removeNodesFromNodeLoad();
+	void removeBCsFromBC();
     void refreshToolbars();
     void onHighlightFilter(CIvfShape* shape, bool &highlight);
     void deleteSelected();

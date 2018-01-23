@@ -242,18 +242,24 @@ const std::string CFemModel::getFileName()
 }
 
 // ------------------------------------------------------------
-void CFemModel::open()
+bool CFemModel::open()
 {
-    if (m_fileName!="")
-    {
-        fstream inputFile;
-        inputFile.open(m_fileName.c_str(), ios::in);
+	if (m_fileName != "")
+	{
+		fstream inputFile;
+		inputFile.open(m_fileName.c_str(), ios::in);
 		if (inputFile.is_open())
+		{
 			this->readFromStream(inputFile);
+		}
 		else
-			cout << "Couldn't open file..." << endl;
-        inputFile.close();
-    }
+			return false;
+
+		inputFile.close();
+		return true;
+	}
+	else
+		return false;
 }
 
 // ------------------------------------------------------------

@@ -112,13 +112,19 @@ bool CFemNodeLoad::removeNode(CFemNode *node)
     while ( (p!=m_nodes.end())&&(*p!=node) )
         p++;
 
-    if (*p==node)
-    {
-        node->deleteReference();
-        m_nodes.erase(p);
-        return true;
-    }
-    return false;
+	if (p != m_nodes.end())
+	{
+		if (*p == node)
+		{
+			node->deleteReference();
+			m_nodes.erase(p);
+			return true;
+		}
+		else
+			return false;
+	}
+	else
+		return false;
 }
 
 // ------------------------------------------------------------

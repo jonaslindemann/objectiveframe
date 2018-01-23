@@ -2632,6 +2632,18 @@ void CIvfFemWidget::removeNodeLoadsFromSelected()
     this->redraw();
 }
 
+void CIvfFemWidget::removeNodesFromNodeLoad()
+{
+	CFemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+
+	if (nodeLoad != NULL)
+		nodeLoad->clearNodes();
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
+}
+
 void CIvfFemWidget::removeNodeBCsFromSelected()
 {
     // Remove materials from selected shapes
@@ -2659,6 +2671,18 @@ void CIvfFemWidget::removeNodeBCsFromSelected()
     m_needRecalc = true;
     this->set_changed();
     this->redraw();
+}
+
+void CIvfFemWidget::removeBCsFromBC()
+{
+	CFemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
+
+	if (nodeBC != NULL)
+		nodeBC->clearNodes();
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
 }
 
 void CIvfFemWidget::removeBeamLoadsFromSelected()

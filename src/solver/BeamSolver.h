@@ -8,14 +8,51 @@
 #include <iomanip>
 #include <cmath>
 
-
 #include <include.h>
 
 #include <newmat.h>
 #include <newmatio.h>
 #include <newmatap.h>
 
-#include <ResultInfo.h>
+class CResultInfo {
+private:
+	double m_maxN;
+	double m_minN;
+	double m_maxT;
+	double m_minT;
+	double m_maxM;
+	double m_minM;
+	double m_maxV;
+	double m_minV;
+	double m_maxNavier;
+	double m_minNavier;
+public:
+	CResultInfo();
+	virtual ~CResultInfo();
+
+	void setMaxM(double maxM);
+	double getMaxV();
+	void setMaxV(double maxV);
+	double getMaxT();
+	void setMaxT(double maxT);
+	double getMaxN();
+	void setMaxN(double maxN);
+	double getMaxM();
+	void setMaxNavier(double maxNavier);
+	double getMaxNavier();
+
+	void setMinM(double minM);
+	double getMinV();
+	void setMinV(double minV);
+	double getMinT();
+	void setMinT(double minT);
+	double getMinN();
+	void setMinN(double minN);
+	double getMinM();
+	void setMinNavier(double minNavier);
+	double getMinNavier();
+
+};
 
 #ifdef use_namespace
 using namespace NEWMAT;
@@ -31,7 +68,7 @@ using namespace NEWMAT;
 #define BS_SINGULAR			7
 #define BS_UNDEFINED_MATERIAL 8
 
-class CFemInternalSolver {
+class CBeamSolver {
 private:
     CFemBeamModel* m_beamModel;
     double m_maxNodeValue;
@@ -65,8 +102,8 @@ private:
 public:
     double calcNavier(double N, double My, double Mz, CFemBeam* beam);
     void setResultInfo(CResultInfo* resultInfo);
-    CFemInternalSolver();
-    virtual ~CFemInternalSolver();
+	CBeamSolver();
+    virtual ~CBeamSolver();
 
     void execute();
     void recompute();

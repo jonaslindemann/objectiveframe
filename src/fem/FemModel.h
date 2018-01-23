@@ -53,7 +53,7 @@ public:
 
     void initialize();
     void save();
-    void open();
+    bool open();
     void deleteAll();
 
     void clearNodeValues();

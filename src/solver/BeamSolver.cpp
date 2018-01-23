@@ -1,11 +1,9 @@
-#include "FemInternalSolver.h"
+#include "BeamSolver.h"
 
 //#define WANT_STREAM
 //#define WANT_MATH
 
 #include <FemBeamLoad.h>
-
-#include <StatusOutput.h>
 
 void beam3e(
     RowVector &ex,
@@ -299,7 +297,12 @@ double min(RowVector& rowVector)
     return minValue;
 }
 
-CFemInternalSolver::CFemInternalSolver()
+void so_print(std::string output)
+{
+	cout << output << endl;
+}
+
+CBeamSolver::CBeamSolver()
 {
     m_beamModel = NULL;
     m_maxNodeValue = -1.0e300;
@@ -309,18 +312,18 @@ CFemInternalSolver::CFemInternalSolver()
     m_resultInfo = NULL;
 }
 
-CFemInternalSolver::~CFemInternalSolver()
+CBeamSolver::~CBeamSolver()
 {
     if (m_X!=NULL)
         delete m_X;
 }
 
-void CFemInternalSolver::setBeamModel(CFemBeamModel* model)
+void CBeamSolver::setBeamModel(CFemBeamModel* model)
 {
     m_beamModel = model;
 }
 
-void CFemInternalSolver::execute()
+void CBeamSolver::execute()
 {
     double E,G,A,Iy,Iz,Kv;
     int i, j, k;
@@ -845,12 +848,12 @@ void CFemInternalSolver::execute()
     printMaxMin();
 }
 
-double CFemInternalSolver::getMaxNodeValue()
+double CBeamSolver::getMaxNodeValue()
 {
     return m_maxNodeValue;
 }
 
-void CFemInternalSolver::recompute()
+void CBeamSolver::recompute()
 {
     if (this->getLastError()==BS_NO_ERROR)
     {
@@ -925,7 +928,7 @@ void CFemInternalSolver::recompute()
     }
 }
 
-void CFemInternalSolver::update()
+void CBeamSolver::update()
 {
     so_print("Updating results.");
 
@@ -1078,7 +1081,7 @@ void CFemInternalSolver::update()
     printMaxMin();
 }
 
-void CFemInternalSolver::setFeedbackForce(CFemNode* node, double fx, double fy, double fz)
+void CBeamSolver::setFeedbackForce(CFemNode* node, double fx, double fy, double fz)
 {
     m_forceNode = node;
     m_force[0] = fx;
@@ -1086,13 +1089,13 @@ void CFemInternalSolver::setFeedbackForce(CFemNode* node, double fx, double fy, 
     m_force[2] = fz;
 }
 
-int CFemInternalSolver::getLastError()
+int CBeamSolver::getLastError()
 {
     return m_errorStatus;
 }
 
 
-void CFemInternalSolver::updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier)
+void CBeamSolver::updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier)
 {
     double V, M;
 
@@ -1144,7 +1147,7 @@ void CFemInternalSolver::updateMaxMin(double N, double T, double Vy, double Vz, 
     }
 }
 
-void CFemInternalSolver::initMaxMin()
+void CBeamSolver::initMaxMin()
 {
     m_maxN = -1.0e300;
     m_minN =  1.0e300;
@@ -1172,7 +1175,7 @@ void CFemInternalSolver::initMaxMin()
     }
 }
 
-void CFemInternalSolver::printMaxMin()
+void CBeamSolver::printMaxMin()
 {
 #ifdef DEBUG_OUTPUT
     cout << "Nmax,min = " << m_maxN << ", " << m_minN << endl;
@@ -1183,12 +1186,12 @@ void CFemInternalSolver::printMaxMin()
 #endif
 }
 
-void CFemInternalSolver::setResultInfo(CResultInfo *resultInfo)
+void CBeamSolver::setResultInfo(CResultInfo *resultInfo)
 {
     m_resultInfo = resultInfo;
 }
 
-double CFemInternalSolver::calcNavier(double N, double My, double Mz, CFemBeam *beam)
+double CBeamSolver::calcNavier(double N, double My, double Mz, CFemBeam *beam)
 {
     double E, G, A, Iy, Iz, Kv;
     double eyMax, eyMin, ezMax, ezMin;
@@ -1223,4 +1226,114 @@ double CFemInternalSolver::calcNavier(double N, double My, double Mz, CFemBeam *
             maxSig = fabs(sig[i]);
 
     return maxSig;
+}
+
+CResultInfo::CResultInfo()
+{
+
+}
+
+CResultInfo::~CResultInfo()
+{
+
+}
+
+void CResultInfo::setMaxN(double maxN)
+{
+	m_maxN = maxN;
+}
+
+double CResultInfo::getMaxN()
+{
+	return m_maxN;
+}
+
+void CResultInfo::setMaxT(double maxT)
+{
+	m_maxT = maxT;
+}
+
+double CResultInfo::getMaxT()
+{
+	return m_maxT;
+}
+
+void CResultInfo::setMaxV(double maxV)
+{
+	m_maxV = maxV;
+}
+
+double CResultInfo::getMaxV()
+{
+	return m_maxV;
+}
+
+void CResultInfo::setMaxM(double maxM)
+{
+	m_maxM = maxM;
+}
+
+double CResultInfo::getMaxM()
+{
+	return m_maxM;
+}
+
+void CResultInfo::setMinN(double minN)
+{
+	m_minN = minN;
+}
+
+double CResultInfo::getMinN()
+{
+	return m_minN;
+}
+
+void CResultInfo::setMinT(double minT)
+{
+	m_minT = minT;
+}
+
+double CResultInfo::getMinT()
+{
+	return m_minT;
+}
+
+void CResultInfo::setMinV(double minV)
+{
+	m_minV = minV;
+}
+
+double CResultInfo::getMinV()
+{
+	return m_minV;
+}
+
+void CResultInfo::setMinM(double minM)
+{
+	m_minM = minM;
+}
+
+double CResultInfo::getMinM()
+{
+	return m_minM;
+}
+
+void CResultInfo::setMinNavier(double minNavier)
+{
+	m_minNavier = minNavier;
+}
+
+double CResultInfo::getMinNavier()
+{
+	return m_minNavier;
+}
+
+void CResultInfo::setMaxNavier(double maxNavier)
+{
+	m_maxNavier = maxNavier;
+}
+
+double CResultInfo::getMaxNavier()
+{
+	return m_maxNavier;
 }

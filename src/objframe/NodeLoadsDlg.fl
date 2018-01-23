@@ -1,27 +1,27 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <FL/fl_message.H>} {public local
-} 
+}
 
 decl {\#include <FemNodeLoadSet.h>} {public local
-} 
+}
 
 decl {\#include <FemBeamNodeLoad.h>} {public local
-} 
+}
 
 decl {\#include "IvfFemWidget.h"} {private local
-} 
+}
 
 decl {\#include "NodeLoadDlg.h"} {private local
-} 
+}
 
 class CNodeLoadsDlg {open
 } {
@@ -134,9 +134,11 @@ class CNodeLoadsDlg {open
 	if (m_femWidget!=NULL)
 	{
 		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
-		femWidget->removeNodeLoadsFromSelected();
+		//femWidget->removeNodeLoadsFromSelected();
+		femWidget->removeNodesFromNodeLoad();
+		
 	}
-}}
+}} selected
         image {../../images/tlClearNodes.xpm} xywh {150 114 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX labelsize 10 align 128
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton
@@ -192,8 +194,7 @@ else
 		lbLoadSet->add(loadName.c_str(),nodeLoad);
 	}
 	m_currentLoad = NULL;
-}} {selected
-    }
+}} {}
   }
   Function {getCurrentLoad()} {return_type {CFemBeamNodeLoad*}
   } {
@@ -202,4 +203,4 @@ else
   Function {setFemWidget(void* femWidget)} {} {
     code {m_femWidget = femWidget;} {}
   }
-} 
+}

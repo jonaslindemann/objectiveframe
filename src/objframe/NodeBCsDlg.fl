@@ -34,7 +34,7 @@ class CNodeBCsDlg {open
   Function {CNodeBCsDlg()} {open
   } {
     Fl_Window wndNodeBCs {
-      label {Node BCs} open selected
+      label {Node BCs} open
       xywh {780 308 180 211} type Double color 0 labelcolor 7 align 80 non_modal visible
     } {
       Fl_Browser lbBCSet {
@@ -134,9 +134,10 @@ class CNodeBCsDlg {open
 	if (m_femWidget!=NULL)
 	{
 		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
-		femWidget->removeNodeBCsFromSelected();
+		//femWidget->removeNodeBCsFromSelected();
+		femWidget->removeNodesFromNodeBC();
 	}
-}}
+}} selected
         image {../../images/tlClearBC.xpm} xywh {150 113 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 labelsize 10 align 128
         code0 {\#include "Fl_HoverButton.h"}
         class Fl_HoverButton

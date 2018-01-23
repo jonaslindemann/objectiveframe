@@ -1263,7 +1263,7 @@ void CIvfFemWidget::deleteNodeLoad(CFemBeamNodeLoad *nodeLoad)
     // Remove load from beam model
 
     m_beamModel->getNodeLoadSet()->removeLoad(nodeLoad);
-    setCurrentNodeLoad(NULL);
+    setCurrentNodeLoad(nullptr);
 }
 
 // ------------------------------------------------------------

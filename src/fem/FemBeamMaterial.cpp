@@ -80,7 +80,8 @@ void CFemBeamMaterial::print(ostream &out)
 // ------------------------------------------------------------
 void CFemBeamMaterial::saveToStream(std::ostream &out)
 {
-    out << this->getName() << endl;
+	CFemMaterial::saveToStream(out);
+	out << this->getName() << endl;
     out << m_color << endl;
     out << m_width << " ";
     out << m_height << " ";

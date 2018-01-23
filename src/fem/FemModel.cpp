@@ -248,7 +248,10 @@ void CFemModel::open()
     {
         fstream inputFile;
         inputFile.open(m_fileName.c_str(), ios::in);
-        this->readFromStream(inputFile);
+		if (inputFile.is_open())
+			this->readFromStream(inputFile);
+		else
+			cout << "Couldn't open file..." << endl;
         inputFile.close();
     }
 }

@@ -1,1 +1,1 @@
-SUBDIRS(newmat fem visfem util objframe)
+SUBDIRS(newmat fem visfem util objframe solver)

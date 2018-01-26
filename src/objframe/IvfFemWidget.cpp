@@ -1519,6 +1519,20 @@ void CIvfFemWidget::assignNodePosBCSelected()
 	this->setCurrentNodeBC(nullptr);
 }
 
+void CIvfFemWidget::assignNodeFixedBCGround()
+{
+	this->setSelectFilter(SF_GROUND_NODES);
+	this->selectAll();
+	this->assignNodeFixedBCSelected();
+}
+
+void CIvfFemWidget::assignNodePosBCGround()
+{
+	this->setSelectFilter(SF_GROUND_NODES);
+	this->selectAll();
+	this->assignNodePosBCSelected();
+}
+
 // ------------------------------------------------------------
 void CIvfFemWidget::showNodeBCs()
 {
@@ -2430,6 +2444,26 @@ void CIvfFemWidget::onSelectFilter(CIvfShape *shape, bool &select)
         else
             select = false;
         break;
+	case SF_GROUND_NODES:
+		if (shape->isClass("CIvfNode"))
+		{
+			CIvfNode* node = (CIvfNode*)shape;
+			if (node != m_nodeCursor)
+			{
+				double x, y, z;
+				node->getPosition(x, y, z);
+				if ((y > -0.00001) && (y < 0.00001))
+					select = true;
+				else
+					select = false;
+			}
+			else
+				select = false;
+
+		}
+		else
+			select = false;
+		break;
     default:
         select = true;
         break;

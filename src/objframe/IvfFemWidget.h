@@ -77,6 +77,7 @@ class LeapInteraction;
 #define SF_ALL      0
 #define SF_NODES	1
 #define SF_ELEMENTS 2
+#define SF_GROUND_NODES 3
 
 #define DF_ALL      0
 #define DF_NODES    1
@@ -290,6 +291,8 @@ public:
     void assignNodeBCSelected();
 	void assignNodeFixedBCSelected();
 	void assignNodePosBCSelected();
+	void assignNodeFixedBCGround();
+	void assignNodePosBCGround();
 	void deleteNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void assignNodeLoadSelected();
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);

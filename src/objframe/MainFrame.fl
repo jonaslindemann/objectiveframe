@@ -115,8 +115,18 @@ this->close();}
           }
           MenuItem mnuEditFixPosSelected {
             label {Fix position selected nodes}
-            callback {ivfWorkspace->assignNodePosBCSelected();} selected
+            callback {ivfWorkspace->assignNodePosBCSelected();}
             xywh {0 0 30 20} shortcut 0x50066
+          }
+          MenuItem mnuEditFixGround {
+            label {Fix ground nodes}
+            callback {ivfWorkspace->assignNodeFixedBCGround();}
+            xywh {0 0 30 20} shortcut 0x40067
+          }
+          MenuItem mnuEditPosGround {
+            label {Fix position ground nodes}
+            callback {ivfWorkspace->assignNodePosBCGround();} selected
+            xywh {0 0 30 20} shortcut 0x50067
           }
         }
         Submenu mnuMode {

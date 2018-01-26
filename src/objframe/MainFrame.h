@@ -70,6 +70,16 @@ private:
   inline void cb_mnuEditFixPosSelected_i(Fl_Menu_*, void*);
   static void cb_mnuEditFixPosSelected(Fl_Menu_*, void*);
 public:
+  static Fl_Menu_Item *mnuEditFixGround;
+private:
+  inline void cb_mnuEditFixGround_i(Fl_Menu_*, void*);
+  static void cb_mnuEditFixGround(Fl_Menu_*, void*);
+public:
+  static Fl_Menu_Item *mnuEditPosGround;
+private:
+  inline void cb_mnuEditPosGround_i(Fl_Menu_*, void*);
+  static void cb_mnuEditPosGround(Fl_Menu_*, void*);
+public:
   static Fl_Menu_Item *mnuMode;
   static Fl_Menu_Item *mnuModeModel;
 private:

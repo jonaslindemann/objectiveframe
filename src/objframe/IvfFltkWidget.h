@@ -520,6 +520,10 @@ protected:
     virtual void onMouseDown(int x, int y);
     virtual void onMouseUp(int x, int y);
     virtual void onKeyboard(int key);
+
+    virtual void onPostRender();
+    virtual void onPreRender();
+
 };
 
 #endif

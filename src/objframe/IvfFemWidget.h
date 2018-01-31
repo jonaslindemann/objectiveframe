@@ -332,6 +332,8 @@ public:
     virtual void onInit();
     virtual void onInitContext();
     virtual void onOverlay();
+    virtual void onPreRender();
+    virtual void onPostRender();
 
     
 };

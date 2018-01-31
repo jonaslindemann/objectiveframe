@@ -537,8 +537,6 @@ void CIvfFltkWidget::draw()
     m_camera->moveVertical(m_moveY*m_workspaceSize/1000.0);
     m_camera->moveDepth(m_zoomY*m_workspaceSize/500.0);
 
-    m_scene->render();
-
     if (m_doOverlay)
     {
         glPushAttrib(GL_ENABLE_BIT);
@@ -561,6 +559,10 @@ void CIvfFltkWidget::draw()
         m_camera->setViewPort(w(), h());
         m_camera->initialize();
     }
+
+    this->onPreRender();
+    m_scene->render();
+    this->onPostRender();
 
     glPopMatrix();
 
@@ -1156,6 +1158,18 @@ void CIvfFltkWidget::onHighlightFilter(CIvfShape *, bool &highlight)
 void CIvfFltkWidget::onKeyboard(int key)
 {
     
+}
+
+// ------------------------------------------------------------
+void CIvfFltkWidget::onPostRender()
+{
+
+}
+
+// ------------------------------------------------------------
+void CIvfFltkWidget::onPreRender()
+{
+
 }
 
 bool CIvfFltkWidget::isInitialized()

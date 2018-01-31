@@ -184,6 +184,8 @@ void CIvfFemWidget::onInit()
     this->getScene()->getCurrentPlane()->getGrid()->setUseGrid(false);
 #endif
     this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
+    this->getScene()->getCurrentPlane()->getGrid()->setUseAxis(true);
+    this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
     this->getScene()->setRenderFlatShadow(true);
     this->getScene()->setShadowColor(0.3, 0.3, 0.3);
 
@@ -2198,6 +2200,36 @@ void CIvfFemWidget::onOverlay()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glLineWidth(1.0);
 #endif
+}
+
+void CIvfFemWidget::onPreRender()
+{
+}
+
+void CIvfFemWidget::onPostRender()
+{
+    double x, y, z;
+    double w, h;
+
+    m_nodeCursor->getPosition(x, y, z);
+
+    w = this->getWorkspace();
+    h = this->getWorkspace();
+    
+
+
+    glDisable(GL_LIGHTING);
+
+    glBegin(GL_LINES);
+    glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+    glVertex3d(x - w / 2.0, y, z);
+    glVertex3d(x + w / 2.0, y, z);
+    glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+    glVertex3d(x, y - w / 2.0, z);
+    glVertex3d(x, y + w / 2.0, z);
+    glEnd();
+
+    glEnable(GL_LIGHTING);
 }
 
 // ------------------------------------------------------------

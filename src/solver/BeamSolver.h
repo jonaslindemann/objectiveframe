@@ -4,15 +4,8 @@
 
 #include <FemBeamModel.h>
 
-#include <iostream>
-#include <iomanip>
-#include <cmath>
 
-#include <include.h>
-
-#include <newmat.h>
-#include <newmatio.h>
-#include <newmatap.h>
+#include "calfem.h"
 
 class CResultInfo {
 private:

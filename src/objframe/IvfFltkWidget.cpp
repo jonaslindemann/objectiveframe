@@ -498,8 +498,10 @@ void CIvfFltkWidget::draw()
 
 			// Create and bind the FBO
 
+#ifdef USE_OFFSCREEN_RENDERING
 			initOffscreenBuffers();
 			updateOffscreenBuffers();
+#endif
 			
 			onInit();
             m_initDone = true;
@@ -514,6 +516,8 @@ void CIvfFltkWidget::draw()
 
     }
 
+#ifdef USE_OFFSCREEN_RENDERING
+
 	if ((m_prevWindowSize[0] != w()) || (m_prevWindowSize[1] != h()))
 	{
 		m_prevWindowSize[0] = w();
@@ -524,6 +528,7 @@ void CIvfFltkWidget::draw()
 
 	bindOffscreenBuffers();
 
+#endif
     // Drawing code
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -560,13 +565,13 @@ void CIvfFltkWidget::draw()
         m_camera->initialize();
     }
 
-    this->onPreRender();
     m_scene->render();
-    this->onPostRender();
 
     glPopMatrix();
 
-	blitOffscreenBuffers();
+#ifdef USE_OFFSCREEN_RENDERING
+    blitOffscreenBuffers();
+#endif
 }
 
 // ------------------------------------------------------------

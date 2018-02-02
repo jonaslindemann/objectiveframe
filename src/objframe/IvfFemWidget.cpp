@@ -2213,20 +2213,32 @@ void CIvfFemWidget::onPostRender()
 
     m_nodeCursor->getPosition(x, y, z);
 
+    cout << x << ", " << y << ", " << z << endl;
+
     w = this->getWorkspace();
     h = this->getWorkspace();
-    
-
 
     glDisable(GL_LIGHTING);
 
     glBegin(GL_LINES);
-    glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-    glVertex3d(x - w / 2.0, y, z);
-    glVertex3d(x + w / 2.0, y, z);
-    glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-    glVertex3d(x, y - w / 2.0, z);
-    glVertex3d(x, y + w / 2.0, z);
+    for (int i=0; i<20; i++)
+    {
+        glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+        glVertex3d(-10.0 + (double)i, 0.0, -20.0);
+        glVertex3d(-10.0 + (double)i, 0.0, 20.0);
+    }
+    for (int i = 0; i<20; i++)
+    {
+        glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+        glVertex3d(-10.0 + (double)i, -20.0, 0.0);
+        glVertex3d(-10.0 + (double)i, 20.0, 0.0);
+    }
+    for (int i = 0; i<20; i++)
+    {
+        glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+        glVertex3d(0.0, -10.0 + (double)i, -20.0);
+        glVertex3d(0.0, -10.0 + (double)i, 20.0);
+    }
     glEnd();
 
     glEnable(GL_LIGHTING);

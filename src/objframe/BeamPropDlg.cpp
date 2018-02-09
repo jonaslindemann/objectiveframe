@@ -40,48 +40,70 @@ void CBeamPropDlg::cb_btnShowMaterialDlg(Fl_Button* o, void* v) {
 }
 
 CBeamPropDlg::CBeamPropDlg() {
-  { wndBeamProp = new Fl_Double_Window(212, 360, "Beam information");
+  { wndBeamProp = new Fl_Double_Window(221, 366, "Beam information");
+    wndBeamProp->color(FL_FOREGROUND_COLOR);
     wndBeamProp->user_data((void*)(this));
-    { btnClose = new Fl_Button(72, 330, 61, 25, "Close");
+    { btnClose = new Fl_Button(151, 334, 61, 25, "Close");
+      btnClose->box(FL_FLAT_BOX);
       btnClose->down_box(FL_DOWN_BOX);
+      btnClose->color((Fl_Color)41);
       btnClose->labelsize(12);
       btnClose->callback((Fl_Callback*)cb_btnClose);
     } // Fl_Button* btnClose
-    { grpBeamRotation = new Fl_Group(4, 4, 204, 93);
-      grpBeamRotation->box(FL_DOWN_FRAME);
-      { sldBeamRotation = new Fl_Value_Slider(12, 24, 188, 24, "Beam rotation");
+    { grpBeamRotation = new Fl_Group(9, 8, 204, 93);
+      grpBeamRotation->box(FL_FLAT_BOX);
+      grpBeamRotation->color((Fl_Color)36);
+      { sldBeamRotation = new Fl_Value_Slider(17, 28, 188, 24, "Beam rotation");
         sldBeamRotation->type(1);
+        sldBeamRotation->box(FL_FLAT_BOX);
+        sldBeamRotation->color((Fl_Color)46);
         sldBeamRotation->labelsize(12);
+        sldBeamRotation->labelcolor(FL_BACKGROUND2_COLOR);
         sldBeamRotation->maximum(360);
         sldBeamRotation->step(5);
+        sldBeamRotation->textcolor(FL_BACKGROUND2_COLOR);
         sldBeamRotation->callback((Fl_Callback*)cb_sldBeamRotation);
         sldBeamRotation->align(Fl_Align(FL_ALIGN_TOP_LEFT));
       } // Fl_Value_Slider* sldBeamRotation
-      { btnShowMaterialDlg = new Fl_Button(12, 61, 188, 27, "Edit assigned beam property");
+      { btnShowMaterialDlg = new Fl_Button(17, 65, 188, 27, "Edit assigned beam property");
+        btnShowMaterialDlg->box(FL_FLAT_BOX);
         btnShowMaterialDlg->down_box(FL_DOWN_BOX);
         btnShowMaterialDlg->labelsize(12);
         btnShowMaterialDlg->callback((Fl_Callback*)cb_btnShowMaterialDlg);
       } // Fl_Button* btnShowMaterialDlg
-      { boxDivider = new Fl_Box(12, 54, 188, 2);
-        boxDivider->box(FL_ENGRAVED_BOX);
+      { boxDivider = new Fl_Box(17, 58, 188, 2);
+        boxDivider->box(FL_FLAT_BOX);
+        boxDivider->color((Fl_Color)46);
       } // Fl_Box* boxDivider
       grpBeamRotation->end();
     } // Fl_Group* grpBeamRotation
-    { tabResults = new Fl_Tabs(4, 104, 204, 221);
-      tabResults->box(FL_UP_BOX);
-      { grpSectionForces = new Fl_Group(8, 127, 199, 196, "Section forces");
+    { tabResults = new Fl_Tabs(9, 108, 204, 221);
+      tabResults->box(FL_FLAT_BOX);
+      tabResults->color(FL_DARK3);
+      tabResults->selection_color(FL_DARK3);
+      { grpSectionForces = new Fl_Group(12, 131, 199, 196, "Section forces");
+        grpSectionForces->box(FL_FLAT_BOX);
+        grpSectionForces->color((Fl_Color)36);
+        grpSectionForces->selection_color((Fl_Color)36);
         grpSectionForces->labelsize(12);
-        grpSectionForces->hide();
-        { lbSectionForces = new Fl_Browser(9, 131, 194, 189);
+        { lbSectionForces = new Fl_Browser(14, 135, 194, 189);
+          lbSectionForces->box(FL_THIN_DOWN_BOX);
+          lbSectionForces->color((Fl_Color)34);
           lbSectionForces->labelsize(12);
           lbSectionForces->textfont(4);
           lbSectionForces->textsize(10);
         } // Fl_Browser* lbSectionForces
         grpSectionForces->end();
       } // Fl_Group* grpSectionForces
-      { grpDisplacements = new Fl_Group(6, 128, 200, 194, "Displacements");
+      { grpDisplacements = new Fl_Group(12, 132, 200, 194, "Displacements");
+        grpDisplacements->box(FL_FLAT_BOX);
+        grpDisplacements->color((Fl_Color)36);
+        grpDisplacements->selection_color((Fl_Color)36);
         grpDisplacements->labelsize(12);
-        { lbDisplacements = new Fl_Browser(9, 131, 194, 189);
+        grpDisplacements->hide();
+        { lbDisplacements = new Fl_Browser(14, 135, 194, 189);
+          lbDisplacements->box(FL_THIN_DOWN_BOX);
+          lbDisplacements->color((Fl_Color)34);
           lbDisplacements->textfont(4);
           lbDisplacements->textsize(10);
         } // Fl_Browser* lbDisplacements

@@ -1,25 +1,27 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0100 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
-decl {\#define MR_OK 0} {public
-} 
+decl {\#define MR_OK 0} {public local
+}
 
-decl {\#define MR_CANCEL 1} {public
-} 
+decl {\#define MR_CANCEL 1} {public local
+}
 
-decl {\#include <IvfFemNode.h>} {public
-} 
+decl {\#include <IvfFemNode.h>} {public local
+}
 
 class CNodePropDlg {open
 } {
-  decl {CIvfFemNode* m_node} {}
-  decl {Fl_Widget* m_workspace} {}
+  decl {CIvfFemNode* m_node} {private local
+  }
+  decl {Fl_Widget* m_workspace} {private local
+  }
   Function {CNodePropDlg()} {open
   } {
     Fl_Window wndNodeProp {
-      label {Node properties} open
-      xywh {414 285 178 261} non_modal visible
+      label {Node properties} open selected
+      xywh {414 285 184 268} type Double color 0 non_modal visible
     } {
       Fl_Button btnApply {
         label Apply
@@ -34,46 +36,46 @@ class CNodePropDlg {open
 		m_workspace->set_changed();
 		m_workspace->redraw();
 	}
-}} selected
-        xywh {105 231 67 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+}}
+        xywh {108 235 67 25} box FLAT_BOX down_box FLAT_BOX color 41 labelsize 12
       }
       Fl_Group grpWorkspace {
         label Coordinates open
-        xywh {4 19 169 96} box PLASTIC_DOWN_FRAME labelsize 12 align 5
+        xywh {8 19 169 96} box FLAT_BOX color 36 labelsize 12 labelcolor 7 align 5
       } {
         Fl_Value_Input edtXCoord {
           label {X-Coordinate}
-          xywh {90 26 74 24} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+          xywh {94 26 74 24} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
         }
         Fl_Value_Input edtZCoord {
           label {Z-Coordinate}
-          xywh {90 82 74 25} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+          xywh {94 82 74 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 textsize 12
         }
         Fl_Value_Input edtYCoord {
           label {Y-Coordinate}
-          xywh {90 54 74 25} box PLASTIC_DOWN_BOX labelsize 12 textsize 12
+          xywh {94 54 74 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 textsize 12
         }
       }
       Fl_Button btnClose {
         label Close
-        callback {wndNodeProp->hide();} selected
-        xywh {38 231 61 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX labelsize 12
+        callback {wndNodeProp->hide();}
+        xywh {40 235 61 25} box FLAT_BOX down_box FLAT_BOX color 41 labelsize 12
       }
       Fl_Group grpDisplacements {
         label {Computed displacements} open
-        xywh {5 132 168 93} box PLASTIC_DOWN_FRAME labelsize 12 align 5
+        xywh {9 136 168 93} box FLAT_BOX color 36 labelsize 12 labelcolor 7 align 5
       } {
         Fl_Value_Input edtXDispl {
           label {X-Displ.}
-          xywh {87 138 78 25} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+          xywh {91 142 78 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
         }
         Fl_Value_Input edtYDispl {
           label {Y-Displ.}
-          xywh {87 166 78 25} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+          xywh {91 170 78 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
         }
         Fl_Value_Input edtZDispl {
           label {Z-Displ.}
-          xywh {87 194 78 25} box PLASTIC_DOWN_BOX labelsize 12 minimum -1e+300 maximum 1e+300 textsize 12
+          xywh {91 198 78 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
         }
       }
     }
@@ -135,4 +137,4 @@ else
   Function {hide()} {} {
     code {wndNodeProp->hide();} {}
   }
-} 
+}

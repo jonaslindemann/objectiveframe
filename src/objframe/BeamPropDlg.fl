@@ -1,21 +1,21 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <IvfFemBeam.h>} {public local
-} 
+}
 
 decl {\#include "MaterialDlg.h"} {private local
-} 
+}
 
 decl {\#include "IvfFemWidget.h"} {private local
-} 
+}
 
 class CBeamPropDlg {open
 } {
@@ -27,21 +27,21 @@ class CBeamPropDlg {open
   } {
     Fl_Window wndBeamProp {
       label {Beam information} open
-      xywh {666 72 212 360} type Double non_modal visible
+      xywh {553 355 221 366} type Double color 0 non_modal visible
     } {
       Fl_Button btnClose {
         label Close
         callback {wndBeamProp->hide();}
-        xywh {72 330 61 25} down_box DOWN_BOX labelsize 12
+        xywh {151 334 61 25} box FLAT_BOX down_box DOWN_BOX color 41 labelsize 12
       }
       Fl_Group grpBeamRotation {open
-        xywh {4 4 204 93} box DOWN_FRAME
+        xywh {9 8 204 93} box FLAT_BOX color 36
       } {
         Fl_Value_Slider sldBeamRotation {
           label {Beam rotation}
           callback {CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
 femWidget->setRotationSelected(sldBeamRotation->value());}
-          xywh {12 24 188 24} type Horizontal labelsize 12 align 5 maximum 360 step 5
+          xywh {17 28 188 24} type Horizontal box FLAT_BOX color 46 labelsize 12 labelcolor 7 align 5 maximum 360 step 5 textcolor 7
         }
         Fl_Button btnShowMaterialDlg {
           label {Edit assigned beam property}
@@ -58,30 +58,30 @@ femWidget->setRotationSelected(sldBeamRotation->value());}
 	delete dlg;
 	CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
 	femWidget->setNeedRecalc(true);
-}} selected
-          xywh {12 61 188 27} down_box DOWN_BOX labelsize 12
+}}
+          xywh {17 65 188 27} box FLAT_BOX down_box DOWN_BOX labelsize 12
         }
         Fl_Box boxDivider {
-          xywh {12 54 188 2} box ENGRAVED_BOX
+          xywh {17 58 188 2} box FLAT_BOX color 46
         }
       }
       Fl_Tabs tabResults {open
-        xywh {4 104 204 221} box UP_BOX
+        xywh {9 108 204 221} box FLAT_BOX color 39 selection_color 39
       } {
         Fl_Group grpSectionForces {
-          label {Section forces} open
-          xywh {8 127 199 196} labelsize 12 hide
+          label {Section forces} open selected
+          xywh {12 131 199 196} box FLAT_BOX color 36 selection_color 36 labelsize 12
         } {
           Fl_Browser lbSectionForces {
-            xywh {9 131 194 189} labelsize 12 textfont 4 textsize 10
+            xywh {14 135 194 189} box THIN_DOWN_BOX color 34 labelsize 12 textfont 4 textsize 10
           }
         }
         Fl_Group grpDisplacements {
           label Displacements open
-          xywh {6 128 200 194} labelsize 12
+          xywh {12 132 200 194} box FLAT_BOX color 36 selection_color 36 labelsize 12 hide
         } {
           Fl_Browser lbDisplacements {
-            xywh {9 131 194 189} textfont 4 textsize 10
+            xywh {14 135 194 189} box THIN_DOWN_BOX color 34 textfont 4 textsize 10
           }
         }
       }
@@ -162,4 +162,4 @@ else
 	}
 }} {}
   }
-} 
+}

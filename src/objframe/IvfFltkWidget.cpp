@@ -1,5 +1,5 @@
 //
-// Copyright 1999-2013 by Structural Mechanics, Lund University.
+// Copyright 1999-2018 by Structural Mechanics, Lund University.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -23,6 +23,8 @@
 
 #include <FL/x.H>
 
+#define USE_OFFSCREEN_RENDERING
+
 // ------------------------------------------------------------
 // Constructor/desctructor
 // ------------------------------------------------------------
@@ -35,9 +37,6 @@ CIvfFltkWidget::CIvfFltkWidget(int X, int Y, int W, int H, const char *L) :
     int oldMode = this->mode();
     this->mode(FL_RGB8 | FL_DOUBLE | FL_STENCIL | FL_MULTISAMPLE);
     int newMode = this->mode();
-
-    std::cout << "oldMode = " << oldMode << endl;
-    std::cout << "newMode = " << newMode << endl;
 
     m_currentButton = IVF_NO_BUTTON;
     m_currentModifier = IVF_NO_BUTTON;
@@ -560,14 +559,13 @@ void CIvfFltkWidget::draw()
 
         glPopAttrib();
 
-
         m_camera->setViewPort(w(), h());
         m_camera->initialize();
     }
 
-    m_scene->render();
-
     glPopMatrix();
+
+    m_scene->render();
 
 #ifdef USE_OFFSCREEN_RENDERING
     blitOffscreenBuffers();
@@ -819,11 +817,13 @@ void CIvfFltkWidget::doMotion(int x, int y)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
+    this->getScene()->showCursor();
     //if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
     {
         if (Fl::event_state(FL_BUTTON3)>0) {
             //if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
-            {
+        {
+                this->getScene()->hideCursor();
                 if (getCurrentModifier()==IVF_ALT)
                 {
                     m_zoomX = (x - m_beginX);
@@ -846,6 +846,7 @@ void CIvfFltkWidget::doMotion(int x, int y)
             m_scene->updateSizes();
             redraw();
         }
+
 
 #ifdef OLD_VIEW_HANDLING
         if (Fl::event_state(FL_BUTTON1)>0) {
@@ -1047,6 +1048,7 @@ void CIvfFltkWidget::doMouseUp(int x, int y)
 {
     // Call onMouseUp event method
 
+    this->getScene()->showCursor();
     onMouseUp(x, y);
 }
 

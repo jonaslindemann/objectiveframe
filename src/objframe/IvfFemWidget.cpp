@@ -306,16 +306,10 @@ void CIvfFemWidget::onInit()
     m_tactileForce->setState(CIvfShape::OS_OFF);
     this->getScene()->addChild(m_tactileForce);
 
-	CFemNode* node = new CFemNode();
-
-	m_nodeCursor = new CIvfFemNode();
-	m_nodeCursor->setBeamModel(m_beamModel);
-	m_nodeCursor->setFemNode(node);
-	//m_nodeCursor->setPosition(x, y, z);
+    m_nodeCursor = new CIvfSphere();
 	m_nodeCursor->setMaterial(m_nodeMaterial);
-	m_nodeCursor->setDirectRefresh(true);
-	this->getScene()->addChild(m_nodeCursor);
-	m_nodeCursor->disable();
+    m_nodeCursor->setRadius(m_beamModel->getNodeSize());
+    this->getScene()->setCursorShape(m_nodeCursor);
 
     so_print("DialogMgr: Creating element load dialog.");
     m_dlgElementLoads = new CElementLoadsDlg();
@@ -586,7 +580,8 @@ void CIvfFemWidget::setEditMode(int mode)
 
     // set highlight filter
 
-	m_nodeCursor->disable();
+    this->getScene()->disableCursor();
+    this->getScene()->disableCursorShape();
 	
 	switch (mode) {
     case IVF_SELECT:
@@ -634,13 +629,14 @@ void CIvfFemWidget::setEditMode(int mode)
 
 	if (mode == IVF_CREATE_NODE)
 	{
-		this->getScene()->disableCursor();
-		m_nodeCursor->enable();
-	}
+		this->getScene()->enableCursor();
+        this->getScene()->enableCursorShape();
+    }
 	if (mode == IVF_MOVE)
 	{
-		this->getScene()->disableCursor();
-	}
+        this->getScene()->enableCursor();
+        this->getScene()->disableCursorShape();
+    }
 }
 
 
@@ -981,16 +977,10 @@ void CIvfFemWidget::newModel()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize*0.7);
 
-	CFemNode* node = new CFemNode();
-
-	m_nodeCursor = new CIvfFemNode();
-	m_nodeCursor->setBeamModel(m_beamModel);
-	m_nodeCursor->setFemNode(node);
-	//m_nodeCursor->setPosition(x, y, z);
+    m_nodeCursor = new CIvfSphere();
 	m_nodeCursor->setMaterial(m_nodeMaterial);
-	m_nodeCursor->setDirectRefresh(true);
-	this->getScene()->addChild(m_nodeCursor);
-	m_nodeCursor->disable();
+    m_nodeCursor->setRadius(m_beamModel->getNodeSize());
+    this->getScene()->setCursorShape(m_nodeCursor);
 
 	this->getScene()->addChild(m_tactileForce);
 
@@ -2072,9 +2062,6 @@ void CIvfFemWidget::onCoordinate(double x, double y, double z)
         m_coordWidget->label(m_coordText.c_str());
         m_coordWidget->redraw();
     }
-
-	if (m_overWorkspace)
-		m_nodeCursor->setPosition(x, y, z);
 }
 
 // ------------------------------------------------------------
@@ -2200,48 +2187,6 @@ void CIvfFemWidget::onOverlay()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glLineWidth(1.0);
 #endif
-}
-
-void CIvfFemWidget::onPreRender()
-{
-}
-
-void CIvfFemWidget::onPostRender()
-{
-    double x, y, z;
-    double w, h;
-
-    m_nodeCursor->getPosition(x, y, z);
-
-    cout << x << ", " << y << ", " << z << endl;
-
-    w = this->getWorkspace();
-    h = this->getWorkspace();
-
-    glDisable(GL_LIGHTING);
-
-    glBegin(GL_LINES);
-    for (int i=0; i<20; i++)
-    {
-        glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-        glVertex3d(-10.0 + (double)i, 0.0, -20.0);
-        glVertex3d(-10.0 + (double)i, 0.0, 20.0);
-    }
-    for (int i = 0; i<20; i++)
-    {
-        glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-        glVertex3d(-10.0 + (double)i, -20.0, 0.0);
-        glVertex3d(-10.0 + (double)i, 20.0, 0.0);
-    }
-    for (int i = 0; i<20; i++)
-    {
-        glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
-        glVertex3d(0.0, -10.0 + (double)i, -20.0);
-        glVertex3d(0.0, -10.0 + (double)i, 20.0);
-    }
-    glEnd();
-
-    glEnable(GL_LIGHTING);
 }
 
 // ------------------------------------------------------------
@@ -2492,15 +2437,11 @@ void CIvfFemWidget::onSelectFilter(CIvfShape *shape, bool &select)
 		if (shape->isClass("CIvfNode"))
 		{
 			CIvfNode* node = (CIvfNode*)shape;
-			if (node != m_nodeCursor)
-			{
-				double x, y, z;
-				node->getPosition(x, y, z);
-				if ((y > -0.00001) && (y < 0.00001))
-					select = true;
-				else
-					select = false;
-			}
+
+            double x, y, z;
+			node->getPosition(x, y, z);
+			if ((y > -0.00001) && (y < 0.00001))
+				select = true;
 			else
 				select = false;
 

@@ -1,7 +1,7 @@
 #ifndef IVFFEMWIDGET_H
 #define IVFFEMWIDGET_H
 
-#define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.4.0"
+#define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.5.0"
 #define ADVANCED_GL
 #include "ObjframeConfig.h"
 
@@ -66,26 +66,26 @@ class LeapInteraction;
 #include "StructureDlg.h"
 
 
-#define FRAME_FEM      0
-#define FRAME_GEOMETRY 1
+#define FRAME_FEM           0
+#define FRAME_GEOMETRY      1
 #define FRAME_DISPLACEMENTS 2
-#define FRAME_RESULTS 3
+#define FRAME_RESULTS       3
 
-#define OF_NORMAL         10001
-#define OF_FEEDBACK       10002
+#define OF_NORMAL           10001
+#define OF_FEEDBACK         10002
 
-#define SF_ALL      0
-#define SF_NODES	1
-#define SF_ELEMENTS 2
-#define SF_GROUND_NODES 3
+#define SF_ALL              0
+#define SF_NODES	        1
+#define SF_ELEMENTS         2
+#define SF_GROUND_NODES     3
 
-#define DF_ALL      0
-#define DF_NODES    1
-#define DF_ELEMENTS 2
+#define DF_ALL              0
+#define DF_NODES            1
+#define DF_ELEMENTS         2
 
-#define HF_ALL      0
-#define HF_NODES    1
-#define HF_ELEMENTS 2
+#define HF_ALL              0
+#define HF_NODES            1
+#define HF_ELEMENTS         2
 
 template <typename T>
 string to_string ( T Number )
@@ -97,13 +97,13 @@ string to_string ( T Number )
 
 #include "IvfFltkWidget.h"
 
-
 class CIvfFemWidget : public CIvfFltkWidget {
 private:
     std::string m_coordText;
     int     m_representation;
     std::string   m_fileName;
     std::string   m_progPath;
+
     bool    m_overlaySelected;
     bool    m_haveScaleFactor;
     bool    m_needRecalc;
@@ -166,7 +166,7 @@ private:
     CIvfSpherePtr       m_sphere;
     CIvfExtrArrowPtr    m_tactileForce;
 
-	CIvfFemNodePtr		m_nodeCursor;
+    CIvfSpherePtr       m_nodeCursor;
 
     // Overlay stuff
 #ifdef ADVANCED_GL
@@ -332,10 +332,6 @@ public:
     virtual void onInit();
     virtual void onInitContext();
     virtual void onOverlay();
-    virtual void onPreRender();
-    virtual void onPostRender();
-
-    
 };
 
 #endif

@@ -18,6 +18,8 @@
 #include <windows.h>
 #endif
 
+#undef USE_SPLASH
+
 #ifdef USE_LEAP
 #include "LeapListener.h"
 #endif
@@ -131,7 +133,7 @@ main(int argc, char **argv)
 #endif
 
 
-
+#ifdef USE_SPLASH
     //
     // Show a splash screen
     //
@@ -141,6 +143,7 @@ main(int argc, char **argv)
     splash->setTimer(true);
     splash->center();
     splash->show();
+#endif
 
     //
     // FLTK main loop
@@ -155,7 +158,10 @@ main(int argc, char **argv)
     //
 
     delete frame;
+
+#ifdef USE_SPLASH
     delete splash;
+#endif
 
     so_hide();
 }

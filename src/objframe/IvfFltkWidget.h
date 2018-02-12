@@ -133,6 +133,9 @@ using namespace std;
 
 IvfSmartPointer(CIvfFltkWidget);
 
+#define GLT_MANUAL_VIEWPORT
+#include <gltext.h>
+
 /**
  * Ivf FLTK Widget
  *

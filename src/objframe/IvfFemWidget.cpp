@@ -3,6 +3,8 @@
 #include <sstream>
 
 #include <FL/x.H>
+#include <FL/gl.h>
+#include <FL/fl_draw.H>
 
 #include <FL/Fl_Native_File_Chooser.H>
 
@@ -1321,6 +1323,13 @@ void CIvfFemWidget::setupOverlay()
 #ifdef ADVANCED_GL
     CIvfPlaneButton* button;
 
+    // Roboto-Regular.ttf
+
+    m_logoFont = new FTGLPolygonFont("fonts/Roboto-Regular.ttf");
+    //m_coordFont = new FTGLTextureFont("fonts/Roboto-Regular.ttf");
+    m_logoFont->FaceSize(48);
+   // m_coordFont->FaceSize(72);
+
     /*
      m_logoFace = new FTFace();
      m_logoFace->open("fonts/BATTLE3.TTF");
@@ -2118,6 +2127,7 @@ void CIvfFemWidget::onOverlay()
 #ifdef ADVANCED_GL
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
+    glDisable(GL_DEPTH_TEST);
     //glLineWidth(2.0);
 
     // Render areas
@@ -2136,6 +2146,20 @@ void CIvfFemWidget::onOverlay()
     m_viewArea->render();
 
     // Render logo text
+
+    glColor4f(0.3f, 0.3f, 0.0f, 1.0f);
+    //glAlphaFunc(GL_GREATER, 0.02f); // Reject fragments with alpha < 0.2
+    //glEnable(GL_ALPHA_TEST);
+
+    float llx, lly, llz, urx, ury, urz;
+    m_logoFont->BBox("ObjectiveFrame", llx, lly, llz, urx, ury, urz);
+
+
+    glPushMatrix();
+    glTranslated(w()-(urx-llx)-25, ury - lly + 10, 0.0);
+    glScalef(1.0, -1.0, 0.0);
+    m_logoFont->Render("ObjectiveFrame");
+    glPopMatrix();
 
     /*
      glColor4f(0.8f,0.8f,0.0f,1.0f);
@@ -2186,6 +2210,8 @@ void CIvfFemWidget::onOverlay()
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glLineWidth(1.0);
+    glEnable(GL_DEPTH_TEST);
+
 #endif
 }
 

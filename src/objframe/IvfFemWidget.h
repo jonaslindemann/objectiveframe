@@ -40,7 +40,7 @@
 #endif
 
 #ifdef ADVANCED_GL
-//#include <FTGL/FTFace.h>
+#include <FTGL/ftgl.h>
 //#include <GLTTFont.h>
 //#include <GLTTPixmapFont.h>
 #endif
@@ -170,6 +170,9 @@ private:
 
     // Overlay stuff
 #ifdef ADVANCED_GL
+    FTGLPolygonFont* m_logoFont;
+    FTGLPolygonFont* m_coordFont;
+
     //FTFace* m_logoFace;
     //GLTTPixmapFont* m_logoFont;
     //FTFace* m_coordFace;

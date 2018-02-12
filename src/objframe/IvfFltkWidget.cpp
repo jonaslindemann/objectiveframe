@@ -17,11 +17,13 @@
 // USA.
 //
 // Please report all bugs and problems to "ivf@byggmek.lth.se".
-//
+//   
 
 #include "IvfFltkWidget.h"
 
 #include <FL/x.H>
+#include <FL/gl.h>
+#include <FL/fl_draw.H>
 
 #define USE_OFFSCREEN_RENDERING
 
@@ -502,7 +504,7 @@ void CIvfFltkWidget::draw()
 			updateOffscreenBuffers();
 #endif
 			
-			onInit();
+            onInit();
             m_initDone = true;
 			m_prevWindowSize[0] = w();
 			m_prevWindowSize[1] = h();
@@ -541,6 +543,12 @@ void CIvfFltkWidget::draw()
     m_camera->moveVertical(m_moveY*m_workspaceSize/1000.0);
     m_camera->moveDepth(m_zoomY*m_workspaceSize/500.0);
 
+    glPopMatrix();
+
+    m_scene->render();
+
+    glPushMatrix();
+
     if (m_doOverlay)
     {
         glPushAttrib(GL_ENABLE_BIT);
@@ -565,7 +573,6 @@ void CIvfFltkWidget::draw()
 
     glPopMatrix();
 
-    m_scene->render();
 
 #ifdef USE_OFFSCREEN_RENDERING
     blitOffscreenBuffers();

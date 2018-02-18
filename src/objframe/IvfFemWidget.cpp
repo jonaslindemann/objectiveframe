@@ -2057,14 +2057,23 @@ void CIvfFemWidget::onSelect(CIvfComposite* selectedShapes)
     }
 }
 
+std::string CIvfFemWidget::float2str(double value)
+{
+    std::stringstream coordStream;
+    coordStream << std::fixed << std::setw(10) << std::setprecision(2) << value;
+    return coordStream.str();
+}
+
 // ------------------------------------------------------------
 void CIvfFemWidget::onCoordinate(double x, double y, double z)
 {
     // Update coordinate display
 
     m_coordText = "";
-    std::stringstream coordStream(m_coordText);
-    coordStream << "x = " << x << ", y = " << y << ", z = " << z;
+   
+    m_xCoord = float2str(x);
+    m_yCoord = float2str(y);
+    m_zCoord = float2str(z);
 
     if (m_coordWidget!=NULL)
     {
@@ -2121,6 +2130,17 @@ void CIvfFemWidget::onMove(CIvfComposite *selectedShapes, double &dx, double &dy
     m_needRecalc = true;
 }
 
+void CIvfFemWidget::drawTextRight(std::string text, double x, double y, double scale)
+{
+    float llx, lly, llz, urx, ury, urz;
+    m_logoFont->BBox(text.c_str(), llx, lly, llz, urx, ury, urz);
+    glPushMatrix();
+    glTranslated(x - (urx - llx), y + ury - lly, 0.0);
+    glScalef(scale, -scale, 0.0);
+    m_logoFont->Render(text.c_str());
+    glPopMatrix();
+}
+
 // ------------------------------------------------------------
 void CIvfFemWidget::onOverlay()
 {
@@ -2151,15 +2171,14 @@ void CIvfFemWidget::onOverlay()
     //glAlphaFunc(GL_GREATER, 0.02f); // Reject fragments with alpha < 0.2
     //glEnable(GL_ALPHA_TEST);
 
-    float llx, lly, llz, urx, ury, urz;
-    m_logoFont->BBox("ObjectiveFrame", llx, lly, llz, urx, ury, urz);
+    this->drawTextRight(m_xCoord, w() - 5, 20, 0.5);
+    this->drawTextRight(m_yCoord, w() - 5, 50, 0.5);
+    this->drawTextRight(m_zCoord, w() - 5, 80, 0.5);
 
+    this->drawTextRight("X ", w() - 220, 20, 0.5);
+    this->drawTextRight("Y", w() - 220, 50, 0.5);
+    this->drawTextRight("Z ", w() - 220, 80, 0.5);
 
-    glPushMatrix();
-    glTranslated(w()-(urx-llx)-25, ury - lly + 10, 0.0);
-    glScalef(1.0, -1.0, 0.0);
-    m_logoFont->Render("ObjectiveFrame");
-    glPopMatrix();
 
     /*
      glColor4f(0.8f,0.8f,0.0f,1.0f);

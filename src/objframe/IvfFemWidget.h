@@ -100,6 +100,11 @@ string to_string ( T Number )
 class CIvfFemWidget : public CIvfFltkWidget {
 private:
     std::string m_coordText;
+    std::string m_modeDescr;
+    std::string m_xCoord;
+    std::string m_yCoord;
+    std::string m_zCoord;
+
     int     m_representation;
     std::string   m_fileName;
     std::string   m_progPath;
@@ -210,6 +215,7 @@ private:
     CStructureDlg* m_dlgStructure;
 
 	void makeToolWindow(Fl_Window* window);
+    std::string float2str(double value);
 
 public:
     CIvfFemWidget(int X, int Y, int W, int H, const char *L=0);
@@ -309,7 +315,8 @@ public:
     void setTactileForce(CIvfExtrArrowPtr force);
     CIvfFemNodePtr getInteractionNode();
     void setInteractionNode(CIvfFemNode* interactionNode);
-    
+    void drawTextRight(std::string text, double x, double y, double scale);
+
     // Implemented widget events
 #ifdef USE_LEAP
     void fingerMove(Finger finger);

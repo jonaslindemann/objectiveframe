@@ -5,7 +5,7 @@
 #include <FL/Fl.H>
 #define MR_OK 0
 #define MR_CANCEL 1
-#include <IvfFemBeam.h>
+#include <VisFemBeam.h>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Group.H>
@@ -15,8 +15,8 @@
 #include <FL/Fl_Browser.H>
 
 class CBeamPropDlg {
-  CIvfFemBeam* m_beam; 
-  void* m_femWidget; 
+  VisFemBeam* m_beam;
+  void* m_femWidget;
 public:
   CBeamPropDlg();
   Fl_Double_Window *wndBeamProp;
@@ -43,8 +43,8 @@ public:
   Fl_Group *grpDisplacements;
   Fl_Browser *lbDisplacements;
   void show();
-  void setBeam(CIvfFemBeam* beam);
-  CIvfFemBeam* getBeam();
+  void setBeam(VisFemBeam* beam);
+  VisFemBeam* getBeam();
   void hide();
   void setFemWidget(void* femWidget);
   void fillListboxes();

@@ -4,7 +4,9 @@
 
 #include "IvfButtonGroup.h"
 
-#include <ivf/IvfGenericButton.h>
+#include <ivf/GenericButton.h>
+
+using namespace ivf;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -27,8 +29,8 @@ void CIvfButtonGroup::clearChecked()
 
     for (i=0; i<this->getSize(); i++)
     {
-        CIvfGenericButton* button = (CIvfGenericButton*) this->getChild(i);
-        button->setButtonState(CIvfGenericButton::BS_NORMAL);
+        GenericButton* button = static_cast<GenericButton*>(this->getChild(i));
+        button->setButtonState(GenericButton::BS_NORMAL);
     }
 }
 
@@ -38,8 +40,8 @@ void CIvfButtonGroup::check(int idx)
     {
         m_checkIdx = idx;
         this->clearChecked();
-        CIvfGenericButton* button = (CIvfGenericButton*) this->getChild(idx);
-        button->setButtonState(CIvfGenericButton::BS_CHECKED);
+        GenericButton* button = static_cast<GenericButton*>(this->getChild(idx));
+        button->setButtonState(GenericButton::BS_CHECKED);
     }
 }
 

@@ -1,18 +1,19 @@
 #ifndef _CIvfButtonGroup_h_
 #define _CIvfButtonGroup_h_
 
-#include <ivf/IvfComposite.h>
+#include <ivf/Composite.h>
 
-class CIvfButtonGroup : public CIvfComposite {
+class CIvfButtonGroup : public ivf::Composite {
 private:
     int m_checkIdx;
 public:
-    void recheck();
     CIvfButtonGroup();
     virtual ~CIvfButtonGroup();
 
     void check(int idx);
     void clearChecked();
+
+    void recheck();
 };
 
 #endif

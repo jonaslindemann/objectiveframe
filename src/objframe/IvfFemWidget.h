@@ -1,30 +1,28 @@
 #ifndef IVFFEMWIDGET_H
 #define IVFFEMWIDGET_H
 
-#define OBJFRAME_VERSION_STRING "ObjectiveFrame 1.5.0"
+#define OBJFRAME_VERSION_STRING "ObjectiveFrame 2.0.0"
 #define ADVANCED_GL
 #include "ObjframeConfig.h"
-
-#include <ivf/ivfconfig.h>
 
 #include <string>
 #include <sstream>
 
-#include <ivf/IvfBase.h>
-#include <ivf/IvfShape.h>
-#include <ivf/IvfMaterial.h>
-#include <ivf/IvfQuadPlane.h>
-#include <ivf/IvfSphere.h>
-#include <ivf/IvfSelectOrtho.h>
-#include <ivf/IvfComposite.h>
-#include <ivf/IvfExtrArrow.h>
+#include <ivf/Base.h>
+#include <ivf/Shape.h>
+#include <ivf/Material.h>
+#include <ivf/QuadPlane.h>
+#include <ivf/Sphere.h>
+#include <ivf/SelectOrtho.h>
+#include <ivf/Composite.h>
+#include <ivf/ExtrArrow.h>
 
-#include <IvfFemNode.h>
-#include <IvfFemBeam.h>
-#include <IvfBeamModel.h>
-#include <IvfFemBeamLoad.h>
-#include <IvfFemNodeLoad.h>
-#include <IvfFemNodeBC.h>
+#include <VisFemNode.h>
+#include <VisFemBeam.h>
+#include <VisBeamModel.h>
+#include <VisFemBeamLoad.h>
+#include <VisFemNodeLoad.h>
+#include <VisFemNodeBC.h>
 
 #include <FemBeamLoad.h>
 #include <FemBeamNodeLoad.h>
@@ -149,7 +147,7 @@ private:
     CFemBeamLoadPtr     m_currentElementLoad;
     CFemBeamNodeLoadPtr m_currentNodeLoad;
     CFemBeamNodeBCPtr   m_currentNodeBC;
-    CIvfFemNodePtr      m_interactionNode;
+    VisFemNodePtr      m_interactionNode;
 #ifdef USE_LEAP
     LeapInteraction* m_leapinteraction;
 #endif
@@ -159,19 +157,19 @@ private:
     CFemInternalSolver* m_internalSolver;
 #endif
 
-    CIvfMaterialPtr     m_nodeMaterial;
-    CIvfMaterialPtr		m_lineMaterial;
-    CIvfShapePtr        m_selectedShape;
+    ivf::MaterialPtr     m_nodeMaterial;
+    ivf::MaterialPtr		m_lineMaterial;
+    ivf::ShapePtr        m_selectedShape;
 #ifdef ADVANCED_GL
     CIvfPlaneButton*	m_selectedButton;
 #endif
-    CIvfCompositePtr    m_beamLoads;
-    CIvfBeamModelPtr    m_beamModel;
-    CIvfQuadPlanePtr    m_plane;
-    CIvfSpherePtr       m_sphere;
-    CIvfExtrArrowPtr    m_tactileForce;
+    ivf::CompositePtr    m_beamLoads;
+    VisBeamModelPtr    m_beamModel;
+    ivf::QuadPlanePtr    m_plane;
+    ivf::SpherePtr       m_sphere;
+    ivf::ExtrArrowPtr    m_tactileForce;
 
-    CIvfSpherePtr       m_nodeCursor;
+    ivf::SpherePtr       m_nodeCursor;
 
     // Overlay stuff
 #ifdef ADVANCED_GL
@@ -184,7 +182,7 @@ private:
     //GLTTPixmapFont* m_coordFont;
     vector<CIvfArea2D*> m_areas;
     vector<CIvfPlaneButton*> m_buttons;
-    CIvfSelectOrtho* m_overlayScene;
+    ivf::SelectOrtho* m_overlayScene;
     CIvfButtonGroup* m_editButtons;
     CIvfButtonGroup* m_viewButtons;
     CIvfButtonGroup* m_objectButtons;
@@ -226,7 +224,7 @@ public:
     void setFileName(const std::string& name);
     void setCurrentMaterial(CFemBeamMaterial* material);
     void setCurrentBeamLoad(CFemBeamLoad* elementLoad);
-    CIvfShape*        getSelectedShape();
+    ivf::Shape*        getSelectedShape();
     CFemBeamMaterial* getCurrentMaterial();
     Fl_Widget*        getCoordWidget();
     const std::string getFileName();
@@ -266,7 +264,7 @@ public:
 	void removeNodesFromNodeLoad();
 	void removeBCsFromBC();
     void refreshToolbars();
-    void onHighlightFilter(CIvfShape* shape, bool &highlight);
+    void onHighlightFilter(ivf::Shape* shape, bool &highlight);
     void deleteSelected();
     void unlockScaleFactor();
     void lockScaleFactor();
@@ -311,28 +309,28 @@ public:
     LeapInteraction* getLeapInteraction();
     void updateLeapFrame(Frame leapFrame);
 #endif
-    CIvfExtrArrowPtr getTactileForce();
-    void setTactileForce(CIvfExtrArrowPtr force);
-    CIvfFemNodePtr getInteractionNode();
-    void setInteractionNode(CIvfFemNode* interactionNode);
+    ivf::ExtrArrowPtr getTactileForce();
+    void setTactileForce(ivf::ExtrArrowPtr force);
+    VisFemNodePtr getInteractionNode();
+    void setInteractionNode(VisFemNode* interactionNode);
     void drawTextRight(std::string text, double x, double y, double scale);
 
     // Implemented widget events
 #ifdef USE_LEAP
     void fingerMove(Finger finger);
 #endif
-    void onCreateNode(double x, double y, double z, CIvfNode* &newNode);
-    void onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine);
-    void onSelect(CIvfComposite* selectedShapes);
+    void onCreateNode(double x, double y, double z, ivf::Node* &newNode);
+    void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape* &newLine);
+    void onSelect(ivf::Composite* selectedShapes);
     void onCoordinate(double x, double y, double z);
-    void onDeleteShape(CIvfShape* shape, bool &doit);
-    void onHighlightShape(CIvfShape* shape);
+    void onDeleteShape(ivf::Shape* shape, bool &doit);
+    void onHighlightShape(ivf::Shape* shape);
     void onMouse(int x, int y);
     void onMouseDown(int x, int y);
     void onMouseUp(int x, int y);
     void onPassiveMotion(int x, int y);
-    void onSelectFilter(CIvfShape* shape, bool &select);
-    void onMove(CIvfComposite* selectedShapes, double &dx, double &dy, double &dz, bool &doit);
+    void onSelectFilter(ivf::Shape* shape, bool &select);
+    void onMove(ivf::Composite* selectedShapes, double &dx, double &dy, double &dz, bool &doit);
     void onMotion(int x, int y);
     void onDeSelect();
     void onKeyboard(int key);

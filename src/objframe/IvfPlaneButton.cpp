@@ -3,15 +3,14 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "IvfPlaneButton.h"
-#include <ivf/IvfLineSet.h>
-#include <ivfimage/IvfSgiImage.h>
-#include <ivfimage/IvfPngImage.h>
 
-#ifdef HAVE_CSTRING
+#include <ivf/LineSet.h>
+#include <ivfimage/SgiImage.h>
+#include <ivfimage/PngImage.h>
+
 #include <cstring>
-#else
-#include <string.h>
-#endif
+
+using namespace ivf;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -22,46 +21,46 @@ CIvfPlaneButton::CIvfPlaneButton(int id)
     this->setUseName(true);
     this->setId(id);
 
-    CIvfMaterialPtr material;
-    m_normalShape = new CIvfQuadPlane();
+    MaterialPtr material;
+    m_normalShape = QuadPlane::create();
     m_normalShape->setSize(50.0,50.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(1.0f, 1.0f, 0.8f, 0.5f);
     m_normalShape->setMaterial(material);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(1.0f, 1.0f, 1.0f, 0.5f);
     m_normalShape->setHighlightMaterial(material);
     m_normalShape->setUseName(false);
     this->addChild(m_normalShape);
 
-    m_pressedShape = new CIvfQuadPlane();
+    m_pressedShape = QuadPlane::create();
     //m_pressedShape->flipVert();
     m_pressedShape->setSize(45.0,45.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.8f, 0.8f, 0.8f, 0.5f);
     m_pressedShape->setMaterial(material);
     m_pressedShape->setHighlightMaterial(material);
     m_pressedShape->setUseName(false);
     this->addChild(m_pressedShape);
 
-    m_disabledShape = new CIvfQuadPlane();
+    m_disabledShape = QuadPlane::create();
     //m_disabledShape->flipVert();
     m_disabledShape->setSize(50.0,50.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.5f, 0.5f, 0.5f, 0.5f);
     m_disabledShape->setMaterial(material);
     m_disabledShape->setHighlightMaterial(material);
     m_disabledShape->setUseName(false);
     this->addChild(m_disabledShape);
 
-    m_checkedShape = new CIvfComposite();
+    m_checkedShape = Composite::create();
 
-    m_checkedFrame = new CIvfLineSet();
+    m_checkedFrame = LineSet::create();
     m_checkedFrame->addCoord(-25.0,  25.0, 0.0);
     m_checkedFrame->addCoord( 25.0,  25.0, 0.0);
     m_checkedFrame->addCoord( 25.0, -25.0, 0.0);
     m_checkedFrame->addCoord(-25.0, -25.0, 0.0);
-    CIvfIndex* idx = new CIvfIndex();
+    Index* idx = Index::create();
     idx->add((long)0,(long)1);
     idx->add((long)1,(long)2);
     idx->add((long)2,(long)3);
@@ -70,10 +69,10 @@ CIvfPlaneButton::CIvfPlaneButton(int id)
     m_checkedFrame->setUseName(false);
     m_checkedShape->addChild(m_checkedFrame);
 
-    m_checkedPlane = new CIvfQuadPlane();
+    m_checkedPlane = QuadPlane::create();
     //m_checkedPlane->flipVert();
     m_checkedPlane->setSize(50.0,50.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.7f, 0.0f, 0.0f, 0.5f);
     m_checkedPlane->setMaterial(material);
     m_checkedPlane->setHighlightMaterial(material);
@@ -88,13 +87,13 @@ CIvfPlaneButton::CIvfPlaneButton(int id)
 
 CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
 {
-    CIvfPngImagePtr image = new CIvfPngImage();
+    PngImagePtr image = PngImage::create();
     image->setFileName(name);
     if (!image->read())
         std::cout << "Error: Could not read texture - " << name << std::endl;
 
-    CIvfTexturePtr texture;
-    texture = new CIvfTexture();
+    TexturePtr texture;
+    texture = Texture::create();
     texture->setImage(image);
     texture->setFilters(GL_LINEAR, GL_LINEAR);
     texture->setTextureMode(GL_DECAL);
@@ -102,22 +101,22 @@ CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
     this->setUseName(true);
     this->setId(id);
 
-    CIvfMaterialPtr material;
-    m_normalShape = new CIvfQuadPlane();
+    MaterialPtr material;
+    m_normalShape = QuadPlane::create();
     m_normalShape->setSize(50.0,50.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.0f, 0.0f, 0.0f, 0.5f);
     m_normalShape->setMaterial(material);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.0f, 0.0f, 0.0f, 0.0f);
     m_normalShape->setHighlightMaterial(material);
     m_normalShape->setUseName(false);
     m_normalShape->setTexture(texture);
     this->addChild(m_normalShape);
 
-    m_pressedShape = new CIvfQuadPlane();
+    m_pressedShape = QuadPlane::create();
     m_pressedShape->setSize(45.0,45.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.0f, 0.0f, 0.0f, 0.5f);
     m_pressedShape->setMaterial(material);
     m_pressedShape->setHighlightMaterial(material);
@@ -125,9 +124,9 @@ CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
     m_pressedShape->setTexture(texture);
     this->addChild(m_pressedShape);
 
-    m_disabledShape = new CIvfQuadPlane();
+    m_disabledShape = QuadPlane::create();
     m_disabledShape->setSize(50.0,50.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.5f, 0.5f, 0.5f, 0.5f);
     m_disabledShape->setMaterial(material);
     m_disabledShape->setHighlightMaterial(material);
@@ -135,9 +134,9 @@ CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
     m_disabledShape->setTexture(texture);
     this->addChild(m_disabledShape);
 
-    m_checkedShape = new CIvfComposite();
+    m_checkedShape = Composite::create();
 
-    m_checkedFrame = new CIvfLineSet();
+    m_checkedFrame = LineSet::create();
     m_checkedFrame->addCoord(-25.0,  25.0, 0.0);
     m_checkedFrame->addCoord( 25.0,  25.0, 0.0);
     m_checkedFrame->addCoord( 25.0, -25.0, 0.0);
@@ -147,14 +146,14 @@ CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
     m_checkedFrame->addColor(0.3f, 0.3f, 0.0f, 0.2f);
     m_checkedFrame->addColor(0.3f, 0.3f, 0.0f, 0.2f);
 
-    CIvfIndexPtr idx = new CIvfIndex();
+    IndexPtr idx = Index::create();
     idx->add((long)0,(long)1);
     idx->add((long)1,(long)2);
     idx->add((long)2,(long)3);
     idx->add((long)3,(long)0);
     m_checkedFrame->addCoordIndex(idx);
 
-    CIvfIndexPtr colorIdx = new CIvfIndex();
+    IndexPtr colorIdx = Index::create();
     colorIdx->assignFrom(idx);
     m_checkedFrame->addColorIndex(idx);
     m_checkedFrame->setUseColor(true);
@@ -163,9 +162,9 @@ CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
     m_checkedFrame->setUseName(false);
     m_checkedShape->addChild(m_checkedFrame);
 
-    m_checkedPlane = new CIvfQuadPlane();
+    m_checkedPlane = QuadPlane::create();
     m_checkedPlane->setSize(50.0,50.0);
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(0.7f, 0.0f, 0.0f, 0.5f);
     m_checkedPlane->setMaterial(material);
     m_checkedPlane->setHighlightMaterial(material);
@@ -184,7 +183,7 @@ CIvfPlaneButton::~CIvfPlaneButton()
 
 }
 
-void CIvfPlaneButton::setTexture(CIvfTexture *texture)
+void CIvfPlaneButton::setTexture(Texture *texture)
 {
     m_normalShape->setTexture(texture);
     m_pressedShape->setTexture(texture);

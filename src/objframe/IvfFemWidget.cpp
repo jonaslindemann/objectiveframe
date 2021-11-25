@@ -10,10 +10,10 @@
 
 #include <FL/fl_message.H>
 
-#include <ivf/IvfCoordinateSystem.h>
-#include <ivf/IvfTexture.h>
-#include <ivfimage/IvfSgiImage.h>
-#include <ivf/IvfFog.h>
+#include <ivf/CoordinateSystem.h>
+#include <ivf/Texture.h>
+#include <ivfimage/SgiImage.h>
+#include <ivf/Fog.h>
 
 #include <FemBeam.h>
 #include <FemNode.h>
@@ -57,6 +57,8 @@
 #define BTN_VIEW_CENTER   1013
 #define BTN_MATERIALS     1014
 #define BTN_FEEDBACK      1020
+
+using namespace ivf;
 
 // ------------------------------------------------------------
 // ------------------------------------------------------------
@@ -150,7 +152,7 @@ void CIvfFemWidget::onInit()
     // Intialize transparent workspace plane
 
 #ifdef ADVANCED_GL
-    CIvfMaterialPtr material = new CIvfMaterial();
+    auto material = Material::create();
     material->setDiffuseColor(1.0f, 1.0f, 1.0f, 0.8f);
     material->setSpecularColor(1.0f, 1.0f, 1.0f, 0.8f);
     material->setAmbientColor(0.3f, 0.3f, 0.3f, 0.8f);
@@ -208,7 +210,7 @@ void CIvfFemWidget::onInit()
     // Define node material
 
     so_print("FemWidget: Defining node material.");
-    m_nodeMaterial = new CIvfMaterial();
+    m_nodeMaterial = Material::create();
     m_nodeMaterial->addReference();
     m_nodeMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
     m_nodeMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -217,7 +219,7 @@ void CIvfFemWidget::onInit()
     // Define line material
 
     so_print("FemWidget: Defining line material.");
-    m_lineMaterial = new CIvfMaterial();
+    m_lineMaterial = Material::create();
     m_lineMaterial->addReference();
     m_lineMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
     m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -232,12 +234,12 @@ void CIvfFemWidget::onInit()
     std::cout << m_progPath << std::endl;
 
     so_print("FemWidget: Initializing beam model.");
-    m_beamModel = new CIvfBeamModel();
+    m_beamModel = new VisBeamModel();
     m_beamModel->initialize();
     m_beamModel->setPath(colorPath);
     m_beamModel->setScene(this->getScene()->getComposite());
     m_beamModel->setNodeSize(this->getWorkspace()*m_relNodeSize);
-    m_beamModel->setNodeType(CIvfNode::NT_CUBE);
+    m_beamModel->setNodeType(Node::NT_CUBE);
     m_beamModel->setLineRadius(this->getWorkspace()*m_relLineRadius);
     m_beamModel->setLoadSize(this->getWorkspace()*m_relLoadSize);
     m_beamModel->setBeamLoadSize(this->getWorkspace()*m_relLoadSize);
@@ -249,7 +251,7 @@ void CIvfFemWidget::onInit()
     // Initialize color table
 
     so_print("FemWidget: Initializing color table.");
-    CIvfColorTable* colorTable = m_beamModel->getColorTable();
+    auto colorTable = m_beamModel->getColorTable();
     uchar r,g,b;
 
     for (int i=0; i<256; i++)
@@ -277,7 +279,7 @@ void CIvfFemWidget::onInit()
     m_overlaySelected = false;
 
 #ifdef ADVANCED_GL
-    m_overlayScene = new CIvfSelectOrtho();
+    m_overlayScene = SelectOrtho::create();
     m_overlayScene->setViewport(m_width, m_height);
     m_overlayScene->setUseCustomTransform(false);
     this->setUseOverlay(true);
@@ -289,7 +291,7 @@ void CIvfFemWidget::onInit()
     // Create tactile Force icon
 
     so_print("FemWidget: Setting material for tactile force.");
-    material = new CIvfMaterial();
+    material = Material::create();
     material->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
     material->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
     material->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -298,17 +300,17 @@ void CIvfFemWidget::onInit()
 
     double loadSize = m_beamModel->getLoadSize();
 
-    m_tactileForce = new CIvfExtrArrow();
+    m_tactileForce = ExtrArrow::create();
     m_tactileForce->setSize(loadSize*0.6, loadSize*0.6*0.20);
     m_tactileForce->setRadius(loadSize*0.055, loadSize*0.035);
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize*0.7);
     m_tactileForce->setMaterial(material);
     m_tactileForce->addReference();
-    m_tactileForce->setState(CIvfShape::OS_OFF);
+    m_tactileForce->setState(Shape::OS_OFF);
     this->getScene()->addChild(m_tactileForce);
 
-    m_nodeCursor = new CIvfSphere();
+    m_nodeCursor = Sphere::create();
 	m_nodeCursor->setMaterial(m_nodeMaterial);
     m_nodeCursor->setRadius(m_beamModel->getNodeSize());
     this->getScene()->setCursorShape(m_nodeCursor);
@@ -433,7 +435,7 @@ void CIvfFemWidget::setWorkspace(double size)
     if (m_beamModel!=NULL)
     {
         m_beamModel->setNodeSize(this->getWorkspace()*m_relNodeSize);
-        m_beamModel->setNodeType(CIvfNode::NT_CUBE);
+        m_beamModel->setNodeType(Node::NT_CUBE);
         m_beamModel->setLineRadius(this->getWorkspace()*m_relLineRadius);
         m_beamModel->setLoadSize(this->getWorkspace()*m_relLoadSize);
         m_beamModel->setBeamLoadSize(this->getWorkspace()*m_relLoadSize);
@@ -549,7 +551,7 @@ void CIvfFemWidget::setRepresentation(int repr)
 }
 
 // ------------------------------------------------------------
-CIvfShape* CIvfFemWidget::getSelectedShape()
+Shape* CIvfFemWidget::getSelectedShape()
 {
     // Return currently selected shape
 
@@ -611,7 +613,7 @@ void CIvfFemWidget::setEditMode(int mode)
 
     if (!m_customModeSet)
     {
-        m_tactileForce->setState(CIvfShape::OS_OFF);
+        m_tactileForce->setState(Shape::OS_OFF);
         m_interactionNode = NULL;
         m_customMode = OF_NORMAL;
         this->redraw();
@@ -621,7 +623,7 @@ void CIvfFemWidget::setEditMode(int mode)
 
     if (m_customMode==OF_FEEDBACK)
     {
-        this->getScene()->getComposite()->setHighlightChildren(CIvfShape::HS_OFF);
+        this->getScene()->getComposite()->setHighlightChildren(Shape::HS_OFF);
         this->setRepresentation(FRAME_DISPLACEMENTS);
     }
 
@@ -645,15 +647,15 @@ void CIvfFemWidget::setEditMode(int mode)
 // ------------------------------------------------------------
 void CIvfFemWidget::setBeamRefreshMode(int mode)
 {
-    CIvfComposite* scene = this->getScene()->getComposite();
+    auto scene = this->getScene()->getComposite();
     int i;
 
     for (i=0; i<scene->getSize(); i++)
     {
-        CIvfShape* shape = scene->getChild(i);
+        auto shape = scene->getChild(i);
         if (shape->isClass("CIvfSolidLine"))
         {
-            CIvfSolidLine* solidLine = (CIvfSolidLine*) shape;
+            SolidLine* solidLine = static_cast<SolidLine*>(shape);
             solidLine->setRefresh(mode);
         }
     }
@@ -700,7 +702,7 @@ void CIvfFemWidget::setCustomMode(int mode)
     this->setBeamRefreshMode(IVF_REFRESH_NODES);
     if (m_customMode!=OF_NORMAL)
     {
-        m_tactileForce->setState(CIvfShape::OS_OFF);
+        m_tactileForce->setState(Shape::OS_OFF);
         m_interactionNode = NULL;
         this->clearSelection();
         this->redraw();
@@ -932,12 +934,12 @@ void CIvfFemWidget::newModel()
 
     // Setup new beam model
 
-    m_beamModel = new CIvfBeamModel();
+    m_beamModel = new VisBeamModel();
     m_beamModel->initialize();
     m_beamModel->setPath(colorPath);
     m_beamModel->setScene(this->getScene()->getComposite());
     m_beamModel->setNodeSize(this->getWorkspace()*m_relNodeSize);
-    m_beamModel->setNodeType(CIvfNode::NT_CUBE);
+    m_beamModel->setNodeType(Node::NT_CUBE);
     m_beamModel->setLineRadius(this->getWorkspace()*m_relLineRadius);
     m_beamModel->setLoadSize(this->getWorkspace()*m_relLoadSize);
     m_beamModel->setBeamLoadSize(this->getWorkspace()*m_relLoadSize);
@@ -950,7 +952,8 @@ void CIvfFemWidget::newModel()
 
     // Initialize color table
 
-    CIvfColorTable* colorTable = m_beamModel->getColorTable();
+    auto colorTable = m_beamModel->getColorTable();
+
     uchar r,g,b;
 
     for (int i=0; i<256; i++)
@@ -979,7 +982,7 @@ void CIvfFemWidget::newModel()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize*0.7);
 
-    m_nodeCursor = new CIvfSphere();
+    m_nodeCursor = Sphere::create();
 	m_nodeCursor->setMaterial(m_nodeMaterial);
     m_nodeCursor->setRadius(m_beamModel->getNodeSize());
     this->getScene()->setCursorShape(m_nodeCursor);
@@ -1012,14 +1015,14 @@ void CIvfFemWidget::assignMaterialToSelected()
 
     if (this->getCurrentMaterial()!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemBeam"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemBeam"))
             {
-                CIvfFemBeam* ivfBeam = (CIvfFemBeam*)shape;
-                ivfBeam->getBeam()->setMaterial(this->getCurrentMaterial());
+                VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+                visBeam->getBeam()->setMaterial(this->getCurrentMaterial());
             }
         }
 
@@ -1037,14 +1040,14 @@ void CIvfFemWidget::removeMaterialFromSelected()
 {
     // Remove materials from selected shapes
 
-    CIvfComposite* selected = this->getSelectedShapes();
+    auto selected = this->getSelectedShapes();
     for (int i=0; i<selected->getSize(); i++)
     {
-        CIvfShape* shape = selected->getChild(i);
-        if (shape->isClass("CIvfFemBeam"))
+       auto shape = selected->getChild(i);
+        if (shape->isClass("VisFemBeam"))
         {
-            CIvfFemBeam* ivfBeam = (CIvfFemBeam*)shape;
-            ivfBeam->getBeam()->setMaterial(NULL);
+            VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+            visBeam->getBeam()->setMaterial(NULL);
         }
     }
 
@@ -1064,12 +1067,12 @@ void CIvfFemWidget::deleteBeamLoad(CFemBeamLoad *elementLoad)
 
     // Get ivf representation from element load
 
-    CIvfFemBeamLoad* ivfBeamLoad = (CIvfFemBeamLoad*) elementLoad->getUser();
+    VisFemBeamLoad* visBeamLoad = static_cast<VisFemBeamLoad*>(elementLoad->getUser());
 
     // Remove shape from scene and delete it
 
-    this->getScene()->getComposite()->removeShape(ivfBeamLoad);
-    delete ivfBeamLoad;
+    this->getScene()->getComposite()->removeShape(visBeamLoad);
+    delete visBeamLoad;
 
     // Remove load from beam model
 
@@ -1097,24 +1100,24 @@ void CIvfFemWidget::addBeamLoad(CFemBeamLoad *elementLoad)
 
     // Create ivf represenation
 
-    CIvfFemBeamLoad* ivfLoad = new CIvfFemBeamLoad();
-    ivfLoad->setBeamModel(m_beamModel);
-    ivfLoad->setBeamLoad(elementLoad);
+    VisFemBeamLoad* visLoad = new VisFemBeamLoad();
+    visLoad->setBeamModel(m_beamModel);
+    visLoad->setBeamLoad(elementLoad);
 
     // Set user property of element load to point to
     // our ivf representation
 
-    elementLoad->setUser((void*)ivfLoad);
+    elementLoad->setUser(static_cast<void*>(visLoad));
 
     // Initialize ivf representation
 
-    ivfLoad->refresh();
+    visLoad->refresh();
 
     // Add representation to scene
 
     m_needRecalc = true;
 
-    this->addToScene(ivfLoad);
+    this->addToScene(visLoad);
 }
 
 // ------------------------------------------------------------
@@ -1125,24 +1128,24 @@ void CIvfFemWidget::addNodeLoad(CFemBeamNodeLoad *nodeLoad)
 
     // Create ivf represenation
 
-    CIvfFemNodeLoad* ivfNodeLoad = new CIvfFemNodeLoad();
-    ivfNodeLoad->setBeamModel(m_beamModel);
-    ivfNodeLoad->setNodeLoad(nodeLoad);
+    VisFemNodeLoad* visNodeLoad = new VisFemNodeLoad();
+    visNodeLoad->setBeamModel(m_beamModel);
+    visNodeLoad->setNodeLoad(nodeLoad);
 
     // Set user property of element load to point to
     // our ivf representation
 
-    nodeLoad->setUser((void*)ivfNodeLoad);
+    nodeLoad->setUser(static_cast<void*>(visNodeLoad));
 
     // Initialize ivf representation
 
-    ivfNodeLoad->refresh();
+    visNodeLoad->refresh();
 
     // Add representation to scene
 
     m_needRecalc = true;
 
-    this->addToScene(ivfNodeLoad);
+    this->addToScene(visNodeLoad);
 }
 
 // ------------------------------------------------------------
@@ -1153,24 +1156,24 @@ void CIvfFemWidget::addNodeBC(CFemBeamNodeBC *bc)
 
     // Create ivf represenation
 
-    CIvfFemNodeBC* ivfNodeBC = new CIvfFemNodeBC();
-    ivfNodeBC->setBeamModel(m_beamModel);
-    ivfNodeBC->setNodeBC(bc);
+    VisFemNodeBC* visNodeBC = new VisFemNodeBC();
+    visNodeBC->setBeamModel(m_beamModel);
+    visNodeBC->setNodeBC(bc);
 
     // Set user property of element load to point to
     // our ivf representation
 
-    bc->setUser((void*)ivfNodeBC);
+    bc->setUser(static_cast<void*>(visNodeBC));
 
     // Initialize ivf representation
 
-    ivfNodeBC->refresh();
+    visNodeBC->refresh();
 
     // Add representation to scene
 
     m_needRecalc = true;
 
-    this->addToScene(ivfNodeBC);
+    this->addToScene(visNodeBC);
 
 }
 
@@ -1192,14 +1195,14 @@ void CIvfFemWidget::assignBeamLoadSelected()
 
     if (m_currentElementLoad!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemBeam"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemBeam"))
             {
-                CIvfFemBeam* ivfBeam = (CIvfFemBeam*)shape;
-                m_currentElementLoad->addElement((CFemElement*)ivfBeam->getBeam());
+                VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+                m_currentElementLoad->addElement((CFemElement*)visBeam->getBeam());
             }
         }
 
@@ -1219,14 +1222,14 @@ void CIvfFemWidget::assignNodeLoadSelected()
 
     if (m_currentNodeLoad!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemNode"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemNode"))
             {
-                CIvfFemNode* ivfNode = (CIvfFemNode*)shape;
-                m_currentNodeLoad->addNode((CFemNode*)ivfNode->getFemNode());
+                VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+                m_currentNodeLoad->addNode(static_cast<CFemNode*>(visNode->getFemNode()));
             }
         }
 
@@ -1247,12 +1250,12 @@ void CIvfFemWidget::deleteNodeLoad(CFemBeamNodeLoad *nodeLoad)
 
     // Get ivf representation from element load
 
-    CIvfFemNodeLoad* ivfNodeLoad = (CIvfFemNodeLoad*) nodeLoad->getUser();
+    VisFemNodeLoad* visNodeLoad = static_cast<VisFemNodeLoad*>(nodeLoad->getUser());
 
     // Remove shape from scene and delete it
 
-    this->getScene()->getComposite()->removeShape(ivfNodeLoad);
-    delete ivfNodeLoad;
+    this->getScene()->getComposite()->removeShape(visNodeLoad);
+    delete visNodeLoad;
 
     // Remove load from beam model
 
@@ -1268,12 +1271,12 @@ void CIvfFemWidget::deleteNodeBC(CFemBeamNodeBC *bc)
 
     // Get ivf representation from element load
 
-    CIvfFemNodeBC* ivfNodeBC = (CIvfFemNodeBC*) bc->getUser();
+    VisFemNodeBC* visNodeBC = static_cast<VisFemNodeBC*>(bc->getUser());
 
     // Remove shape from scene and delete it
 
-    this->getScene()->getComposite()->removeShape(ivfNodeBC);
-    delete ivfNodeBC;
+    this->getScene()->getComposite()->removeShape(visNodeBC);
+    delete visNodeBC;
 
     // Remove load from beam model
 
@@ -1299,14 +1302,14 @@ void CIvfFemWidget::setRotationSelected(double rotation)
 {
     // Assigns a material to selected shapes
 
-    CIvfComposite* selected = this->getSelectedShapes();
+    auto selected = this->getSelectedShapes();
     for (int i=0; i<selected->getSize(); i++)
     {
-        CIvfShape* shape = selected->getChild(i);
-        if (shape->isClass("CIvfFemBeam"))
+        auto shape = selected->getChild(i);
+        if (shape->isClass("VisFemBeam"))
         {
-            CIvfFemBeam* ivfBeam = (CIvfFemBeam*)shape;
-            ivfBeam->getBeam()->setBeamRotation(rotation);
+            VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+            visBeam->getBeam()->setBeamRotation(rotation);
         }
     }
 
@@ -1484,14 +1487,14 @@ void CIvfFemWidget::assignNodeBCSelected()
 
     if (m_currentNodeBC!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemNode"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemNode"))
             {
-                CIvfFemNode* ivfNode = (CIvfFemNode*)shape;
-                m_currentNodeBC->addNode((CFemNode*)ivfNode->getFemNode());
+                VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+                m_currentNodeBC->addNode((CFemNode*)visNode->getFemNode());
             }
         }
 
@@ -1811,24 +1814,22 @@ void CIvfFemWidget::updateLeapFrame(Frame leapFrame)
 }
 #endif
 
-CIvfExtrArrowPtr CIvfFemWidget::getTactileForce()
+ExtrArrowPtr CIvfFemWidget::getTactileForce()
 {
     return m_tactileForce;
 }
 
-void CIvfFemWidget::setTactileForce(CIvfExtrArrowPtr force)
+void CIvfFemWidget::setTactileForce(ExtrArrowPtr force)
 {
     m_tactileForce = force;
 }
 
-
-
-CIvfFemNodePtr CIvfFemWidget::getInteractionNode()
+VisFemNodePtr CIvfFemWidget::getInteractionNode()
 {
     return m_interactionNode;
 }
 
-void CIvfFemWidget::setInteractionNode(CIvfFemNode* interactionNode)
+void CIvfFemWidget::setInteractionNode(VisFemNode* interactionNode)
 {
     m_interactionNode = interactionNode;
 }
@@ -1930,7 +1931,7 @@ void CIvfFemWidget::doMouse(int x, int y)
 
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onCreateNode(double x, double y, double z, CIvfNode* &newNode)
+void CIvfFemWidget::onCreateNode(double x, double y, double z, Node* &newNode)
 {
     // Create a node
 
@@ -1946,7 +1947,7 @@ void CIvfFemWidget::onCreateNode(double x, double y, double z, CIvfNode* &newNod
 
     // Create Ivf representation
 
-    CIvfFemNode* ivfNode = new CIvfFemNode();
+    VisFemNode* ivfNode = new VisFemNode();
     ivfNode->setBeamModel(m_beamModel);
     ivfNode->setFemNode(femNode);
     ivfNode->setPosition(x, y, z);
@@ -1961,12 +1962,12 @@ void CIvfFemWidget::onCreateNode(double x, double y, double z, CIvfNode* &newNod
 }
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine)
+void CIvfFemWidget::onCreateLine(Node* node1, Node* node2, Shape* &newLine)
 {
     // Create visual representation
 
-    CIvfFemBeam* ivfBeam = new CIvfFemBeam();
-    ivfBeam->setBeamModel(m_beamModel);
+    VisFemBeam* visBeam = new VisFemBeam();
+    visBeam->setBeamModel(m_beamModel);
 
     // Create model representation
 
@@ -1974,16 +1975,16 @@ void CIvfFemWidget::onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &n
 
     // Extract FemNode:s from the IvfNodes
 
-    CIvfFemNode* ivfNode1 = (CIvfFemNode*) node1;
-    CIvfFemNode* ivfNode2 = (CIvfFemNode*) node2;
+    VisFemNode* visNode1 = static_cast<VisFemNode*>(node1);
+    VisFemNode* visNode2 = static_cast<VisFemNode*>(node2);
 
     if (node1==node2)
         return;
 
     // Add FemNodes to beam element
 
-    femBeam->addNode(ivfNode1->getFemNode());
-    femBeam->addNode(ivfNode2->getFemNode());
+    femBeam->addNode(visNode1->getFemNode());
+    femBeam->addNode(visNode2->getFemNode());
 
     // Set the material
 
@@ -1999,9 +2000,9 @@ void CIvfFemWidget::onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &n
 
     // Initialize the representation
 
-    ivfBeam->setBeam(femBeam);
-    ivfBeam->setNodes((CIvfFemNode*)node1, (CIvfFemNode*)node2);
-    ivfBeam->refresh();
+    visBeam->setBeam(femBeam);
+    visBeam->setNodes(static_cast<VisFemNode*>(node1), static_cast<VisFemNode*>(node2));
+    visBeam->refresh();
 
     // We need a recalc
 
@@ -2009,11 +2010,11 @@ void CIvfFemWidget::onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &n
 
     // Return the finished object
 
-    newLine = (CIvfShape*)ivfBeam;
+    newLine = static_cast<Shape*>(visBeam);
 }
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onSelect(CIvfComposite* selectedShapes)
+void CIvfFemWidget::onSelect(Composite* selectedShapes)
 {
     // Handle object selection
 
@@ -2029,23 +2030,23 @@ void CIvfFemWidget::onSelect(CIvfComposite* selectedShapes)
 
         if (selectedShapes->getSize()>0)
         {
-            CIvfShape* firstShape = selectedShapes->getChild(0);
+            auto firstShape = selectedShapes->getChild(0);
             m_selectedShape = firstShape;
-            if (firstShape->isClass("CIvfFemNode"))
-                m_dlgNodeProp->setNode((CIvfFemNode*)firstShape);
-            if (firstShape->isClass("CIvfFemBeam"))
-                m_dlgBeamProp->setBeam((CIvfFemBeam*)firstShape);
+            if (firstShape->isClass("VisFemNode"))
+                m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
+            if (firstShape->isClass("VisFemBeam"))
+                m_dlgBeamProp->setBeam(static_cast<VisFemBeam*>(firstShape));
         }
     }
     else
     {
         if (selectedShapes->getSize()>0)
         {
-            CIvfShape* shape = selectedShapes->getChild(0);
+            auto shape = selectedShapes->getChild(0);
             if (shape->isClass("CIvfFemNode"))
             {
-                CIvfFemNode* ivfNode = (CIvfFemNode*) shape;
-                m_interactionNode = ivfNode;
+                VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+                m_interactionNode = visNode;
                 clearSelection();
                 m_customModeSet = true;
                 setEditMode(IVF_USER_MODE);
@@ -2083,7 +2084,7 @@ void CIvfFemWidget::onCoordinate(double x, double y, double z)
 }
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onDeleteShape(CIvfShape* shape, bool &doit)
+void CIvfFemWidget::onDeleteShape(Shape* shape, bool &doit)
 {
     // Handle shape deletion
 
@@ -2091,11 +2092,11 @@ void CIvfFemWidget::onDeleteShape(CIvfShape* shape, bool &doit)
 
     if ( (m_deleteFilter==DF_ALL)||(m_deleteFilter==DF_NODES))
     {
-        if (shape->isClass("CIvfFemNode"))
+        if (shape->isClass("VisFemNode"))
         {
-            CIvfFemNode* ivfNode = (CIvfFemNode*) shape;
+            VisFemNode* visNode = static_cast<VisFemNode*>(shape);
 
-            if (m_beamModel->getNodeSet()->removeNode(ivfNode->getFemNode()))
+            if (m_beamModel->getNodeSet()->removeNode(visNode->getFemNode()))
                 doit = true;
             else
                 doit = false;
@@ -2105,10 +2106,10 @@ void CIvfFemWidget::onDeleteShape(CIvfShape* shape, bool &doit)
 
     if ( (m_deleteFilter==DF_ALL)||(m_deleteFilter==DF_ELEMENTS))
     {
-        if (shape->isClass("CIvfFemBeam"))
+        if (shape->isClass("VisFemBeam"))
         {
-            CIvfFemBeam* ivfBeam = (CIvfFemBeam*) shape;
-            CFemBeam* femBeam = ivfBeam->getBeam();
+            VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+            CFemBeam* femBeam = visBeam->getBeam();
             CFemBeamSet* beamSet = m_beamModel->getElementSet();
 
             if (beamSet->removeElement(femBeam))
@@ -2124,7 +2125,7 @@ void CIvfFemWidget::onDeleteShape(CIvfShape* shape, bool &doit)
 }
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onMove(CIvfComposite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
+void CIvfFemWidget::onMove(Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
 {
     doit = true;
     m_needRecalc = true;
@@ -2133,9 +2134,23 @@ void CIvfFemWidget::onMove(CIvfComposite *selectedShapes, double &dx, double &dy
 void CIvfFemWidget::drawTextRight(std::string text, double x, double y, double scale)
 {
     float llx, lly, llz, urx, ury, urz;
-    m_logoFont->BBox(text.c_str(), llx, lly, llz, urx, ury, urz);
+
+    llx = 0.0;
+    lly = 0.0;
+    urx = 0.0;
+    ury = 0.0;
+
+    //FTBBox bbox = m_logoFont->BBox(text.c_str());
+
+    //llx = bbox.Lower().Xf();
+    //lly = bbox.Lower().Yf();
+    //urx = bbox.Upper().Xf();
+    //ury = bbox.Upper().Yf();
+
+    //m_logoFont->BBox(text.c_str(), llx, lly, llz, urx, ury, urz);
     glPushMatrix();
-    glTranslated(x - (urx - llx), y + ury - lly, 0.0);
+    glTranslatef(x - (urx - llx), y + ury - lly, 0.0);
+
     glScalef(scale, -scale, 0.0);
     m_logoFont->Render(text.c_str());
     glPopMatrix();
@@ -2171,13 +2186,13 @@ void CIvfFemWidget::onOverlay()
     //glAlphaFunc(GL_GREATER, 0.02f); // Reject fragments with alpha < 0.2
     //glEnable(GL_ALPHA_TEST);
 
-    this->drawTextRight(m_xCoord, w() - 5, 20, 0.5);
-    this->drawTextRight(m_yCoord, w() - 5, 50, 0.5);
-    this->drawTextRight(m_zCoord, w() - 5, 80, 0.5);
+    this->drawTextRight(m_xCoord, w() - 150, 40, 0.5);
+    this->drawTextRight(m_yCoord, w() - 150, 70, 0.5);
+    this->drawTextRight(m_zCoord, w() - 150, 100, 0.5);
 
-    this->drawTextRight("X ", w() - 220, 20, 0.5);
-    this->drawTextRight("Y", w() - 220, 50, 0.5);
-    this->drawTextRight("Z ", w() - 220, 80, 0.5);
+    this->drawTextRight("X ", w() - 220, 40, 0.5);
+    this->drawTextRight("Y ", w() - 220, 70, 0.5);
+    this->drawTextRight("Z ", w() - 220, 100, 0.5);
 
 
     /*
@@ -2248,10 +2263,10 @@ void CIvfFemWidget::onInitContext()
 
 	if (false)
 	{
-		CIvfFog::getInstance()->enable();
-		CIvfFog::getInstance()->setType(CIvfFog::FT_LINEAR);
-		CIvfFog::getInstance()->setColor(0.4, 0.4, 0.4, 1.0);
-		CIvfFog::getInstance()->setLimits(this->getWorkspace()*0.3, this->getWorkspace() * 2.0);
+		Fog::getInstance()->enable();
+		Fog::getInstance()->setType(Fog::FT_LINEAR);
+		Fog::getInstance()->setColor(0.4, 0.4, 0.4, 1.0);
+		Fog::getInstance()->setLimits(this->getWorkspace()*0.3, this->getWorkspace() * 2.0);
 	}
 }
 
@@ -2283,7 +2298,7 @@ void CIvfFemWidget::onPassiveMotion(int x, int y)
 
             if (m_selectedButton!=NULL)
             {
-                m_selectedButton->setHighlight(CIvfShape::HS_OFF);
+                m_selectedButton->setHighlight(Shape::HS_OFF);
                 m_selectedButton->setScale(1.0, 1.0, 1.0);
                 needInvalidate = true;
                 m_overlaySelected = false;
@@ -2295,7 +2310,7 @@ void CIvfFemWidget::onPassiveMotion(int x, int y)
 
             if (m_selectedButton!=NULL)
             {
-                m_selectedButton->setHighlight(CIvfShape::HS_ON);
+                m_selectedButton->setHighlight(Shape::HS_ON);
                 m_selectedButton->setScale(1.1, 1.1, 1.1);
                 needInvalidate = true;
                 m_overlaySelected = true;
@@ -2337,7 +2352,7 @@ void CIvfFemWidget::onMouseDown(int x, int y)
     if ((m_overlaySelected)&&(m_selectedButton!=NULL))
     {
         m_interactionNode = NULL;
-        m_selectedButton->setButtonState(CIvfGenericButton::BS_PRESSED);
+        m_selectedButton->setButtonState(GenericButton::BS_PRESSED);
         this->redraw();
     }
 #endif
@@ -2433,20 +2448,20 @@ void CIvfFemWidget::onDeSelect()
     if (m_customMode==OF_FEEDBACK)
     {
         m_interactionNode = NULL;
-        m_tactileForce->setState(CIvfShape::OS_OFF);
+        m_tactileForce->setState(Shape::OS_OFF);
         this->redraw();
     }
 }
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onHighlightShape(CIvfShape *shape)
+void CIvfFemWidget::onHighlightShape(Shape *shape)
 {
     if (m_customMode == OF_FEEDBACK)
     {
         if ( (shape->isClass("CIvfNode"))&&(m_interactionNode==NULL) )
         {
             double x, y, z;
-            m_tactileForce->setState(CIvfShape::OS_ON);
+            m_tactileForce->setState(Shape::OS_ON);
             shape->getPosition(x, y, z);
             m_tactileForce->setPosition(x, y, z);
             this->redraw();
@@ -2454,37 +2469,37 @@ void CIvfFemWidget::onHighlightShape(CIvfShape *shape)
         else
         {
             if (m_interactionNode==NULL)
-                m_tactileForce->setState(CIvfShape::OS_OFF);
+                m_tactileForce->setState(Shape::OS_OFF);
         }
     }
 }
 
 // ------------------------------------------------------------
-void CIvfFemWidget::onSelectFilter(CIvfShape *shape, bool &select)
+void CIvfFemWidget::onSelectFilter(Shape *shape, bool &select)
 {
     switch (m_selectFilter) {
     case SF_ALL:
         select = true;
         break;
     case SF_NODES:
-        if (shape->isClass("CIvfNode"))
+        if (shape->isClass("VisNode"))
             select = true;
         else
             select = false;
         break;
     case SF_ELEMENTS:
-        if (shape->isClass("CIvfFemBeam"))
+        if (shape->isClass("VisFemBeam"))
             select = true;
         else
             select = false;
         break;
 	case SF_GROUND_NODES:
-		if (shape->isClass("CIvfNode"))
+		if (shape->isClass("VisNode"))
 		{
-			CIvfNode* node = (CIvfNode*)shape;
+			VisFemNode* visNode = static_cast<VisFemNode*>(shape);
 
             double x, y, z;
-			node->getPosition(x, y, z);
+            visNode->getPosition(x, y, z);
 			if ((y > -0.00001) && (y < 0.00001))
 				select = true;
 			else
@@ -2572,20 +2587,20 @@ void CIvfFemWidget::onButton(int objectName, CIvfPlaneButton *button)
 }
 #endif
 
-void CIvfFemWidget::onHighlightFilter(CIvfShape *shape, bool &highlight)
+void CIvfFemWidget::onHighlightFilter(Shape *shape, bool &highlight)
 {
     switch (m_highlightFilter) {
     case HF_ALL:
         highlight = true;
         break;
     case HF_NODES:
-        if (shape->isClass("CIvfNode"))
+        if (shape->isClass("VisNode"))
             highlight = true;
         else
             highlight = false;
         break;
     case HF_ELEMENTS:
-        if (shape->isClass("CIvfFemBeam"))
+        if (shape->isClass("VisFemBeam"))
             highlight = true;
         else
             highlight = false;
@@ -2675,14 +2690,14 @@ void CIvfFemWidget::removeNodeLoadsFromSelected()
 
     if (nodeLoad!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemNode"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemNode"))
             {
-                CIvfFemNode* ivfNode = (CIvfFemNode*)shape;
-                CFemNode* node = ivfNode->getFemNode();
+                VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+                CFemNode* node = visNode->getFemNode();
                 nodeLoad->removeNode(node);
             }
         }
@@ -2716,14 +2731,14 @@ void CIvfFemWidget::removeNodeBCsFromSelected()
 
     if (nodeBC!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemNode"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemNode"))
             {
-                CIvfFemNode* ivfNode = (CIvfFemNode*)shape;
-                CFemNode* node = ivfNode->getFemNode();
+                VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+                CFemNode* node = visNode->getFemNode();
                 nodeBC->removeNode(node);
             }
         }
@@ -2757,14 +2772,14 @@ void CIvfFemWidget::removeBeamLoadsFromSelected()
 
     if (beamLoad!=NULL)
     {
-        CIvfComposite* selected = this->getSelectedShapes();
+        auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
         {
-            CIvfShape* shape = selected->getChild(i);
-            if (shape->isClass("CIvfFemBeam"))
+            auto shape = selected->getChild(i);
+            if (shape->isClass("VisFemBeam"))
             {
-                CIvfFemBeam* ivfBeam = (CIvfFemBeam*)shape;
-                CFemBeam* beam = ivfBeam->getBeam();
+                VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+                CFemBeam* beam = visBeam->getBeam();
                 beamLoad->removeElement(beam);
             }
         }

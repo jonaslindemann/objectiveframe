@@ -1,17 +1,13 @@
 #ifndef _CIvfArea2D_h_
 #define _CIvfArea2D_h_
 
-#include <ivf/ivfconfig.h>
-
-#include <ivf/IvfBase.h>
-
-#include <ivf/IvfGL.h>
-
+#include <ivf/Base.h>
+#include <ivf/GL.h>
 
 namespace std {};
 using namespace std;
 
-class CIvfArea2D : public CIvfBase {
+class CIvfArea2D : public ivf::Base {
 private:
     vector<int> m_xCoords;
     vector<int> m_yCoords;

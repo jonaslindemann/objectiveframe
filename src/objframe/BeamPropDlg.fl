@@ -8,18 +8,18 @@ decl {\#define MR_OK 0} {public local
 decl {\#define MR_CANCEL 1} {public local
 }
 
-decl {\#include <IvfFemBeam.h>} {public local
+decl {\#include <VisFemBeam.h>} {public local
 }
 
 decl {\#include "MaterialDlg.h"} {private local
 }
 
-decl {\#include "IvfFemWidget.h"} {private local
+decl {\#include "VisFemWidget.h"} {private local
 }
 
 class CBeamPropDlg {open
 } {
-  decl {CIvfFemBeam* m_beam} {private local
+  decl {VisFemBeam* m_beam} {private local
   }
   decl {void* m_femWidget} {private local
   }
@@ -69,7 +69,7 @@ femWidget->setRotationSelected(sldBeamRotation->value());}
         xywh {9 108 204 221} box FLAT_BOX color 39 selection_color 39
       } {
         Fl_Group grpSectionForces {
-          label {Section forces} open selected
+          label {Section forces} open
           xywh {12 131 199 196} box FLAT_BOX color 36 selection_color 36 labelsize 12
         } {
           Fl_Browser lbSectionForces {
@@ -89,11 +89,12 @@ femWidget->setRotationSelected(sldBeamRotation->value());}
     code {m_beam = NULL;
 m_femWidget = NULL;} {}
   }
-  Function {show()} {} {
+  Function {show()} {open
+  } {
     code {this->setBeam(m_beam);
 wndBeamProp->show();} {}
   }
-  Function {setBeam(CIvfFemBeam* beam)} {} {
+  Function {setBeam(VisFemBeam* beam)} {} {
     code {m_beam = beam;
 if (m_beam==NULL)
 {
@@ -110,14 +111,15 @@ else
 	this->fillListboxes();
 }} {}
   }
-  Function {getBeam()} {return_type {CIvfFemBeam*}
+  Function {getBeam()} {selected return_type {VisFemBeam*}
   } {
     code {return m_beam;} {}
   }
   Function {hide()} {} {
     code {wndBeamProp->hide();} {}
   }
-  Function {setFemWidget(void* femWidget)} {} {
+  Function {setFemWidget(void* femWidget)} {open
+  } {
     code {m_femWidget = femWidget;} {}
   }
   Function {fillListboxes()} {} {

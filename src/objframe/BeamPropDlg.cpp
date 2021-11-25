@@ -123,7 +123,7 @@ void CBeamPropDlg::show() {
   wndBeamProp->show();
 }
 
-void CBeamPropDlg::setBeam(CIvfFemBeam* beam) {
+void CBeamPropDlg::setBeam(VisFemBeam* beam) {
   m_beam = beam;
   if (m_beam==NULL)
   {
@@ -141,7 +141,7 @@ void CBeamPropDlg::setBeam(CIvfFemBeam* beam) {
   }
 }
 
-CIvfFemBeam* CBeamPropDlg::getBeam() {
+VisFemBeam* CBeamPropDlg::getBeam() {
   return m_beam;
 }
 
@@ -179,7 +179,7 @@ void CBeamPropDlg::fillListboxes() {
   				values[0],values[1],values[2],values[3],values[4],values[5]);
   			lbSectionForces->add(buffer);  
   		}
-  
+
   		for (k=1; k<=n; k++)
   		{
   			for (j=1; j<=4; j++)

@@ -1,6 +1,6 @@
-// Implementation of: public class CIvfFemNodeLoad
+// Implementation of: public class VisFemNodeLoad
 
-#include "IvfFemNodeLoad.h"
+#include "VisFemNodeLoad.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -12,17 +12,17 @@
 #include <math.h>
 #endif
 
-namespace std {};
 using namespace std;
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfFemNodeLoad::CIvfFemNodeLoad ()
-    :CIvfShape()
+VisFemNodeLoad::VisFemNodeLoad ()
+    :Shape()
 {
     m_beamModel = NULL;
     m_nodeLoad = NULL;
 
-    m_arrowMaterial = new CIvfMaterial();
+    m_arrowMaterial = Material::create();
     m_arrowMaterial->setAmbientColor(0.3f, 0.0f, 0.0f, 1.0f);
     m_arrowMaterial->setDiffuseColor(1.0f, 0.0f, 0.0f, 1.0f);
     m_arrowMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -32,12 +32,12 @@ CIvfFemNodeLoad::CIvfFemNodeLoad ()
 }
 
 // ------------------------------------------------------------
-CIvfFemNodeLoad::~CIvfFemNodeLoad ()
+VisFemNodeLoad::~VisFemNodeLoad ()
 {
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeLoad::doCreateGeometry()
+void VisFemNodeLoad::doCreateGeometry()
 {
     int i;
     for (i=0; i<m_arrow.size(); i++)
@@ -45,13 +45,13 @@ void CIvfFemNodeLoad::doCreateGeometry()
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeLoad::doCreateSelect()
+void VisFemNodeLoad::doCreateSelect()
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeLoad::initArrow()
+void VisFemNodeLoad::initArrow()
 {
     double x, y, z, ex, ey, ez;
     double loadHeight;
@@ -106,14 +106,14 @@ void CIvfFemNodeLoad::initArrow()
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeLoad::refresh()
+void VisFemNodeLoad::refresh()
 {
     setNodeLoad(m_nodeLoad);
     initArrow();
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeLoad::setNodeLoad(CFemBeamNodeLoad *nodeLoad)
+void VisFemNodeLoad::setNodeLoad(CFemBeamNodeLoad *nodeLoad)
 {
     int i;
 
@@ -129,14 +129,14 @@ void CIvfFemNodeLoad::setNodeLoad(CFemBeamNodeLoad *nodeLoad)
     {
         for (i=0; i<m_nodeLoad->getNodeSize(); i++)
         {
-            CIvfExtrArrow* arrow = new CIvfExtrArrow();
+            ExtrArrow* arrow = new ExtrArrow();
             m_arrow.push_back(arrow);
             arrow->setMaterial(m_arrowMaterial);
         }
     }
 }
 
-void CIvfFemNodeLoad::setBeamModel(CIvfBeamModel *model)
+void VisFemNodeLoad::setBeamModel(VisBeamModel*model)
 {
     m_beamModel = model;
 }

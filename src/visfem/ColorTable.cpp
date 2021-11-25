@@ -1,8 +1,10 @@
-#include "IvfColorTable.h"
+#include "ColorTable.h"
+
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfColorTable::CIvfColorTable()
-    :CIvfBase()
+ColorTable::ColorTable()
+    :Base()
 {
     // Set initial color yellow
 
@@ -15,13 +17,13 @@ CIvfColorTable::CIvfColorTable()
 }
 
 // ------------------------------------------------------------
-CIvfColorTable::~CIvfColorTable()
+ColorTable::~ColorTable()
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfColorTable::getColor(int idx, float &r, float &g, float &b)
+void ColorTable::getColor(int idx, float &r, float &g, float &b)
 {
     if ( (idx>=0)&&(idx<256) )
     {
@@ -32,7 +34,7 @@ void CIvfColorTable::getColor(int idx, float &r, float &g, float &b)
 }
 
 // ------------------------------------------------------------
-void CIvfColorTable::assignColor(int idx, CIvfMaterial *material)
+void ColorTable::assignColor(int idx, Material *material)
 {
     if ( (idx>=0)&&(idx<256) )
     {
@@ -48,7 +50,7 @@ void CIvfColorTable::assignColor(int idx, CIvfMaterial *material)
 }
 
 // ------------------------------------------------------------
-void CIvfColorTable::setColor(int idx, float r, float g, float b)
+void ColorTable::setColor(int idx, float r, float g, float b)
 {
     if ( (idx>=0)&&(idx<256) )
     {

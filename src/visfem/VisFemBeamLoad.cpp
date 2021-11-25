@@ -1,8 +1,8 @@
-// Implementation of: public class CIvfFemBeamLoad
+// Implementation of: public class VisFemBeamLoad
 
-#include "IvfFemBeamLoad.h"
-#include <ivfmath/IvfVec3d.h>
-#include <ivf/IvfExtrusion.h>
+#include "VisFemBeamLoad.h"
+#include <ivfmath/Vec3d.h>
+#include <ivf/Extrusion.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -14,22 +14,21 @@
 #include <math.h>
 #endif
 
-namespace std {};
 using namespace std;
-
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfFemBeamLoad::CIvfFemBeamLoad ()
-    :CIvfShape()
+VisFemBeamLoad::VisFemBeamLoad ()
+    :Shape()
 {
     m_beamModel = NULL;
-    m_extrMaterial = new CIvfMaterial();
+    m_extrMaterial = Material::create();
     m_extrMaterial->setAmbientColor(0.3f, 0.0f, 0.0f, 1.0f);
     m_extrMaterial->setDiffuseColor(0.7f, 0.0f, 0.0f, 1.0f);
     m_extrMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
     this->setMaterial(m_extrMaterial);
 
-    m_arrowMaterial = new CIvfMaterial();
+    m_arrowMaterial = Material::create();
     m_arrowMaterial->setAmbientColor(0.3f, 0.0f, 0.0f, 1.0f);
     m_arrowMaterial->setDiffuseColor(1.0f, 0.0f, 0.0f, 1.0f);
     m_arrowMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -39,7 +38,7 @@ CIvfFemBeamLoad::CIvfFemBeamLoad ()
 }
 
 // ------------------------------------------------------------
-CIvfFemBeamLoad::~CIvfFemBeamLoad ()
+VisFemBeamLoad::~VisFemBeamLoad ()
 {
     int i;
     for (i=0; i<m_q.size(); i++)
@@ -53,9 +52,9 @@ CIvfFemBeamLoad::~CIvfFemBeamLoad ()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeamLoad::refresh()
+void VisFemBeamLoad::refresh()
 {
-    CIvfColorTable* colorTable;
+    ColorTable* colorTable;
 
     if (m_beamModel!=NULL)
         colorTable = m_beamModel->getColorTable();
@@ -80,10 +79,10 @@ void CIvfFemBeamLoad::refresh()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeamLoad::initExtrusion()
+void VisFemBeamLoad::initExtrusion()
 {
-    CIvfVec3d p1, p2;
-    CIvfVec3d v1;
+    Vec3d p1, p2;
+    Vec3d v1;
     double x, y, z, ex, ey, ez;
     double lex, ley, lez;
     double loadHeight;
@@ -153,7 +152,7 @@ void CIvfFemBeamLoad::initExtrusion()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
+void VisFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
 {
     int i;
     for (i=0; i<m_q.size(); i++)
@@ -167,9 +166,9 @@ void CIvfFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
     m_beamLoad = load;
     for (i=0; i<m_beamLoad->getElementsSize(); i++)
     {
-        CIvfQuadSet* q = new CIvfQuadSet();
+        QuadSet* q = new QuadSet();
         m_q.push_back(q);
-        CIvfIndex* idx = new CIvfIndex();
+        Index* idx = new Index();
         idx->createLinear(4);
         q->addCoord(0.0, 0.0, 0.0);
         q->addCoord(0.0, 0.0, 0.0);
@@ -178,14 +177,14 @@ void CIvfFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
         q->addCoordIndex(idx);
         q->setMaterial(m_extrMaterial);
 
-        CIvfExtrArrow* arrow = new CIvfExtrArrow();
+        ExtrArrow* arrow = new ExtrArrow();
         m_arrow.push_back(arrow);
         arrow->setMaterial(m_arrowMaterial);
     }
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeamLoad::createGeometry()
+void VisFemBeamLoad::createGeometry()
 {
     int old_style = ivfGetGLEJoinStyle();
     int i;
@@ -199,28 +198,28 @@ void CIvfFemBeamLoad::createGeometry()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeamLoad::createSelect()
+void VisFemBeamLoad::createSelect()
 {
     int old_style = ivfGetGLEJoinStyle();
     int i;
     //gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);
     for (i=0; i<m_q.size(); i++)
     {
-        m_q[i]->setSelect(CIvfShape::SS_ON);
+        m_q[i]->setSelect(Shape::SS_ON);
         m_q[i]->render();
-        m_q[i]->setSelect(CIvfShape::SS_OFF);
+        m_q[i]->setSelect(Shape::SS_OFF);
     }
     ivfSetGLEJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_EDGE|TUBE_JN_ANGLE);
     for (i=0; i<m_arrow.size(); i++)
     {
-        m_arrow[i]->setSelect(CIvfShape::SS_ON);
+        m_arrow[i]->setSelect(Shape::SS_ON);
         m_arrow[i]->render();
-        m_arrow[i]->setSelect(CIvfShape::SS_OFF);
+        m_arrow[i]->setSelect(Shape::SS_OFF);
     }
     ivfSetGLEJoinStyle(old_style);
 }
 
-void CIvfFemBeamLoad::setBeamModel(CIvfBeamModel *model)
+void VisFemBeamLoad::setBeamModel(VisBeamModel*model)
 {
     m_beamModel = model;
 }

@@ -1,18 +1,20 @@
-#include "IvfBC.h"
+#include "VisBC.h"
 
-#include <ivf/IvfCone.h>
+#include <ivf/Cone.h>
 
-CIvfBC::CIvfBC()
+using namespace ivf;
+
+VisBC::VisBC()
 {
     initBC();
 }
 
-CIvfBC::~CIvfBC()
+VisBC::~VisBC()
 {
 
 }
 
-void CIvfBC::initBC()
+void VisBC::initBC()
 {
     double nodeSize;
 
@@ -21,11 +23,11 @@ void CIvfBC::initBC()
     else
         nodeSize = 1.0;
 
-    m_dispX = new CIvfTransform();
-    m_dispY = new CIvfTransform();
-    m_dispZ = new CIvfTransform();
+    m_dispX = Transform::create();
+    m_dispY = Transform::create();
+    m_dispZ = Transform::create();
 
-    m_dispCone = new CIvfCone();
+    m_dispCone = Cone::create();
     m_dispCone->setBottomRadius(nodeSize*0.5);
     m_dispCone->setHeight(nodeSize);
     m_dispCone->setPosition(0.0,-nodeSize,0.0);
@@ -40,16 +42,16 @@ void CIvfBC::initBC()
     this->addChild(m_dispY);
     this->addChild(m_dispZ);
 
-    m_rotX = new CIvfTransform();
-    m_rotY = new CIvfTransform();
-    m_rotZ = new CIvfTransform();
+    m_rotX = Transform::create();
+    m_rotY = Transform::create();
+    m_rotZ = Transform::create();
 
-    m_rotCone1 = new CIvfCone();
+    m_rotCone1 = Cone::create();
     m_rotCone1->setBottomRadius(nodeSize*0.5);
     m_rotCone1->setHeight(nodeSize);
     m_rotCone1->setPosition(0.0,-nodeSize*2.2,0.0);
 
-    m_rotCone2 = new CIvfCone();
+    m_rotCone2 = Cone::create();
     m_rotCone2->setBottomRadius(nodeSize*0.5);
     m_rotCone2->setHeight(nodeSize);
     m_rotCone2->setPosition(0.0,-nodeSize*3.0,0.0);
@@ -70,7 +72,7 @@ void CIvfBC::initBC()
     this->setPosition(0.0,3.0,0.0);
 }
 
-void CIvfBC::refresh()
+void VisBC::refresh()
 {
     double nodeSize;
 
@@ -90,46 +92,46 @@ void CIvfBC::refresh()
     m_rotCone2->setPosition(0.0,-nodeSize*3.0,0.0);
 }
 
-void CIvfBC::prescribe(int dof, bool prescribed)
+void VisBC::prescribe(int dof, bool prescribed)
 {
     if ((dof>=1)&&(dof<=6))
     {
         switch (dof) {
         case 1:
             if (prescribed)
-                m_dispX->setState(CIvfShape::OS_ON);
+                m_dispX->setState(Shape::OS_ON);
             else
-                m_dispX->setState(CIvfShape::OS_OFF);
+                m_dispX->setState(Shape::OS_OFF);
             break;
         case 2:
             if (prescribed)
-                m_dispY->setState(CIvfShape::OS_ON);
+                m_dispY->setState(Shape::OS_ON);
             else
-                m_dispY->setState(CIvfShape::OS_OFF);
+                m_dispY->setState(Shape::OS_OFF);
             break;
         case 3:
             if (prescribed)
-                m_dispZ->setState(CIvfShape::OS_ON);
+                m_dispZ->setState(Shape::OS_ON);
             else
-                m_dispZ->setState(CIvfShape::OS_OFF);
+                m_dispZ->setState(Shape::OS_OFF);
             break;
         case 4:
             if (prescribed)
-                m_rotX->setState(CIvfShape::OS_ON);
+                m_rotX->setState(Shape::OS_ON);
             else
-                m_rotX->setState(CIvfShape::OS_OFF);
+                m_rotX->setState(Shape::OS_OFF);
             break;
         case 5:
             if (prescribed)
-                m_rotY->setState(CIvfShape::OS_ON);
+                m_rotY->setState(Shape::OS_ON);
             else
-                m_rotY->setState(CIvfShape::OS_OFF);
+                m_rotY->setState(Shape::OS_OFF);
             break;
         case 6:
             if (prescribed)
-                m_rotZ->setState(CIvfShape::OS_ON);
+                m_rotZ->setState(Shape::OS_ON);
             else
-                m_rotZ->setState(CIvfShape::OS_OFF);
+                m_rotZ->setState(Shape::OS_OFF);
             break;
         default:
             break;
@@ -137,14 +139,14 @@ void CIvfBC::prescribe(int dof, bool prescribed)
     }
 }
 
-void CIvfBC::unprescribeAll()
+void VisBC::unprescribeAll()
 {
     int i;
     for (i=1; i<=6; i++)
         prescribe(i,false);
 }
 
-void CIvfBC::setBeamModel(CIvfBeamModel *model)
+void VisBC::setBeamModel(VisBeamModel*model)
 {
     m_beamModel = model;
     refresh();

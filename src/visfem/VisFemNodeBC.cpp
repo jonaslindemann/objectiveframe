@@ -1,16 +1,18 @@
-// Implementation of: public class CIvfFemNodeBC
+// Implementation of: public class VisFemNodeBC
 
-#include "IvfFemNodeBC.h"
+#include "VisFemNodeBC.h"
 
-#include <ivf/IvfCone.h>
-#include <ivf/IvfTransform.h>
+#include <ivf/Cone.h>
+#include <ivf/Transform.h>
+
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfFemNodeBC::CIvfFemNodeBC ()
+VisFemNodeBC::VisFemNodeBC ()
 {
     this->setUseSelectShape(false);
 
-    m_bcMaterial = new CIvfMaterial();
+    m_bcMaterial = Material::create();
     m_bcMaterial->setDiffuseColor(1.0, 1.0, 1.0, 1.0);
     m_bcMaterial->addReference();
 
@@ -20,13 +22,13 @@ CIvfFemNodeBC::CIvfFemNodeBC ()
 }
 
 // ------------------------------------------------------------
-CIvfFemNodeBC::~CIvfFemNodeBC ()
+VisFemNodeBC::~VisFemNodeBC ()
 {
     delete m_bcMaterial;
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeBC::setNodeBC(CFemBeamNodeBC *bc)
+void VisFemNodeBC::setNodeBC(CFemBeamNodeBC *bc)
 {
     int i, j;
 
@@ -42,7 +44,7 @@ void CIvfFemNodeBC::setNodeBC(CFemBeamNodeBC *bc)
         for (i=0; i<m_nodeBC->getNodeSize(); i++)
         {
             double x, y, z;
-            CIvfBC* ivfBC = new CIvfBC();
+            VisBC* ivfBC = new VisBC();
             if (m_beamModel!=NULL)
                 ivfBC->setBeamModel(m_beamModel);
             for (j=0; j<6; j++)
@@ -63,7 +65,7 @@ void CIvfFemNodeBC::setNodeBC(CFemBeamNodeBC *bc)
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeBC::doCreateGeometry()
+void VisFemNodeBC::doCreateGeometry()
 {
     int i;
 
@@ -72,12 +74,12 @@ void CIvfFemNodeBC::doCreateGeometry()
 }
 
 // ------------------------------------------------------------
-void CIvfFemNodeBC::refresh()
+void VisFemNodeBC::refresh()
 {
     setNodeBC(m_nodeBC);
 }
 
-void CIvfFemNodeBC::setBeamModel(CIvfBeamModel *model)
+void VisFemNodeBC::setBeamModel(VisBeamModel*model)
 {
     m_beamModel = model;
 }

@@ -1,10 +1,12 @@
-// Implementation of: public class CIvfFemNode
+// Implementation of: public class VisFemNode
 
-#include "IvfFemNode.h"
+#include "VisFemNode.h"
+
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfFemNode::CIvfFemNode ()
-    :CIvfNode()
+VisFemNode::VisFemNode ()
+    :ivf::Node()
 {
     m_femNode = NULL;
     m_directRefresh = false;
@@ -12,39 +14,39 @@ CIvfFemNode::CIvfFemNode ()
     m_beamModel = NULL;
 
     this->setUseSelectShape(false);
-    this->setType(CIvfNode::NT_SPHERE);
+    this->setType(Node::NT_SPHERE);
 }
 
 // ------------------------------------------------------------
-CIvfFemNode::~CIvfFemNode ()
+VisFemNode::~VisFemNode ()
 {
 }
 
 // ------------------------------------------------------------
-void CIvfFemNode::setFemNode(CFemNode *node)
+void VisFemNode::setFemNode(CFemNode *node)
 {
     double x, y, z;
     m_femNode = node;
     m_femNode->getCoord(x, y, z);
-    CIvfShape::setPosition(x, y, z);
+    Shape::setPosition(x, y, z);
 }
 
 // ------------------------------------------------------------
-CFemNode* CIvfFemNode::getFemNode()
+CFemNode* VisFemNode::getFemNode()
 {
     return m_femNode;
 }
 
 // ------------------------------------------------------------
-void CIvfFemNode::setPosition (const double x, const double y, const double z)
+void VisFemNode::setPosition (const double x, const double y, const double z)
 {
     if (m_femNode!=NULL)
         m_femNode->setCoord(x, y, z);
-    CIvfShape::setPosition(x, y, z);
+    ivf::Shape::setPosition(x, y, z);
 }
 
 // ------------------------------------------------------------
-void CIvfFemNode::setPosition (CIvfShape* shape)
+void VisFemNode::setPosition (ivf::Shape* shape)
 {
     if (m_femNode!=NULL)
     {
@@ -52,11 +54,11 @@ void CIvfFemNode::setPosition (CIvfShape* shape)
         shape->getPosition(x, y, z);
         m_femNode->setCoord(x, y, z);
     }
-    CIvfShape::setPosition(shape);
+    ivf::Shape::setPosition(shape);
 }
 
 // ------------------------------------------------------------
-void CIvfFemNode::setPositionVec (CIvfVec3d* point)
+void VisFemNode::setPositionVec (ivf::Vec3d* point)
 {
     if (m_femNode!=NULL)
     {
@@ -64,11 +66,11 @@ void CIvfFemNode::setPositionVec (CIvfVec3d* point)
         point->getComponents(x, y, z);
         m_femNode->setCoord(x, y, z);
     }
-    CIvfShape::setPosition(*point);
+    ivf::Shape::setPosition(*point);
 }
 
 // ------------------------------------------------------------
-void CIvfFemNode::refresh()
+void VisFemNode::refresh()
 {
     double x, y, z;
     double dx, dy, dz;
@@ -101,33 +103,33 @@ void CIvfFemNode::refresh()
         if (m_beamModel->getNodeType() == IVF_NODE_DISPLACEMENT)
         {
             if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT)
-                this->setState(CIvfShape::OS_OFF);
+                this->setState(ivf::Shape::OS_OFF);
             else
-                this->setState(CIvfShape::OS_ON);
+                this->setState(ivf::Shape::OS_ON);
             
-            CIvfShape::setPosition(x + dx*scalefactor, y + dy*scalefactor,  z + dz*scalefactor);
+            ivf::Shape::setPosition(x + dx*scalefactor, y + dy*scalefactor,  z + dz*scalefactor);
         }
         else
         {
             this->setSize(m_beamModel->getNodeSize());
-            CIvfShape::setPosition(x, y, z);
+            ivf::Shape::setPosition(x, y, z);
         }
     }
 }
 
-void CIvfFemNode::doCreateGeometry()
+void VisFemNode::doCreateGeometry()
 {
     if (m_directRefresh)
         this->refresh();
-    CIvfNode::doCreateGeometry();
+    ivf::Node::doCreateGeometry();
 }
 
-void CIvfFemNode::setDirectRefresh(bool flag)
+void VisFemNode::setDirectRefresh(bool flag)
 {
     m_directRefresh = flag;
 }
 
-void CIvfFemNode::getDisplacedPosition(double &x, double &y, double &z)
+void VisFemNode::getDisplacedPosition(double &x, double &y, double &z)
 {
     double dx, dy, dz;
     double scalefactor;
@@ -155,7 +157,7 @@ void CIvfFemNode::getDisplacedPosition(double &x, double &y, double &z)
     z = z + dz*scalefactor;
 }
 
-void CIvfFemNode::setBeamModel(CIvfBeamModel *model)
+void VisFemNode::setBeamModel(VisBeamModel*model)
 {
     m_beamModel = model;
 }

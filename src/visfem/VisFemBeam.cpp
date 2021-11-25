@@ -1,12 +1,14 @@
-// Implementation of: public class CIvfFemBeam
+// Implementation of: public class VisFemBeam
 
-#include "IvfFemBeam.h"
+#include "VisFemBeam.h"
 
-#include <ivfmath/IvfVec3d.h>
+#include <ivfmath/Vec3d.h>
+
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfFemBeam::CIvfFemBeam ()
-    :CIvfComposite()
+VisFemBeam::VisFemBeam ()
+    :Composite()
 {
     m_femBeam = NULL;
 
@@ -15,13 +17,13 @@ CIvfFemBeam::CIvfFemBeam ()
 
     m_beamModel = NULL;
 
-    m_beamMaterial = new CIvfMaterial();
+    m_beamMaterial = Material::create();
     m_beamMaterial->setDiffuseColor(0.0f, 0.5f, 0.75f, 1.0f);
     m_beamMaterial->setSpecularColor(1.0f, 1.0f, 1.0f,1.0f);
 
     // Set up the solid line
 
-    m_solidLine = new CIvfSolidLine();
+    m_solidLine = SolidLine::create();
     m_solidLine->setMaterial(m_beamMaterial);
     m_solidLine->setUseName(false);
     m_solidLine->setUseSelectShape(false);
@@ -29,7 +31,7 @@ CIvfFemBeam::CIvfFemBeam ()
 
     // Set up line set
 
-    m_lineSet = new CIvfSimpleLineSet();
+    m_lineSet = SimpleLineSet::create();
     m_lineSet->setCoordSize(2);
     m_lineSet->setLineSize(3);
     m_lineSet->setColorSize(2);
@@ -38,15 +40,15 @@ CIvfFemBeam::CIvfFemBeam ()
     m_lineSet->setLineIndex(2, -1);
     m_lineSet->setColor(0, 1.0, 1.0, 0.0);
     m_lineSet->setColor(1, 1.0, 1.0, 0.0);
-    m_lineSet->setState(CIvfShape::OS_OFF);
+    m_lineSet->setState(Shape::OS_OFF);
     m_lineSet->setUseName(false);
     m_lineSet->setUseSelectShape(false);
     this->addChild(m_lineSet);
 
     // Set up extrusion
 
-    m_extrusion = new CIvfExtrusion();
-    m_extrusion->setState(CIvfShape::OS_OFF);
+    m_extrusion = Extrusion::create();
+    m_extrusion->setState(Shape::OS_OFF);
     m_extrusion->setMaterial(m_beamMaterial);
     m_extrusion->setUseName(false);
     m_extrusion->setUseSelectShape(false);
@@ -54,7 +56,7 @@ CIvfFemBeam::CIvfFemBeam ()
 
     // Create texture for visualising section forces
 
-    m_beamImage = new CIvfImage();
+    m_beamImage = Image::create();
     m_beamImage->setSize(8,8);
 
     int i;
@@ -82,7 +84,7 @@ CIvfFemBeam::CIvfFemBeam ()
         m_beamImage->setPixel(i,7,0,0,0);
     }
 
-    m_beamTexture = new CIvfTexture();
+    m_beamTexture = Texture::create();
     m_beamTexture->setImage(m_beamImage);
     m_beamTexture->setTextureMode(GL_MODULATE);
     m_beamTexture->setFilters(GL_LINEAR, GL_LINEAR);
@@ -100,7 +102,7 @@ CIvfFemBeam::CIvfFemBeam ()
 }
 
 // ------------------------------------------------------------
-CIvfFemBeam::~CIvfFemBeam ()
+VisFemBeam::~VisFemBeam ()
 {
     for (int i=0; i<2; i++)
     {
@@ -114,19 +116,19 @@ CIvfFemBeam::~CIvfFemBeam ()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeam::setBeam(CFemBeam *beam)
+void VisFemBeam::setBeam(CFemBeam *beam)
 {
     m_femBeam = beam;
 }
 
 // ------------------------------------------------------------
-CFemBeam* CIvfFemBeam::getBeam()
+CFemBeam* VisFemBeam::getBeam()
 {
     return m_femBeam;
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeam::refresh()
+void VisFemBeam::refresh()
 {
     if (m_femBeam!=NULL)
     {
@@ -137,9 +139,9 @@ void CIvfFemBeam::refresh()
         node1->getCoord(x1, y1, z1);
         node2->getCoord(x2, y2, z2);
 
-        m_lineSet->setState(CIvfShape::OS_OFF);
-        m_solidLine->setState(CIvfShape::OS_OFF);
-        m_extrusion->setState(CIvfShape::OS_OFF);
+        m_lineSet->setState(Shape::OS_OFF);
+        m_solidLine->setState(Shape::OS_OFF);
+        m_extrusion->setState(Shape::OS_OFF);
 
         if (m_beamModel!=NULL)
         {
@@ -171,22 +173,22 @@ void CIvfFemBeam::refresh()
                 }
             }
 
-            m_lineSet->setState(CIvfShape::OS_OFF);
-            m_extrusion->setState(CIvfShape::OS_OFF);
-            m_solidLine->setState(CIvfShape::OS_OFF);
+            m_lineSet->setState(Shape::OS_OFF);
+            m_extrusion->setState(Shape::OS_OFF);
+            m_solidLine->setState(Shape::OS_OFF);
             initExtrusion();
 
             switch (m_beamModel->getBeamType()) {
             case IVF_BEAM_LINESET:
                 m_lineSet->setCoord(0, x1, y1, z1);
                 m_lineSet->setCoord(1, x2, y2, z2);
-                m_lineSet->setState(CIvfShape::OS_ON);
+                m_lineSet->setState(Shape::OS_ON);
                 break;
             case IVF_BEAM_SOLID:
                 if (m_beamModel!=NULL)
                     m_solidLine->setRadius(m_beamModel->getLineRadius());
                 m_solidLine->setNodes(m_nodes[0],m_nodes[1]);
-                m_solidLine->setState(CIvfShape::OS_ON);
+                m_solidLine->setState(Shape::OS_ON);
                 m_beamTexture->deactivate();
                 m_beamTexture->setTextureModifier(1.0, 1.0/m_solidLine->getLength(), 0.0);
                 m_solidLine->setTextureMode(0);
@@ -198,7 +200,7 @@ void CIvfFemBeam::refresh()
                     {
                         m_solidLine->setRadius(m_beamModel->getLineRadius());
                         m_solidLine->setNodes(m_nodes[0],m_nodes[1]);
-                        m_solidLine->setState(CIvfShape::OS_ON);
+                        m_solidLine->setState(Shape::OS_ON);
                         m_beamTexture->activate();
                         m_beamTexture->setTextureModifier(1.0, 1.0/m_solidLine->getLength(), 0.0);
                         m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -209,7 +211,7 @@ void CIvfFemBeam::refresh()
                     } else {
                         m_solidLine->setRadius(m_beamModel->getLineRadius());
                         m_solidLine->setNodes(m_nodes[0],m_nodes[1]);
-                        m_solidLine->setState(CIvfShape::OS_ON);
+                        m_solidLine->setState(Shape::OS_ON);
                         m_beamTexture->deactivate();
                         m_beamTexture->setTextureModifier(1.0, 1.0/m_solidLine->getLength(), 0.0);
                         m_solidLine->setTextureMode(0);
@@ -221,7 +223,7 @@ void CIvfFemBeam::refresh()
                 {
                     if (m_femBeam->getMaterial()!=NULL)
                     {
-                        m_extrusion->setState(CIvfShape::OS_ON);
+                        m_extrusion->setState(Shape::OS_ON);
                     }
                 }
                 break;
@@ -234,16 +236,16 @@ void CIvfFemBeam::refresh()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeam::doCreateGeometry()
+void VisFemBeam::doCreateGeometry()
 {
     if (m_femBeam!=NULL)
     {
-        CIvfComposite::doCreateGeometry();
+        Composite::doCreateGeometry();
     }
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeam::setNodes(CIvfFemNode *node1, CIvfFemNode *node2)
+void VisFemBeam::setNodes(VisFemNode *node1, VisFemNode *node2)
 {
     for (int i=0; i<2; i++)
     {
@@ -263,7 +265,7 @@ void CIvfFemBeam::setNodes(CIvfFemNode *node1, CIvfFemNode *node2)
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeam::doCreateSelect()
+void VisFemBeam::doCreateSelect()
 {
     if (m_beamModel!=NULL)
     {
@@ -273,25 +275,25 @@ void CIvfFemBeam::doCreateSelect()
             break;
         case IVF_BEAM_SOLID:
         case IVF_BEAM_RESULTS:
-            m_solidLine->setSelect(CIvfShape::SS_ON);
+            m_solidLine->setSelect(Shape::SS_ON);
             m_solidLine->render();
-            m_solidLine->setSelect(CIvfShape::SS_OFF);
+            m_solidLine->setSelect(Shape::SS_OFF);
 
             break;
         case IVF_BEAM_EXTRUSION:
             if (m_femBeam->getMaterial()!=NULL)
             {
-                if (m_extrusion->getState()==CIvfShape::OS_ON)
+                if (m_extrusion->getState()==Shape::OS_ON)
                 {
-                    m_extrusion->setSelect(CIvfShape::SS_ON);
+                    m_extrusion->setSelect(Shape::SS_ON);
                     m_extrusion->render();
-                    m_extrusion->setSelect(CIvfShape::SS_OFF);
+                    m_extrusion->setSelect(Shape::SS_OFF);
                 }
                 else
                 {
-                    m_solidLine->setSelect(CIvfShape::SS_ON);
+                    m_solidLine->setSelect(Shape::SS_ON);
                     m_solidLine->render();
-                    m_solidLine->setSelect(CIvfShape::SS_OFF);
+                    m_solidLine->setSelect(Shape::SS_OFF);
                 }
             }
             break;
@@ -303,10 +305,10 @@ void CIvfFemBeam::doCreateSelect()
 }
 
 // ------------------------------------------------------------
-void CIvfFemBeam::initExtrusion()
+void VisFemBeam::initExtrusion()
 {
-    CIvfVec3d p1, p2;
-    CIvfVec3d v1;
+    Vec3d p1, p2;
+    Vec3d v1;
     double z, ex, ey, ez;
 
     // Create section
@@ -383,7 +385,7 @@ void CIvfFemBeam::initExtrusion()
     }
 }
 
-void CIvfFemBeam::initResults()
+void VisFemBeam::initResults()
 {
     if (m_beamModel!=NULL)
     {
@@ -479,12 +481,12 @@ void CIvfFemBeam::initResults()
     }
 }
 
-void CIvfFemBeam::setBeamModel(CIvfBeamModel *beamModel)
+void VisFemBeam::setBeamModel(VisBeamModel* beamModel)
 {
     m_beamModel = beamModel;
 }
 
-double CIvfFemBeam::calcNavier(double N, double My, double Mz)
+double VisFemBeam::calcNavier(double N, double My, double Mz)
 {
     double E, G, A, Iy, Iz, Kv;
     double eyMax, eyMin, ezMax, ezMin;

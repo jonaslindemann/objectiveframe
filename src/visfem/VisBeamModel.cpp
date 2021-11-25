@@ -1,12 +1,12 @@
-// Implementation of: public class CIvfBeamModel
+// Implementation of: public class BeamModel
 
-#include "IvfBeamModel.h"
+#include "VisBeamModel.h"
 
-#include "IvfFemNode.h"
-#include "IvfFemBeam.h"
-#include "IvfFemBeamLoad.h"
-#include "IvfFemNodeLoad.h"
-#include "IvfFemNodeBC.h"
+#include "VisFemNode.h"
+#include "VisFemBeam.h"
+#include "VisFemBeamLoad.h"
+#include "VisFemNodeLoad.h"
+#include "VisFemNodeBC.h"
 #include <FemNodeSet.h>
 #include <FemBeamSet.h>
 #include <FemBeamLoad.h>
@@ -17,18 +17,19 @@
 #include <ColorMap.h>
 #include <ResultInfo.h>
 
+using namespace ivf;
 
 // ------------------------------------------------------------
-CIvfBeamModel::CIvfBeamModel ()
+VisBeamModel::VisBeamModel()
     :CFemBeamModel()
 {
     m_nodeSize = 1.0;
-    m_nodeType = CIvfNode::NT_CUBE;
+    m_nodeType = Node::NT_CUBE;
     m_lineRadius = 1.0;
     m_loadSize = 1.0;
     m_beamLoadSize = 1.0;
 
-    m_colorTable = new CIvfColorTable();
+    m_colorTable = new ColorTable();
 
     m_colorMapPos = new CColorMap();
     m_colorMapNeg = new CColorMap();
@@ -38,13 +39,13 @@ CIvfBeamModel::CIvfBeamModel ()
 
     m_beamType = IVF_BEAM_SOLID;
     m_resultType = IVF_BEAM_NO_RESULT;
-    m_nodeType = CIvfNode::NT_CUBE;
+    m_nodeType = Node::NT_CUBE;
 
     m_colorMapPath = "";
 }
 
 // ------------------------------------------------------------
-CIvfBeamModel::~CIvfBeamModel ()
+VisBeamModel::~VisBeamModel()
 {
     delete m_colorMapPos;
     delete m_colorMapNeg;
@@ -53,7 +54,7 @@ CIvfBeamModel::~CIvfBeamModel ()
 }
 
 // ------------------------------------------------------------
-void CIvfBeamModel::onInitialised()
+void VisBeamModel::onInitialised()
 {
     CFemBeamMaterialPtr material = new CFemBeamMaterial();
     CFemSolidPipeSectionPtr section = new CFemSolidPipeSection(0.05);
@@ -80,7 +81,7 @@ void CIvfBeamModel::onInitialised()
 }
 
 // ------------------------------------------------------------
-void CIvfBeamModel::generateModel()
+void VisBeamModel::generateModel()
 {
 
     // Open color maps
@@ -91,7 +92,7 @@ void CIvfBeamModel::generateModel()
 
     // Temporary lists
 
-    vector<CIvfFemNode*> ivfNodes;
+    vector<VisFemNode*> ivfNodes;
 
     // Create nodes
 
@@ -99,7 +100,7 @@ void CIvfBeamModel::generateModel()
 
     for (int i=0; i<nodeSet->getSize(); i++)
     {
-        CIvfFemNode* ivfNode = new CIvfFemNode();
+        VisFemNode* ivfNode = new VisFemNode();
         ivfNode->setFemNode(nodeSet->getNode(i));
         ivfNode->setMaterial(m_nodeMaterial);
         ivfNode->setBeamModel(this);
@@ -118,7 +119,7 @@ void CIvfBeamModel::generateModel()
 
     for (int i=0; i<beamSet->getSize(); i++)
     {
-        CIvfFemBeam* ivfBeam = new CIvfFemBeam();
+        VisFemBeam* ivfBeam = new VisFemBeam();
         CFemBeam* femBeam = (CFemBeam*) beamSet->getElement(i);
         ivfBeam->setBeam(femBeam);
         //ivfBeam->setMaterial(m_beamMaterial);
@@ -136,7 +137,7 @@ void CIvfBeamModel::generateModel()
 
     for (int i=0; i<elementLoadSet->getSize(); i++)
     {
-        CIvfFemBeamLoad* ivfBeamLoad = new CIvfFemBeamLoad();
+        VisFemBeamLoad* ivfBeamLoad = new VisFemBeamLoad();
         CFemBeamLoad* femBeamLoad = (CFemBeamLoad*) elementLoadSet->getLoad(i);
         ivfBeamLoad->setBeamModel(this);
         ivfBeamLoad->setBeamLoad(femBeamLoad);
@@ -153,7 +154,7 @@ void CIvfBeamModel::generateModel()
 
     for (int i=0; i<nodeLoadSet->getSize(); i++)
     {
-        CIvfFemNodeLoad* ivfNodeLoad = new CIvfFemNodeLoad();
+        VisFemNodeLoad* ivfNodeLoad = new VisFemNodeLoad();
         CFemBeamNodeLoad* femNodeLoad = (CFemBeamNodeLoad*) nodeLoadSet->getLoad(i);
         ivfNodeLoad->setBeamModel(this);
         ivfNodeLoad->setNodeLoad(femNodeLoad);
@@ -161,7 +162,7 @@ void CIvfBeamModel::generateModel()
         //ivfNodeLoad->setColorTable(this->getColorTable());
         //ivfNodeLoad->setLoadHeight(*m_ploadSize);
         ivfNodeLoad->refresh();
-        m_scene->addChild(ivfNodeLoad);
+        m_scene->addChild(static_cast<ivf::Shape*>(ivfNodeLoad));
     }
 
     // Generate node bcs
@@ -170,7 +171,7 @@ void CIvfBeamModel::generateModel()
 
     for (int i=0; i<nodeBCSet->getSize(); i++)
     {
-        CIvfFemNodeBC* ivfNodeBC = new CIvfFemNodeBC();
+        VisFemNodeBC* ivfNodeBC = new VisFemNodeBC();
         CFemBeamNodeBC* femNodeBC = (CFemBeamNodeBC*) nodeBCSet->getBC(i);
         ivfNodeBC->setBeamModel(this);
         //ivfNodeBC->setColorTable(this->getColorTable());
@@ -178,171 +179,171 @@ void CIvfBeamModel::generateModel()
         ivfNodeBC->setNodeBC(femNodeBC);
         femNodeBC->setUser((void*)ivfNodeBC);
         ivfNodeBC->refresh();
-        m_scene->addChild(ivfNodeBC);
+        m_scene->addChild(static_cast<ivf::Shape*>(ivfNodeBC));
     }
 }
 
 // ------------------------------------------------------------
-void CIvfBeamModel::setScene(CIvfComposite *scene)
+void VisBeamModel::setScene(Composite *scene)
 {
     m_scene = scene;
 }
 
 // ------------------------------------------------------------
-CIvfComposite* CIvfBeamModel::getScene()
+Composite* VisBeamModel::getScene()
 {
     return m_scene;
 }
 
-void CIvfBeamModel::setNodeSize(double size)
+void VisBeamModel::setNodeSize(double size)
 {
     m_nodeSize = size;
 }
 
-void CIvfBeamModel::setNodeType(int type)
+void VisBeamModel::setNodeType(int type)
 {
     m_nodeType = type;
 }
 
-void CIvfBeamModel::setLineRadius(double radius)
+void VisBeamModel::setLineRadius(double radius)
 {
     m_lineRadius = radius;
 }
 
-void CIvfBeamModel::setLineSides(int sides)
+void VisBeamModel::setLineSides(int sides)
 {
     m_lineSides = sides;
 }
 
-void CIvfBeamModel::setNodeMaterial(CIvfMaterial *material)
+void VisBeamModel::setNodeMaterial(Material *material)
 {
     m_nodeMaterial = material;
 }
 
-void CIvfBeamModel::setBeamMaterial(CIvfMaterial *material)
+void VisBeamModel::setBeamMaterial(Material *material)
 {
     m_beamMaterial = material;
 }
 
-CIvfColorTable* CIvfBeamModel::getColorTable()
+ColorTable* VisBeamModel::getColorTable()
 {
     return m_colorTable;
 }
 
-void CIvfBeamModel::setLoadSize(double size)
+void VisBeamModel::setLoadSize(double size)
 {
     m_loadSize = size;
 }
 
-void CIvfBeamModel::setBeamLoadSize(double size)
+void VisBeamModel::setBeamLoadSize(double size)
 {
     m_beamLoadSize = size;
 }
 
 
-double CIvfBeamModel::getNodeSize()
+double VisBeamModel::getNodeSize()
 {
     return m_nodeSize;
 }
 
-int CIvfBeamModel::getNodeType()
+int VisBeamModel::getNodeType()
 {
     return m_nodeType;
 }
 
-CIvfMaterial* CIvfBeamModel::getNodeMaterial()
+Material* VisBeamModel::getNodeMaterial()
 {
     return m_nodeMaterial;
 }
 
-double CIvfBeamModel::getLineRadius()
+double VisBeamModel::getLineRadius()
 {
     return m_lineRadius;
 }
 
-void CIvfBeamModel::setColorMaps(CColorMap *pos, CColorMap *neg, CColorMap *std)
+void VisBeamModel::setColorMaps(CColorMap *pos, CColorMap *neg, CColorMap *std)
 {
     m_colorMapPos = pos;
     m_colorMapNeg = neg;
     m_colorMapStd = std;
 }
 
-void CIvfBeamModel::setResultInfo(CResultInfo *resultInfo)
+void VisBeamModel::setResultInfo(CResultInfo *resultInfo)
 {
     m_resultInfo = resultInfo;
 }
 
-void CIvfBeamModel::setBeamType(int type)
+void VisBeamModel::setBeamType(int type)
 {
     m_beamType = type;
 }
 
-int CIvfBeamModel::getBeamType()
+int VisBeamModel::getBeamType()
 {
     return m_beamType;
 }
 
-CFemBeamNodeBC * CIvfBeamModel::defaultNodePosBC()
+CFemBeamNodeBC * VisBeamModel::defaultNodePosBC()
 {
 	return m_defaultNodePosBC;
 }
 
-CFemBeamNodeBC * CIvfBeamModel::defaultNodeFixedBC()
+CFemBeamNodeBC * VisBeamModel::defaultNodeFixedBC()
 {
 	return m_defaultNodeFixedBC;
 }
 
-void CIvfBeamModel::setResultType(int type)
+void VisBeamModel::setResultType(int type)
 {
     m_resultType = type;
 }
 
-int CIvfBeamModel::getResultType()
+int VisBeamModel::getResultType()
 {
     return m_resultType;
 }
 
-CResultInfo* CIvfBeamModel::getResultInfo()
+CResultInfo* VisBeamModel::getResultInfo()
 {
     return m_resultInfo;
 }
 
-CColorMap* CIvfBeamModel::getColorMapPos()
+CColorMap* VisBeamModel::getColorMapPos()
 {
     return m_colorMapPos;
 }
 
-CColorMap* CIvfBeamModel::getColorMapNeg()
+CColorMap* VisBeamModel::getColorMapNeg()
 {
     return m_colorMapNeg;
 }
 
-CColorMap* CIvfBeamModel::getColorMapStd()
+CColorMap* VisBeamModel::getColorMapStd()
 {
     return m_colorMapStd;
 }
 
-void CIvfBeamModel::setScaleFactor(double factor)
+void VisBeamModel::setScaleFactor(double factor)
 {
     m_scaleFactor = factor;
 }
 
-double CIvfBeamModel::getScaleFactor()
+double VisBeamModel::getScaleFactor()
 {
     return m_scaleFactor;
 }
 
-double CIvfBeamModel::getBeamLoadSize()
+double VisBeamModel::getBeamLoadSize()
 {
     return m_beamLoadSize;
 }
 
-double CIvfBeamModel::getLoadSize()
+double VisBeamModel::getLoadSize()
 {
     return m_loadSize;
 }
 
-void CIvfBeamModel::setPath(const std::string& path)
+void VisBeamModel::setPath(const std::string& path)
 {
     m_colorMapPath = path;
     m_colorMapPos->setPath(m_colorMapPath);

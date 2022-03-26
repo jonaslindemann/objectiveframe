@@ -15,12 +15,12 @@
 #include <FL/Fl_Browser.H>
 #include "Fl_HoverButton.h"
 
-class CElementLoadsDlg {
-  CFemElementLoadSet* m_loadSet; 
-  void* m_femWidget; 
-  CFemBeamLoad* m_currentLoad; 
+class ElementLoadsDlg {
+  CFemElementLoadSet* m_loadSet;
+  void* m_femWidget;
+  CFemBeamLoad* m_currentLoad;
 public:
-  CElementLoadsDlg();
+  ElementLoadsDlg();
   Fl_Double_Window *wndElementLoads;
   Fl_Browser *lbLoadSet;
 private:

@@ -1,38 +1,38 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <FemBeamMaterialSet.h>} {public local
-} 
+}
 
 decl {\#ifdef WIN32} {public local
-} 
+}
 
 decl {\#include "fl_message_win.H"} {public local
-} 
+}
 
 decl {\#endif} {public local
-} 
+}
 
 decl {\#include <FL/fl_message.H>} {public local
-} 
+}
 
-decl {\#include "IvfFemWidget.h"} {private local
-} 
+decl {\#include "FemWidget.h"} {private local
+}
 
 decl {\#include "MaterialDlg.h"} {private local
-} 
+}
 
 decl {\#include <string>} {private local
-} 
+}
 
-class CMaterialsDlg {open
+class MaterialsDlg {open
 } {
   decl {CFemBeamMaterialSet* m_materials} {private local
   }
@@ -40,7 +40,7 @@ class CMaterialsDlg {open
   }
   decl {CFemBeamMaterial* m_currentMaterial} {private local
   }
-  Function {CMaterialsDlg()} {open
+  Function {MaterialsDlg()} {open selected
   } {
     Fl_Window wndMaterials {
       label {Beam properties} open
@@ -58,7 +58,7 @@ class CMaterialsDlg {open
 	else m_currentMaterial = NULL;
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->setCurrentMaterial(m_currentMaterial);
 	}
 }}
@@ -100,7 +100,7 @@ class CMaterialsDlg {open
       Fl_Button btnEditMaterial {
         callback {if (this->getCurrentMaterial()!=NULL)
 {
-	CMaterialDlg* dlg = new CMaterialDlg();
+	MaterialDlg* dlg = new MaterialDlg();
 	dlg->setMaterial(this->getCurrentMaterial());
 	dlg->setWorkspace((Fl_Widget*)m_femWidget);
 	dlg->show();
@@ -112,7 +112,7 @@ class CMaterialsDlg {open
 	this->fillListBox();
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->setNeedRecalc(true);
 	}
 }}
@@ -125,7 +125,7 @@ class CMaterialsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+		FemWidget* femWidget = (FemWidget*)m_femWidget;
 		femWidget->assignMaterialToSelected();
 		femWidget->setNeedRecalc(true);
 		this->fillListBox();
@@ -138,7 +138,7 @@ class CMaterialsDlg {open
       Fl_Button btnClearMaterial {
         callback {if (m_femWidget!=NULL)
 {
-	CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+	FemWidget* femWidget = (FemWidget*) m_femWidget;
 	femWidget->removeMaterialFromSelected();
 	femWidget->setNeedRecalc(true);
 	this->fillListBox();
@@ -199,14 +199,14 @@ else
 		lbMaterials->add(materialName.c_str(), material);
 	}
 }
-m_currentMaterial = NULL;} {selected
-    }
+m_currentMaterial = NULL;} {}
   }
   Function {getCurrentMaterial()} {return_type {CFemBeamMaterial*}
   } {
     code {return m_currentMaterial;} {}
   }
-  Function {setFemWidget(void* femWidget)} {} {
+  Function {setFemWidget(void* femWidget)} {open
+  } {
     code {m_femWidget = femWidget;} {}
   }
-} 
+}

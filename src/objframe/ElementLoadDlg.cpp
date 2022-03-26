@@ -3,7 +3,7 @@
 #include "ElementLoadDlg.h"
 #include <FL/fl_show_colormap.H>
 
-void CElementLoadDlg::cb_btnApply_i(Fl_Button*, void*) {
+void ElementLoadDlg::cb_btnApply_i(Fl_Button*, void*) {
   if (m_load!=NULL)
 {
 	if (m_workspace!=NULL)
@@ -25,19 +25,19 @@ void CElementLoadDlg::cb_btnApply_i(Fl_Button*, void*) {
 m_modalResult = MR_OK;
 wndElementLoad->hide();
 }
-void CElementLoadDlg::cb_btnApply(Fl_Button* o, void* v) {
-  ((CElementLoadDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
+void ElementLoadDlg::cb_btnApply(Fl_Button* o, void* v) {
+  ((ElementLoadDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
 }
 
-void CElementLoadDlg::cb_btnClose_i(Fl_Button*, void*) {
+void ElementLoadDlg::cb_btnClose_i(Fl_Button*, void*) {
   m_modalResult = MR_CANCEL;
 wndElementLoad->hide();
 }
-void CElementLoadDlg::cb_btnClose(Fl_Button* o, void* v) {
-  ((CElementLoadDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
+void ElementLoadDlg::cb_btnClose(Fl_Button* o, void* v) {
+  ((ElementLoadDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
 }
 
-void CElementLoadDlg::cb_btnSetColor_i(Fl_Button*, void*) {
+void ElementLoadDlg::cb_btnSetColor_i(Fl_Button*, void*) {
   if (m_load!=NULL)
 {
 	m_colorIndex = boxColor->color();
@@ -46,11 +46,11 @@ void CElementLoadDlg::cb_btnSetColor_i(Fl_Button*, void*) {
 	wndElementLoad->redraw();
 };
 }
-void CElementLoadDlg::cb_btnSetColor(Fl_Button* o, void* v) {
-  ((CElementLoadDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnSetColor_i(o,v);
+void ElementLoadDlg::cb_btnSetColor(Fl_Button* o, void* v) {
+  ((ElementLoadDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnSetColor_i(o,v);
 }
 
-CElementLoadDlg::CElementLoadDlg() {
+ElementLoadDlg::ElementLoadDlg() {
   { wndElementLoad = new Fl_Double_Window(258, 218, "Beam load");
     wndElementLoad->user_data((void*)(this));
     { btnApply = new Fl_Button(119, 188, 67, 25, "Ok");
@@ -124,13 +124,13 @@ CElementLoadDlg::CElementLoadDlg() {
   m_load = NULL;
 }
 
-void CElementLoadDlg::show() {
+void ElementLoadDlg::show() {
   this->setLoad(m_load);
   wndElementLoad->show();
   while (wndElementLoad->visible()) Fl::wait();
 }
 
-void CElementLoadDlg::setLoad(CFemBeamLoad* load) {
+void ElementLoadDlg::setLoad(CFemBeamLoad* load) {
   m_load = load;
   if (m_load==NULL)
   {
@@ -159,18 +159,18 @@ void CElementLoadDlg::setLoad(CFemBeamLoad* load) {
   }
 }
 
-CFemBeamLoad* CElementLoadDlg::getLoad() {
+CFemBeamLoad* ElementLoadDlg::getLoad() {
   return m_load;
 }
 
-void CElementLoadDlg::setWorkspace(Fl_Widget* widget) {
+void ElementLoadDlg::setWorkspace(Fl_Widget* widget) {
   m_workspace = widget;
 }
 
-void CElementLoadDlg::hide() {
+void ElementLoadDlg::hide() {
   wndElementLoad->hide();
 }
 
-int CElementLoadDlg::getModalResult() {
+int ElementLoadDlg::getModalResult() {
   return m_modalResult;
 }

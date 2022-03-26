@@ -2,27 +2,27 @@
 
 #include "BeamPropDlg.h"
 #include "MaterialDlg.h"
-#include "IvfFemWidget.h"
+#include "FemWidget.h"
 
-void CBeamPropDlg::cb_btnClose_i(Fl_Button*, void*) {
+void BeamPropDlg::cb_btnClose_i(Fl_Button*, void*) {
   wndBeamProp->hide();
 }
-void CBeamPropDlg::cb_btnClose(Fl_Button* o, void* v) {
-  ((CBeamPropDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
+void BeamPropDlg::cb_btnClose(Fl_Button* o, void* v) {
+  ((BeamPropDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
 }
 
-void CBeamPropDlg::cb_sldBeamRotation_i(Fl_Value_Slider*, void*) {
-  CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+void BeamPropDlg::cb_sldBeamRotation_i(Fl_Value_Slider*, void*) {
+  FemWidget* femWidget = (FemWidget*)m_femWidget;
 femWidget->setRotationSelected(sldBeamRotation->value());
 }
-void CBeamPropDlg::cb_sldBeamRotation(Fl_Value_Slider* o, void* v) {
-  ((CBeamPropDlg*)(o->parent()->parent()->user_data()))->cb_sldBeamRotation_i(o,v);
+void BeamPropDlg::cb_sldBeamRotation(Fl_Value_Slider* o, void* v) {
+  ((BeamPropDlg*)(o->parent()->parent()->user_data()))->cb_sldBeamRotation_i(o,v);
 }
 
-void CBeamPropDlg::cb_btnShowMaterialDlg_i(Fl_Button*, void*) {
+void BeamPropDlg::cb_btnShowMaterialDlg_i(Fl_Button*, void*) {
   if (this->getBeam()->getMaterial()!=NULL)
 {
-	CMaterialDlg* dlg = new CMaterialDlg();
+	MaterialDlg* dlg = new MaterialDlg();
 	dlg->setMaterial(this->getBeam()->getBeam()->getMaterial());
 	dlg->setWorkspace((Fl_Widget*)m_femWidget);
 	dlg->show();
@@ -31,15 +31,15 @@ void CBeamPropDlg::cb_btnShowMaterialDlg_i(Fl_Button*, void*) {
 		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
 	}
 	delete dlg;
-	CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+	FemWidget* femWidget = (FemWidget*)m_femWidget;
 	femWidget->setNeedRecalc(true);
 };
 }
-void CBeamPropDlg::cb_btnShowMaterialDlg(Fl_Button* o, void* v) {
-  ((CBeamPropDlg*)(o->parent()->parent()->user_data()))->cb_btnShowMaterialDlg_i(o,v);
+void BeamPropDlg::cb_btnShowMaterialDlg(Fl_Button* o, void* v) {
+  ((BeamPropDlg*)(o->parent()->parent()->user_data()))->cb_btnShowMaterialDlg_i(o,v);
 }
 
-CBeamPropDlg::CBeamPropDlg() {
+BeamPropDlg::BeamPropDlg() {
   { wndBeamProp = new Fl_Double_Window(221, 366, "Beam information");
     wndBeamProp->color(FL_FOREGROUND_COLOR);
     wndBeamProp->user_data((void*)(this));
@@ -118,12 +118,12 @@ CBeamPropDlg::CBeamPropDlg() {
   m_femWidget = NULL;
 }
 
-void CBeamPropDlg::show() {
+void BeamPropDlg::show() {
   this->setBeam(m_beam);
   wndBeamProp->show();
 }
 
-void CBeamPropDlg::setBeam(VisFemBeam* beam) {
+void BeamPropDlg::setBeam(VisFemBeam* beam) {
   m_beam = beam;
   if (m_beam==NULL)
   {
@@ -141,19 +141,19 @@ void CBeamPropDlg::setBeam(VisFemBeam* beam) {
   }
 }
 
-VisFemBeam* CBeamPropDlg::getBeam() {
+VisFemBeam* BeamPropDlg::getBeam() {
   return m_beam;
 }
 
-void CBeamPropDlg::hide() {
+void BeamPropDlg::hide() {
   wndBeamProp->hide();
 }
 
-void CBeamPropDlg::setFemWidget(void* femWidget) {
+void BeamPropDlg::setFemWidget(void* femWidget) {
   m_femWidget = femWidget;
 }
 
-void CBeamPropDlg::fillListboxes() {
+void BeamPropDlg::fillListboxes() {
   if (m_beam!=NULL)
   {
   	if (m_beam->getBeam()->getValueSize()>0)

@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "IvfPlaneButton.h"
+#include "PlaneButton.h"
 
 #include <ivf/LineSet.h>
 #include <ivfimage/SgiImage.h>

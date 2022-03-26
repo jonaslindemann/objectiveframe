@@ -12,39 +12,39 @@
 #include <FL/fl_show_colormap.H>
 
 void cb_update(void* p) {
-  CMaterialDlg* dlg = (CMaterialDlg*) p;
+  MaterialDlg* dlg = (MaterialDlg*) p;
   dlg->updateData();
   Fl::repeat_timeout(0.3, cb_update, p);
 }
 
-void CMaterialDlg::cb_btnOK_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnOK_i(Fl_Button*, void*) {
   this->update();
 this->updateData();
 m_modalResult = MR_OK;
 hide();
 }
-void CMaterialDlg::cb_btnOK(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->user_data()))->cb_btnOK_i(o,v);
+void MaterialDlg::cb_btnOK(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->user_data()))->cb_btnOK_i(o,v);
 }
 
-void CMaterialDlg::cb_btnClose_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnClose_i(Fl_Button*, void*) {
   m_modalResult = MR_CANCEL;
 hide();
 }
-void CMaterialDlg::cb_btnClose(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
+void MaterialDlg::cb_btnClose(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
 }
 
-void CMaterialDlg::cb_btnApply_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnApply_i(Fl_Button*, void*) {
   this->update();
 this->updateData();
 m_modalResult = MR_APPLY;
 }
-void CMaterialDlg::cb_btnApply(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
+void MaterialDlg::cb_btnApply(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
 }
 
-void CMaterialDlg::cb_btnSetColor_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnSetColor_i(Fl_Button*, void*) {
   if (m_material!=NULL)
 {
 	m_colorIndex = boxColor->color();
@@ -53,16 +53,16 @@ void CMaterialDlg::cb_btnSetColor_i(Fl_Button*, void*) {
 	wndMaterial->redraw();
 };
 }
-void CMaterialDlg::cb_btnSetColor(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnSetColor_i(o,v);
+void MaterialDlg::cb_btnSetColor(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnSetColor_i(o,v);
 }
 
-void CMaterialDlg::cb_btnRectangle_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnRectangle_i(Fl_Button*, void*) {
   this->callBack(0);
 this->updateData();
 }
-void CMaterialDlg::cb_btnRectangle(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnRectangle_i(o,v);
+void MaterialDlg::cb_btnRectangle(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnRectangle_i(o,v);
 }
 
 #include <FL/Fl_Pixmap.H>
@@ -307,12 +307,12 @@ static Fl_Image *image_section1() {
   return image;
 }
 
-void CMaterialDlg::cb_btnISection_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnISection_i(Fl_Button*, void*) {
   this->callBack(1);
 this->updateData();
 }
-void CMaterialDlg::cb_btnISection(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnISection_i(o,v);
+void MaterialDlg::cb_btnISection(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnISection_i(o,v);
 }
 
 static const char *idata_section2[] = {
@@ -657,12 +657,12 @@ static Fl_Image *image_section2() {
   return image;
 }
 
-void CMaterialDlg::cb_btnTSection_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnTSection_i(Fl_Button*, void*) {
   this->callBack(3);
 this->updateData();
 }
-void CMaterialDlg::cb_btnTSection(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnTSection_i(o,v);
+void MaterialDlg::cb_btnTSection(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnTSection_i(o,v);
 }
 
 static const char *idata_section4[] = {
@@ -1007,75 +1007,75 @@ static Fl_Image *image_section4() {
   return image;
 }
 
-void CMaterialDlg::cb_edtHeight_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtHeight_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtHeight(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtHeight_i(o,v);
+void MaterialDlg::cb_edtHeight(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtHeight_i(o,v);
 }
 
-void CMaterialDlg::cb_edtWidth_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtWidth_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtWidth(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtWidth_i(o,v);
+void MaterialDlg::cb_edtWidth(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtWidth_i(o,v);
 }
 
-void CMaterialDlg::cb_edtUFT_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtUFT_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtUFT(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtUFT_i(o,v);
+void MaterialDlg::cb_edtUFT(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtUFT_i(o,v);
 }
 
-void CMaterialDlg::cb_edtLFT_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtLFT_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtLFT(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtLFT_i(o,v);
+void MaterialDlg::cb_edtLFT(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtLFT_i(o,v);
 }
 
-void CMaterialDlg::cb_edtUFW_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtUFW_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtUFW(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtUFW_i(o,v);
+void MaterialDlg::cb_edtUFW(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtUFW_i(o,v);
 }
 
-void CMaterialDlg::cb_edtLFW_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtLFW_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtLFW(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtLFW_i(o,v);
+void MaterialDlg::cb_edtLFW(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtLFW_i(o,v);
 }
 
-void CMaterialDlg::cb_edtWT_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtWT_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtWT(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtWT_i(o,v);
+void MaterialDlg::cb_edtWT(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtWT_i(o,v);
 }
 
-void CMaterialDlg::cb_edtULFW_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtULFW_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtULFW(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtULFW_i(o,v);
+void MaterialDlg::cb_edtULFW(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtULFW_i(o,v);
 }
 
-void CMaterialDlg::cb_edtLLFW_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtLLFW_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtLLFW(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtLLFW_i(o,v);
+void MaterialDlg::cb_edtLLFW(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtLLFW_i(o,v);
 }
 
-void CMaterialDlg::cb_btnUSection_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnUSection_i(Fl_Button*, void*) {
   this->callBack(4);
 this->updateData();
 }
-void CMaterialDlg::cb_btnUSection(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnUSection_i(o,v);
+void MaterialDlg::cb_btnUSection(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnUSection_i(o,v);
 }
 
 static const char *idata_section5[] = {
@@ -1420,12 +1420,12 @@ static Fl_Image *image_section5() {
   return image;
 }
 
-void CMaterialDlg::cb_btnRHS_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnRHS_i(Fl_Button*, void*) {
   this->callBack(5);
 this->updateData();
 }
-void CMaterialDlg::cb_btnRHS(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnRHS_i(o,v);
+void MaterialDlg::cb_btnRHS(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnRHS_i(o,v);
 }
 
 static const char *idata_section6[] = {
@@ -1678,26 +1678,26 @@ static Fl_Image *image_section6() {
   return image;
 }
 
-void CMaterialDlg::cb_edtOuterRadius_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtOuterRadius_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtOuterRadius(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtOuterRadius_i(o,v);
+void MaterialDlg::cb_edtOuterRadius(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtOuterRadius_i(o,v);
 }
 
-void CMaterialDlg::cb_edtInnerRadius_i(Fl_Value_Input*, void*) {
+void MaterialDlg::cb_edtInnerRadius_i(Fl_Value_Input*, void*) {
   this->updateData();
 }
-void CMaterialDlg::cb_edtInnerRadius(Fl_Value_Input* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtInnerRadius_i(o,v);
+void MaterialDlg::cb_edtInnerRadius(Fl_Value_Input* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_edtInnerRadius_i(o,v);
 }
 
-void CMaterialDlg::cb_btnSolidPipe_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnSolidPipe_i(Fl_Button*, void*) {
   this->callBack(6);
 this->updateData();
 }
-void CMaterialDlg::cb_btnSolidPipe(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnSolidPipe_i(o,v);
+void MaterialDlg::cb_btnSolidPipe(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnSolidPipe_i(o,v);
 }
 
 static const char *idata_section7[] = {
@@ -2042,12 +2042,12 @@ static Fl_Image *image_section7() {
   return image;
 }
 
-void CMaterialDlg::cb_btnPipe_i(Fl_Button*, void*) {
+void MaterialDlg::cb_btnPipe_i(Fl_Button*, void*) {
   this->callBack(7);
 this->updateData();
 }
-void CMaterialDlg::cb_btnPipe(Fl_Button* o, void* v) {
-  ((CMaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnPipe_i(o,v);
+void MaterialDlg::cb_btnPipe(Fl_Button* o, void* v) {
+  ((MaterialDlg*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_btnPipe_i(o,v);
 }
 
 static const char *idata_section8[] = {
@@ -2392,7 +2392,7 @@ static Fl_Image *image_section8() {
   return image;
 }
 
-CMaterialDlg::CMaterialDlg() {
+MaterialDlg::MaterialDlg() {
   { wndMaterial = new Fl_Double_Window(433, 494, "Beam properties");
     wndMaterial->user_data((void*)(this));
     { btnOK = new Fl_Button(232, 463, 60, 25, "Ok");
@@ -2610,13 +2610,13 @@ CMaterialDlg::CMaterialDlg() {
   	edtInnerRadius->value(0.0);
 }
 
-void CMaterialDlg::show() {
+void MaterialDlg::show() {
   Fl::add_timeout(0.3, cb_update, (void*)this);
   wndMaterial->show();
   while (wndMaterial->visible()) Fl::wait();
 }
 
-void CMaterialDlg::setMaterial(CFemBeamMaterial* material) {
+void MaterialDlg::setMaterial(CFemBeamMaterial* material) {
   m_material = material;
   if (m_material==NULL)
   {
@@ -2644,14 +2644,14 @@ void CMaterialDlg::setMaterial(CFemBeamMaterial* material) {
   	this->getSectionProps(sectWidth, sectHeight, sectUFW, sectLFW,
   						      sectWT, sectUFT, sectLFT, sectULFW, 
   							  sectLLFW, sectOuterRadius, sectInnerRadius);
-  
+
   	m_material->getSection()->setAutoCalc(true);
-  
+
   	edtA->deactivate();
   	edtIy->deactivate();
   	edtIz->deactivate();
   	edtKv->deactivate();
-  
+
   	btnApply->activate();
   	tbMaterial->activate();
   	edtName->value(materialName.c_str());
@@ -2696,31 +2696,31 @@ void CMaterialDlg::setMaterial(CFemBeamMaterial* material) {
   }
 }
 
-CFemBeamMaterial* CMaterialDlg::getMaterial() {
+CFemBeamMaterial* MaterialDlg::getMaterial() {
   return m_material;
 }
 
-void CMaterialDlg::setWorkspace(Fl_Widget* widget) {
+void MaterialDlg::setWorkspace(Fl_Widget* widget) {
   m_workspace = widget;
 }
 
-void CMaterialDlg::hide() {
+void MaterialDlg::hide() {
   Fl::remove_timeout(cb_update, (void*)this);
   wndMaterial->hide();
 }
 
-int CMaterialDlg::getModalResult() {
+int MaterialDlg::getModalResult() {
   return m_modalResult;
 }
 
-void CMaterialDlg::setSectionProps(double width, double height, double UFW, double LFW,
+void MaterialDlg::setSectionProps(double width, double height, double UFW, double LFW,
 									   double WT, double UFT, double LFT, double ULFW,
 									   double LLFW, double outerRadius, double innerRadius, int repr) {
   CFemSection* tempSection;
   	CFemRectSection* rectSection;
   	
   	tempSection = (m_material->getSection());
-  
+
   	switch (repr) {
   	case 0:
   		if (tempSection->isClass("CFemRectSection"))
@@ -2840,15 +2840,15 @@ void CMaterialDlg::setSectionProps(double width, double height, double UFW, doub
   	}
 }
 
-void CMaterialDlg::getSectionProps(double &width, double &height, double &UFW, double &LFW,
+void MaterialDlg::getSectionProps(double &width, double &height, double &UFW, double &LFW,
 									   double &WT, double &UFT, double &LFT, double &ULFW,
 									   double &LLFW, double &outerRadius, double &innerRadius) {
   CFemSection* tempSection;
   	double* tempProps;
-  
+
   	tempSection = (m_material->getSection());
   	tempSection->getAllProps(tempProps);
-  
+
   	height = tempProps[0];
   	width = tempProps[1];
   	UFW = tempProps[2];
@@ -2862,7 +2862,7 @@ void CMaterialDlg::getSectionProps(double &width, double &height, double &UFW, d
   	innerRadius = tempProps[10];
 }
 
-void CMaterialDlg::callBack(int repr) {
+void MaterialDlg::callBack(int repr) {
   switch (repr) {
   	case 0:
   		btnRectangle->value(1);
@@ -3006,7 +3006,7 @@ void CMaterialDlg::callBack(int repr) {
   	}
 }
 
-void CMaterialDlg::update() {
+void MaterialDlg::update() {
   if (m_material!=NULL)
   {
   	if (m_workspace!=NULL)
@@ -3023,7 +3023,7 @@ void CMaterialDlg::update() {
   		edtIy->value(),
   		edtIz->value(),
   		edtKv->value());
-  
+
   	this->setSectionProps(
   		edtWidth->value(),
   		edtHeight->value(),
@@ -3037,13 +3037,13 @@ void CMaterialDlg::update() {
   		edtOuterRadius->value(),
   		edtInnerRadius->value(),
   		m_sectionType);
-  
+
   	m_material->setColor((int) boxColor->color());
   	m_material->setName((char*)edtName->value());
   }
 }
 
-void CMaterialDlg::updateData() {
+void MaterialDlg::updateData() {
   this->setSectionProps(
   	edtWidth->value(),
   	edtHeight->value(),
@@ -3057,7 +3057,7 @@ void CMaterialDlg::updateData() {
   	edtOuterRadius->value(),
   	edtInnerRadius->value(),
   	m_sectionType);
-  
+
   edtA->deactivate();
   edtIy->deactivate();
   edtIz->deactivate();

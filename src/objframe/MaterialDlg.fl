@@ -1,54 +1,55 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#define MR_APPLY 2} {public local
-} 
+}
 
 decl {\#include <FemBeamMaterial.h>} {public local
-} 
+}
 
 decl {\#include "FemRectSection.h"} {private local
-} 
+}
 
 decl {\#include "FemLSection.h"} {private local
-} 
+}
 
 decl {\#include "FemISection.h"} {private local
-} 
+}
 
 decl {\#include "FemTSection.h"} {private local
-} 
+}
 
 decl {\#include "FemUSection.h"} {private local
-} 
+}
 
 decl {\#include "FemRHSSection.h"} {private local
-} 
+}
 
 decl {\#include "FemSolidPipeSection.h"} {private local
-} 
+}
 
 decl {\#include "FemPipeSection.h"} {private local
-} 
+}
 
 decl {\#include <FL/fl_show_colormap.H>} {private local
-} 
+}
 
 Function {cb_update(void* p)} {open
 } {
-  code {CMaterialDlg* dlg = (CMaterialDlg*) p;
+  code {MaterialDlg* dlg = (MaterialDlg*) p;
 dlg->updateData();
-Fl::repeat_timeout(0.3, cb_update, p);} {}
-} 
+Fl::repeat_timeout(0.3, cb_update, p);} {selected
+  }
+}
 
-class CMaterialDlg {open
+class MaterialDlg {open
 } {
   decl {int m_sectionType;} {private local
   }
@@ -60,7 +61,7 @@ class CMaterialDlg {open
   }
   decl {Fl_Color m_colorIndex} {private local
   }
-  Function {CMaterialDlg()} {open
+  Function {MaterialDlg()} {open
   } {
     Fl_Window wndMaterial {
       label {Beam properties} open
@@ -362,8 +363,7 @@ else
   }
   Function {getMaterial()} {open return_type {CFemBeamMaterial*}
   } {
-    code {return m_material;} {selected
-    }
+    code {return m_material;} {}
   }
   Function {setWorkspace(Fl_Widget* widget)} {} {
     code {m_workspace = widget;} {}
@@ -729,4 +729,4 @@ edtIy->value(tempData[3]);
 edtIz->value(tempData[4]);
 edtKv->value(tempData[5]);} {}
   }
-} 
+}

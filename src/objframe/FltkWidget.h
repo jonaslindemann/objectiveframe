@@ -24,38 +24,14 @@
 
 // Platform depenendant includes
 
-#define USE_GLEW
-
-#ifdef USE_GLEW
-#if defined(__APPLE__)
-#  include <OpenGL/gl3.h> // defines OpenGL 3.0+ functions
-#else
-#  if defined(WIN32)
-#    define GLEW_STATIC 1
-#  endif
-#  include <GL/glew.h>
-#  include <GL/wglew.h>
-#endif
-#else
-#include <FL/gl.h>
-#endif
-
-#include <ivf/ivfconfig.h>
-
 #include <FL/Fl.H>
-
-
-#ifdef __APPLE__
-#include <OpenGL/glu.h>
-#else
-#include <GL/glu.h>
-#endif
-
 
 // OpenGL and FLTK includes
 
 
 #include <FL/Fl_Gl_Window.H>
+
+#include "imgui_impl_fltk.h"
 
 namespace std {};
 using namespace std;
@@ -112,26 +88,26 @@ using namespace std;
 #define IVF_CTRL					1
 #define IVF_ALT                     2
 
-#include <ivf/IvfBase.h>
-#include <ivf/IvfComposite.h>
-#include <ivf/IvfCamera.h>
-#include <ivf/IvfCulledScene.h>
-#include <ivf/IvfExtrusion.h>
-#include <ivf/IvfNode.h>
-#include <ivf/IvfShape.h>
-#include <ivf/IvfBrick.h>
-#include <ivf/IvfSolidLine.h>
-#include <ivf/IvfWorkspace.h>
+#include <ivf/Base.h>
+#include <ivf/Composite.h>
+#include <ivf/Camera.h>
+#include <ivf/CulledScene.h>
+#include <ivf/Extrusion.h>
+#include <ivf/Node.h>
+#include <ivf/Shape.h>
+#include <ivf/Brick.h>
+#include <ivf/SolidLine.h>
+#include <ivf/Workspace.h>
 
 /* Later perhaps
 #include <ivfmanip/IvfTranslateManipulator.h>
 #include <ivfmanip/IvfRotateManipulator.h>
 */
 
-#include <ivfmath/IvfPlane.h>
-#include <ivfmath/IvfPoint3d.h>
+#include <ivfmath/Plane.h>
+#include <ivfmath/Point3d.h>
 
-IvfSmartPointer(CIvfFltkWidget);
+IvfSmartPointer(FltkWidget);
 
 #define GLT_MANUAL_VIEWPORT
 #include <gltext.h>
@@ -148,7 +124,7 @@ IvfSmartPointer(CIvfFltkWidget);
  *
  * \author Jonas Lindemann
  */
-class IVFFLTK_API CIvfFltkWidget : public Fl_Gl_Window, CIvfBase
+class IVFFLTK_API FltkWidget : public Fl_Gl_Window, ivf::Base, ImGuiFLTKImpl
 {
 private:
 
@@ -185,8 +161,8 @@ private:
 
     double m_rotX, m_rotY, m_rotZ;
 
-    CIvfPoint3d m_brick1;
-    CIvfPoint3d m_brick2;
+    ivf::Point3d m_brick1;
+    ivf::Point3d m_brick2;
 
     long m_nNodes;
     long m_nLines;
@@ -205,12 +181,14 @@ private:
 
     // Interaction objects
 
-    CIvfWorkspacePtr			m_scene;
-    CIvfShapePtr				m_selectedShape;
-    CIvfCameraPtr				m_camera;
-    CIvfCompositePtr			m_selectedShapes;
-    CIvfLightingPtr				m_lighting;
-    CIvfShapePtr                m_lastShape;
+    ivf::WorkspacePtr			m_scene;
+    ivf::ShapePtr				m_selectedShape;
+    ivf::CameraPtr				m_camera;
+    ivf::CompositePtr			m_selectedShapes;
+    ivf::LightingPtr				m_lighting;
+    ivf::ShapePtr                m_lastShape;
+
+    bool m_showDemoWindow;
 
 	void initOffscreenBuffers();
 	void updateOffscreenBuffers();
@@ -233,9 +211,11 @@ protected:
      */
     int handle(int event);
 
+    void resize(int x, int y, int w, int h);
+
 public:
     /**
-     * CIvfFltkWidget constructor
+     * FltkWidget constructor
      *
      * Initializes the widget position and size and an optional title
      * @param X Widget x position.
@@ -244,15 +224,15 @@ public:
      * @param H Widget height.
      * @param L Widget title (optional)
      */
-    CIvfFltkWidget(int X, int Y, int W, int H, const char *L=0);
+    FltkWidget(int X, int Y, int W, int H, const char *L=0);
 
-    /** CIvfFltkWidget destructor */
-    virtual ~CIvfFltkWidget();
+    /** FltkWidget destructor */
+    virtual ~FltkWidget();
 
-    IvfClassInfo("CIvfFltkWidget", CIvfBase);
+    IvfClassInfo("FltkWidget", ivf::Base);
 
     /** Returns camera used by widget */
-    CIvfCamera* getCamera();
+    ivf::Camera* getCamera();
 
     /**
      * Add a shape to the scene.
@@ -261,7 +241,7 @@ public:
      * it to the scene, the shape is owned by the widget and will be
      * destroyed when not needed.
      */
-    void addToScene(CIvfShape* shape);
+    void addToScene(ivf::Shape* shape);
 
     /**
      * Deletes selected shapes
@@ -343,7 +323,7 @@ public:
     double getWorkspace();
 
     /** Return the scene object used by the widget */
-    CIvfWorkspace* getScene();
+    ivf::Workspace* getScene();
 
     /** Return overlay use */
     bool getUseOverlay();
@@ -367,7 +347,7 @@ public:
     int getCurrentMouseButton();
     int getCurrentModifier();
 
-    CIvfComposite* getSelectedShapes();
+    ivf::Composite* getSelectedShapes();
 
     bool isInitialized();
 
@@ -420,7 +400,7 @@ protected:
      * @param newNode This parameter shoud be assigned if a new node has been created.
      *
      */
-    virtual void onCreateNode(double x, double y, double z, CIvfNode* &newNode);
+    virtual void onCreateNode(double x, double y, double z, ivf::Node* &newNode);
 
     /**
      * onCreateLine event
@@ -443,7 +423,7 @@ protected:
      * @param node2 Second selected node
      * @param newLine This parameter should be assigned if a new line has been created.
      */
-    virtual void onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine);
+    virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape* &newLine);
 
     /**
      * onSelect event
@@ -451,7 +431,7 @@ protected:
      * This method is called when a selection has occured.
      * @param selectedShapes Currently selected shapes.
      */
-    virtual void onSelect(CIvfComposite* selectedShapes);
+    virtual void onSelect(ivf::Composite* selectedShapes);
 
     /**
      * onDeSelect event
@@ -476,7 +456,7 @@ protected:
      * variable determines if the object can be deleted. If
      * \em doit is \em true the object will be deleted.
      */
-    virtual void onDeleteShape(CIvfShape* shape, bool &doit);
+    virtual void onDeleteShape(ivf::Shape* shape, bool &doit);
 
     /**
      * onInitContext event
@@ -502,7 +482,7 @@ protected:
      * This event is called when an object has been highlighted in
      * a select operation.
      */
-    virtual void onHighlightShape(CIvfShape* shape);
+    virtual void onHighlightShape(ivf::Shape* shape);
 
     /**
      * onMove event
@@ -513,10 +493,10 @@ protected:
      * must be set to true if the move operation should be performed or
      * not.
      */
-    virtual void onMove(CIvfComposite* selectedShapes, double &dx, double &dy, double &dz, bool &doit);
+    virtual void onMove(ivf::Composite* selectedShapes, double &dx, double &dy, double &dz, bool &doit);
 
-    virtual void onSelectFilter(CIvfShape* shape, bool &select);
-    virtual void onHighlightFilter(CIvfShape*, bool &highlight);
+    virtual void onSelectFilter(ivf::Shape* shape, bool &select);
+    virtual void onHighlightFilter(ivf::Shape*, bool &highlight);
     virtual void onMotion(int x, int y);
     virtual void onPassiveMotion(int x, int y);
     virtual void onMouse(int x, int y);
@@ -526,6 +506,9 @@ protected:
 
     virtual void onPostRender();
     virtual void onPreRender();
+
+    virtual void onDrawImGui();
+    virtual void onInitImGui();
 
 };
 

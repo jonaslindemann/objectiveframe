@@ -25,14 +25,14 @@ IvfSmartPointer(VisFemBeam);
 class VisFemBeam : public ivf::Composite {
 private:
     CFemBeam*			m_femBeam;
-    ivf::SimpleLineSet*	m_lineSet;
-    ivf::SolidLine*		m_solidLine;
+    ivf::SimpleLineSetPtr	m_lineSet;
+    ivf::SolidLinePtr		m_solidLine;
     VisFemNode*		    m_nodes[2];
-    ivf::Material*		m_beamMaterial;
-    ivf::Extrusion*		m_extrusion;
+    ivf::MaterialPtr		m_beamMaterial;
+    ivf::ExtrusionPtr		m_extrusion;
 
-    ivf::Texture*		m_beamTexture;
-    ivf::Image*			m_beamImage;
+    ivf::TexturePtr		m_beamTexture;
+    ivf::ImagePtr			m_beamImage;
 
     VisBeamModel*		m_beamModel;
 

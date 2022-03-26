@@ -28,17 +28,18 @@ decl {\#endif} {private local
 
 Function {cb_wndMain(Fl_Widget* widget, void* p)} {open private
 } {
-  code {CMainFrame* mainFrame = (CMainFrame*)p;
-mainFrame->close();} {}
+  code {MainFrame* mainFrame = (MainFrame*)p;
+mainFrame->close();} {selected
+  }
 }
 
-class CMainFrame {open
+class MainFrame {open
 } {
-  decl {CNodePropDlg* m_dlgNodeProp} {public local
+  decl {NodePropDlg* m_dlgNodeProp} {public local
   }
-  decl {CBeamPropDlg* m_dlgBeamProp} {private local
+  decl {BeamPropDlg* m_dlgBeamProp} {private local
   }
-  decl {CMaterialsDlg* m_dlgMaterials} {private local
+  decl {MaterialsDlg* m_dlgMaterials} {private local
   }
   decl {int m_argc} {private local
   }
@@ -46,7 +47,7 @@ class CMainFrame {open
   }
   decl {CSplashFrame* m_splash} {private local
   }
-  Function {CMainFrame()} {open
+  Function {MainFrame()} {open
   } {
     Fl_Window wndMain {
       label ObjectiveFrame open
@@ -125,7 +126,7 @@ this->close();}
           }
           MenuItem mnuEditPosGround {
             label {Fix position ground nodes}
-            callback {ivfWorkspace->assignNodePosBCGround();} selected
+            callback {ivfWorkspace->assignNodePosBCGround();}
             xywh {0 0 30 20} shortcut 0x50067
           }
         }
@@ -285,8 +286,8 @@ m_splash->show();}
       }
       Fl_Box ivfWorkspace {
         xywh {0 25 746 558} color 0 resizable
-        code0 {\#include "IvfFemWidget.h"}
-        class CIvfFemWidget
+        code0 {\#include "FemWidget.h"}
+        class FemWidget
       }
     }
     code {wndMain->callback(cb_wndMain, this);
@@ -316,7 +317,7 @@ wndMain->hide();} {}
 m_argv = argv;
 ivfWorkspace->setArguments(m_argc, m_argv);} {}
   }
-  Function {~CMainFrame()} {} {
+  Function {~MainFrame()} {} {
     code {if (m_splash!=NULL)
 	delete m_splash;} {}
   }

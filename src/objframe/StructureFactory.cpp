@@ -57,7 +57,7 @@ void CStructureFactory::create()
         
         m_currentMaterial = (CFemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial();
 
-        vector<CIvfFemNode*> nodes;
+        vector<VisFemNode*> nodes;
 
         int i, j, k;
 
@@ -88,7 +88,7 @@ void CStructureFactory::create()
                     double z = i*m_spacing[2] - m_spacing[2]*((double)m_size[1]-1.0)/2.0;
                     double y = k*m_spacing[1];
 
-                    CIvfFemNode* ivfNode = new CIvfFemNode();
+                    VisFemNode* ivfNode = new VisFemNode();
                     ivfNode->setBeamModel(m_beamModel);
                     ivfNode->setFemNode(femNode);
                     ivfNode->setPosition(x, y, z);
@@ -121,7 +121,7 @@ void CStructureFactory::create()
                     // Create visual representation
                     //
 
-                    CIvfFemBeam* ivfBeam = new CIvfFemBeam();
+                    VisFemBeam* ivfBeam = new VisFemBeam();
                     ivfBeam->setBeamModel(m_beamModel);
 
                     //
@@ -134,10 +134,10 @@ void CStructureFactory::create()
                     // Extract FemNode:s from the IvfNodes
                     //
 
-                    CIvfFemNode* ivfNode1 =
-                        (CIvfFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
-                    CIvfFemNode* ivfNode2 =
-                        (CIvfFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*(k+1)];
+                    VisFemNode* ivfNode1 =
+                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    VisFemNode* ivfNode2 =
+                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*(k+1)];
 
                     //
                     // Add FemNodes to beam element
@@ -192,7 +192,7 @@ void CStructureFactory::create()
                     // Create visual representation
                     //
 
-                    CIvfFemBeam* ivfBeam = new CIvfFemBeam();
+                    VisFemBeam* ivfBeam = new VisFemBeam();
                     ivfBeam->setBeamModel(m_beamModel);
 
                     //
@@ -205,10 +205,10 @@ void CStructureFactory::create()
                     // Extract FemNode:s from the IvfNodes
                     //
 
-                    CIvfFemNode* ivfNode1 =
-                        (CIvfFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
-                    CIvfFemNode* ivfNode2 =
-                        (CIvfFemNode*) nodes[j+(i+1)*m_size[0]+m_size[0]*m_size[1]*k];
+                    VisFemNode* ivfNode1 =
+                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    VisFemNode* ivfNode2 =
+                        (VisFemNode*) nodes[j+(i+1)*m_size[0]+m_size[0]*m_size[1]*k];
 
                     //
                     // Add FemNodes to beam element
@@ -263,7 +263,7 @@ void CStructureFactory::create()
                     // Create visual representation
                     //
 
-                    CIvfFemBeam* ivfBeam = new CIvfFemBeam();
+                    VisFemBeam* ivfBeam = new VisFemBeam();
                     ivfBeam->setBeamModel(m_beamModel);
 
                     //
@@ -276,10 +276,10 @@ void CStructureFactory::create()
                     // Extract FemNode:s from the IvfNodes
                     //
 
-                    CIvfFemNode* ivfNode1 =
-                        (CIvfFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
-                    CIvfFemNode* ivfNode2 =
-                        (CIvfFemNode*) nodes[j+1+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    VisFemNode* ivfNode1 =
+                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    VisFemNode* ivfNode2 =
+                        (VisFemNode*) nodes[j+1+i*m_size[0]+m_size[0]*m_size[1]*k];
 
                     //
                     // Add FemNodes to beam element
@@ -322,12 +322,12 @@ void CStructureFactory::create()
     }
 }
 
-void CStructureFactory::setBeamModel(CIvfBeamModel *model)
+void CStructureFactory::setBeamModel(VisBeamModel *model)
 {
     m_beamModel = model;
 }
 
-CIvfBeamModel* CStructureFactory::getBeamModel()
+VisBeamModel* CStructureFactory::getBeamModel()
 {
     return m_beamModel;
 }

@@ -16,14 +16,14 @@ void cb_update(void* p);
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Box.H>
 
-class CMaterialDlg {
-  int m_sectionType; 
-  int m_modalResult; 
-  CFemBeamMaterial* m_material; 
-  Fl_Widget* m_workspace; 
-  Fl_Color m_colorIndex; 
+class MaterialDlg {
+  int m_sectionType;
+  int m_modalResult;
+  CFemBeamMaterial* m_material;
+  Fl_Widget* m_workspace;
+  Fl_Color m_colorIndex;
 public:
-  CMaterialDlg();
+  MaterialDlg();
   Fl_Double_Window *wndMaterial;
   Fl_Button *btnOK;
 private:

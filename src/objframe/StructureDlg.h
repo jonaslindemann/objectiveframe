@@ -11,12 +11,12 @@
 #include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Value_Input.H>
 
-class CStructureDlg {
-  int m_modalResult; 
-  int m_size[3]; 
-  double m_spacing[3]; 
+class StructureDlg {
+  int m_modalResult;
+  int m_size[3];
+  double m_spacing[3];
 public:
-  CStructureDlg();
+  StructureDlg();
   Fl_Double_Window *wndWorkspace;
   Fl_Button *btnOk;
 private:
@@ -37,7 +37,7 @@ public:
   Fl_Value_Input *edtYspacing;
   void show();
   int getModalResult();
-  ~CStructureDlg();
+  ~StructureDlg();
   void getSize(int &rows, int &cols, int &stacks);
   void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
 };

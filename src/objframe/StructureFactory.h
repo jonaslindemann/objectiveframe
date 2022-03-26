@@ -1,17 +1,17 @@
 #ifndef _CStructureFactory_h_
 #define _CStructureFactory_h_
 
-#include <ivf/IvfScene.h>
+#include <ivf/Scene.h>
 
-#include <IvfBeamModel.h>
-#include <IvfFemNode.h>
-#include <IvfFemBeam.h>
+#include <VisBeamModel.h>
+#include <VisFemNode.h>
+#include <VisFemBeam.h>
 
 class CStructureFactory {
 private:
     int m_size[3];
     double m_spacing[3];
-    CIvfBeamModel* m_beamModel;
+    VisBeamModel* m_beamModel;
     CFemBeamMaterial* m_currentMaterial;
 public:
     void setCurrentMaterial(CFemBeamMaterial* material);
@@ -28,8 +28,8 @@ public:
     void getSize(int &rows, int &cols, int &stacks);
     void setSpacing(double xSpacing, double ySpacing, double zSpacing);
     void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
-    void setBeamModel(CIvfBeamModel* model);
-    CIvfBeamModel* getBeamModel();
+    void setBeamModel(VisBeamModel* model);
+    VisBeamModel* getBeamModel();
 };
 
 #endif

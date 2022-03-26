@@ -14,11 +14,11 @@
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Browser.H>
 
-class CBeamPropDlg {
+class BeamPropDlg {
   VisFemBeam* m_beam;
   void* m_femWidget;
 public:
-  CBeamPropDlg();
+  BeamPropDlg();
   Fl_Double_Window *wndBeamProp;
   Fl_Button *btnClose;
 private:

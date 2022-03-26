@@ -19,20 +19,40 @@
 // Please report all bugs and problems to "ivf@byggmek.lth.se".
 //   
 
-#include "IvfFltkWidget.h"
+#include "FltkWidget.h"
 
 #include <FL/x.H>
 #include <FL/gl.h>
 #include <FL/fl_draw.H>
 
+#include <glad/glad.h>
+
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
+#include <GL/glu.h>
+
+
 #define USE_OFFSCREEN_RENDERING
+
+using namespace ivf;
+
+void redrawCallback(void* view)
+{
+    FltkWidget* imguiView;
+
+    imguiView = (FltkWidget*)view;
+    imguiView->redraw();
+    Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)view);
+}
 
 // ------------------------------------------------------------
 // Constructor/desctructor
 // ------------------------------------------------------------
 
-CIvfFltkWidget::CIvfFltkWidget(int X, int Y, int W, int H, const char *L) :
-    Fl_Gl_Window(X, Y, W, H, L)
+FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
+    Fl_Gl_Window(X, Y, W, H, L), ImGuiFLTKImpl()
 {
     // State variables
 
@@ -66,27 +86,31 @@ CIvfFltkWidget::CIvfFltkWidget(int X, int Y, int W, int H, const char *L) :
 
     m_workspaceSize = 10.0f;
 
+    m_showDemoWindow = true;
+
     // Create default camera
 
-    m_camera = new CIvfCamera();
+    m_camera = Camera::create();
     m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize/2.0);
     m_camera->setPerspective(45.0, 0.1, 100.0);
 
     // Create scene
 
-    m_scene = new CIvfWorkspace();
+    m_scene = Workspace::create();
     m_scene->setView(m_camera);
     m_scene->disableCursor();
 	//m_scene->getCurrentPlane()->getCursor()->setCursorType(CIvfCursor::CT_LINE_CURSOR);
 
     // Create selected shapes list.
 
-    m_selectedShapes = new CIvfComposite();
+    m_selectedShapes = Composite::create();
     m_selectedShapes->setUseReference(false);
+
+    Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)this);
 }
 
 // ------------------------------------------------------------
-CIvfFltkWidget::~CIvfFltkWidget()
+FltkWidget::~FltkWidget()
 {
     onDestroy();
 }
@@ -95,7 +119,7 @@ CIvfFltkWidget::~CIvfFltkWidget()
 // Methods
 // ------------------------------------------------------------
 
-void CIvfFltkWidget::deleteAll()
+void FltkWidget::deleteAll()
 {
     m_scene->deleteAll();
     this->redraw();
@@ -103,7 +127,7 @@ void CIvfFltkWidget::deleteAll()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::deleteSelected()
+void FltkWidget::deleteSelected()
 {
     int i;
 
@@ -112,7 +136,7 @@ void CIvfFltkWidget::deleteSelected()
 
     for (i = 0; i<m_selectedShapes->getSize(); i++ )
     {
-        CIvfShapePtr shape = m_selectedShapes->getChild(i);
+        auto shape = m_selectedShapes->getChild(i);
 
         bool doit = false;
         if (m_editEnabled)
@@ -121,7 +145,7 @@ void CIvfFltkWidget::deleteSelected()
         if (doit == true)
             m_scene->getComposite()->removeShape(shape);
         else
-            shape->setSelect(CIvfGLBase::SS_OFF);
+            shape->setSelect(GLBase::SS_OFF);
     }
 
     m_selectedShapes->clear();
@@ -129,18 +153,18 @@ void CIvfFltkWidget::deleteSelected()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::deleteSelectedKeep()
+void FltkWidget::deleteSelectedKeep()
 {
     int i;
 
     // Before anything is deleted we remove all
     // manipulators.
 
-    vector<CIvfShapePtr> remainingShapes;
+    vector<ShapePtr> remainingShapes;
 
     for (i = 0; i<m_selectedShapes->getSize(); i++ )
     {
-        CIvfShapePtr shape = m_selectedShapes->getChild(i);
+        auto shape = m_selectedShapes->getChild(i);
 
         bool doit = false;
         if (m_editEnabled)
@@ -149,7 +173,7 @@ void CIvfFltkWidget::deleteSelectedKeep()
         if (doit == true)
             m_scene->getComposite()->removeShape(shape);
         else
-            remainingShapes.push_back(CIvfShapePtr(shape));
+            remainingShapes.push_back(ShapePtr(shape));
     }
 
     m_selectedShapes->clear();
@@ -161,18 +185,18 @@ void CIvfFltkWidget::deleteSelectedKeep()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::createLine()
+void FltkWidget::createLine()
 {
     if (m_selectedShapes->getSize()==2)
     {
-        CIvfNode* node1 = (CIvfNode*)m_selectedShapes->getChild(0);
-        CIvfNode* node2 = (CIvfNode*)m_selectedShapes->getChild(1);
+        Node* node1 = static_cast<Node*>(m_selectedShapes->getChild(0));
+        Node* node2 = static_cast<Node*>(m_selectedShapes->getChild(1));
 
-        if ( (node1->isClass("CIvfNode") )&&( node2->isClass("CIvfNode") ))
+        if ( (node1->isClass("Node") )&&( node2->isClass("Node") ))
         {
-            CIvfShape* solidLine = NULL;
+            Shape* solidLine = nullptr;
             onCreateLine(node1,node2,solidLine);
-            if (solidLine!=NULL)
+            if (solidLine!=nullptr)
             {
                 addToScene(solidLine);
             }
@@ -181,17 +205,17 @@ void CIvfFltkWidget::createLine()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::addToScene(CIvfShape* shape)
+void FltkWidget::addToScene(Shape* shape)
 {
     m_scene->addChild(shape);
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::centerSelected()
+void FltkWidget::centerSelected()
 {
     if (m_selectedShapes->getSize()==1)
     {
-        CIvfShape* shape = (CIvfShape*)m_selectedShapes->getChild(0);
+        Shape* shape = static_cast<Shape*>(m_selectedShapes->getChild(0));
         double x, y, z;
         shape->getPosition(x, y, z);
         m_camera->setTarget(x, y, z);
@@ -200,7 +224,7 @@ void CIvfFltkWidget::centerSelected()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::resetView()
+void FltkWidget::resetView()
 {
     m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize);
     m_camera->setTarget(0.0, 0.0, 0.0);
@@ -208,11 +232,11 @@ void CIvfFltkWidget::resetView()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::clearSelection()
+void FltkWidget::clearSelection()
 {
-    m_selectedShapes->setSelectChildren(CIvfGLBase::SS_OFF);
+    m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
     m_selectedShapes->clear();
-    m_selectedShape = NULL;
+    m_selectedShape = nullptr;
 
     // Should onDeSelect be called ???
 
@@ -221,16 +245,16 @@ void CIvfFltkWidget::clearSelection()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::selectAll()
+void FltkWidget::selectAll()
 {
-    m_selectedShapes->setSelectChildren(CIvfGLBase::SS_OFF);
+    m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
     m_selectedShapes->clear();
     m_selectedShape = NULL;
 
     int i;
 
-    CIvfShape* shape;
-    CIvfComposite* scene = this->getScene()->getComposite();
+    Shape* shape;
+    auto scene = this->getScene()->getComposite();
     bool select;
 
     for (i=0; i<scene->getSize(); i++)
@@ -242,7 +266,7 @@ void CIvfFltkWidget::selectAll()
             m_selectedShapes->addChild(shape);
     }
 
-    m_selectedShapes->setSelectChildren(CIvfGLBase::SS_ON);
+    m_selectedShapes->setSelectChildren(GLBase::SS_ON);
     onSelect(m_selectedShapes);
 
     redraw();
@@ -252,7 +276,7 @@ void CIvfFltkWidget::selectAll()
 // Get/set methods
 // ------------------------------------------------------------
 
-void CIvfFltkWidget::setEditMode(int mode)
+void FltkWidget::setEditMode(int mode)
 {
     m_editMode = mode;
 
@@ -307,25 +331,25 @@ void CIvfFltkWidget::setEditMode(int mode)
 }
 
 // ------------------------------------------------------------
-int CIvfFltkWidget::getEditMode()
+int FltkWidget::getEditMode()
 {
     return m_editMode;
 }
 
 // ------------------------------------------------------------
-CIvfWorkspace* CIvfFltkWidget::getScene()
+Workspace* FltkWidget::getScene()
 {
     return m_scene;
 }
 
 // ------------------------------------------------------------
-CIvfCamera* CIvfFltkWidget::getCamera()
+Camera* FltkWidget::getCamera()
 {
     return m_camera;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::setWorkspace(double size)
+void FltkWidget::setWorkspace(double size)
 {
     m_workspaceSize = size;
 
@@ -335,69 +359,69 @@ void CIvfFltkWidget::setWorkspace(double size)
 }
 
 // ------------------------------------------------------------
-double CIvfFltkWidget::getWorkspace()
+double FltkWidget::getWorkspace()
 {
     return m_scene->getSize();
 }
 
 // ------------------------------------------------------------
-CIvfComposite* CIvfFltkWidget::getSelectedShapes()
+Composite* FltkWidget::getSelectedShapes()
 {
     return m_selectedShapes;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::setUseOverlay(bool flag)
+void FltkWidget::setUseOverlay(bool flag)
 {
     m_doOverlay = flag;
     this->redraw();
 }
 
 // ------------------------------------------------------------
-bool CIvfFltkWidget::getUseOverlay()
+bool FltkWidget::getUseOverlay()
 {
     return m_doOverlay;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::setEditEnabled(bool flag)
+void FltkWidget::setEditEnabled(bool flag)
 {
     m_editEnabled = flag;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::setSelectEnable(bool flag)
+void FltkWidget::setSelectEnable(bool flag)
 {
     m_selectEnabled = flag;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::setSnapToGrid(bool flag)
+void FltkWidget::setSnapToGrid(bool flag)
 {
     m_snapToGrid = flag;
     //m_scene->setSnapToGrid(m_snapToGrid);
 }
 
 // ------------------------------------------------------------
-bool CIvfFltkWidget::getSnapToGrid()
+bool FltkWidget::getSnapToGrid()
 {
     return m_snapToGrid;
 }
 
 // ------------------------------------------------------------
-int CIvfFltkWidget::getManipulatorMode()
+int FltkWidget::getManipulatorMode()
 {
     return m_manipulatorMode;
 }
 
 // ------------------------------------------------------------
-int CIvfFltkWidget::getCurrentMouseButton()
+int FltkWidget::getCurrentMouseButton()
 {
     return m_currentButton;
 }
 
 // ------------------------------------------------------------
-int CIvfFltkWidget::getCurrentModifier()
+int FltkWidget::getCurrentModifier()
 {
     m_currentModifier = IVF_NO_BUTTON;
 
@@ -422,7 +446,7 @@ int CIvfFltkWidget::getCurrentModifier()
 // ------------------------------------------------------------
 
 
-void CIvfFltkWidget::initOffscreenBuffers()
+void FltkWidget::initOffscreenBuffers()
 {
 	glGenFramebuffers(1, &m_multiFbo);
 	glGenTextures(1, &m_screenTexture);
@@ -430,7 +454,7 @@ void CIvfFltkWidget::initOffscreenBuffers()
 	glGenRenderbuffers(1, &m_depthBuffer);
 }
 
-void CIvfFltkWidget::updateOffscreenBuffers()
+void FltkWidget::updateOffscreenBuffers()
 {
 	// Create multisample texture
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
@@ -453,7 +477,7 @@ void CIvfFltkWidget::updateOffscreenBuffers()
 
 }
 
-void CIvfFltkWidget::bindOffscreenBuffers()
+void FltkWidget::bindOffscreenBuffers()
 {
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
@@ -465,14 +489,14 @@ void CIvfFltkWidget::bindOffscreenBuffers()
 	glEnable(GL_MULTISAMPLE);
 }
 
-void CIvfFltkWidget::blitOffscreenBuffers()
+void FltkWidget::blitOffscreenBuffers()
 {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_multiFbo);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, w(), h(), 0, 0, w(), h(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
-void CIvfFltkWidget::draw()
+void FltkWidget::draw()
 {
     if (this->changed())
     {
@@ -488,10 +512,10 @@ void CIvfFltkWidget::draw()
 
         if (!m_initDone)
         {
-            m_lighting = CIvfLighting::getInstance();
+            m_lighting = Lighting::getInstance();
             m_lighting->setTwoSide(true);
 
-            CIvfLight* light = m_lighting->getLight(0);
+            auto light = m_lighting->getLight(0);
             light->setLightPosition(0.0f, 0.5f, 1.0f, 0.0f);
             light->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
             light->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -577,23 +601,24 @@ void CIvfFltkWidget::draw()
 #ifdef USE_OFFSCREEN_RENDERING
     blitOffscreenBuffers();
 #endif
+
+    this->doDrawImGui();
 }
 
 // ------------------------------------------------------------
-int CIvfFltkWidget::handle(int event)
+int FltkWidget::handle(int event)
 {
 #ifndef __APPLE__
 	static int first = 1;
 	if (first && event == FL_SHOW && shown()) {
 		first = 0;
 		make_current();
-		GLenum err = glewInit();
-		if (GLEW_OK != err)
-		{
-			/* Problem: glewInit failed, something is seriously wrong. */
-			fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-		}
-		fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+        gladLoadGL();
+
+        this->doInitImGui(w(), h());
+
+        this->focus(this);
 	}
 #endif
 
@@ -617,6 +642,7 @@ int CIvfFltkWidget::handle(int event)
         if (!Fl::get_key(FL_Shift_L))
             m_scene->unlockCursor();
         this->doPassiveMotion(m_beginX, m_beginY);
+        this->doImGuiMove();
         return 1;
     case FL_PUSH:
         m_beginX = Fl::event_x();
@@ -669,6 +695,7 @@ int CIvfFltkWidget::handle(int event)
 
         this->doMouseDown(m_beginX, m_beginY);
         this->doMouse(m_beginX, m_beginY);
+        this->doImGuiPush();
         return 1;
     case FL_DRAG:
         if (m_editMode!=IVF_MANIPULATE)
@@ -682,10 +709,12 @@ int CIvfFltkWidget::handle(int event)
             m_currentButton = IVF_BUTTON3;
         this->doMotion(Fl::event_x(),Fl::event_y());
         //cout << "FL_DRAG" << endl;
+        this->doImGuiDrag();
         return 1;
     case FL_RELEASE:
         this->doMouseUp(Fl::event_x(), Fl::event_y());
         m_currentButton = IVF_NO_BUTTON;
+        this->doImGuiRelease();
         return 1;
     case FL_FOCUS:
 
@@ -698,13 +727,19 @@ int CIvfFltkWidget::handle(int event)
         {
             if (!m_scene->isCursorLocked())
                 m_scene->lockCursor();
+            this->doImGuiKeyboard();
             return 1;
         }
         else
         {
             doKeyboard(Fl::event_key());
+            this->doImGuiKeyboard();
             return 0;
         }
+    case FL_KEYUP:
+        this->doImGuiKeyUp();
+        return 1;
+
     case FL_SHORTCUT:
 
         return 0;
@@ -714,28 +749,61 @@ int CIvfFltkWidget::handle(int event)
     }
 }
 
+void FltkWidget::resize(int x, int y, int w, int h)
+{
+    Fl_Gl_Window::resize(x, y, w, h); 
+    if (this->isImGuiInitialised())
+        this->doImGuiResize(w, h);
+}
+
+// ------------------------------------------------------------
+// ImGui events
+// ------------------------------------------------------------
+
+void FltkWidget::onDrawImGui()
+{
+    ImGui::ShowDemoWindow(&m_showDemoWindow);
+    ImGui::Render();
+
+    if (ImGui::IsMouseDown(0))
+        cout << "Mouse0 down" << endl;
+    if (ImGui::IsMouseDown(1))
+        cout << "Mouse1 down" << endl;
+    if (ImGui::IsMouseDown(2))
+        cout << "Mouse2 down" << endl;
+}
+
+void FltkWidget::onInitImGui()
+{
+    ImGui::StyleColorsDark();
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 20);
+    //ImFont* font2 = io.Fonts->AddFontFromFileTTF("anotherfont.otf", 13);
+}
+
 // ------------------------------------------------------------
 // Event methods
 // ------------------------------------------------------------
 
-void CIvfFltkWidget::doMouse(int x, int y)
+void FltkWidget::doMouse(int x, int y)
 {
     // Store mouse down position.
 
-    CIvfVec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+    Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
     if ((m_editMode == IVF_SELECT)&&(m_selectEnabled))
     {
         if (m_selectedShape!=NULL)
         {
-            if (m_selectedShape->getSelect()!=CIvfGLBase::SS_ON)
+            if (m_selectedShape->getSelect()!=GLBase::SS_ON)
             {
                 bool select = true;
                 onSelectFilter(m_selectedShape, select);
                 if (select)
                 {
-                    m_selectedShape->setSelect(CIvfGLBase::SS_ON);
+                    m_selectedShape->setSelect(GLBase::SS_ON);
                     m_selectedShapes->addChild(m_selectedShape);
                     onSelect(m_selectedShapes);
                 }
@@ -744,7 +812,7 @@ void CIvfFltkWidget::doMouse(int x, int y)
         }
         else
         {
-            m_selectedShapes->setSelectChildren(CIvfGLBase::SS_OFF);
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
             m_selectedShapes->clear();
             onDeSelect();
             redraw();
@@ -756,8 +824,8 @@ void CIvfFltkWidget::doMouse(int x, int y)
     if ((m_editMode == IVF_CREATE_NODE)&&(Fl::event_state(FL_BUTTON1)>0))
     {
         double vx, vy, vz;
-        CIvfNode* node = NULL;
-        CIvfVec3d pos;
+        Node* node = NULL;
+        Vec3d pos;
 
         m_scene->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
@@ -780,16 +848,16 @@ void CIvfFltkWidget::doMouse(int x, int y)
         {
             if (m_selectedShape!=NULL)
             {
-                if (m_selectedShape->isClass("CIvfNode"))
+                if (m_selectedShape->isClass("Node"))
                 {
-                    m_selectedShape->setSelect(CIvfGLBase::SS_ON);
+                    m_selectedShape->setSelect(GLBase::SS_ON);
                     m_selectedShapes->addChild(m_selectedShape);
                 }
                 redraw();
             }
             else
             {
-                m_selectedShapes->setSelectChildren(CIvfGLBase::SS_OFF);
+                m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
                 m_selectedShapes->clear();
                 redraw();
             }
@@ -798,7 +866,7 @@ void CIvfFltkWidget::doMouse(int x, int y)
         if (m_selectedShapes->getSize()==2)
         {
             this->createLine();
-            m_selectedShapes->setSelectChildren(CIvfGLBase::SS_OFF);
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
             m_selectedShapes->clear();
             redraw();
         }
@@ -809,13 +877,13 @@ void CIvfFltkWidget::doMouse(int x, int y)
     onMouse(x, y);
 }
 
-void CIvfFltkWidget::onMouse(int x, int y)
+void FltkWidget::onMouse(int x, int y)
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::doMotion(int x, int y)
+void FltkWidget::doMotion(int x, int y)
 {
     m_angleX = 0.0f;
     m_angleY = 0.0f;
@@ -895,7 +963,7 @@ void CIvfFltkWidget::doMotion(int x, int y)
         double x, y, z;
         double dx, dy, dz;
         bool doit = true;
-        CIvfVec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+        Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(x, y, z);
 
         dx = x - m_startPos[0];
@@ -911,7 +979,7 @@ void CIvfFltkWidget::doMotion(int x, int y)
         {
             for (int i=0; i<m_selectedShapes->getSize(); i++)
             {
-                CIvfShape* shape = m_selectedShapes->getChild(i);
+                auto shape = m_selectedShapes->getChild(i);
                 shape->getPosition(x, y, z);
                 shape->setPosition(x + dx, y + dy, z + dz);
             }
@@ -926,13 +994,13 @@ void CIvfFltkWidget::doMotion(int x, int y)
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onMotion(int x, int y)
+void FltkWidget::onMotion(int x, int y)
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::doPassiveMotion(int x, int y)
+void FltkWidget::doPassiveMotion(int x, int y)
 {
     m_angleX = 0.0f;
     m_angleY = 0.0f;
@@ -947,9 +1015,9 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
     {
         bool needInvalidate = false;
 
-        if (m_selectedShape!=NULL)
+        if (m_selectedShape!=nullptr)
         {
-            m_selectedShape->setHighlight(CIvfShape::HS_OFF);
+            m_selectedShape->setHighlight(Shape::HS_OFF);
             needInvalidate = true;
         }
 
@@ -965,7 +1033,7 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
             onHighlightFilter(m_selectedShape, highlight);
             if (highlight)
             {
-                m_selectedShape->setHighlight(CIvfShape::HS_ON);
+                m_selectedShape->setHighlight(Shape::HS_ON);
                 onHighlightShape(m_selectedShape);
             }
             needInvalidate = true;
@@ -979,7 +1047,7 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
     if (getEditMode()==IVF_CREATE_NODE)
     {
         double wx, wy, wz;
-        CIvfVec3d pos;
+        Vec3d pos;
         m_scene->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(wx, wy, wz);
@@ -991,7 +1059,7 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
     {
         double wx, wy, wz;
         m_scene->updateCursor(x, y);
-        CIvfVec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+        Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(wx, wy, wz);
         onCoordinate(wx, wy, wz);
         redraw();
@@ -1001,9 +1069,9 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
     {
         bool needInvalidate = false;
 
-        if (m_selectedShape!=NULL)
+        if (m_selectedShape!=nullptr)
         {
-            m_selectedShape->setHighlight(CIvfShape::HS_OFF);
+            m_selectedShape->setHighlight(Shape::HS_OFF);
             needInvalidate = true;
         }
 
@@ -1011,13 +1079,13 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
 
         m_selectedShape = m_scene->getSelectedShape();
 
-        if (m_selectedShape!=NULL)
+        if (m_selectedShape!=nullptr)
         {
             bool highlight = true;
             onHighlightFilter(m_selectedShape, highlight);
             if (highlight)
             {
-                m_selectedShape->setHighlight(CIvfShape::HS_ON);
+                m_selectedShape->setHighlight(Shape::HS_ON);
                 needInvalidate = true;
             }
         }
@@ -1032,12 +1100,12 @@ void CIvfFltkWidget::doPassiveMotion(int x, int y)
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onPassiveMotion(int x, int y)
+void FltkWidget::onPassiveMotion(int x, int y)
 {
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::doMouseDown(int x, int y)
+void FltkWidget::doMouseDown(int x, int y)
 {
     // Call onMouseDown event method
 
@@ -1045,13 +1113,13 @@ void CIvfFltkWidget::doMouseDown(int x, int y)
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onMouseDown(int x, int y)
+void FltkWidget::onMouseDown(int x, int y)
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::doMouseUp(int x, int y)
+void FltkWidget::doMouseUp(int x, int y)
 {
     // Call onMouseUp event method
 
@@ -1060,7 +1128,7 @@ void CIvfFltkWidget::doMouseUp(int x, int y)
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::doKeyboard(int key)
+void FltkWidget::doKeyboard(int key)
 {
     // Call onMouseUp event method
 
@@ -1069,22 +1137,22 @@ void CIvfFltkWidget::doKeyboard(int key)
 
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onMouseUp(int x, int y)
+void FltkWidget::onMouseUp(int x, int y)
 {
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onCoordinate(double x, double y, double z)
+void FltkWidget::onCoordinate(double x, double y, double z)
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onInitContext()
+void FltkWidget::onInitContext()
 {
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_MULTISAMPLE_ARB);
+    glEnable(GL_MULTISAMPLE);
     //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     //GLint  iMultiSample = 0;
     //GLint  iNumSamples = 0;
@@ -1097,96 +1165,96 @@ void CIvfFltkWidget::onInitContext()
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onOverlay()
+void FltkWidget::onOverlay()
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onSelect(CIvfComposite* selectedShapes)
+void FltkWidget::onSelect(Composite* selectedShapes)
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onDeleteShape(CIvfShape *shape, bool &doit)
-{
-    doit = true;
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onCreateNode(double x, double y, double z, CIvfNode* &newNode)
-{
-
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onCreateLine(CIvfNode* node1, CIvfNode* node2, CIvfShape* &newLine)
-{
-
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onInit()
-{
-
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onDestroy()
-{
-
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onHighlightShape(CIvfShape *shape)
-{
-
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onDeSelect()
-{
-
-}
-
-// ------------------------------------------------------------
-void CIvfFltkWidget::onMove(CIvfComposite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
+void FltkWidget::onDeleteShape(Shape *shape, bool &doit)
 {
     doit = true;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onSelectFilter(CIvfShape *shape, bool &select)
+void FltkWidget::onCreateNode(double x, double y, double z, Node* &newNode)
+{
+
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onCreateLine(Node* node1, Node* node2, Shape* &newLine)
+{
+
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onInit()
+{
+
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onDestroy()
+{
+
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onHighlightShape(Shape *shape)
+{
+
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onDeSelect()
+{
+
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onMove(Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
+{
+    doit = true;
+}
+
+// ------------------------------------------------------------
+void FltkWidget::onSelectFilter(Shape *shape, bool &select)
 {
     select = true;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onHighlightFilter(CIvfShape *, bool &highlight)
+void FltkWidget::onHighlightFilter(Shape *, bool &highlight)
 {
     highlight = true;
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onKeyboard(int key)
+void FltkWidget::onKeyboard(int key)
 {
     
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onPostRender()
+void FltkWidget::onPostRender()
 {
 
 }
 
 // ------------------------------------------------------------
-void CIvfFltkWidget::onPreRender()
+void FltkWidget::onPreRender()
 {
 
 }
 
-bool CIvfFltkWidget::isInitialized()
+bool FltkWidget::isInitialized()
 {
     return m_initDone;
 }

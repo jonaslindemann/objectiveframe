@@ -15,13 +15,13 @@
 #include <FL/Fl_Light_Button.H>
 #include <FL/Fl_Value_Input.H>
 
-class CNodeBCDlg {
-  CFemBeamNodeBC* m_bc; 
-  Fl_Widget* m_workspace; 
-  int m_modalResult; 
-  Fl_Color m_colorIndex; 
+class NodeBCDlg {
+  CFemBeamNodeBC* m_bc;
+  Fl_Widget* m_workspace;
+  int m_modalResult;
+  Fl_Color m_colorIndex;
 public:
-  CNodeBCDlg();
+  NodeBCDlg();
   Fl_Double_Window *wndNodeBC;
   Fl_Button *btnApply;
 private:

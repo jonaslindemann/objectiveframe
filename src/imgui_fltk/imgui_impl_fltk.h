@@ -1,0 +1,70 @@
+// dear imgui: Platform Backend for GLUT/FreeGLUT
+// This needs to be used along with a Renderer (e.g. OpenGL2)
+
+// !!! GLUT/FreeGLUT IS OBSOLETE PREHISTORIC SOFTWARE. Using GLUT is not recommended unless you really miss the 90's. !!!
+// !!! If someone or something is teaching you GLUT today, you are being abused. Please show some resistance. !!!
+// !!! Nowadays, prefer using GLFW or SDL instead!
+
+// Implemented features:
+//  [X] Platform: Partial keyboard support. Since 1.87 we are using the io.AddKeyEvent() function. Pass ImGuiKey values to all key functions e.g. ImGui::IsKeyPressed(ImGuiKey_Space). [Legacy GLUT values will also be supported unless IMGUI_DISABLE_OBSOLETE_KEYIO is set]
+// Issues:
+//  [ ] Platform: GLUT is unable to distinguish e.g. Backspace from CTRL+H or TAB from CTRL+I
+//  [ ] Platform: Missing mouse cursor shape/visibility support.
+//  [ ] Platform: Missing clipboard support (not supported by Glut).
+//  [ ] Platform: Missing gamepad support.
+
+// You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
+// Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
+// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
+// Read online: https://github.com/ocornut/imgui/tree/master/docs
+
+#pragma once
+#include "imgui.h"      // IMGUI_IMPL_API
+
+class ImGuiFLTKImpl {
+private:
+	int m_button;
+	bool m_firstDraw;
+	bool m_initialised;
+public:
+	ImGuiFLTKImpl();
+
+	bool isImGuiInitialised();
+
+	void doDrawImGui();
+	void doInitImGui(int w, int h);
+
+	void doImGuiResize(int w, int h);
+	void doImGuiMove();
+	void doImGuiPush();
+	void doImGuiDrag();
+	void doImGuiRelease();
+	void doImGuiKeyboard();
+	void doImGuiKeyUp();
+
+	virtual void onDrawImGui();
+	virtual void onInitImGui();
+};
+
+
+IMGUI_IMPL_API bool     ImGui_ImplFLTK_Init();
+IMGUI_IMPL_API void     ImGui_ImplFLTK_InstallFuncs();
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Shutdown();
+IMGUI_IMPL_API void     ImGui_ImplFLTK_NewFrame();
+
+
+
+// You can call ImGui_ImplFLTK_InstallFuncs() to get all those functions installed automatically,
+// or call them yourself from your own GLUT handlers. We are using the same weird names as GLUT for consistency..
+//---------------------------------------- GLUT name --------------------------------------------- Decent Name ---------
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Resize(int w, int h);                           // ~ ResizeFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Move();                            // ~ MouseMoveFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Push(int& button);                            // ~ MouseMoveFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Drag();                            // ~ MouseMoveFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Release(int& button);                            // ~ MouseMoveFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_Keyboard();         // ~ CharPressedFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_KeyUp();       // ~ CharReleasedFunc
+
+IMGUI_IMPL_API void     ImGui_ImplFLTK_SpecialFunc(int key, int x, int y);                  // ~ KeyPressedFunc
+IMGUI_IMPL_API void     ImGui_ImplFLTK_SpecialUpFunc(int key, int x, int y);                // ~ KeyReleasedFunc
+

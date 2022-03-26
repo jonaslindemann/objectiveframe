@@ -1,20 +1,20 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <FemBeamLoad.h>} {public local
-} 
+}
 
 decl {\#include <FL/fl_show_colormap.H>} {private local
-} 
+}
 
-class CElementLoadDlg {open
+class ElementLoadDlg {open
 } {
   decl {CFemBeamLoad* m_load} {private local
   }
@@ -24,11 +24,11 @@ class CElementLoadDlg {open
   }
   decl {Fl_Color m_colorIndex} {private local
   }
-  Function {CElementLoadDlg()} {open
+  Function {ElementLoadDlg()} {open selected
   } {
     Fl_Window wndElementLoad {
       label {Beam load} open
-      xywh {523 205 258 218} type Double modal visible
+      xywh {3058 171 258 218} type Double modal visible
     } {
       Fl_Button btnApply {
         label Ok
@@ -117,8 +117,7 @@ wndElementLoad->hide();}
     }
     code {m_load = NULL;} {}
   }
-  Function {show()} {selected
-  } {
+  Function {show()} {} {
     code {this->setLoad(m_load);
 wndElementLoad->show();
 while (wndElementLoad->visible()) Fl::wait();} {}
@@ -165,4 +164,4 @@ else
   } {
     code {return m_modalResult;} {}
   }
-} 
+}

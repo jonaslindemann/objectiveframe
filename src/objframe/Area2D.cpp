@@ -1,4 +1,4 @@
-#include "IvfArea2D.h"
+#include "Area2D.h"
 
 CIvfArea2D::CIvfArea2D()
 {

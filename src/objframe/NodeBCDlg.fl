@@ -14,7 +14,7 @@ decl {\#include <FemBeamNodeBC.h>} {public local
 decl {\#include <FL/fl_show_colormap.H>} {private local
 }
 
-class CNodeBCDlg {open
+class NodeBCDlg {open
 } {
   decl {CFemBeamNodeBC* m_bc} {private local
   }
@@ -24,7 +24,7 @@ class CNodeBCDlg {open
   }
   decl {Fl_Color m_colorIndex} {private local
   }
-  Function {CNodeBCDlg()} {open
+  Function {NodeBCDlg()} {open
   } {
     Fl_Window wndNodeBC {
       label {Node BC} open
@@ -81,14 +81,14 @@ wndNodeBC->hide();}
       Fl_Button btnClose {
         label Cancel
         callback {m_modalResult = MR_CANCEL;
-wndNodeBC->hide();}
+wndNodeBC->hide();} selected
         xywh {191 223 61 23} box THIN_UP_BOX down_box THIN_DOWN_BOX color 43 labelsize 12
       }
       Fl_Tabs tbElementBC {open
         xywh {4 4 248 212} box FLAT_BOX color 45 selection_color 45 labelsize 12
       } {
         Fl_Group grpGeneral {
-          label General selected
+          label General
           xywh {13 28 239 188} color 45 selection_color 42 labelsize 12
         } {
           Fl_Input edtName {

@@ -1,17 +1,17 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <iostream>} {private local
-} 
+}
 
-class CStructureDlg {open
+class StructureDlg {open
 } {
   decl {int m_modalResult} {private local
   }
@@ -19,7 +19,7 @@ class CStructureDlg {open
   }
   decl {double m_spacing[3]} {private local
   }
-  Function {CStructureDlg()} {open
+  Function {StructureDlg()} {open
   } {
     Fl_Window wndWorkspace {
       label {Create structure} open
@@ -76,7 +76,7 @@ while (wndWorkspace->visible()) Fl::wait();} {}
   } {
     code {return m_modalResult;} {}
   }
-  Function {~CStructureDlg()} {open
+  Function {~StructureDlg()} {open selected
   } {
     code {delete wndWorkspace;} {}
   }
@@ -96,7 +96,6 @@ m_spacing[1] = edtYspacing->value();
 m_spacing[2] = edtZspacing->value();
 xSpacing = m_spacing[0];
 ySpacing = m_spacing[1];
-zSpacing = m_spacing[2];} {selected
-    }
+zSpacing = m_spacing[2];} {}
   }
-} 
+}

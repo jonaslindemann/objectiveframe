@@ -2,7 +2,7 @@
 
 #include "NodePropDlg.h"
 
-void CNodePropDlg::cb_btnApply_i(Fl_Button*, void*) {
+void NodePropDlg::cb_btnApply_i(Fl_Button*, void*) {
   if (m_node!=NULL)
 {
 	m_node->setPosition(
@@ -16,18 +16,18 @@ void CNodePropDlg::cb_btnApply_i(Fl_Button*, void*) {
 	}
 };
 }
-void CNodePropDlg::cb_btnApply(Fl_Button* o, void* v) {
-  ((CNodePropDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
+void NodePropDlg::cb_btnApply(Fl_Button* o, void* v) {
+  ((NodePropDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
 }
 
-void CNodePropDlg::cb_btnClose_i(Fl_Button*, void*) {
+void NodePropDlg::cb_btnClose_i(Fl_Button*, void*) {
   wndNodeProp->hide();
 }
-void CNodePropDlg::cb_btnClose(Fl_Button* o, void* v) {
-  ((CNodePropDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
+void NodePropDlg::cb_btnClose(Fl_Button* o, void* v) {
+  ((NodePropDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
 }
 
-CNodePropDlg::CNodePropDlg() {
+NodePropDlg::NodePropDlg() {
   { wndNodeProp = new Fl_Double_Window(184, 268, "Node properties");
     wndNodeProp->color(FL_FOREGROUND_COLOR);
     wndNodeProp->user_data((void*)(this));
@@ -117,12 +117,12 @@ CNodePropDlg::CNodePropDlg() {
   m_node = NULL;
 }
 
-void CNodePropDlg::show() {
+void NodePropDlg::show() {
   this->setNode(m_node);
   wndNodeProp->show();
 }
 
-void CNodePropDlg::setNode(CIvfFemNode* node) {
+void NodePropDlg::setNode(VisFemNode* node) {
   m_node = node;
   if (m_node==NULL)
   {
@@ -164,14 +164,14 @@ void CNodePropDlg::setNode(CIvfFemNode* node) {
   }
 }
 
-CIvfFemNode* CNodePropDlg::getNode() {
+VisFemNode* NodePropDlg::getNode() {
   return m_node;
 }
 
-void CNodePropDlg::setWorkspace(Fl_Widget* widget) {
+void NodePropDlg::setWorkspace(Fl_Widget* widget) {
   m_workspace = widget;
 }
 
-void CNodePropDlg::hide() {
+void NodePropDlg::hide() {
   wndNodeProp->hide();
 }

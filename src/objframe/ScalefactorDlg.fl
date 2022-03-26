@@ -1,24 +1,27 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0100 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
-decl {\#define MR_OK 0} {public
-} 
+decl {\#define MR_OK 0} {public local
+}
 
-decl {\#define MR_CANCEL 1} {public
-} 
+decl {\#define MR_CANCEL 1} {public local
+}
 
-decl {\#include "IvfFemWidget.h"} {} 
+decl {\#include "FemWidget.h"} {private local
+}
 
-class CScalefactorDlg {open
+class ScalefactorDlg {open
 } {
-  decl {void* m_femWidget} {}
-  decl {double m_maxValue} {}
-  Function {CScalefactorDlg()} {open
+  decl {void* m_femWidget} {private local
+  }
+  decl {double m_maxValue} {private local
+  }
+  Function {ScalefactorDlg()} {open
   } {
     Fl_Window wndWorkspace {
-      label Workspace open selected
-      xywh {479 165 310 100} non_modal visible
+      label Workspace open
+      xywh {479 165 310 100} type Double non_modal visible
     } {
       Fl_Button btnClose {
         label Close
@@ -32,33 +35,37 @@ class CScalefactorDlg {open
           label Scalefactor
           callback {if (m_femWidget!=NULL)
 {
-	CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+	FemWidget* femWidget = (FemWidget*)m_femWidget;
 	femWidget->setScalefactor(sldScalefactor->value());
 }}
-          xywh {18 41 201 20} type {Horz Knob} box PLASTIC_DOWN_BOX align 5 minimum 1 maximum 1e+006 step 0 value 1
+          xywh {18 41 201 20} type {Horz Knob} box PLASTIC_DOWN_BOX align 5 minimum 1 maximum 1e+06 step 0 value 1
         }
       }
     }
     code {m_femWidget = NULL;} {}
   }
-  Function {~CScalefactorDlg()} {} {
+  Function {~ScalefactorDlg()} {} {
     code {delete wndWorkspace;} {}
   }
-  Function {show()} {} {
+  Function {show()} {open
+  } {
     code {if (m_femWidget!=NULL)
 {
-	CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+	FemWidget* femWidget = (FemWidget*) m_femWidget;
 	sldScalefactor->value(femWidget->getScalefactor());
 }
-wndWorkspace->show();} {}
+wndWorkspace->show();} {selected
+    }
   }
-  Function {setFemWidget(void* femWidget)} {} {
+  Function {setFemWidget(void* femWidget)} {open
+  } {
     code {m_femWidget = femWidget;} {}
   }
-  Function {setScaling(double maxValue)} {} {
+  Function {setScaling(double maxValue)} {open
+  } {
     code {m_maxValue = maxValue;
 sldScalefactor->maximum(maxValue*10);
 sldScalefactor->minimum(maxValue*0.1);
 sldScalefactor->step((maxValue*10-maxValue*0.1)/100.0);} {}
   }
-} 
+}

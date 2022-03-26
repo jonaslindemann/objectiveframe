@@ -17,13 +17,13 @@ decl {\#include <FemNodeBCSet.h>} {public local
 decl {\#include <FemBeamNodeBC.h>} {public local
 }
 
-decl {\#include "IvfFemWidget.h"} {private local
+decl {\#include "FemWidget.h"} {private local
 }
 
 decl {\#include "NodeBCDlg.h"} {private local
 }
 
-class CNodeBCsDlg {open
+class NodeBCsDlg {open
 } {
   decl {CFemNodeBCSet* m_bcSet} {private local
   }
@@ -31,11 +31,11 @@ class CNodeBCsDlg {open
   }
   decl {void* m_femWidget} {private local
   }
-  Function {CNodeBCsDlg()} {open
+  Function {NodeBCsDlg()} {open
   } {
     Fl_Window wndNodeBCs {
       label {Node BCs} open
-      xywh {780 308 180 211} type Double color 0 labelcolor 7 align 80 non_modal visible
+      xywh {780 308 180 211} type Double color 0 labelcolor 7 align 80 hide non_modal
     } {
       Fl_Browser lbBCSet {
         label BCs
@@ -49,7 +49,7 @@ class CNodeBCsDlg {open
 	else m_currentBC = NULL;
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->setCurrentNodeBC(m_currentBC);
 	}
 }}
@@ -71,7 +71,7 @@ class CNodeBCsDlg {open
 			m_bcSet->addBC(bc);
 			if (m_femWidget!=NULL)
 			{
-				CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+				FemWidget* femWidget = (FemWidget*)m_femWidget;
 				femWidget->addNodeBC(bc);
 				this->fillListBox();
 			}
@@ -87,7 +87,7 @@ class CNodeBCsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->deleteNodeBC(m_currentBC);
 		this->fillListBox();
 	}
@@ -99,7 +99,7 @@ class CNodeBCsDlg {open
       Fl_Button btnEditBC {
         callback {if (this->getCurrentBC()!=NULL)
 {
-	CNodeBCDlg* dlg = new CNodeBCDlg();
+	NodeBCDlg* dlg = new NodeBCDlg();
 	dlg->setBC(this->getCurrentBC());
 	dlg->setWorkspace((Fl_Widget*)m_femWidget);
 	dlg->show();
@@ -119,7 +119,7 @@ class CNodeBCsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->assignNodeBCSelected();
 		femWidget->setNeedRecalc(true);
 	}
@@ -133,9 +133,9 @@ class CNodeBCsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
-		//femWidget->removeNodeBCsFromSelected();
-		femWidget->removeNodesFromNodeBC();
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
+		femWidget->removeNodeBCsFromSelected();
+		//femWidget->removeNodesFromNodeBC();
 	}
 }} selected
         image {../../images/tlClearBC.xpm} xywh {150 113 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX color 41 labelsize 10 align 128

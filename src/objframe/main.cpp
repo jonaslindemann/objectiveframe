@@ -114,7 +114,7 @@ main(int argc, char **argv)
     //
 
     so_print("Main: Creating main window.");
-    CMainFrame *frame = new CMainFrame();
+    MainFrame *frame = new MainFrame();
     //frame->ivfWorkspace->mode(FL_RGB | FL_ALPHA | FL_DEPTH | FL_MULTISAMPLE | FL_DOUBLE );
     frame->setArguments(argc, argv);
     frame->setProgramPath(progPath);

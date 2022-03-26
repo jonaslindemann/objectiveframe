@@ -40,15 +40,8 @@ VisFemBeamLoad::VisFemBeamLoad ()
 // ------------------------------------------------------------
 VisFemBeamLoad::~VisFemBeamLoad ()
 {
-    int i;
-    for (i=0; i<m_q.size(); i++)
-    {
-        delete m_q[i];
-        delete m_arrow[i];
-    }
     m_q.clear();
     m_arrow.clear();
-    delete m_arrowMaterial;
 }
 
 // ------------------------------------------------------------
@@ -155,20 +148,15 @@ void VisFemBeamLoad::initExtrusion()
 void VisFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
 {
     int i;
-    for (i=0; i<m_q.size(); i++)
-    {
-        delete m_q[i];
-        delete m_arrow[i];
-    }
     m_q.clear();
     m_arrow.clear();
 
     m_beamLoad = load;
     for (i=0; i<m_beamLoad->getElementsSize(); i++)
     {
-        QuadSet* q = new QuadSet();
+        QuadSetPtr q = QuadSet::create();
         m_q.push_back(q);
-        Index* idx = new Index();
+        IndexPtr idx = Index::create();
         idx->createLinear(4);
         q->addCoord(0.0, 0.0, 0.0);
         q->addCoord(0.0, 0.0, 0.0);
@@ -177,7 +165,7 @@ void VisFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
         q->addCoordIndex(idx);
         q->setMaterial(m_extrMaterial);
 
-        ExtrArrow* arrow = new ExtrArrow();
+        auto arrow = ExtrArrow::create();
         m_arrow.push_back(arrow);
         arrow->setMaterial(m_arrowMaterial);
     }

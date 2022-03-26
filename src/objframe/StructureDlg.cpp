@@ -3,23 +3,23 @@
 #include "StructureDlg.h"
 #include <iostream>
 
-void CStructureDlg::cb_btnOk_i(Fl_Button*, void*) {
+void StructureDlg::cb_btnOk_i(Fl_Button*, void*) {
   m_modalResult = MR_OK;
 wndWorkspace->hide();
 }
-void CStructureDlg::cb_btnOk(Fl_Button* o, void* v) {
-  ((CStructureDlg*)(o->parent()->user_data()))->cb_btnOk_i(o,v);
+void StructureDlg::cb_btnOk(Fl_Button* o, void* v) {
+  ((StructureDlg*)(o->parent()->user_data()))->cb_btnOk_i(o,v);
 }
 
-void CStructureDlg::cb_btnCancel_i(Fl_Button*, void*) {
+void StructureDlg::cb_btnCancel_i(Fl_Button*, void*) {
   m_modalResult = MR_CANCEL;
 wndWorkspace->hide();
 }
-void CStructureDlg::cb_btnCancel(Fl_Button* o, void* v) {
-  ((CStructureDlg*)(o->parent()->user_data()))->cb_btnCancel_i(o,v);
+void StructureDlg::cb_btnCancel(Fl_Button* o, void* v) {
+  ((StructureDlg*)(o->parent()->user_data()))->cb_btnCancel_i(o,v);
 }
 
-CStructureDlg::CStructureDlg() {
+StructureDlg::StructureDlg() {
   { wndWorkspace = new Fl_Double_Window(312, 231, "Create structure");
     wndWorkspace->user_data((void*)(this));
     { btnOk = new Fl_Button(239, 5, 67, 25, "OK");
@@ -94,20 +94,20 @@ CStructureDlg::CStructureDlg() {
   } // Fl_Double_Window* wndWorkspace
 }
 
-void CStructureDlg::show() {
+void StructureDlg::show() {
   wndWorkspace->show();
   while (wndWorkspace->visible()) Fl::wait();
 }
 
-int CStructureDlg::getModalResult() {
+int StructureDlg::getModalResult() {
   return m_modalResult;
 }
 
-CStructureDlg::~CStructureDlg() {
+StructureDlg::~StructureDlg() {
   delete wndWorkspace;
 }
 
-void CStructureDlg::getSize(int &rows, int &cols, int &stacks) {
+void StructureDlg::getSize(int &rows, int &cols, int &stacks) {
   m_size[0] = sldRows->value();
   m_size[1] = sldColumns->value();
   m_size[2] = sldStacks->value();
@@ -116,7 +116,7 @@ void CStructureDlg::getSize(int &rows, int &cols, int &stacks) {
   stacks = m_size[2];
 }
 
-void CStructureDlg::getSpacing(double &xSpacing, double &ySpacing, double &zSpacing) {
+void StructureDlg::getSpacing(double &xSpacing, double &ySpacing, double &zSpacing) {
   m_spacing[0] = edtXspacing->value();
   m_spacing[1] = edtYspacing->value();
   m_spacing[2] = edtZspacing->value();

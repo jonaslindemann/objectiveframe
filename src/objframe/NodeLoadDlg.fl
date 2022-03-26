@@ -1,20 +1,20 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#include <FemBeamNodeLoad.h>} {public local
-} 
+}
 
 decl {\#include <FL/fl_show_colormap.H>} {private local
-} 
+}
 
-class CNodeLoadDlg {open
+class NodeLoadDlg {open
 } {
   decl {CFemBeamNodeLoad* m_load} {private local
   }
@@ -24,7 +24,7 @@ class CNodeLoadDlg {open
   }
   decl {Fl_Color m_colorIndex} {private local
   }
-  Function {CNodeLoadDlg()} {open
+  Function {NodeLoadDlg()} {open selected
   } {
     Fl_Window wndNodeLoad {
       label {Node load} open
@@ -151,8 +151,7 @@ else
 	else if (ez>0)
 		rbZDirection->value(1);
 	boxColor->color((Fl_Color) m_load->getColor());
-}} {selected
-    }
+}} {}
   }
   Function {getLoad()} {return_type {CFemBeamNodeLoad*}
   } {
@@ -168,4 +167,4 @@ else
   } {
     code {return m_modalResult;} {}
   }
-} 
+}

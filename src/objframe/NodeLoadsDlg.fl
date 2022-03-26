@@ -17,13 +17,13 @@ decl {\#include <FemNodeLoadSet.h>} {public local
 decl {\#include <FemBeamNodeLoad.h>} {public local
 }
 
-decl {\#include "IvfFemWidget.h"} {private local
+decl {\#include "FemWidget.h"} {private local
 }
 
 decl {\#include "NodeLoadDlg.h"} {private local
 }
 
-class CNodeLoadsDlg {open
+class NodeLoadsDlg {open
 } {
   decl {CFemNodeLoadSet* m_loadSet} {private local
   }
@@ -31,11 +31,11 @@ class CNodeLoadsDlg {open
   }
   decl {CFemBeamNodeLoad* m_currentLoad} {private local
   }
-  Function {CNodeLoadsDlg()} {open
+  Function {NodeLoadsDlg()} {open
   } {
     Fl_Window wndNodeLoads {
       label {Node loads} open
-      xywh {748 181 182 211} type Double non_modal visible
+      xywh {1878 154 182 211} type Double non_modal visible
     } {
       Fl_Browser lbLoadSet {
         label Loads
@@ -49,7 +49,7 @@ class CNodeLoadsDlg {open
 	else m_currentLoad = NULL;
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->setCurrentNodeLoad(m_currentLoad);
 	}
 }}
@@ -72,7 +72,7 @@ class CNodeLoadsDlg {open
 			m_loadSet->addLoad(load);
 			if (m_femWidget!=NULL)
 			{
-				CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+				FemWidget* femWidget = (FemWidget*) m_femWidget;
 				femWidget->addNodeLoad(load);
 			}
 			this->fillListBox();
@@ -88,7 +88,7 @@ class CNodeLoadsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->deleteNodeLoad(m_currentLoad);
 		this->fillListBox();
 	}
@@ -100,7 +100,7 @@ class CNodeLoadsDlg {open
       Fl_Button btnEditLoad {
         callback {if (this->getCurrentLoad()!=NULL)
 {
-	CNodeLoadDlg* dlg = new CNodeLoadDlg();
+	NodeLoadDlg* dlg = new NodeLoadDlg();
 	dlg->setLoad(this->getCurrentLoad());
 	dlg->setWorkspace((Fl_Widget*)m_femWidget);
 	dlg->show();
@@ -120,7 +120,7 @@ class CNodeLoadsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->assignNodeLoadSelected();
 	}
 }}
@@ -133,7 +133,7 @@ class CNodeLoadsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		//femWidget->removeNodeLoadsFromSelected();
 		femWidget->removeNodesFromNodeLoad();
 		

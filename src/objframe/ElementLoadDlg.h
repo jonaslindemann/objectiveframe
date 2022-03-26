@@ -15,13 +15,13 @@
 #include <FL/Fl_Value_Input.H>
 #include <FL/Fl_Round_Button.H>
 
-class CElementLoadDlg {
-  CFemBeamLoad* m_load; 
-  Fl_Widget* m_workspace; 
-  int m_modalResult; 
-  Fl_Color m_colorIndex; 
+class ElementLoadDlg {
+  CFemBeamLoad* m_load;
+  Fl_Widget* m_workspace;
+  int m_modalResult;
+  Fl_Color m_colorIndex;
 public:
-  CElementLoadDlg();
+  ElementLoadDlg();
   Fl_Double_Window *wndElementLoad;
   Fl_Button *btnApply;
 private:

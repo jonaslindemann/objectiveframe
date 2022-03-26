@@ -14,20 +14,20 @@ decl {\#include <VisFemBeam.h>} {public local
 decl {\#include "MaterialDlg.h"} {private local
 }
 
-decl {\#include "VisFemWidget.h"} {private local
+decl {\#include "FemWidget.h"} {private local
 }
 
-class CBeamPropDlg {open
+class BeamPropDlg {open
 } {
   decl {VisFemBeam* m_beam} {private local
   }
   decl {void* m_femWidget} {private local
   }
-  Function {CBeamPropDlg()} {open
+  Function {BeamPropDlg()} {open
   } {
     Fl_Window wndBeamProp {
       label {Beam information} open
-      xywh {553 355 221 366} type Double color 0 non_modal visible
+      xywh {3162 134 221 366} type Double color 0 non_modal visible
     } {
       Fl_Button btnClose {
         label Close
@@ -39,7 +39,7 @@ class CBeamPropDlg {open
       } {
         Fl_Value_Slider sldBeamRotation {
           label {Beam rotation}
-          callback {CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+          callback {FemWidget* femWidget = (FemWidget*)m_femWidget;
 femWidget->setRotationSelected(sldBeamRotation->value());}
           xywh {17 28 188 24} type Horizontal box FLAT_BOX color 46 labelsize 12 labelcolor 7 align 5 maximum 360 step 5 textcolor 7
         }
@@ -47,7 +47,7 @@ femWidget->setRotationSelected(sldBeamRotation->value());}
           label {Edit assigned beam property}
           callback {if (this->getBeam()->getMaterial()!=NULL)
 {
-	CMaterialDlg* dlg = new CMaterialDlg();
+	MaterialDlg* dlg = new MaterialDlg();
 	dlg->setMaterial(this->getBeam()->getBeam()->getMaterial());
 	dlg->setWorkspace((Fl_Widget*)m_femWidget);
 	dlg->show();
@@ -56,9 +56,9 @@ femWidget->setRotationSelected(sldBeamRotation->value());}
 		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
 	}
 	delete dlg;
-	CIvfFemWidget* femWidget = (CIvfFemWidget*)m_femWidget;
+	FemWidget* femWidget = (FemWidget*)m_femWidget;
 	femWidget->setNeedRecalc(true);
-}}
+}} selected
           xywh {17 65 188 27} box FLAT_BOX down_box DOWN_BOX labelsize 12
         }
         Fl_Box boxDivider {
@@ -94,7 +94,8 @@ m_femWidget = NULL;} {}
     code {this->setBeam(m_beam);
 wndBeamProp->show();} {}
   }
-  Function {setBeam(VisFemBeam* beam)} {} {
+  Function {setBeam(VisFemBeam* beam)} {open
+  } {
     code {m_beam = beam;
 if (m_beam==NULL)
 {
@@ -111,11 +112,12 @@ else
 	this->fillListboxes();
 }} {}
   }
-  Function {getBeam()} {selected return_type {VisFemBeam*}
+  Function {getBeam()} {open return_type {VisFemBeam*}
   } {
     code {return m_beam;} {}
   }
-  Function {hide()} {} {
+  Function {hide()} {open
+  } {
     code {wndBeamProp->hide();} {}
   }
   Function {setFemWidget(void* femWidget)} {open

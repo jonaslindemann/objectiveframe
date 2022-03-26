@@ -5,17 +5,17 @@
 #include <FL/Fl.H>
 #define MR_OK 0
 #define MR_CANCEL 1
-#include <IvfFemNode.h>
+#include <VisFemNode.h>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Value_Input.H>
 
-class CNodePropDlg {
-  CIvfFemNode* m_node; 
-  Fl_Widget* m_workspace; 
+class NodePropDlg {
+  VisFemNode* m_node;
+  Fl_Widget* m_workspace;
 public:
-  CNodePropDlg();
+  NodePropDlg();
   Fl_Double_Window *wndNodeProp;
   Fl_Button *btnApply;
 private:
@@ -36,8 +36,8 @@ public:
   Fl_Value_Input *edtYDispl;
   Fl_Value_Input *edtZDispl;
   void show();
-  void setNode(CIvfFemNode* node);
-  CIvfFemNode* getNode();
+  void setNode(VisFemNode* node);
+  VisFemNode* getNode();
   void setWorkspace(Fl_Widget* widget);
   void hide();
 };

@@ -7,19 +7,19 @@
 #include "SplashFrame.h"
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Menu_Bar.H>
-#include "IvfFemWidget.h"
+#include "FemWidget.h"
 
-class CMainFrame {
+class MainFrame {
 public:
-  CNodePropDlg* m_dlgNodeProp; 
+  NodePropDlg* m_dlgNodeProp;
 private:
-  CBeamPropDlg* m_dlgBeamProp; 
-  CMaterialsDlg* m_dlgMaterials; 
-  int m_argc; 
-  char** m_argv; 
-  CSplashFrame* m_splash; 
+  BeamPropDlg* m_dlgBeamProp;
+  MaterialsDlg* m_dlgMaterials;
+  int m_argc;
+  char** m_argv;
+  CSplashFrame* m_splash;
 public:
-  CMainFrame();
+  MainFrame();
   Fl_Double_Window *wndMain;
   Fl_Menu_Bar *mnuMain;
   static Fl_Menu_Item menu_mnuMain[];
@@ -171,12 +171,12 @@ private:
   inline void cb_mnuHelpAbout_i(Fl_Menu_*, void*);
   static void cb_mnuHelpAbout(Fl_Menu_*, void*);
 public:
-  CIvfFemWidget *ivfWorkspace;
+  FemWidget *ivfWorkspace;
   void show();
   void updateToggles();
   void close();
   void setArguments(int argc, char** argv);
-  ~CMainFrame();
+  ~MainFrame();
   void setProgramPath(const std::string& path);
   void show_fullscreen(int x, int y, int width, int height);
 };

@@ -12,12 +12,12 @@
 #include <FL/Fl_Browser.H>
 #include "Fl_HoverButton.h"
 
-class CNodeLoadsDlg {
-  CFemNodeLoadSet* m_loadSet; 
-  void* m_femWidget; 
-  CFemBeamNodeLoad* m_currentLoad; 
+class NodeLoadsDlg {
+  CFemNodeLoadSet* m_loadSet;
+  void* m_femWidget;
+  CFemBeamNodeLoad* m_currentLoad;
 public:
-  CNodeLoadsDlg();
+  NodeLoadsDlg();
   Fl_Double_Window *wndNodeLoads;
   Fl_Browser *lbLoadSet;
 private:

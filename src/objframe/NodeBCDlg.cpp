@@ -3,7 +3,7 @@
 #include "NodeBCDlg.h"
 #include <FL/fl_show_colormap.H>
 
-void CNodeBCDlg::cb_btnApply_i(Fl_Button*, void*) {
+void NodeBCDlg::cb_btnApply_i(Fl_Button*, void*) {
   if (m_bc!=NULL)
 {
 	if (btnXdispl->value()==1)
@@ -49,19 +49,19 @@ void CNodeBCDlg::cb_btnApply_i(Fl_Button*, void*) {
 m_modalResult = MR_OK;
 wndNodeBC->hide();
 }
-void CNodeBCDlg::cb_btnApply(Fl_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
+void NodeBCDlg::cb_btnApply(Fl_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->user_data()))->cb_btnApply_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnClose_i(Fl_Button*, void*) {
+void NodeBCDlg::cb_btnClose_i(Fl_Button*, void*) {
   m_modalResult = MR_CANCEL;
 wndNodeBC->hide();
 }
-void CNodeBCDlg::cb_btnClose(Fl_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
+void NodeBCDlg::cb_btnClose(Fl_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->user_data()))->cb_btnClose_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnSetColor_i(Fl_Button*, void*) {
+void NodeBCDlg::cb_btnSetColor_i(Fl_Button*, void*) {
   if (m_bc!=NULL)
 {
 	m_colorIndex = boxColor->color();
@@ -70,71 +70,71 @@ void CNodeBCDlg::cb_btnSetColor_i(Fl_Button*, void*) {
 	wndNodeBC->redraw();
 };
 }
-void CNodeBCDlg::cb_btnSetColor(Fl_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnSetColor_i(o,v);
+void NodeBCDlg::cb_btnSetColor(Fl_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnSetColor_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnXdispl_i(Fl_Light_Button*, void*) {
+void NodeBCDlg::cb_btnXdispl_i(Fl_Light_Button*, void*) {
   if (btnXdispl->value()==1)
 	edtXdispl->activate();
 else
 	edtXdispl->deactivate();
 }
-void CNodeBCDlg::cb_btnXdispl(Fl_Light_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnXdispl_i(o,v);
+void NodeBCDlg::cb_btnXdispl(Fl_Light_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnXdispl_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnYdispl_i(Fl_Light_Button*, void*) {
+void NodeBCDlg::cb_btnYdispl_i(Fl_Light_Button*, void*) {
   if (btnYdispl->value()==1)
 	edtYdispl->activate();
 else
 	edtYdispl->deactivate();
 }
-void CNodeBCDlg::cb_btnYdispl(Fl_Light_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnYdispl_i(o,v);
+void NodeBCDlg::cb_btnYdispl(Fl_Light_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnYdispl_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnZdispl_i(Fl_Light_Button*, void*) {
+void NodeBCDlg::cb_btnZdispl_i(Fl_Light_Button*, void*) {
   if (btnZdispl->value()==1)
 	edtZdispl->activate();
 else
 	edtZdispl->deactivate();
 }
-void CNodeBCDlg::cb_btnZdispl(Fl_Light_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnZdispl_i(o,v);
+void NodeBCDlg::cb_btnZdispl(Fl_Light_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnZdispl_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnXrot_i(Fl_Light_Button*, void*) {
+void NodeBCDlg::cb_btnXrot_i(Fl_Light_Button*, void*) {
   if (btnXrot->value()==1)
 	edtXrot->activate();
 else
 	edtXrot->deactivate();
 }
-void CNodeBCDlg::cb_btnXrot(Fl_Light_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnXrot_i(o,v);
+void NodeBCDlg::cb_btnXrot(Fl_Light_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnXrot_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnYrot_i(Fl_Light_Button*, void*) {
+void NodeBCDlg::cb_btnYrot_i(Fl_Light_Button*, void*) {
   if (btnYrot->value()==1)
 	edtYrot->activate();
 else
 	edtYrot->deactivate();
 }
-void CNodeBCDlg::cb_btnYrot(Fl_Light_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnYrot_i(o,v);
+void NodeBCDlg::cb_btnYrot(Fl_Light_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnYrot_i(o,v);
 }
 
-void CNodeBCDlg::cb_btnZrot_i(Fl_Light_Button*, void*) {
+void NodeBCDlg::cb_btnZrot_i(Fl_Light_Button*, void*) {
   if (btnZrot->value()==1)
 	edtZrot->activate();
 else
 	edtZrot->deactivate();
 }
-void CNodeBCDlg::cb_btnZrot(Fl_Light_Button* o, void* v) {
-  ((CNodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnZrot_i(o,v);
+void NodeBCDlg::cb_btnZrot(Fl_Light_Button* o, void* v) {
+  ((NodeBCDlg*)(o->parent()->parent()->parent()->user_data()))->cb_btnZrot_i(o,v);
 }
 
-CNodeBCDlg::CNodeBCDlg() {
+NodeBCDlg::NodeBCDlg() {
   { wndNodeBC = new Fl_Double_Window(257, 250, "Node BC");
     wndNodeBC->color(FL_GRAY0);
     wndNodeBC->user_data((void*)(this));
@@ -274,13 +274,13 @@ CNodeBCDlg::CNodeBCDlg() {
   m_bc = NULL;
 }
 
-void CNodeBCDlg::show() {
+void NodeBCDlg::show() {
   this->setBC(m_bc);
   wndNodeBC->show();
   while (wndNodeBC->visible()) Fl::wait();
 }
 
-void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
+void NodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   m_bc = bc;
   if (m_bc==NULL)
   {
@@ -297,7 +297,7 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   	tbElementBC->activate();
   	edtName->value(bcName.c_str());
   	boxColor->color((Fl_Color) m_bc->getColor());
-  
+
   	if (m_bc->isPrescribed(1))
   	{
   		btnXdispl->value(1);
@@ -308,7 +308,7 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   		btnXdispl->value(0);
   		edtXdispl->deactivate();
   	}
-  
+
   	if (m_bc->isPrescribed(2))
   	{
   		btnYdispl->value(1);
@@ -319,7 +319,7 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   		btnYdispl->value(0);
   		edtYdispl->deactivate();
   	}
-  
+
   	if (m_bc->isPrescribed(3))
   	{
   		btnZdispl->value(1);
@@ -330,7 +330,7 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   		btnZdispl->value(0);
   		edtZdispl->deactivate();
   	}
-  
+
   	if (m_bc->isPrescribed(4))
   	{
   		btnXrot->value(1);
@@ -341,7 +341,7 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   		btnXrot->value(0);
   		edtXrot->deactivate();
   	}
-  
+
   	if (m_bc->isPrescribed(5))
   	{
   		btnYrot->value(1);
@@ -352,7 +352,7 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   		btnYrot->value(0);
   		edtYrot->deactivate();
   	}
-  
+
   	if (m_bc->isPrescribed(6))
   	{
   		btnZrot->value(1);
@@ -363,29 +363,29 @@ void CNodeBCDlg::setBC(CFemBeamNodeBC* bc) {
   		btnZrot->value(0);
   		edtZrot->deactivate();
   	}
-  
+
   	edtXdispl->value(m_bc->getPrescribedValue(1));
   	edtYdispl->value(m_bc->getPrescribedValue(2));
   	edtZdispl->value(m_bc->getPrescribedValue(3));
   	edtXrot->value(m_bc->getPrescribedValue(4));
   	edtYrot->value(m_bc->getPrescribedValue(5));
   	edtZrot->value(m_bc->getPrescribedValue(6));
-  
+
   }
 }
 
-CFemBeamNodeBC* CNodeBCDlg::getBC() {
+CFemBeamNodeBC* NodeBCDlg::getBC() {
   return m_bc;
 }
 
-void CNodeBCDlg::setWorkspace(Fl_Widget* widget) {
+void NodeBCDlg::setWorkspace(Fl_Widget* widget) {
   m_workspace = widget;
 }
 
-void CNodeBCDlg::hide() {
+void NodeBCDlg::hide() {
   wndNodeBC->hide();
 }
 
-int CNodeBCDlg::getModalResult() {
+int NodeBCDlg::getModalResult() {
   return m_modalResult;
 }

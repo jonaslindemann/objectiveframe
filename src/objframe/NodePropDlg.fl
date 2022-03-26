@@ -8,19 +8,19 @@ decl {\#define MR_OK 0} {public local
 decl {\#define MR_CANCEL 1} {public local
 }
 
-decl {\#include <IvfFemNode.h>} {public local
+decl {\#include <VisFemNode.h>} {public local
 }
 
-class CNodePropDlg {open
+class NodePropDlg {open
 } {
-  decl {CIvfFemNode* m_node} {private local
+  decl {VisFemNode* m_node} {private local
   }
   decl {Fl_Widget* m_workspace} {private local
   }
-  Function {CNodePropDlg()} {open
+  Function {NodePropDlg()} {open selected
   } {
     Fl_Window wndNodeProp {
-      label {Node properties} open selected
+      label {Node properties} open
       xywh {414 285 184 268} type Double color 0 non_modal visible
     } {
       Fl_Button btnApply {
@@ -85,7 +85,7 @@ class CNodePropDlg {open
     code {this->setNode(m_node);
 wndNodeProp->show();} {}
   }
-  Function {setNode(CIvfFemNode* node)} {open
+  Function {setNode(VisFemNode* node)} {open
   } {
     code {m_node = node;
 if (m_node==NULL)
@@ -127,14 +127,16 @@ else
 	edtZDispl->value(dz);
 }} {}
   }
-  Function {getNode()} {return_type {CIvfFemNode*}
+  Function {getNode()} {open return_type {VisFemNode*}
   } {
     code {return m_node;} {}
   }
-  Function {setWorkspace(Fl_Widget* widget)} {} {
+  Function {setWorkspace(Fl_Widget* widget)} {open
+  } {
     code {m_workspace = widget;} {}
   }
-  Function {hide()} {} {
+  Function {hide()} {open
+  } {
     code {wndNodeProp->hide();} {}
   }
 }

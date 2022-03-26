@@ -14,8 +14,8 @@ IvfSmartPointer(VisFemNodeLoad);
 class VisFemNodeLoad : public ivf::Shape {
 private:
     CFemBeamNodeLoad* m_nodeLoad;
-    vector<ivf::ExtrArrow*> m_arrow;
-    ivf::Material* m_arrowMaterial;
+    vector<ivf::ExtrArrowPtr> m_arrow;
+    ivf::MaterialPtr m_arrowMaterial;
     VisBeamModel* m_beamModel;
 
     void initArrow();

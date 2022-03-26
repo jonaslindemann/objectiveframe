@@ -23,7 +23,7 @@ class VisFemNodeBC : public ivf::Shape {
 private:
     CFemBeamNodeBC* m_nodeBC;
     vector<VisBC*> m_bc;
-    ivf::Material* m_bcMaterial;
+    ivf::MaterialPtr m_bcMaterial;
 
     VisBeamModel* m_beamModel;
 public:

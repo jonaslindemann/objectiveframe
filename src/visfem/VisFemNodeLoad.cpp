@@ -117,10 +117,6 @@ void VisFemNodeLoad::setNodeLoad(CFemBeamNodeLoad *nodeLoad)
 {
     int i;
 
-    for (i=0; i<m_arrow.size(); i++)
-    {
-        delete m_arrow[i];
-    }
     m_arrow.clear();
 
     m_nodeLoad = nodeLoad;
@@ -129,7 +125,7 @@ void VisFemNodeLoad::setNodeLoad(CFemBeamNodeLoad *nodeLoad)
     {
         for (i=0; i<m_nodeLoad->getNodeSize(); i++)
         {
-            ExtrArrow* arrow = new ExtrArrow();
+            auto arrow = ExtrArrow::create();
             m_arrow.push_back(arrow);
             arrow->setMaterial(m_arrowMaterial);
         }

@@ -32,9 +32,9 @@
 #include <ResultInfo.h>
 
 #ifdef ADVANCED_GL
-#include "IvfArea2D.h"
-#include "IvfPlaneButton.h"
-#include "IvfButtonGroup.h"
+#include "Area2D.h"
+#include "PlaneButton.h"
+#include "ButtonGroup.h"
 #endif
 
 #ifdef ADVANCED_GL
@@ -93,9 +93,9 @@ string to_string ( T Number )
     return ss.str();
 }
 
-#include "IvfFltkWidget.h"
+#include "FltkWidget.h"
 
-class CIvfFemWidget : public CIvfFltkWidget {
+class FemWidget : public FltkWidget {
 private:
     std::string m_coordText;
     std::string m_modeDescr;
@@ -182,7 +182,7 @@ private:
     //GLTTPixmapFont* m_coordFont;
     vector<CIvfArea2D*> m_areas;
     vector<CIvfPlaneButton*> m_buttons;
-    ivf::SelectOrtho* m_overlayScene;
+    ivf::SelectOrthoPtr m_overlayScene;
     CIvfButtonGroup* m_editButtons;
     CIvfButtonGroup* m_viewButtons;
     CIvfButtonGroup* m_objectButtons;
@@ -203,21 +203,21 @@ private:
 
     // Dialogs
 
-    CNodePropDlg* m_dlgNodeProp;
-    CBeamPropDlg* m_dlgBeamProp;
-    CMaterialsDlg* m_dlgMaterials;
-    CElementLoadsDlg* m_dlgElementLoads;
-    CNodeLoadsDlg* m_dlgNodeLoads;
-    CNodeBCsDlg* m_dlgNodeBCs;
-    CScalefactorDlg* m_dlgScalefactor;
-    CStructureDlg* m_dlgStructure;
+    NodePropDlg* m_dlgNodeProp;
+    BeamPropDlg* m_dlgBeamProp;
+    MaterialsDlg* m_dlgMaterials;
+    ElementLoadsDlg* m_dlgElementLoads;
+    NodeLoadsDlg* m_dlgNodeLoads;
+    NodeBCsDlg* m_dlgNodeBCs;
+    ScalefactorDlg* m_dlgScalefactor;
+    StructureDlg* m_dlgStructure;
 
 	void makeToolWindow(Fl_Window* window);
     std::string float2str(double value);
 
 public:
-    CIvfFemWidget(int X, int Y, int W, int H, const char *L=0);
-    virtual ~CIvfFemWidget();
+    FemWidget(int X, int Y, int W, int H, const char *L=0);
+    virtual ~FemWidget();
 
     // Get set methods
     void setCoordWidget(Fl_Widget* widget);

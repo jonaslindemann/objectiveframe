@@ -14,12 +14,12 @@
 #include <FL/Fl_Browser.H>
 #include "Fl_HoverButton.h"
 
-class CMaterialsDlg {
-  CFemBeamMaterialSet* m_materials; 
-  void* m_femWidget; 
-  CFemBeamMaterial* m_currentMaterial; 
+class MaterialsDlg {
+  CFemBeamMaterialSet* m_materials;
+  void* m_femWidget;
+  CFemBeamMaterial* m_currentMaterial;
 public:
-  CMaterialsDlg();
+  MaterialsDlg();
   Fl_Double_Window *wndMaterials;
   Fl_Browser *lbMaterials;
 private:

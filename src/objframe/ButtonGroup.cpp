@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "IvfButtonGroup.h"
+#include "ButtonGroup.h"
 
 #include <ivf/GenericButton.h>
 

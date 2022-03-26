@@ -10,11 +10,11 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Value_Slider.H>
 
-class CScalefactorDlg {
-  void* m_femWidget; 
-  double m_maxValue; 
+class ScalefactorDlg {
+  void* m_femWidget;
+  double m_maxValue;
 public:
-  CScalefactorDlg();
+  ScalefactorDlg();
   Fl_Double_Window *wndWorkspace;
   Fl_Button *btnClose;
 private:
@@ -27,7 +27,7 @@ private:
   inline void cb_sldScalefactor_i(Fl_Value_Slider*, void*);
   static void cb_sldScalefactor(Fl_Value_Slider*, void*);
 public:
-  ~CScalefactorDlg();
+  ~ScalefactorDlg();
   void show();
   void setFemWidget(void* femWidget);
   void setScaling(double maxValue);

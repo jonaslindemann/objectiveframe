@@ -1,38 +1,38 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0400
+header_name {.h}
 code_name {.cpp}
 decl {\#define MR_OK 0} {public local
-} 
+}
 
 decl {\#define MR_CANCEL 1} {public local
-} 
+}
 
 decl {\#ifdef WIN32} {public local
-} 
+}
 
 decl {\#include "fl_message_win.H"} {public local
-} 
+}
 
 decl {\#endif} {public local
-} 
+}
 
 decl {\#include <FL/fl_message.H>} {public local
-} 
+}
 
 decl {\#include <FemElementLoadSet.h>} {public local
-} 
+}
 
 decl {\#include <FemBeamLoad.h>} {public local
-} 
+}
 
-decl {\#include "IvfFemWidget.h"} {private local
-} 
+decl {\#include "FemWidget.h"} {private local
+}
 
 decl {\#include "ElementLoadDlg.h"} {private local
-} 
+}
 
-class CElementLoadsDlg {open
+class ElementLoadsDlg {open
 } {
   decl {CFemElementLoadSet* m_loadSet} {private local
   }
@@ -40,11 +40,11 @@ class CElementLoadsDlg {open
   }
   decl {CFemBeamLoad* m_currentLoad} {private local
   }
-  Function {CElementLoadsDlg()} {open
+  Function {ElementLoadsDlg()} {open
   } {
     Fl_Window wndElementLoads {
       label {Element loads} open
-      xywh {355 54 181 211} type Double non_modal visible
+      xywh {3106 422 181 211} type Double non_modal visible
     } {
       Fl_Browser lbLoadSet {
         label Loads
@@ -58,7 +58,7 @@ class CElementLoadsDlg {open
 	else m_currentLoad = NULL;
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->setCurrentBeamLoad(m_currentLoad);
 	}
 }}
@@ -81,7 +81,7 @@ class CElementLoadsDlg {open
 			
 			if (m_femWidget!=NULL)
 			{
-				CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+				FemWidget* femWidget = (FemWidget*) m_femWidget;
 				femWidget->addBeamLoad(load);
 			}
 			this->fillListBox();
@@ -97,7 +97,7 @@ class CElementLoadsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->deleteBeamLoad(m_currentLoad);
 		this->fillListBox();
 	}
@@ -109,7 +109,7 @@ class CElementLoadsDlg {open
       Fl_Button btnEditLoad {
         callback {if (this->getCurrentLoad()!=NULL)
 {
-	CElementLoadDlg* dlg = new CElementLoadDlg();
+	ElementLoadDlg* dlg = new ElementLoadDlg();
 	dlg->setLoad(this->getCurrentLoad());
 	dlg->setWorkspace((Fl_Widget*)m_femWidget);
 	dlg->show();
@@ -129,7 +129,7 @@ class CElementLoadsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->assignBeamLoadSelected();
 	}
 }}
@@ -142,7 +142,7 @@ class CElementLoadsDlg {open
 {
 	if (m_femWidget!=NULL)
 	{
-		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_femWidget;
+		FemWidget* femWidget = (FemWidget*) m_femWidget;
 		femWidget->removeBeamLoadsFromSelected();
 	}
 }} selected
@@ -210,4 +210,4 @@ else
   Function {setFemWidget(void* femWidget)} {} {
     code {m_femWidget = femWidget;} {}
   }
-} 
+}

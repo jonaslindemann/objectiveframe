@@ -29,6 +29,20 @@ void CFemDof::print(std::ostream &out)
     out << m_kind+1 << " ";
 }
 
+json CFemDof::toJSON()
+{
+    json j;
+    j["kind"] = m_kind;
+    j["number"] = m_number;
+    return j;
+}
+
+void CFemDof::fromJSON(json& j)
+{
+    m_kind = j.at("kind").get<int>();
+    m_number = j.at("number").get<long>();
+}
+
 // ------------------------------------------------------------
 void CFemDof::setKind(int kind)
 {

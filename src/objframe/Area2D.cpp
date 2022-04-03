@@ -74,7 +74,7 @@ bool CIvfArea2D::inside(int x, int y)
 
 int CIvfArea2D::getSize()
 {
-    return m_xCoords.size();
+    return (int)m_xCoords.size();
 }
 
 

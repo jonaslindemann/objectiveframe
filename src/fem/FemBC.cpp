@@ -2,9 +2,11 @@
 
 #include "FemBC.h"
 
+using namespace std;
+
 // ------------------------------------------------------------
 CFemBC::CFemBC ()
-    :CFemObject()
+    :CFemObject(), m_number{-1}
 {
 }
 
@@ -41,9 +43,9 @@ void CFemBC::prescribeDof(CFemDof* dof, double value)
 // ------------------------------------------------------------
 void CFemBC::unprescribeDof(CFemDof* dof)
 {
-    std::vector<CFemDofPtr>::iterator p = m_prescribedDofs.begin();
-    std::vector<double>::iterator q = m_prescribedValues.begin();
-    std::vector<CFemDofPtr>::iterator lastDof = m_prescribedDofs.end();
+    auto p = m_prescribedDofs.begin();
+    auto q = m_prescribedValues.begin();
+    auto lastDof = m_prescribedDofs.end();
 
     while (p!=lastDof)
     {
@@ -81,11 +83,10 @@ void CFemBC::saveToStream(std::ostream &out)
 {
     CFemObject::saveToStream(out);
 
-    using namespace std;
+    auto p = m_prescribedDofs.begin();
+    auto q = m_prescribedValues.begin();
+    auto lastDof = m_prescribedDofs.end();
 
-    std::vector<CFemDofPtr>::iterator p = m_prescribedDofs.begin();
-    std::vector<double>::iterator q = m_prescribedValues.begin();
-    std::vector<CFemDofPtr>::iterator lastDof = m_prescribedDofs.end();
     CFemDof* dof;
 
     out << m_prescribedDofs.size() << endl;
@@ -98,6 +99,22 @@ void CFemBC::saveToStream(std::ostream &out)
         p++;
         q++;
     }
+}
+
+// ------------------------------------------------------------
+json CFemBC::toJSON()
+{
+    json j;
+    j["number"] = m_number;
+
+    json dofList;
+
+    for (auto& pdof : m_prescribedDofs)
+        dofList.push_back(pdof->toJSON());
+
+    j["prescribed_dofs"] = dofList;
+    j["prescribed_values"] = m_prescribedValues;
+    return j;
 }
 
 // ------------------------------------------------------------
@@ -131,6 +148,7 @@ void CFemBC::print(std::ostream &out)
 
 }
 
+
 // ------------------------------------------------------------
 CFemDof* CFemBC::getDof(unsigned int idx)
 {
@@ -150,7 +168,7 @@ double CFemBC::getValue(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-int CFemBC::getSize()
+size_t CFemBC::getSize()
 {
     return m_prescribedDofs.size();
 }

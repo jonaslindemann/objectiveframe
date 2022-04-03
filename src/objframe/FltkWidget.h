@@ -109,9 +109,6 @@ using namespace std;
 
 IvfSmartPointer(FltkWidget);
 
-#define GLT_MANUAL_VIEWPORT
-#include <gltext.h>
-
 /**
  * Ivf FLTK Widget
  *
@@ -171,6 +168,7 @@ private:
     bool m_editEnabled;
     bool m_selectEnabled;
     bool m_initDone;
+    bool m_disableRedrawTimer;
 
     double m_controlSize;
 
@@ -187,8 +185,6 @@ private:
     ivf::CompositePtr			m_selectedShapes;
     ivf::LightingPtr				m_lighting;
     ivf::ShapePtr                m_lastShape;
-
-    bool m_showDemoWindow;
 
 	void initOffscreenBuffers();
 	void updateOffscreenBuffers();
@@ -351,6 +347,10 @@ public:
 
     bool isInitialized();
 
+    void disableRedrawTimer();
+    void enableRedrawTimer();
+    bool isRedrawTimerEnabled();
+
 protected:
 
     // Internal event handlers
@@ -507,8 +507,6 @@ protected:
     virtual void onPostRender();
     virtual void onPreRender();
 
-    virtual void onDrawImGui();
-    virtual void onInitImGui();
 
 };
 

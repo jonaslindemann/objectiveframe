@@ -1,8 +1,8 @@
-#ifndef IVFFEMWIDGET_H
-#define IVFFEMWIDGET_H
+#pragma once
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 2.0.0"
 #define ADVANCED_GL
+
 #include "ObjframeConfig.h"
 
 #include <string>
@@ -31,28 +31,17 @@
 #include <ColorMap.h>
 #include <ResultInfo.h>
 
-#ifdef ADVANCED_GL
+#include <coord_window.h>
+#include <node_prop_window.h>
+#include <new_model_popup.h>
+#include <message_popup.h>
+
+
 #include "Area2D.h"
 #include "PlaneButton.h"
 #include "ButtonGroup.h"
-#endif
 
-#ifdef ADVANCED_GL
-#include <FTGL/ftgl.h>
-//#include <GLTTFont.h>
-//#include <GLTTPixmapFont.h>
-#endif
-
-#ifndef HAVE_CORBA
 #include "FemInternalSolver.h"
-#endif
-
-#ifdef USE_LEAP
-#include "Leap.h"
-using namespace Leap;
-class LeapInteraction;
-#endif
-
 
 #include "NodePropDlg.h"
 #include "BeamPropDlg.h"
@@ -172,14 +161,7 @@ private:
     ivf::SpherePtr       m_nodeCursor;
 
     // Overlay stuff
-#ifdef ADVANCED_GL
-    FTGLPolygonFont* m_logoFont;
-    FTGLPolygonFont* m_coordFont;
 
-    //FTFace* m_logoFace;
-    //GLTTPixmapFont* m_logoFont;
-    //FTFace* m_coordFace;
-    //GLTTPixmapFont* m_coordFont;
     vector<CIvfArea2D*> m_areas;
     vector<CIvfPlaneButton*> m_buttons;
     ivf::SelectOrthoPtr m_overlayScene;
@@ -189,7 +171,6 @@ private:
     CIvfArea2D* m_editArea;
     CIvfArea2D* m_objectArea;
     CIvfArea2D* m_viewArea;
-#endif
 
     float m_hintColor[3];
     bool m_hintFinished;
@@ -211,6 +192,17 @@ private:
     NodeBCsDlg* m_dlgNodeBCs;
     ScalefactorDlg* m_dlgScalefactor;
     StructureDlg* m_dlgStructure;
+
+    bool m_showDemoWindow;
+
+    CoordWindowPtr m_coordWindow;
+    NodePropWindowPtr m_nodePropWindow;
+    NewModelPopupPtr m_newModelPopup;
+    MessagePopupPtr m_messagePopup;
+    bool m_showStyleEditor;
+    bool m_showMetricsWindow;
+    bool m_showNewFileDlg;
+
 
 	void makeToolWindow(Fl_Window* window);
     std::string float2str(double value);
@@ -268,10 +260,6 @@ public:
     void deleteSelected();
     void unlockScaleFactor();
     void lockScaleFactor();
-    void disableHint();
-    bool isHintFinished();
-    void initiateHint();
-    void doHint();
 
     virtual void setWorkspace(double size);
     void open();
@@ -304,21 +292,16 @@ public:
     void assignNodeLoadSelected();
     void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
     void doFeedback();
+
+    void showMessage(std::string message);
     
-#ifdef USE_LEAP
-    LeapInteraction* getLeapInteraction();
-    void updateLeapFrame(Frame leapFrame);
-#endif
     ivf::ExtrArrowPtr getTactileForce();
     void setTactileForce(ivf::ExtrArrowPtr force);
     VisFemNodePtr getInteractionNode();
     void setInteractionNode(VisFemNode* interactionNode);
-    void drawTextRight(std::string text, double x, double y, double scale);
 
     // Implemented widget events
-#ifdef USE_LEAP
-    void fingerMove(Finger finger);
-#endif
+
     void onCreateNode(double x, double y, double z, ivf::Node* &newNode);
     void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape* &newLine);
     void onSelect(ivf::Composite* selectedShapes);
@@ -334,12 +317,13 @@ public:
     void onMotion(int x, int y);
     void onDeSelect();
     void onKeyboard(int key);
-#ifdef ADVANCED_GL
     void onButton(int objectName, CIvfPlaneButton* button);
-#endif
+
+    virtual void onDrawImGui();
+    virtual void onInitImGui();
+
     virtual void onInit();
     virtual void onInitContext();
     virtual void onOverlay();
 };
 
-#endif

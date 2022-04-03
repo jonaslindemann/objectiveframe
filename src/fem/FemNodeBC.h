@@ -45,8 +45,10 @@ public:
 
     // IO Methods
 
-    virtual void readFromStream(std::istream &in);
-    virtual void saveToStream(std::ostream &out);
-    virtual void print(std::ostream &out);
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
+
+    virtual json toJSON() override;
 };
 #endif

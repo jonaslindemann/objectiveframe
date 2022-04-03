@@ -50,10 +50,10 @@ void CProcessManager::executeWait(char *commandLine)
     memset(&suInfo, 0, sizeof(suInfo));
     suInfo.cb = sizeof(suInfo);
 
-    int icommand_length = strlen(commandLine);
+    auto icommand_length = strlen(commandLine);
 
     char* copy_of_icommand = new char[icommand_length+1];
-    strcpy(copy_of_icommand,commandLine);
+    strcpy(copy_of_icommand,commandLine); 
 
     // On WIN32 the .exe suffix needs to be appended to the command
     // whilst leaving any additional parameters unchanged - this

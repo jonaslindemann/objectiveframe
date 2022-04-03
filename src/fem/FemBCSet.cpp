@@ -26,6 +26,21 @@ void CFemBCSet::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
+json CFemBCSet::toJSON()
+{
+    json j = CFemObject::toJSON();
+
+    json bcList;
+
+    for (auto& bc : m_bcs)
+        bcList.push_back(bc->toJSON());
+
+    j["bcset"] = bcList;
+
+    return j;
+}
+
+// ------------------------------------------------------------
 void CFemBCSet::addBC(CFemBC *bc)
 {
     m_bcs.push_back(CFemBCPtr(bc));
@@ -85,13 +100,13 @@ void CFemBCSet::clear()
 // ------------------------------------------------------------
 long CFemBCSet::enumerateBCs(long count)
 {
-    for (int i=0; i<(long)m_bcs.size(); i++)
+    for (auto i=0; i<m_bcs.size(); i++)
         m_bcs[i]->setNumber(count++);
     return count;
 }
 
 // ------------------------------------------------------------
-long CFemBCSet::getSize()
+size_t CFemBCSet::getSize()
 {
     return m_bcs.size();
 }
@@ -102,7 +117,7 @@ void CFemBCSet::saveToStream(std::ostream &out)
     using namespace std;
     CFemObject::saveToStream(out);
     out << m_bcs.size() << endl;
-    for (int i=0; i<(long)m_bcs.size(); i++)
+    for (auto i=0; i<m_bcs.size(); i++)
         m_bcs[i]->saveToStream(out);
 }
 
@@ -113,7 +128,7 @@ void CFemBCSet::readFromStream(std::istream &in)
     CFemObject::readFromStream(in);
     in >> nBCs;
     deleteAll();
-    for (int i=0; i<nBCs; i++)
+    for (auto i=0; i<nBCs; i++)
     {
         CFemBC* bc = createBC();
         bc->addReference();
@@ -130,9 +145,10 @@ void CFemBCSet::connectNodes(CFemNodeSet *nodes)
         CFemBC* bc = m_bcs[i];
         if (bc->isClass("CFemNodeBC"))
         {
-            CFemNodeBC* nodeBC = (CFemNodeBC*) bc;
+            auto nodeBC = dynamic_cast<CFemNodeBC*>(bc);
+            //CFemNodeBC* nodeBC = (CFemNodeBC*) bc;
             nodeBC->clearNodes();
-            for (int j=0; j<nodeBC->getNodeIndexSize(); j++)
+            for (auto j=0; j<nodeBC->getNodeIndexSize(); j++)
             {
                 CFemNode* node =
                     nodes->getNode(nodeBC->getNodeIndex(j)-1);
@@ -151,7 +167,7 @@ CFemBC* CFemBCSet::createBC()
 // ------------------------------------------------------------
 bool CFemBCSet::removeBC(CFemBC *bc)
 {
-    std::vector<CFemBCPtr>::iterator p = m_bcs.begin();
+    auto p = m_bcs.begin();
 
     while ( (*p!=bc)&&(p!=m_bcs.end()) )
         p++;

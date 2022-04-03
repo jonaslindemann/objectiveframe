@@ -468,7 +468,7 @@ void CFemInternalSolver::execute()
         for (j=0; j<6; j++)
             DofTopo(j+7) = beam->getNode(1)->getDof(j)->getNumber();
 
-        bandwidth = max(DofTopo) - min(DofTopo);
+        bandwidth = (int)max(DofTopo) - (int)min(DofTopo);
         if (bandwidth>maxBandwidth)
             maxBandwidth = bandwidth;
     }
@@ -558,7 +558,7 @@ void CFemInternalSolver::execute()
         nodeLoad->getDirection(vx, vy, vz);
         value = nodeLoad->getValue();
 
-        for (j=0; j<nodeLoad->getNodeSize(); j++)
+        for (j=0; j<(int)nodeLoad->getNodeSize(); j++)
         {
             CFemNode* node = nodeLoad->getNode(j);
             m_f(node->getDof(0)->getNumber()) = vx*value;
@@ -763,7 +763,7 @@ void CFemInternalSolver::execute()
     // Store element forces in elements
     //
 
-    double n;
+    int n;
     RowVector Ed(12);
     Matrix Es;
     Matrix Edi;
@@ -997,7 +997,7 @@ void CFemInternalSolver::update()
     // Store element forces in elements
     //
 
-    double n;
+    int n;
     RowVector Ed(12);
     Matrix Es;
     Matrix Edi;

@@ -31,6 +31,10 @@ public:
 
     virtual void saveToStream(std::ostream &out);
     virtual void print(std::ostream &out);
+
+    virtual json toJSON() override;
+    virtual void fromJSON(json& j) override;
+
     long enumerateDofs(long count);
 
     void setValueSize(int size);

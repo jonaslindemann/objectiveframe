@@ -26,6 +26,23 @@ void CFemNodeBC::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
+json CFemNodeBC::toJSON()
+{
+    json j;
+
+    json nodeNumbers;
+
+    for (auto& node : m_nodes)
+        nodeNumbers.push_back(node->getNumber());
+
+    j["nodes"] = nodeNumbers;
+    j["prescribed_dofs"] = m_prescribedDof;
+    j["prescribed_values"] = m_prescribedValues;
+
+    return j;
+}
+
+// ------------------------------------------------------------
 void CFemNodeBC::saveToStream(std::ostream &out)
 {
     using namespace std;

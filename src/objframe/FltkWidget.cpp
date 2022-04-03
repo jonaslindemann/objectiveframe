@@ -43,7 +43,8 @@ void redrawCallback(void* view)
     FltkWidget* imguiView;
 
     imguiView = (FltkWidget*)view;
-    imguiView->redraw();
+    if (imguiView->isRedrawTimerEnabled())
+        imguiView->redraw();
     Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)view);
 }
 
@@ -86,8 +87,6 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
 
     m_workspaceSize = 10.0f;
 
-    m_showDemoWindow = true;
-
     // Create default camera
 
     m_camera = Camera::create();
@@ -106,6 +105,7 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     m_selectedShapes = Composite::create();
     m_selectedShapes->setUseReference(false);
 
+    this->enableRedrawTimer();
     Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)this);
 }
 
@@ -648,54 +648,60 @@ int FltkWidget::handle(int event)
         m_beginX = Fl::event_x();
         m_beginY = Fl::event_y();
 
-        m_currentModifier = IVF_NO_BUTTON;
+        if (!isOverWindow())
+        {
+            m_currentModifier = IVF_NO_BUTTON;
 
-        if (Fl::get_key(FL_Shift_L))
-            m_currentModifier = IVF_SHIFT;
-        if (Fl::get_key(FL_Shift_R))
-            m_currentModifier = IVF_SHIFT;
-        if (Fl::get_key(FL_Control_L))
-            m_currentModifier = IVF_CTRL;
-        if (Fl::get_key(FL_Control_R))
-            m_currentModifier = IVF_CTRL;
-        if (Fl::get_key(FL_Alt_L))
-            m_currentModifier = IVF_ALT;
-        if (Fl::get_key(FL_Alt_R))
-            m_currentModifier = IVF_ALT;
+            if (Fl::get_key(FL_Shift_L))
+                m_currentModifier = IVF_SHIFT;
+            if (Fl::get_key(FL_Shift_R))
+                m_currentModifier = IVF_SHIFT;
+            if (Fl::get_key(FL_Control_L))
+                m_currentModifier = IVF_CTRL;
+            if (Fl::get_key(FL_Control_R))
+                m_currentModifier = IVF_CTRL;
+            if (Fl::get_key(FL_Alt_L))
+                m_currentModifier = IVF_ALT;
+            if (Fl::get_key(FL_Alt_R))
+                m_currentModifier = IVF_ALT;
 
-        if (!Fl::get_key(FL_Shift_L))
-            m_scene->unlockCursor();
-        if (Fl::event_button()==FL_LEFT_MOUSE)
-            m_currentButton = IVF_BUTTON1;
-        if (Fl::event_button()==FL_MIDDLE_MOUSE)
-            m_currentButton = IVF_BUTTON2;
-        if (Fl::event_button()==FL_RIGHT_MOUSE)
-            m_currentButton = IVF_BUTTON3;
+            if (!Fl::get_key(FL_Shift_L))
+                m_scene->unlockCursor();
+            if (Fl::event_button() == FL_LEFT_MOUSE)
+                m_currentButton = IVF_BUTTON1;
+            if (Fl::event_button() == FL_MIDDLE_MOUSE)
+                m_currentButton = IVF_BUTTON2;
+            if (Fl::event_button() == FL_RIGHT_MOUSE)
+                m_currentButton = IVF_BUTTON3;
 
-        if (Fl::get_key(FL_Shift_L))
-            cout << "SHIFT_LEFT" << endl;
-        if (Fl::get_key(FL_Shift_R))
-            cout << "SHIFT_RIGHT" << endl;
-        if (Fl::get_key(FL_Control_L))
-            cout << "CONTROL_LEFT" << endl;
-        if (Fl::get_key(FL_Control_R))
-            cout << "CONTROL_RIGHT" << endl;
-        if (Fl::get_key(FL_Alt_L))
-            cout << "ALT_LEFT" << endl;
-        if (Fl::get_key(FL_Alt_R))
-            cout << "ALT_RIGHT" << endl;
+            if (Fl::get_key(FL_Shift_L))
+                cout << "SHIFT_LEFT" << endl;
+            if (Fl::get_key(FL_Shift_R))
+                cout << "SHIFT_RIGHT" << endl;
+            if (Fl::get_key(FL_Control_L))
+                cout << "CONTROL_LEFT" << endl;
+            if (Fl::get_key(FL_Control_R))
+                cout << "CONTROL_RIGHT" << endl;
+            if (Fl::get_key(FL_Alt_L))
+                cout << "ALT_LEFT" << endl;
+            if (Fl::get_key(FL_Alt_R))
+                cout << "ALT_RIGHT" << endl;
 
-        if (Fl::event_button()==FL_LEFT_MOUSE)
-            cout << "LEFT_MOUSE" << endl;
-        if (Fl::event_button()==FL_MIDDLE_MOUSE)
-            cout << "MIDDLE_MOUSE" << endl;
-        if (Fl::event_button()==FL_RIGHT_MOUSE)
-            cout << "RIGHT_MOUSE" << endl;
+            if (Fl::event_button() == FL_LEFT_MOUSE)
+                cout << "LEFT_MOUSE" << endl;
+            if (Fl::event_button() == FL_MIDDLE_MOUSE)
+                cout << "MIDDLE_MOUSE" << endl;
+            if (Fl::event_button() == FL_RIGHT_MOUSE)
+                cout << "RIGHT_MOUSE" << endl;
 
 
-        this->doMouseDown(m_beginX, m_beginY);
-        this->doMouse(m_beginX, m_beginY);
-        this->doImGuiPush();
+            this->doMouseDown(m_beginX, m_beginY);
+            this->doMouse(m_beginX, m_beginY);
+        }
+        else
+        {
+            this->doImGuiPush();
+        }
         return 1;
     case FL_DRAG:
         if (m_editMode!=IVF_MANIPULATE)
@@ -714,7 +720,8 @@ int FltkWidget::handle(int event)
     case FL_RELEASE:
         this->doMouseUp(Fl::event_x(), Fl::event_y());
         m_currentButton = IVF_NO_BUTTON;
-        this->doImGuiRelease();
+        if (isOverWindow())
+            this->doImGuiRelease();
         return 1;
     case FL_FOCUS:
 
@@ -760,27 +767,6 @@ void FltkWidget::resize(int x, int y, int w, int h)
 // ImGui events
 // ------------------------------------------------------------
 
-void FltkWidget::onDrawImGui()
-{
-    ImGui::ShowDemoWindow(&m_showDemoWindow);
-    ImGui::Render();
-
-    if (ImGui::IsMouseDown(0))
-        cout << "Mouse0 down" << endl;
-    if (ImGui::IsMouseDown(1))
-        cout << "Mouse1 down" << endl;
-    if (ImGui::IsMouseDown(2))
-        cout << "Mouse2 down" << endl;
-}
-
-void FltkWidget::onInitImGui()
-{
-    ImGui::StyleColorsDark();
-
-    ImGuiIO& io = ImGui::GetIO();
-    ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 20);
-    //ImFont* font2 = io.Fonts->AddFontFromFileTTF("anotherfont.otf", 13);
-}
 
 // ------------------------------------------------------------
 // Event methods
@@ -901,18 +887,18 @@ void FltkWidget::doMotion(int x, int y)
                 this->getScene()->hideCursor();
                 if (getCurrentModifier()==IVF_ALT)
                 {
-                    m_zoomX = (x - m_beginX);
-                    m_zoomY = (y - m_beginY);
+                    m_zoomX = ((float)x - m_beginX);
+                    m_zoomY = ((float)y - m_beginY);
                 }
                 else if (getCurrentModifier()==IVF_SHIFT)
                 {
-                    m_moveX = (x - m_beginX);
-                    m_moveY = (y - m_beginY);
+                    m_moveX = ((float)x - m_beginX);
+                    m_moveY = ((float)y - m_beginY);
                 }
                 else
                 {
-                    m_angleX = (x - m_beginX);
-                    m_angleY = (y - m_beginY);
+                    m_angleX = ((float)x - m_beginX);
+                    m_angleY = ((float)y - m_beginY);
                 }
             }
             m_beginX = x;
@@ -1257,5 +1243,20 @@ void FltkWidget::onPreRender()
 bool FltkWidget::isInitialized()
 {
     return m_initDone;
+}
+
+void FltkWidget::disableRedrawTimer()
+{
+    m_disableRedrawTimer = true;
+}
+
+void FltkWidget::enableRedrawTimer()
+{
+    m_disableRedrawTimer = false;
+}
+
+bool FltkWidget::isRedrawTimerEnabled()
+{
+    return !m_disableRedrawTimer;
 }
 

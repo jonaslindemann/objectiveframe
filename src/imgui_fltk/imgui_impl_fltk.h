@@ -30,6 +30,7 @@ public:
 	ImGuiFLTKImpl();
 
 	bool isImGuiInitialised();
+	bool isOverWindow();
 
 	void doDrawImGui();
 	void doInitImGui(int w, int h);

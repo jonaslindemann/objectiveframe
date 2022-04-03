@@ -4,10 +4,10 @@
 
 // ------------------------------------------------------------
 CFemBeamLoad::CFemBeamLoad ()
-    :CFemElementLoad()
+    :CFemElementLoad(),
+     m_name{"Noname"},
+     m_color{1}
 {
-    m_name = "Noname";
-    m_color = 1;
 }
 
 // ------------------------------------------------------------

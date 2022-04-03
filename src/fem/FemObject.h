@@ -4,7 +4,9 @@
 #include <iostream>
 #include <string>
 
-namespace std {};
+#include <json.hpp>
+
+using json = nlohmann::json;
 
 #include "FemDef.h"
 #include "FemPointer.h"
@@ -54,6 +56,9 @@ public:
     virtual void saveToStream(std::ostream &out);
     virtual void readFromStream(std::istream &in);
     virtual void print(std::ostream &out);
+
+    virtual json toJSON();
+    virtual void fromJSON(json& j);
 
     // Get/set methods
 

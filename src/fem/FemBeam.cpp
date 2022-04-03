@@ -10,10 +10,11 @@
 
 // ------------------------------------------------------------
 CFemBeam::CFemBeam ()
-    :CFemElement()
+    :CFemElement(),
+     m_beamRotation{0.0},
+     m_evaluationPoints{8},
+     m_materialIndex{-1}
 {
-    m_beamRotation = 0.0;
-    m_evaluationPoints = 8;
 }
 
 // ------------------------------------------------------------
@@ -79,15 +80,13 @@ double CFemBeam::getBeamRotation()
 // ------------------------------------------------------------
 void CFemBeam::getOrientationZ(double &ex, double &ey, double &ez)
 {
-    CFemNode* n1;
-    CFemNode* n2;
     double x1, y1, z1, x2, y2, z2;
     double dx, dy, dz;
     double l, alfa;
     double axis[3], u[3], v[3];
 
-    n1 = this->getNode(0);
-    n2 = this->getNode(1);
+    auto n1 = this->getNode(0);
+    auto n2 = this->getNode(1);
 
     n1->getCoord(x1, y1, z1);
     n2->getCoord(x2, y2, z2);
@@ -135,15 +134,13 @@ void CFemBeam::getOrientationZ(double &ex, double &ey, double &ez)
 // ------------------------------------------------------------
 void CFemBeam::getOrientationY(double &ex, double &ey, double &ez)
 {
-    CFemNode* n1;
-    CFemNode* n2;
     double x1, y1, z1, x2, y2, z2;
     double dx, dy, dz;
     double l, alfa;
     double axis[3], u[3], v[3];
 
-    n1 = this->getNode(0);
-    n2 = this->getNode(1);
+    auto n1 = this->getNode(0);
+    auto n2 = this->getNode(1);
 
     n1->getCoord(x1, y1, z1);
     n2->getCoord(x2, y2, z2);

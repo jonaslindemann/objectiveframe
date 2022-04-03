@@ -41,5 +41,7 @@ public:
     virtual void print(std::ostream &out);
     virtual void readFromStream(std::istream &in);
     virtual void saveToStream(std::ostream &out);
+
+    virtual json toJSON() override;
 };
 #endif

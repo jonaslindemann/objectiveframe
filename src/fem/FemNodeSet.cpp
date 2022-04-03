@@ -143,6 +143,21 @@ void CFemNodeSet::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
+json CFemNodeSet::toJSON()
+{
+    json j = CFemObject::toJSON();
+
+    json nodeList;
+
+    for (auto& node : m_nodes)
+        nodeList.push_back(node->toJSON());
+
+    j["nodeset"] = nodeList;
+
+    return j;
+}
+
+// ------------------------------------------------------------
 void CFemNodeSet::readFromStream(std::istream &in)
 {
     long nNodes;

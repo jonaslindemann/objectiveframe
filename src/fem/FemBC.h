@@ -31,7 +31,7 @@ public:
     void setNumber(long number);
     long getNumber();
 
-    int getSize();
+    size_t getSize();
 
     double getValue(unsigned int idx);
 
@@ -42,5 +42,7 @@ public:
     virtual void readFromStream(std::istream &in);
     virtual void saveToStream(std::ostream &out);
     virtual void print(std::ostream &out);
+
+    virtual json toJSON();
 };
 #endif

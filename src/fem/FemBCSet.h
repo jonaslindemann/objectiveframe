@@ -32,13 +32,14 @@ public:
     // Get/set methods
 
     CFemBC* getBC(long i);
-    long getSize();
+    size_t getSize();
 
     // IO methods
 
-    void readFromStream(std::istream &in);
-    void saveToStream(std::ostream &out);
-    virtual void print(std::ostream &out);
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
+    virtual json toJSON() override;
 protected:
     virtual CFemBC* createBC();
 };

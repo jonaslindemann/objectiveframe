@@ -8,8 +8,6 @@
 
 #include <FL/Fl_Native_File_Chooser.H>
 
-#include <FL/fl_message.H>
-
 #include <ivf/CoordinateSystem.h>
 #include <ivf/Texture.h>
 #include <ivfimage/SgiImage.h>
@@ -19,7 +17,6 @@
 #include <FemNode.h>
 #include <FemBeamLoad.h>
 #include <FemSLFFEAWriter.h>
-#include <ProcessManager.h>
 
 #include "NodePropDlg.h"
 #include "BeamPropDlg.h"
@@ -33,14 +30,6 @@
 #include "StructureFactory.h"
 
 #include "StatusOutput.h"
-
-#ifdef USE_LEAP
-#include "LeapInteraction.h"
-#endif
-
-#ifdef HAVE_CORBA
-#include "FemDFEMCInterface.h"
-#endif
 
 #define BTN_SELECT		  1001
 #define BTN_MOVE          1002
@@ -75,35 +64,11 @@ void feedbackCallback(void* pointer)
     Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
 
-#ifdef USE_LEAP
-void callbackLeapLoop(void* pointer)
-{
-    CIvfFemWidget* widget = (CIvfFemWidget*) pointer;
-    
-    widget->getLeapInteraction()->refresh();
-    Fl::add_timeout(0.01f, callbackLeapLoop, widget);
-}
-#endif USE_LEAP
-
-// ------------------------------------------------------------
-
-
-#ifdef ADVANCED_GL
-void hintCallback(void* pointer)
-{
-    FemWidget* widget = (FemWidget*) pointer;
-    widget->doHint();
-    if (!widget->isHintFinished())
-        Fl::add_timeout(0.1f, hintCallback, widget);
-}
-#endif
-
 // ------------------------------------------------------------
 // ------------------------------------------------------------
 // IvfFemWidget constructor
 // ------------------------------------------------------------
 // ------------------------------------------------------------
-
 
 FemWidget::FemWidget(int X, int Y, int W, int H, const char *L) :
     FltkWidget(X, Y, W, H, L)
@@ -111,8 +76,8 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char *L) :
     m_width = W;
     m_height = H;
     so_print("FemWidget: Initializing variables.");
-    m_tactileForce = NULL;
-    m_internalSolver = NULL;
+    m_tactileForce = nullptr;
+    m_internalSolver = nullptr;
     m_relNodeSize = 0.004;
     m_relLineRadius = 0.0015;
     m_relLoadSize = 0.07;
@@ -137,7 +102,7 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char *L) :
     
     // Initialize GUI variables
 
-    m_coordWidget = NULL;
+    m_coordWidget = nullptr;
 
     m_progPath = "";
 #ifdef USE_LEAP
@@ -200,8 +165,8 @@ void FemWidget::onInit()
 
     // Initialize Ivf++ variables
 #ifdef ADVANCED_GL
-    m_selectedShape = NULL;
-    m_selectedButton = NULL;
+    m_selectedShape = nullptr;
+    m_selectedButton = nullptr;
 #endif
     // Initialize scene
 
@@ -256,9 +221,9 @@ void FemWidget::onInit()
     {
         Fl::get_color((Fl_Color)i, r, g, b);
         colorTable->setColor(i,
-                             (double)r / 255.0,
-                             (double)g / 255.0,
-                             (double)b / 255.0);
+                             (float)r / 255.0f,
+                             (float)g / 255.0f,
+                             (float)b / 255.0f);
     }
 
     // Initialize gle library
@@ -351,6 +316,17 @@ void FemWidget::onInit()
 #ifdef USE_LEAP
     m_leapinteraction = new LeapInteraction(this);
 #endif
+
+    // Create ImGui interface
+
+    m_showStyleEditor = false;
+    m_showMetricsWindow = false;
+    m_showNewFileDlg = false;
+    m_coordWindow = CoordWindow::create("Coord window");
+    m_nodePropWindow = NodePropWindow::create("Node properties");
+    m_nodePropWindow->setVisible(false);
+    m_newModelPopup = NewModelPopup::create("Workspace", true);
+    m_messagePopup = MessagePopup::create("Message", true);
 }
 
 // ------------------------------------------------------------
@@ -430,7 +406,7 @@ void FemWidget::setWorkspace(double size)
     m_plane->setTextureCoord(3,0.0,20.0);
 #endif
 
-    if (m_beamModel!=NULL)
+    if (m_beamModel!=nullptr)
     {
         m_beamModel->setNodeSize(this->getWorkspace()*m_relNodeSize);
         m_beamModel->setNodeType(Node::NT_CUBE);
@@ -443,10 +419,10 @@ void FemWidget::setWorkspace(double size)
     this->resetView();
     this->getCamera()->setPerspective(45.0, size/50.0, size*4.0);
 
-    if (m_tactileForce!=NULL)
+    if (m_tactileForce!=nullptr)
     {
         double loadSize;
-        if (m_beamModel!=NULL)
+        if (m_beamModel!=nullptr)
             loadSize = m_beamModel->getLoadSize();
         else
             loadSize = 1.0;
@@ -612,7 +588,7 @@ void FemWidget::setEditMode(int mode)
     if (!m_customModeSet)
     {
         m_tactileForce->setState(Shape::OS_OFF);
-        m_interactionNode = NULL;
+        m_interactionNode = nullptr;
         m_customMode = OF_NORMAL;
         this->redraw();
     }
@@ -692,7 +668,7 @@ void FemWidget::setCustomMode(int mode)
     if (m_customMode==OF_FEEDBACK)
     {
         //m_tactileForce->setState(IVF_OBJECT_ON);
-        m_interactionNode = NULL;
+        m_interactionNode = nullptr;
     }
     m_customMode = mode;
     m_customModeSet = true;
@@ -701,7 +677,7 @@ void FemWidget::setCustomMode(int mode)
     if (m_customMode!=OF_NORMAL)
     {
         m_tactileForce->setState(Shape::OS_OFF);
-        m_interactionNode = NULL;
+        m_interactionNode = nullptr;
         this->clearSelection();
         this->redraw();
         m_beamModel->clearNodeValues();
@@ -772,7 +748,10 @@ void FemWidget::save()
         this->setFileName(filename);
     }
     m_beamModel->setFileName(m_fileName);
-    m_beamModel->save();
+    //m_beamModel->save();
+
+    //cout << m_beamModel->nodeSet()->toJSON().dump(4) << endl;
+    cout << m_beamModel->nodeBCSet()->toJSON().dump(4) << endl;
 }
 
 // ------------------------------------------------------------
@@ -801,10 +780,6 @@ void FemWidget::saveAs()
 void FemWidget::open()
 {
     // Open model
-
-    // Disable callbacks
-
-    disableHint();
 
     // Prompt for a filename
 
@@ -848,8 +823,10 @@ void FemWidget::open()
 
         // Update dialogs
 
-        m_dlgNodeProp->setNode(NULL);
-        m_dlgBeamProp->setBeam(NULL);
+        m_dlgNodeProp->setNode(nullptr);
+        m_dlgBeamProp->setBeam(nullptr);
+        m_nodePropWindow->setNode(nullptr);
+
         m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
         m_dlgElementLoads->setLoadSet(m_beamModel->getElementLoadSet());
         m_dlgNodeLoads->setLoadSet(m_beamModel->getNodeLoadSet());
@@ -868,17 +845,13 @@ void FemWidget::open()
 
         m_needRecalc = true;
 
-        if (m_internalSolver!=NULL)
+        if (m_internalSolver!=nullptr)
             delete m_internalSolver;
 
-        m_internalSolver = NULL;
+        m_internalSolver = nullptr;
 
         this->setEditMode(IVF_VIEW_ZOOM);
     }
-
-    // Enable hint callback
-
-    initiateHint();
 }
 
 
@@ -887,12 +860,14 @@ void FemWidget::showProperties()
 {
     // Properties for selected shape
 
-    if (this->getSelectedShape()!=NULL)
+    if (this->getSelectedShape()!=nullptr)
     {
 		if (this->getSelectedShape()->isClass("VisFemNode"))
 		{
-			m_dlgNodeProp->show();
-			makeToolWindow(m_dlgNodeProp->wndNodeProp);
+            m_nodePropWindow->align(3);
+            m_nodePropWindow->setVisible(true);
+			//m_dlgNodeProp->show();
+			//makeToolWindow(m_dlgNodeProp->wndNodeProp);
 		}
 
 		if (this->getSelectedShape()->isClass("VisFemBeam"))
@@ -917,10 +892,6 @@ void FemWidget::showMaterials()
 // ------------------------------------------------------------
 void FemWidget::newModel()
 {
-    // Disable hint callback
-
-    disableHint();
-
     // Delete all Ivf++ objects
 
     this->deleteAll();
@@ -945,7 +916,7 @@ void FemWidget::newModel()
     m_beamModel->setBeamMaterial(m_lineMaterial);
 	m_beamModel->generateModel();
 
-    m_currentMaterial = NULL;
+    m_currentMaterial = nullptr;
 
 
     // Initialize color table
@@ -958,15 +929,16 @@ void FemWidget::newModel()
     {
         Fl::get_color((Fl_Color)i, r, g, b);
         colorTable->setColor(i,
-                             (double)r / 255.0,
-                             (double)g / 255.0,
-                             (double)b / 255.0);
+                             (float)r / 255.0f,
+                             (float)g / 255.0f,
+                             (float)b / 255.0f);
     }
 
     // Initialize dialogs
 
-    m_dlgNodeProp->setNode(NULL);
-    m_dlgBeamProp->setBeam(NULL);
+    m_dlgNodeProp->setNode(nullptr);
+    m_dlgBeamProp->setBeam(nullptr);
+    m_nodePropWindow->setNode(nullptr);
     m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
 
     // Add tactile force
@@ -989,17 +961,12 @@ void FemWidget::newModel()
 
     m_needRecalc = true;
 
-    if (m_internalSolver!=NULL)
+    if (m_internalSolver!=nullptr)
         delete m_internalSolver;
 
-    m_internalSolver = NULL;
+    m_internalSolver = nullptr;
 
     this->setEditMode(IVF_VIEW_ZOOM);
-    //this->getScene()->getWorldSystem()->getGrid()->setAxisSize(this->getWorkspace()*0.05);
-
-    // Enable hint callback
-
-    initiateHint();
 
     // Update screen
 
@@ -1011,7 +978,7 @@ void FemWidget::assignMaterialToSelected()
 {
     // Assigns a material to selected shapes
 
-    if (this->getCurrentMaterial()!=NULL)
+    if (this->getCurrentMaterial()!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
@@ -1045,7 +1012,7 @@ void FemWidget::removeMaterialFromSelected()
         if (shape->isClass("VisFemBeam"))
         {
             VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-            visBeam->getBeam()->setMaterial(NULL);
+            visBeam->getBeam()->setMaterial(nullptr);
         }
     }
 
@@ -1191,7 +1158,7 @@ void FemWidget::assignBeamLoadSelected()
 {
     // Assign a beam load to selected beams
 
-    if (m_currentElementLoad!=NULL)
+    if (m_currentElementLoad!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
@@ -1218,7 +1185,7 @@ void FemWidget::assignNodeLoadSelected()
 {
     // Assign a node load to selected nodes
 
-    if (m_currentNodeLoad!=NULL)
+    if (m_currentNodeLoad!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
@@ -1280,7 +1247,7 @@ void FemWidget::deleteNodeBC(CFemBeamNodeBC *bc)
 
     m_needRecalc = true;
     m_beamModel->getNodeBCSet()->removeBC(bc);
-    setCurrentNodeBC(NULL);
+    setCurrentNodeBC(nullptr);
 }
 
 
@@ -1326,10 +1293,10 @@ void FemWidget::setupOverlay()
 
     // Roboto-Regular.ttf
 
-    m_logoFont = new FTGLPolygonFont("fonts/Roboto-Regular.ttf");
+    //m_logoFont = new FTGLPolygonFont("fonts/Roboto-Regular.ttf");
     //m_coordFont = new FTGLTextureFont("fonts/Roboto-Regular.ttf");
-    m_logoFont->FaceSize(48);
-   // m_coordFont->FaceSize(72);
+    //m_logoFont->FaceSize(48);
+    // m_coordFont->FaceSize(72);
 
     /*
      m_logoFace = new FTFace();
@@ -1365,6 +1332,7 @@ void FemWidget::setupOverlay()
     m_objectArea->setColor(3, 0.0f, 0.0f, 0.0f);
     m_areas.push_back(m_objectArea);
 
+    /*
     m_viewArea = new CIvfArea2D();
     m_viewArea->add(0,0);
     m_viewArea->add(0,0);
@@ -1375,6 +1343,7 @@ void FemWidget::setupOverlay()
     m_viewArea->setColor(2, 0.0f, 0.0f, 0.0f);
     m_viewArea->setColor(3, 0.0f, 0.0f, 0.0f);
     m_areas.push_back(m_viewArea);
+    */
 
     // Create edit toolbar
 
@@ -1382,31 +1351,31 @@ void FemWidget::setupOverlay()
 
     button= new CIvfPlaneButton(BTN_SELECT, "images/tlselect.png");
     button->setSize(40.0, 40.0);
-    button->setPosition(30.0,30.0,0.0);
+    button->setPosition(30.0,60.0,0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
     button= new CIvfPlaneButton(BTN_MOVE, "images/tlmove.png");
     button->setSize(40.0,40.0);
-    button->setPosition(30.0,110.0,0.0);
+    button->setPosition(30.0,140.0,0.0);
     button->setHint("Move nodes or elements");
     m_editButtons->addChild(button);
 
     button= new CIvfPlaneButton(BTN_INSPECT, "images/tlinspect.png");
     button->setSize(40.0,40.0);
-    button->setPosition(30.0,170,0.0);
+    button->setPosition(30.0,200,0.0);
     button->setHint("Node or element info");
     m_editButtons->addChild(button);
 
     button= new CIvfPlaneButton(BTN_DELETE, "images/tldelete.png");
     button->setSize(40.0, 40.0);
-    button->setPosition(30.0,240.0,0.0);
+    button->setPosition(30.0,270.0,0.0);
     button->setHint("Delete node or element");
     m_editButtons->addChild(button);
 
     button= new CIvfPlaneButton(BTN_FEEDBACK, "images/tlfeedback.png");
     button->setSize(40.0,40.0);
-    button->setPosition(30.0,330.0,0.0);
+    button->setPosition(30.0,360.0,0.0);
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
@@ -1460,6 +1429,7 @@ void FemWidget::setupOverlay()
     // Create view toolbar
     //
 
+    /*
     m_viewButtons = new CIvfButtonGroup();
 
     button= new CIvfPlaneButton(BTN_VIEW_ZOOM, "images/tlviewzoom.png");
@@ -1475,6 +1445,7 @@ void FemWidget::setupOverlay()
     m_viewButtons->addChild(button);
 
     m_overlayScene->addChild(m_viewButtons);
+    */
 #endif
 }
 
@@ -1483,7 +1454,7 @@ void FemWidget::assignNodeBCSelected()
 {
     // Assign a node load to selected nodes
 
-    if (m_currentNodeBC!=NULL)
+    if (m_currentNodeBC!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
@@ -1560,7 +1531,7 @@ void FemWidget::executeCalc()
     maxNodeValue = dfemcInterface->getMaxNodeValue();
     delete dfemcInterface;
 #else
-    if (m_internalSolver!=NULL)
+    if (m_internalSolver!=nullptr)
         delete m_internalSolver;
 
     m_internalSolver = new CFemInternalSolver();
@@ -1571,31 +1542,31 @@ void FemWidget::executeCalc()
     {
         switch (m_internalSolver->getLastError()) {
         case BS_NO_NODES:
-            fl_message("No nodes defined. \nCalculation not executed.");
+            this->showMessage("No nodes defined. \nCalculation not executed.");
             break;
         case BS_NO_ELEMENTS:
-            fl_message("No elements defined. \nCalculation not executed.");
+            this->showMessage("No elements defined. \nCalculation not executed.");
             break;
         case BS_NO_BC:
-            fl_message("No boundary conditions defined. \nCalculation not executed.");
+            this->showMessage("No boundary conditions defined. \nCalculation not executed.");
             break;
         case BS_NO_LOADS:
-            fl_message("No loads defined. \nCalculation not executed.");
+            this->showMessage("No loads defined. \nCalculation not executed.");
             break;
         case BS_UNSTABLE:
-            fl_message("System unstable. Try adding boundary conditions.\nCalculation not executed.");
+            this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
             break;
         case BS_SINGULAR:
-            fl_message("System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
+            this->showMessage("System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
             break;
         case BS_INVALID_MODEL:
-            fl_message("This should not happen.\nCalculation not executed.");
+            this->showMessage("This should not happen.\nCalculation not executed.");
             break;
         case BS_UNDEFINED_MATERIAL:
-            fl_message("Beams without materials found.");
+            this->showMessage("Beams without materials found.");
             break;
         default:
-            fl_message("Unhandled error.\nCalculation not executed.");
+            this->showMessage("Unhandled error.\nCalculation not executed.");
             break;
         }
         m_needRecalc = true;
@@ -1655,7 +1626,7 @@ void FemWidget::doFeedback()
 
     if (m_needRecalc)
     {
-        if (m_interactionNode!=NULL)
+        if (m_interactionNode!=nullptr)
         {
             CFeedbackDlg* dlg = new CFeedbackDlg();
             dlg->show();
@@ -1663,7 +1634,7 @@ void FemWidget::doFeedback()
 
             double maxNodeValue;
 
-            if (m_internalSolver!=NULL)
+            if (m_internalSolver!=nullptr)
                 delete m_internalSolver;
 
             m_internalSolver = new CFemInternalSolver();
@@ -1687,28 +1658,28 @@ void FemWidget::doFeedback()
 
             switch (m_internalSolver->getLastError()) {
             case BS_NO_NODES:
-                fl_message("No nodes defined. \nCalculation not executed.");
+                this->showMessage("No nodes defined. \nCalculation not executed.");
                 break;
             case BS_NO_ELEMENTS:
-                fl_message("No elements defined. \nCalculation not executed.");
+                this->showMessage("No elements defined. \nCalculation not executed.");
                 break;
             case BS_NO_BC:
-                fl_message("No boundary conditions defined. \nCalculation not executed.");
+                this->showMessage("No boundary conditions defined. \nCalculation not executed.");
                 break;
             case BS_NO_LOADS:
-                fl_message("No loads defined. \nCalculation not executed.");
+                this->showMessage("No loads defined. \nCalculation not executed.");
                 break;
             case BS_UNSTABLE:
-                fl_message("System unstable. Try adding boundary conditions.\nCalculation not executed.");
+                this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
                 break;
             case BS_SINGULAR:
-                fl_message("System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
+                this->showMessage("System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
                 break;
             case BS_INVALID_MODEL:
-                fl_message("This should not happen.\nCalculation not executed.");
+                this->showMessage("This should not happen.\nCalculation not executed.");
                 break;
             case BS_UNDEFINED_MATERIAL:
-                fl_message("Beams without materials found.");
+                this->showMessage("Beams without materials found.");
                 break;
             default:
                 m_saneModel = true;
@@ -1743,10 +1714,10 @@ void FemWidget::doFeedback()
 
     if (m_saneModel)
     {
-        if (m_internalSolver!=NULL)
+        if (m_internalSolver!=nullptr)
         {
             //Fl::check();
-            if (m_interactionNode!=NULL)
+            if (m_interactionNode!=nullptr)
             {
 
                 double v[3];
@@ -1796,6 +1767,12 @@ void FemWidget::doFeedback()
         setEditMode(IVF_SELECT);
         refreshToolbars();
     }
+}
+
+void FemWidget::showMessage(std::string message)
+{
+    m_messagePopup->setMessage(message);
+    m_messagePopup->show();
 }
 
 // ------------------------------------------------------------
@@ -1854,52 +1831,6 @@ void FemWidget::showStructureDlg()
 
         this->redraw();
     }
-}
-
-// ------------------------------------------------------------
-void FemWidget::doHint()
-{
-    m_hintColor[0] *= 0.95;
-    m_hintColor[1] *= 0.95;
-    m_hintColor[2] *= 0.95;
-
-    if (m_hintColor[0]<0.05)
-    {
-        m_hintColor[0] = 0.0;
-        m_hintColor[1] = 0.0;
-        m_hintColor[2] = 0.0;
-        m_hintFinished = true;
-    }
-
-    this->redraw();
-}
-
-// ------------------------------------------------------------
-void FemWidget::initiateHint()
-{
-#ifdef ADVANCED_GL
-    m_hintColor[0] = 0.6f;
-    m_hintColor[1] = 0.6f;
-    m_hintColor[2] = 0.6f;
-
-    m_hintFinished = false;
-    Fl::add_timeout(0.1f, hintCallback, this);
-#endif
-}
-
-// ------------------------------------------------------------
-bool FemWidget::isHintFinished()
-{
-    return m_hintFinished;
-}
-
-// ------------------------------------------------------------
-void FemWidget::disableHint()
-{
-#ifdef ADVANCED_GL
-    m_hintFinished = true;
-    Fl::remove_timeout(hintCallback, this);
-#endif
 }
 
 // ------------------------------------------------------------
@@ -2021,8 +1952,9 @@ void FemWidget::onSelect(Composite* selectedShapes)
 
         // Disable all dialogs
 
-        m_dlgNodeProp->setNode(NULL);
-        m_dlgBeamProp->setBeam(NULL);
+        m_dlgNodeProp->setNode(nullptr);
+        m_dlgBeamProp->setBeam(nullptr);
+        m_nodePropWindow->setNode(nullptr);
 
         // Update dialogs with new selection
 
@@ -2031,7 +1963,10 @@ void FemWidget::onSelect(Composite* selectedShapes)
             auto firstShape = selectedShapes->getChild(0);
             m_selectedShape = firstShape;
             if (firstShape->isClass("VisFemNode"))
+            {
                 m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
+                m_nodePropWindow->setNode(static_cast<VisFemNode*>(firstShape));
+            }
             if (firstShape->isClass("VisFemBeam"))
                 m_dlgBeamProp->setBeam(static_cast<VisFemBeam*>(firstShape));
         }
@@ -2074,19 +2009,19 @@ void FemWidget::onCoordinate(double x, double y, double z)
     m_yCoord = float2str(y);
     m_zCoord = float2str(z);
 
-    if (m_coordWidget!=NULL)
+    if (m_coordWidget!=nullptr)
     {
         m_coordWidget->label(m_coordText.c_str());
         m_coordWidget->redraw();
     }
+
+    m_coordWindow->setCoord(x, y, z);
 }
 
 // ------------------------------------------------------------
 void FemWidget::onDeleteShape(Shape* shape, bool &doit)
 {
     // Handle shape deletion
-
-    disableHint();
 
     if ( (m_deleteFilter==DF_ALL)||(m_deleteFilter==DF_NODES))
     {
@@ -2117,8 +2052,6 @@ void FemWidget::onDeleteShape(Shape* shape, bool &doit)
         }
     }
 
-    initiateHint();
-
     m_needRecalc = doit;
 }
 
@@ -2127,31 +2060,6 @@ void FemWidget::onMove(Composite *selectedShapes, double &dx, double &dy, double
 {
     doit = true;
     m_needRecalc = true;
-}
-
-void FemWidget::drawTextRight(std::string text, double x, double y, double scale)
-{
-    float llx, lly, llz, urx, ury, urz;
-
-    llx = 0.0;
-    lly = 0.0;
-    urx = 0.0;
-    ury = 0.0;
-
-    //FTBBox bbox = m_logoFont->BBox(text.c_str());
-
-    //llx = bbox.Lower().Xf(); 
-    //lly = bbox.Lower().Yf();
-    //urx = bbox.Upper().Xf();
-    //ury = bbox.Upper().Yf();
-
-    //m_logoFont->BBox(text.c_str(), llx, lly, llz, urx, ury, urz);
-    glPushMatrix();
-    glTranslatef(x - (urx - llx), y + ury - lly, 0.0);
-
-    glScalef(scale, -scale, 0.0);
-    //m_logoFont->Render(text.c_str());
-    glPopMatrix();
 }
 
 // ------------------------------------------------------------
@@ -2169,72 +2077,20 @@ void FemWidget::onOverlay()
     m_objectArea->setCoord(1, w()/2,h()-80);
     m_objectArea->setCoord(2, w()/2,h());
     m_objectArea->setCoord(3, 0,h());
+    /*
     m_viewArea->setCoord(0, w()/2,h()-80);
     m_viewArea->setCoord(1, w(),h()-80);
     m_viewArea->setCoord(2, w(),h());
     m_viewArea->setCoord(3, w()/2,h());
+    */
 
     m_objectArea->render();
     m_editArea->render();
-    m_viewArea->render();
-
-    // Render logo text
-
-    glColor4f(0.3f, 0.3f, 0.0f, 1.0f);
-    //glAlphaFunc(GL_GREATER, 0.02f); // Reject fragments with alpha < 0.2
-    //glEnable(GL_ALPHA_TEST);
-
-    this->drawTextRight(m_xCoord, w() - 150, 40, 0.5);
-    this->drawTextRight(m_yCoord, w() - 150, 70, 0.5);
-    this->drawTextRight(m_zCoord, w() - 150, 100, 0.5);
-
-    this->drawTextRight("X ", w() - 220, 40, 0.5);
-    this->drawTextRight("Y ", w() - 220, 70, 0.5);
-    this->drawTextRight("Z ", w() - 220, 100, 0.5);
-
-
-    /*
-     glColor4f(0.8f,0.8f,0.0f,1.0f);
-     m_logoFont->output(
-     w()-m_logoFont->getWidth(OBJFRAME_VERSION_STRING)-40,
-     m_logoFont->getHeight()+5,
-     OBJFRAME_VERSION_STRING );
-     */
-
-    // Render coordinate text
-
-
-    //glColor4f(0.5f,0.5f,0.0f,1.0f);
-    if (m_coordText.length()>0)
-    {
-        /*
-         m_coordFont->output(
-         w()-m_logoFont->getWidth(OBJFRAME_VERSION_STRING)-40,
-         m_coordFont->getHeight()+35,
-         m_coordText );
-         */
-    }
-    else
-    {
-        if (m_selectedButton!=NULL)
-        {
-            if (m_selectedButton->getHint()!="")
-            {
-                /*
-                 glColor3fv(m_hintColor);
-                 m_coordFont->output(
-                 w()/2-m_logoFont->getWidth(m_selectedButton->getHint())/2+50,
-                 h()/2-m_coordFont->getHeight()/2,
-                 m_selectedButton->getHint() );
-                 */
-            }
-        }
-    }
 
     // Update button positions
 
     m_objectButtons->setPosition(0.0,h()-70,0.0);
-    m_viewButtons->setPosition(w()-200.0,h()-70.0,0.0);
+    //m_viewButtons->setPosition(w()-200.0,h()-70.0,0.0);
 
     // Render overlay "scene"
 
@@ -2253,7 +2109,7 @@ void FemWidget::onInitContext()
     FltkWidget::onInitContext();
     glEnable(GL_DEPTH_TEST);
     //glEnable(GL_LINE_SMOOTH);
-    glClearColor(0.4, 0.4, 0.4, 1.0);
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 #ifdef ADVANCED_GL
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2263,7 +2119,7 @@ void FemWidget::onInitContext()
 	{
 		Fog::getInstance()->enable();
 		Fog::getInstance()->setType(Fog::FT_LINEAR);
-		Fog::getInstance()->setColor(0.4, 0.4, 0.4, 1.0);
+		Fog::getInstance()->setColor(0.4f, 0.4f, 0.4f, 1.0f);
 		Fog::getInstance()->setLimits(this->getWorkspace()*0.3, this->getWorkspace() * 2.0);
 	}
 }
@@ -2294,7 +2150,7 @@ void FemWidget::onPassiveMotion(int x, int y)
 
             CIvfPlaneButton* oldButton = m_selectedButton;
 
-            if (m_selectedButton!=NULL)
+            if (m_selectedButton!=nullptr)
             {
                 m_selectedButton->setHighlight(Shape::HS_OFF);
                 m_selectedButton->setScale(1.0, 1.0, 1.0);
@@ -2312,8 +2168,6 @@ void FemWidget::onPassiveMotion(int x, int y)
                 m_selectedButton->setScale(1.1, 1.1, 1.1);
                 needInvalidate = true;
                 m_overlaySelected = true;
-                if (oldButton!=m_selectedButton)
-                    initiateHint();
             }
         }
     }
@@ -2347,9 +2201,9 @@ void FemWidget::onMouseDown(int x, int y)
     m_mouseDownPos[0] = x;
     m_mouseDownPos[1] = y;
 #ifdef ADVANCED_GL
-    if ((m_overlaySelected)&&(m_selectedButton!=NULL))
+    if ((m_overlaySelected)&&(m_selectedButton!=nullptr))
     {
-        m_interactionNode = NULL;
+        m_interactionNode = nullptr;
         m_selectedButton->setButtonState(GenericButton::BS_PRESSED);
         this->redraw();
     }
@@ -2361,7 +2215,7 @@ void FemWidget::onMouseDown(int x, int y)
         if (getCurrentMouseButton()==IVF_BUTTON1)
         {
             if (m_saneModel)
-                if (m_internalSolver!=NULL)
+                if (m_internalSolver!=nullptr)
                     setRepresentation(FRAME_RESULTS);
         }
     }
@@ -2371,7 +2225,7 @@ void FemWidget::onMouseDown(int x, int y)
 void FemWidget::onMouseUp(int x, int y)
 {
 #ifdef ADVANCED_GL
-    if ((m_overlaySelected)&&(m_selectedButton!=NULL))
+    if ((m_overlaySelected)&&(m_selectedButton!=nullptr))
     {
         this->onButton(m_selectedButton->getId(), (CIvfPlaneButton*)m_selectedButton);
         this->redraw();
@@ -2388,7 +2242,7 @@ void FemWidget::onMouseUp(int x, int y)
         if (getCurrentMouseButton()==IVF_BUTTON1)
         {
             if (m_saneModel)
-                if (m_internalSolver!=NULL)
+                if (m_internalSolver!=nullptr)
                 {
                     m_internalSolver->update();
                     setRepresentation(FRAME_RESULTS);
@@ -2439,12 +2293,13 @@ void FemWidget::onMotion(int x, int y)
 // ------------------------------------------------------------
 void FemWidget::onDeSelect()
 {
-    m_dlgNodeProp->setNode(NULL);
-    m_dlgBeamProp->setBeam(NULL);
+    m_dlgNodeProp->setNode(nullptr);
+    m_dlgBeamProp->setBeam(nullptr);
+    m_nodePropWindow->setNode(nullptr);
 
     if (m_customMode==OF_FEEDBACK)
     {
-        m_interactionNode = NULL;
+        m_interactionNode = nullptr;
         m_tactileForce->setState(Shape::OS_OFF);
         this->redraw();
     }
@@ -2455,7 +2310,7 @@ void FemWidget::onHighlightShape(Shape *shape)
 {
     if (m_customMode == OF_FEEDBACK)
     {
-        if ( (shape->isClass("Node"))&&(m_interactionNode==NULL) )
+        if ( (shape->isClass("Node"))&&(m_interactionNode==nullptr) )
         {
             double x, y, z;
             m_tactileForce->setState(Shape::OS_ON);
@@ -2465,7 +2320,7 @@ void FemWidget::onHighlightShape(Shape *shape)
         }
         else
         {
-            if (m_interactionNode==NULL)
+            if (m_interactionNode==nullptr)
                 m_tactileForce->setState(Shape::OS_OFF);
         }
     }
@@ -2518,7 +2373,7 @@ void FemWidget::onButton(int objectName, CIvfPlaneButton *button)
 {
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
-    m_viewButtons->clearChecked();
+    //m_viewButtons->clearChecked();
     switch (objectName) {
     case BTN_SELECT:
         m_editButtons->check(0);
@@ -2542,15 +2397,15 @@ void FemWidget::onButton(int objectName, CIvfPlaneButton *button)
         break;
     case BTN_VIEW_ZOOM:
         this->setEditMode(IVF_VIEW_ZOOM);
-        m_viewButtons->check(0);
+        //m_viewButtons->check(0);
         break;
     case BTN_VIEW_PAN:
         this->setEditMode(IVF_VIEW_PAN);
-        m_viewButtons->check(1);
+        //m_viewButtons->check(1);
         break;
     case BTN_VIEW_RESET:
         this->resetView();
-        m_viewButtons->recheck();
+        //m_viewButtons->recheck();
         break;
     case BTN_DELETE:
         this->setEditEnabled(true);
@@ -2614,6 +2469,202 @@ void FemWidget::onKeyboard(int key)
         this->setEditMode(IVF_VIEW_PAN);
 }
 
+void FemWidget::onDrawImGui()
+{
+    bool openDialog = false;
+    bool saveDialog = false;
+    bool saveAsDialog = false;
+    bool executeCalc = false;
+
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("New", "")) 
+            {
+                m_showNewFileDlg = true;
+                m_newModelPopup->show();
+            }
+
+
+            if (ImGui::MenuItem("Open", "")) 
+                openDialog = true;
+
+            if (ImGui::MenuItem("Save", "")) 
+                saveDialog = true;
+
+            if (ImGui::MenuItem("Save as", "")) 
+                saveAsDialog = true;
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Quit", "")) 
+            {
+            }
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Select all nodes", ""))
+                this->selectAllNodes();
+            if (ImGui::MenuItem("Select all elements", ""))
+                this->selectAllElements();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Fix selected nodes", ""))
+                this->assignNodeFixedBCSelected();
+            if (ImGui::MenuItem("Fix position selected nodes", ""))
+                this->assignNodePosBCSelected();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Fix ground nodes", ""))
+                this->assignNodeFixedBCGround();
+            if (ImGui::MenuItem("Fix position ground nodes", ""))
+                this->assignNodePosBCGround();
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("View"))
+        {
+            if (ImGui::MenuItem("Show node properties", "")) 
+            { 
+                m_nodePropWindow->align(3);
+                m_nodePropWindow->setVisible(true); 
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Mode"))
+        { 
+            if (ImGui::MenuItem("Model", ""))
+                this->setRepresentation(FRAME_FEM);
+            if (ImGui::MenuItem("Geometry", ""))
+                this->setRepresentation(FRAME_GEOMETRY);
+            if (ImGui::MenuItem("Results", ""))
+                this->setRepresentation(FRAME_RESULTS);
+            if (ImGui::MenuItem("Feedback", ""))
+                this->setCustomMode(OF_FEEDBACK);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Tools"))
+        {
+            if (ImGui::MenuItem("Create structure", "")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Calculation"))
+        {
+            if (ImGui::MenuItem("Exectute", ""))
+                executeCalc = true;
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Results"))
+        {
+            if (ImGui::MenuItem("Normal", ""))
+                this->setResultType(IVF_BEAM_N);
+            if (ImGui::MenuItem("Torsion", ""))
+                this->setResultType(IVF_BEAM_T);
+            if (ImGui::MenuItem("Shear", ""))
+                this->setResultType(IVF_BEAM_V);
+            if (ImGui::MenuItem("Moment", ""))
+                this->setResultType(IVF_BEAM_M);
+            if (ImGui::MenuItem("Navier", ""))
+                this->setResultType(IVF_BEAM_NAVIER);
+            if (ImGui::MenuItem("No results", ""))
+                this->setResultType(IVF_BEAM_NO_RESULT);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Options"))
+        {
+            if (ImGui::MenuItem("Metrics window")) { m_showMetricsWindow = true; }
+            if (ImGui::MenuItem("Style editor")) { m_showStyleEditor = true; }
+            if (ImGui::MenuItem("Workspace", "")) {}
+            if (ImGui::MenuItem("Scalefactor", "")) {}
+            if (ImGui::MenuItem("Fullscreen", "")) {}
+            if (ImGui::MenuItem("Lock scalefactor", "")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("About...", "")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+
+    m_newModelPopup->draw();
+
+    if (m_newModelPopup->closed())
+    {
+        if (m_newModelPopup->modalResult() == PopupResult::OK)
+        {
+            m_relNodeSize = m_newModelPopup->nodeSize()/100.0;
+            m_relLineRadius = m_newModelPopup->lineRadius()/100.0;
+            m_relLoadSize = m_newModelPopup->loadSize()/100.0;
+            this->setWorkspace(m_newModelPopup->modelSize());
+            this->newModel();
+        }
+        else if (m_newModelPopup->modalResult() == PopupResult::CANCEL)
+        {
+            cout << "Cancel pressed" << endl;
+        }
+
+    }
+
+    m_messagePopup->draw();
+
+    if (m_messagePopup->closed())
+    {
+
+    }
+  
+    if (m_showStyleEditor)
+        ImGui::ShowStyleEditor();
+
+    if (m_showMetricsWindow)
+        ImGui::ShowMetricsWindow(&m_showMetricsWindow);
+
+    m_coordWindow->draw();
+    m_nodePropWindow->draw();
+    ImGui::Render();
+
+    if (openDialog)
+        this->open();
+
+    if (saveDialog)
+        this->save();
+
+    if (saveAsDialog)
+        this->saveAs();
+
+    if (executeCalc)
+        this->executeCalc();
+}
+
+void FemWidget::onInitImGui()
+{
+    ImGui::StyleColorsDark();
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 20);
+    //ImFont* font2 = io.Fonts->AddFontFromFileTTF("anotherfont.otf", 13);
+
+    ImGuiStyle& style = ImGui::GetStyle();
+  
+    style.FrameRounding = 4;
+    style.WindowRounding = 8;
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.5f);
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.8f);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(
+        style.Colors[ImGuiCol_TitleBgActive].x, 
+        style.Colors[ImGuiCol_TitleBgActive].y, 
+        style.Colors[ImGuiCol_TitleBgActive].z, 
+        0.8f
+    );
+}
+
 void FemWidget::setRelNodeSize(double size)
 {
     m_relNodeSize = size;
@@ -2649,7 +2700,7 @@ void FemWidget::refreshToolbars()
 #ifdef ADVANCED_GL
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
-    m_viewButtons->clearChecked();
+    //m_viewButtons->clearChecked();
 
     switch (getEditMode()) {
     case IVF_SELECT:
@@ -2665,10 +2716,10 @@ void FemWidget::refreshToolbars()
         m_objectButtons->check(0);
         break;
     case IVF_VIEW_ZOOM:
-        m_viewButtons->check(0);
+        //m_viewButtons->check(0);
         break;
     case IVF_VIEW_PAN:
-        m_viewButtons->check(1);
+        //m_viewButtons->check(1);
         break;
     default:
 
@@ -2685,7 +2736,7 @@ void FemWidget::removeNodeLoadsFromSelected()
 
     CFemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
-    if (nodeLoad!=NULL)
+    if (nodeLoad!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
@@ -2712,7 +2763,7 @@ void FemWidget::removeNodesFromNodeLoad()
 {
 	CFemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
-	if (nodeLoad != NULL)
+	if (nodeLoad != nullptr)
 		nodeLoad->clearNodes();
 
 	m_needRecalc = true;
@@ -2726,7 +2777,7 @@ void FemWidget::removeNodeBCsFromSelected()
 
     CFemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
-    if (nodeBC!=NULL)
+    if (nodeBC!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)
@@ -2753,7 +2804,7 @@ void FemWidget::removeBCsFromBC()
 {
 	CFemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
-	if (nodeBC != NULL)
+	if (nodeBC != nullptr)
 		nodeBC->clearNodes();
 
 	m_needRecalc = true;
@@ -2767,7 +2818,7 @@ void FemWidget::removeBeamLoadsFromSelected()
 
     CFemBeamLoad* beamLoad = this->getCurrentBeamLoad();
 
-    if (beamLoad!=NULL)
+    if (beamLoad!=nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i=0; i<selected->getSize(); i++)

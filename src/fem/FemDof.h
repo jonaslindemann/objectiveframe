@@ -28,6 +28,8 @@ public:
     // Methods
 
     virtual void print(std::ostream &out);
+    virtual json toJSON();
+    virtual void fromJSON(json& j);
 
     // Get/Set methods
 

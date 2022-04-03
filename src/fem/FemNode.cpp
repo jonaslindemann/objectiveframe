@@ -75,6 +75,37 @@ void CFemNode::print(std::ostream &out)
     out << endl;
 }
 
+json CFemNode::toJSON()
+{
+    /*
+    long m_number;
+    int m_kind;
+    double m_coord[3];
+    std::vector<double> m_values;
+    std::vector<CFemDofPtr> m_dofs;
+    */
+    json j;
+    j["number"] = m_number;
+    j["kind"] = m_kind;
+    j["x"] = m_coord[0];
+    j["y"] = m_coord[1];
+    j["z"] = m_coord[2];
+    j["values"] = m_values;
+
+    json jdofs;
+
+    for (auto& dof : m_dofs)
+        jdofs.push_back(dof->toJSON());
+
+    j["dofs"] = jdofs;
+
+    return j;
+}
+
+void CFemNode::fromJSON(nlohmann::json& j)
+{
+}
+
 // ------------------------------------------------------------
 void CFemNode::setKind(int kind)
 {

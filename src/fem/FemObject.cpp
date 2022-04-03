@@ -87,6 +87,16 @@ void CFemObject::print(std::ostream &out)
 
 }
 
+json CFemObject::toJSON()
+{
+    nlohmann::json j;
+    return j;
+}
+
+void CFemObject::fromJSON(json& j)
+{
+}
+
 // ------------------------------------------------------------
 void CFemObject::setUser(void *user)
 {

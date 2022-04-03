@@ -53,7 +53,7 @@ using namespace std;
 #pragma warning (disable: 4505) // unreferenced local function has been removed (stb stuff)
 #endif
 
-static DWORD g_Time = 0.0;          // Current time, in milliseconds
+static DWORD g_Time = 0;          // Current time, in milliseconds
 
 // Glut has 1 function for characters and one for "special keys". We map the characters in the 0..255 range and the keys above.
 static ImGuiKey ImGui_ImplFLTK_KeyToImGuiKey(int key)
@@ -287,7 +287,8 @@ void ImGui_ImplFLTK_Drag()
 IMGUI_IMPL_API void ImGui_ImplFLTK_Release(int& button)
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.AddMouseButtonEvent(button, false);
+    if (button!=-1)
+        io.AddMouseButtonEvent(button, false);
     button = -1;
 }
 
@@ -313,6 +314,12 @@ ImGuiFLTKImpl::ImGuiFLTKImpl()
 bool ImGuiFLTKImpl::isImGuiInitialised()
 {
     return m_initialised;
+}
+
+bool ImGuiFLTKImpl::isOverWindow()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    return io.WantCaptureMouse;
 }
 
 void ImGuiFLTKImpl::doDrawImGui()

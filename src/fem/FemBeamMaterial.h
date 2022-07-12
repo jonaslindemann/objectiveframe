@@ -6,6 +6,16 @@
 
 FemSmartPointer(CFemBeamMaterial);
 
+enum SectionType {
+    ST_I=1,
+    ST_U=8,
+    ST_L=2,
+    ST_RHS=5,
+    ST_Pipe=3,
+    ST_SolidPipe=6,
+    ST_Rectangle=4
+};
+
 class CFemBeamMaterial : public CFemMaterial {
 private:
     double m_E;
@@ -14,7 +24,7 @@ private:
     double m_Iy;
     double m_Iz;
     double m_Kv;
-    CFemSection* m_section;
+    CFemSectionPtr m_section;
     std::string m_name;
     int m_color;
     double m_height;
@@ -40,6 +50,8 @@ public:
     void setSection(CFemSection* section);
 
     void assignPropFromSection();
+
+    void setSectionType(SectionType sectionType);
 
     // IO Methods
 

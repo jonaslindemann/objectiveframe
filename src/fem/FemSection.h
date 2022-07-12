@@ -170,6 +170,15 @@ public:
     double Iz();
     double Kv();
 
+    void setE(double value);
+    void setA(double value);
+    void setG(double value);
+    void setIy(double value);
+    void setIz(double value);
+    void setKv(double value);
+
+    void setSectionData(double E, double A, double G, double Iy, double Iz, double Kv);
+
     virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
         double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius);
 

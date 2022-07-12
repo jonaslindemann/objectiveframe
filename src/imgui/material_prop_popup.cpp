@@ -27,7 +27,8 @@ MaterialPropPopup::MaterialPropPopup(const std::string name, bool modal)
 	m_ulfw{ 0.0 },
 	m_llfw{ 0.0 },
 	m_outerRadius{ 0.0 },
-	m_innerRadius{ 0.0 }
+	m_innerRadius{ 0.0 },
+	m_oldSection{ 0 }
 {
 }
 
@@ -58,7 +59,6 @@ void MaterialPropPopup::update()
 
 		m_color = material->getColor();
 
-		material->getProperties(m_E, m_G, m_A, m_Iy, m_Iz, m_Kv);
 		auto section = material->getSection();
 
 		m_section = section->getSectionType();
@@ -90,7 +90,37 @@ void MaterialPropPopup::update()
 		m_ulfw = props[7];
 		m_llfw = props[8];
 		m_outerRadius = props[9];
-		m_outerRadius = props[10];
+		m_innerRadius = props[10];
+
+		updateMaterial();
+
+		material->getProperties(m_E, m_G, m_A, m_Iy, m_Iz, m_Kv);
+	}
+}
+
+void MaterialPropPopup::updateMaterial()
+{
+	auto material = m_widget->getCurrentMaterial();
+	auto section = material->getSection();
+
+	if (material != nullptr)
+	{
+		if (m_section != m_oldSection)
+		{
+			material->setSectionType(static_cast<SectionType>(m_section));
+			m_oldSection = m_section;
+		}
+		section = material->getSection();
+
+		section->setSectionProps(m_width, m_height, m_ufw, m_lfw, m_wt, m_uft, m_lft, m_ulfw, m_llfw, m_outerRadius, m_innerRadius);
+		section->calcDataFromSection();
+
+		m_E = section->E();
+		m_G = section->G();
+		m_A = section->A();
+		m_Iz = section->Iz();
+		m_Iy = section->Iy();
+		m_Kv = section->Kv();
 	}
 }
 
@@ -129,57 +159,57 @@ void MaterialPropPopup::doPopup()
 				}
 				if (ImGui::BeginTabItem("Section"))
 				{
-					ImGui::RadioButton("Rectangular", &m_section, 0);
-					ImGui::RadioButton("Hollow rectangular", &m_section, 1);
-					ImGui::RadioButton("I-section", &m_section, 2);
-					ImGui::RadioButton("U-section", &m_section, 3);
-					ImGui::RadioButton("T-section", &m_section, 4);
-					ImGui::RadioButton("Circular", &m_section, 5);
-					ImGui::RadioButton("Hollow circular", &m_section, 6);
+					ImGui::RadioButton("Rectangular", &m_section, static_cast<SectionType>(ST_Rectangle));
+					ImGui::RadioButton("Hollow rectangular", &m_section, static_cast<SectionType>(ST_RHS));
+					ImGui::RadioButton("I-section", &m_section, static_cast<SectionType>(ST_I));
+					ImGui::RadioButton("U-section", &m_section, static_cast<SectionType>(ST_U));
+					ImGui::RadioButton("L-section", &m_section, static_cast<SectionType>(ST_L));
+					ImGui::RadioButton("Circular", &m_section, static_cast<SectionType>(ST_SolidPipe));
+					ImGui::RadioButton("Hollow circular", &m_section, static_cast<SectionType>(ST_Pipe));
 
 					ImGui::Separator();
 
-					if (m_section == 0)
+					if (m_section == static_cast<SectionType>(ST_Rectangle))
 					{
 						ImGui::InputDouble("Width", &m_width, 0.0, 0.0, "%.6g");
-						ImGui::InputDouble("Height", &m_width, 0.0, 0.0, "%.6g");
+						ImGui::InputDouble("Height", &m_height, 0.0, 0.0, "%.6g");
 					}
-					if (m_section == 1)
+					if (m_section == static_cast<SectionType>(ST_RHS))
 					{
 						ImGui::InputDouble("Width", &m_width, 0.0, 0.0, "%.6g");
-						ImGui::InputDouble("Height", &m_width, 0.0, 0.0, "%.6g");
+						ImGui::InputDouble("Height", &m_height, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Waiste thickness", &m_wt, 0.0, 0.0, "%.6g");
 					}
-					if (m_section == 2)
+					if (m_section == static_cast<SectionType>(ST_I))
 					{
 						ImGui::InputDouble("Width", &m_width, 0.0, 0.0, "%.6g");
-						ImGui::InputDouble("Height", &m_width, 0.0, 0.0, "%.6g");
+						ImGui::InputDouble("Height", &m_height, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Upper flange thickness", &m_uft, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Lower flange thickness", &m_lft, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Upper flange width", &m_ufw, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Lower flange width", &m_lfw, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Waiste thickness", &m_wt, 0.0, 0.0, "%.6g");
 					}
-					if (m_section == 3)
+					if (m_section == static_cast<SectionType>(ST_U))
 					{
 						ImGui::InputDouble("Width", &m_width, 0.0, 0.0, "%.6g");
-						ImGui::InputDouble("Height", &m_width, 0.0, 0.0, "%.6g");
+						ImGui::InputDouble("Height", &m_height, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Upper flange thickness", &m_uft, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Lower flange thickness", &m_lft, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Waiste thickness", &m_wt, 0.0, 0.0, "%.6g");
 					}
-					if (m_section == 4)
+					if (m_section == static_cast<SectionType>(ST_L))
 					{
 						ImGui::InputDouble("Width", &m_width, 0.0, 0.0, "%.6g");
-						ImGui::InputDouble("Height", &m_width, 0.0, 0.0, "%.6g");
+						ImGui::InputDouble("Height", &m_height, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Upper flange thickness", &m_uft, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Waiste thickness", &m_wt, 0.0, 0.0, "%.6g");
 					}
-					if (m_section == 5)
+					if (m_section == static_cast<SectionType>(ST_SolidPipe))
 					{
 						ImGui::InputDouble("Outer radius", &m_outerRadius, 0.0, 0.0, "%.6g");
 					}
-					if (m_section == 6)
+					if (m_section == static_cast<SectionType>(ST_Pipe))
 					{
 						ImGui::InputDouble("Outer radius", &m_outerRadius, 0.0, 0.0, "%.6g");
 						ImGui::InputDouble("Inner radius", &m_innerRadius, 0.0, 0.0, "%.6g");
@@ -196,16 +226,7 @@ void MaterialPropPopup::doPopup()
 		}
 	}
 	
-	if (section!=nullptr)
-	{
-		section->setSectionSize(m_height, m)
-		m_E = section->E();
-		m_G = section->G();
-		m_A = section->A();
-		m_Iz = section->Iz();
-		m_Iy = section->Iy();
-		m_Kv = section->Kv();
-	}
+	updateMaterial();
 
 	ImVec2 button_size = ImGui::CalcItemSize(ImVec2{ 120, 0 }, 0.0f, 0.0f);
 	ImVec2 winSize = ImGui::GetWindowSize();

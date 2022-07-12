@@ -34,7 +34,7 @@
 #include <GL/glu.h>
 
 
-#undef USE_OFFSCREEN_RENDERING
+#define USE_OFFSCREEN_RENDERING
 
 using namespace ivf;
 

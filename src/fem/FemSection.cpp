@@ -22,6 +22,8 @@ CFemSection::CFemSection()
 {
     this->setPropSize(11);
     this->setDataSize(6);
+    this->setSectionData(2.1e9, 0.1 * 0.1, 79.3e9, 1.0, 1.0, 1.0);
+    this->setSectionProps(0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.09);
 }
 
 // ------------------------------------------------------------
@@ -281,6 +283,46 @@ double CFemSection::Iz()
 double CFemSection::Kv()
 {
     return m_data[5];
+}
+
+void CFemSection::setE(double value)
+{
+    m_data[0] = value;
+}
+
+void CFemSection::setA(double value)
+{
+    m_data[1] = value;
+}
+
+void CFemSection::setG(double value)
+{
+    m_data[2] = value;
+}
+
+void CFemSection::setIy(double value)
+{
+    m_data[3] = value;
+}
+
+void CFemSection::setIz(double value)
+{
+    m_data[4] = value;
+}
+
+void CFemSection::setKv(double value)
+{
+    m_data[5] = value;
+}
+
+void CFemSection::setSectionData(double E, double A, double G, double Iy, double Iz, double Kv)
+{
+    m_data[0] = E;
+    m_data[1] = A;
+    m_data[2] = G;
+    m_data[3] = Iy;
+    m_data[4] = Iz;
+    m_data[5] = Kv;
 }
 
 void CFemSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)

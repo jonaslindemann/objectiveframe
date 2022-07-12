@@ -58,9 +58,8 @@ VisBeamModel::~VisBeamModel()
 void VisBeamModel::onInitialised()
 {
     CFemBeamMaterialPtr material = new CFemBeamMaterial();
-    CFemSolidPipeSectionPtr section = new CFemSolidPipeSection(0.05);
     material->setProperties(2.1e9, 8.1e7, 1.0, 1.0, 1.0, 1.0 );
-    material->setSection(section);
+    material->setSectionType(ST_SolidPipe);
     material->setName("default");
     material->setColor(52);
     this->materialSet()->addMaterial(material);

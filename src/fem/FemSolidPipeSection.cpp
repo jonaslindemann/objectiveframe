@@ -24,7 +24,6 @@ CFemSolidPipeSection::CFemSolidPipeSection (double outerRadius)
 CFemSolidPipeSection::CFemSolidPipeSection()
 {
     this->setSectionType(FEM_SOLIDPIPE_SECTION);
-    this->setSectionSize(0.0);
 }
 
 // ------------------------------------------------------------

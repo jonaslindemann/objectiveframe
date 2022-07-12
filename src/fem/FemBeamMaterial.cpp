@@ -22,22 +22,14 @@ CFemBeamMaterial::CFemBeamMaterial ()
     m_Iy = 1.0;
     m_Iz = 1.0;
     m_Kv = 1.0;
-    m_section = NULL;
     m_name = "Unnamed";
     m_color = 3;
     m_representation = -1;
-    //m_section = new CFemRectSection(0.05, 0.10);
 }
 
 // ------------------------------------------------------------
 CFemBeamMaterial::~CFemBeamMaterial ()
 {
-    if (m_section!=NULL)
-    {
-        m_section->deleteReference();
-        if (!m_section->isReferenced())
-            delete m_section;
-    }
 }
 
 // ------------------------------------------------------------
@@ -93,7 +85,7 @@ void CFemBeamMaterial::saveToStream(std::ostream &out)
     out << m_Iz << " ";
     out << m_Kv << " " << endl;
 
-    if (m_section!=NULL)
+    if (m_section!=nullptr)
     {
         out << m_section->getSectionType() << endl;
         m_section->saveToStream(out);
@@ -127,13 +119,6 @@ void CFemBeamMaterial::readFromStream(std::istream &in)
     in >> m_Iz;
     in >> m_Kv;
     in >> sectionType;
-
-    if (m_section!=NULL)
-    {
-        m_section->deleteReference();
-        if (!m_section->isReferenced())
-            delete m_section;
-    };
 
     if (sectionType>-1)
     {
@@ -196,6 +181,36 @@ void CFemBeamMaterial::assignPropFromSection()
             m_section->data(4),
             m_section->data(5)
         );
+    }
+}
+
+void CFemBeamMaterial::setSectionType(SectionType sectionType)
+{
+    switch (sectionType) {
+    case ST_I:
+        m_section = new CFemISection();
+        break;
+    case ST_U:
+        m_section = new CFemUSection();
+        break;
+    case ST_L:
+        m_section = new CFemLSection();
+        break;
+    case ST_RHS:
+        m_section = new CFemRHSSection();
+        break;
+    case ST_Pipe:
+        m_section = new CFemPipeSection();
+        break;
+    case ST_SolidPipe:
+        m_section = new CFemSolidPipeSection();
+        break;
+    case ST_Rectangle:
+        m_section = new CFemRectSection();
+        break;
+    default:
+        m_section = new CFemRectSection();
+        break;
     }
 }
 

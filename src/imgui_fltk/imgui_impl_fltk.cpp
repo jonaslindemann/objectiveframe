@@ -62,6 +62,7 @@ static ImGuiKey ImGui_ImplFLTK_KeyToImGuiKey(int key)
     switch (key)
     {
         case '\t':                      return ImGuiKey_Tab;
+        case FL_Tab:                    return ImGuiKey_Tab;
         case FL_Left:                   return ImGuiKey_LeftArrow;
         case FL_Right:                  return ImGuiKey_RightArrow;
         case FL_Up:                     return ImGuiKey_UpArrow;

@@ -1,5 +1,5 @@
 file(GLOB SOURCE_FILES *.cpp)
-file(GLOB INCLUDE_FILES *.h)
+file(GLOB INCLUDE_FILES *.h) 
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_executable(objframed ${INCLUDE_FILES} ${SOURCE_FILES})

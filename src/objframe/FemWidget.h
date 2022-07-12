@@ -43,6 +43,7 @@
 #include <settings_window.h>
 #include <element_loads_window.h>
 #include <materials_window.h>
+#include <element_prop_window.h>
 
 #include "Area2D.h"
 #include "PlaneButton.h"
@@ -51,7 +52,6 @@
 #include "FemInternalSolver.h"
 
 #include "BeamPropDlg.h"
-#include "MaterialsDlg.h"
 #include "ElementLoadsDlg.h"
 
 enum class RepresentationMode {
@@ -212,7 +212,6 @@ private:
 	// Dialogs
 
 	BeamPropDlg* m_dlgBeamProp;
-	MaterialsDlg* m_dlgMaterials;
 	ElementLoadsDlg* m_dlgElementLoads;
 	//StructureDlg* m_dlgStructure;
 
@@ -228,6 +227,7 @@ private:
 	SettingsWindowPtr m_settingsWindow;
 	ElementLoadsWindowPtr m_elementLoadsWindow;
 	MaterialsWindowPtr m_materialsWindow;
+	ElementPropWindowPtr m_elementPropWindow;
 
 	bool m_showStyleEditor;
 	bool m_showMetricsWindow;

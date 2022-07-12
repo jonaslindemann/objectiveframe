@@ -23,6 +23,7 @@ private:
 	double m_Iz;
 	double m_Kv;
 	int m_section;
+	int m_oldSection;
 
 	double m_height;
 	double m_width;
@@ -59,6 +60,8 @@ public:
 	void setFemWidget(FemWidget* widget);
 
 	void update();
+
+	void updateMaterial();
 
 protected:
 

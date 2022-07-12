@@ -18,7 +18,6 @@
 #include <FemBeamLoad.h>
 
 #include "BeamPropDlg.h"
-#include "MaterialsDlg.h"
 #include "ElementLoadsDlg.h"
 
 #include "StructureFactory.h"
@@ -226,10 +225,6 @@ void FemWidget::onInit()
 	m_dlgElementLoads = new ElementLoadsDlg();
 	m_dlgElementLoads->setFemWidget((void*)this);
 
-	so_print("DialogMgr: Creating materials dialog.");
-	m_dlgMaterials = new MaterialsDlg();
-	m_dlgMaterials->setFemWidget((void*)this);
-
 	so_print("DialogMgr: Creating beam prop dialog.");
 	m_dlgBeamProp = new BeamPropDlg();
 	m_dlgBeamProp->setFemWidget((void*)this);
@@ -276,6 +271,9 @@ void FemWidget::onInit()
 	m_materialsWindow = MaterialsWindow::create("Materials");
 	m_materialsWindow->setFemWidget(this);
 	m_materialsWindow->setVisible(false);
+
+	m_elementPropWindow = ElementPropWindow::create("Element properties");
+	m_elementPropWindow->setVisible(false);
 }
 
 // ------------------------------------------------------------
@@ -292,22 +290,10 @@ FemWidget::~FemWidget()
 
 	delete m_internalSolver;
 
-	//so_print("FemWidget: Deleting node properties dialog.");
-	//delete m_dlgNodeProp;
 	so_print("FemWidget: Deleting beam properties dialog.");
 	delete m_dlgBeamProp;
-	so_print("FemWidget: Deleting materials dialog.");
-	delete m_dlgMaterials;
 	so_print("FemWidget: Deleting element load dialog.");
 	delete m_dlgElementLoads;
-	//so_print("FemWidget: Deleting node load dialog.");
-	//delete m_dlgNodeLoads;
-	//so_print("FemWidget: Deleting node bc dialog.");
-	//delete m_dlgNodeBCs;
-	//so_print("FemWidget: Deleting scale factor dialog.");
-	//delete m_dlgScalefactor;
-	//so_print("FemWidget: Deleting structure dialog.");
-	//delete m_dlgStructure;
 }
 
 // ------------------------------------------------------------
@@ -750,14 +736,8 @@ void FemWidget::open()
 
 		// Update dialogs
 
-		//m_dlgNodeProp->setNode(nullptr);
 		m_dlgBeamProp->setBeam(nullptr);
 		m_nodePropWindow->setNode(nullptr);
-
-		m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
-		m_dlgElementLoads->setLoadSet(m_beamModel->getElementLoadSet());
-		//m_dlgNodeLoads->setLoadSet(m_beamModel->getNodeLoadSet());
-		//m_dlgNodeBCs->setBCSet(m_beamModel->getNodeBCSet());
 
 		// Add tactile force
 
@@ -797,6 +777,7 @@ void FemWidget::showProperties()
 
 		if (this->getSelectedShape()->isClass("VisFemBeam"))
 		{
+			m_elementPropWindow->setVisible(true);
 			m_dlgBeamProp->show();
 			makeToolWindow(m_dlgBeamProp->wndBeamProp);
 		}
@@ -806,12 +787,6 @@ void FemWidget::showProperties()
 // ------------------------------------------------------------
 void FemWidget::showMaterials()
 {
-	// Show materials dialog
-
-	setRepresentation(RepresentationMode::Fem);
-	m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
-	m_dlgMaterials->show();
-	makeToolWindow(m_dlgMaterials->wndMaterials);
 }
 
 // ------------------------------------------------------------
@@ -863,10 +838,8 @@ void FemWidget::newModel()
 
 	// Initialize dialogs
 
-	//m_dlgNodeProp->setNode(nullptr);
 	m_dlgBeamProp->setBeam(nullptr);
 	m_nodePropWindow->setNode(nullptr);
-	m_dlgMaterials->setMaterials(m_beamModel->getMaterialSet());
 
 	// Add tactile force
 
@@ -2293,8 +2266,8 @@ void FemWidget::onButton(int objectName, CIvfPlaneButton* button)
 	case ToolbarButton::Materials:
 		m_materialsWindow->setFemMaterialSet((CFemBeamMaterialSet*)m_beamModel->getMaterialSet());
 		m_materialsWindow->setVisible(true);
-		this->showMaterials();
-		m_objectButtons->recheck();
+		//this->showMaterials();
+		//m_objectButtons->recheck();
 		break;
 	case ToolbarButton::NodeBC:
 		m_nodeBCsWindow->setFemNodeBCSet((CFemBeamNodeBCSet*)m_beamModel->getNodeBCSet());
@@ -2500,6 +2473,7 @@ void FemWidget::onDrawImGui()
 	m_settingsWindow->draw();
 	m_elementLoadsWindow->draw();
 	m_materialsWindow->draw();
+	m_elementPropWindow->draw();
 
 	ImGui::Render();
 
@@ -2729,12 +2703,8 @@ void FemWidget::hideAllDialogs()
 {
 	so_print("FemWidget: Hiding all dialogs.");
 
-	//m_dlgNodeProp->hide();
 	m_dlgBeamProp->hide();
-	m_dlgMaterials->hide();
 	m_dlgElementLoads->hide();
-	//m_dlgNodeLoads->hide();
-	//m_dlgNodeBCs->hide();
 
 	m_nodeLoadsWindow->hide();
 	m_nodeBCsWindow->hide();

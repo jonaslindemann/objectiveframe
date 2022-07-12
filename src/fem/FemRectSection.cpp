@@ -8,8 +8,6 @@ CFemRectSection::CFemRectSection (double width, double height)
     :CFemSection()
 {
     this->setSectionType(FEM_RECT_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(width, height);
 }
 
@@ -17,8 +15,6 @@ CFemRectSection::CFemRectSection (double width, double height)
 CFemRectSection::CFemRectSection()
 {
     this->setSectionType(FEM_RECT_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(0.0, 0.0);
 }
 

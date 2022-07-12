@@ -28,6 +28,7 @@ VisBeamModel::VisBeamModel()
     m_lineRadius = 1.0;
     m_loadSize = 1.0;
     m_beamLoadSize = 1.0;
+    m_scaleFactor = 1.0;
 
     m_colorTable = new ColorTable();
 

@@ -36,57 +36,13 @@
 namespace std {};
 using namespace std;
 
+// Widget modes
 
+enum class WidgetMode { Select, SimpleSelect, View, ViewZoom, ViewPan, CameraTarget, Move, Create, CreateNode, CreateLine, CreateObject, Manipulate, User };
 
-#define IVF_SNAP_ON			0
-#define IVF_SNAP_OFF		1
+// Mouse modes
 
-// Shape types
-
-#define IVF_UNKNOWN			0
-#define IVF_NODE			1
-#define IVF_SOLID_LINE		2
-
-// Ivf Error types
-
-#define IVF_NO_SELECTED_NODES		1001
-#define IVF_NODE_CONNECTED			1002
-#define IVF_INVALID_NODE_SELECTION	1003
-#define IVF_INVALID_SHAPE_SELECTION	1004
-#define IVF_INVALID_SELECTION		1005
-#define IVF_NO_SELECTED_SHAPES		1006
-
-// Ivf modes
-
-#define IVF_SELECT					0
-#define IVF_SIMPLE_SELECT			500
-#define IVF_VIEW					1000
-#define IVF_VIEW_ZOOM				1001
-#define IVF_VIEW_PAN				1002
-#define IVF_CAMERA_TARGET			2010
-#define IVF_MOVE					4001
-#define IVF_CREATE					3000
-#define IVF_CREATE_NODE				3005
-#define IVF_CREATE_LINE				3006
-#define IVF_CREATE_OBJECT			3500
-#define IVF_MANIPULATE				5000
-
-// Ivf manipulation modes
-
-#define IVF_TRANS_MANIP				1000
-#define IVF_ROT_MANIP				2000
-
-#define IVF_USER_MODE				10000
-
-// Ivf mouse modes
-
-#define IVF_BUTTON1					0
-#define IVF_BUTTON2					1
-#define IVF_BUTTON3					2
-#define IVF_NO_BUTTON				-1
-#define IVF_SHIFT					0
-#define IVF_CTRL					1
-#define IVF_ALT                     2
+enum class ButtonState { Button1, Button2, Button3, NoButton, Shift, Ctrl, Alt };
 
 #include <ivf/Base.h>
 #include <ivf/Composite.h>
@@ -129,13 +85,11 @@ private:
 
     int m_moving, m_beginX, m_beginY;
 
-    int m_currentButton;
-    int m_currentState;
-    int m_currentModifier;
+    ButtonState m_currentButton;
+    ButtonState m_currentModifier;
 
-    int m_editMode;
+    WidgetMode m_editMode;
     int	m_clickNumber;
-    int	m_snapMode;
     bool m_snapToGrid;
 
     int m_manipulatorMode;
@@ -169,6 +123,9 @@ private:
     bool m_selectEnabled;
     bool m_initDone;
     bool m_disableRedrawTimer;
+    bool m_quit;
+
+    bool m_mouseUpdate;
 
     double m_controlSize;
 
@@ -183,8 +140,8 @@ private:
     ivf::ShapePtr				m_selectedShape;
     ivf::CameraPtr				m_camera;
     ivf::CompositePtr			m_selectedShapes;
-    ivf::LightingPtr				m_lighting;
-    ivf::ShapePtr                m_lastShape;
+    ivf::LightingPtr			m_lighting;
+    ivf::ShapePtr               m_lastShape;
 
 	void initOffscreenBuffers();
 	void updateOffscreenBuffers();
@@ -226,6 +183,8 @@ public:
     virtual ~FltkWidget();
 
     IvfClassInfo("FltkWidget", ivf::Base);
+
+    void quit();
 
     /** Returns camera used by widget */
     ivf::Camera* getCamera();
@@ -300,10 +259,10 @@ public:
      * \param IVF_CREATE_BOX      Box creation mode.
      * \param IVF_MOVE            Shape move mode.
      */
-    void setEditMode(int mode);
+    void setEditMode(WidgetMode mode);
 
     /** Returns current edit mode */
-    int getEditMode();
+    WidgetMode getEditMode();
 
     /**
      * Set size of workspace
@@ -313,7 +272,7 @@ public:
      * of the grid. Workspace is centered around the origin (0,0)
      * The visual grid spans (-size/2,-size/2)-(size/2,size/2)
      */
-    void setWorkspace(double size);
+    void setWorkspace(double size, bool resetCamera=true);
 
     /** Returns workspace size */
     double getWorkspace();
@@ -340,8 +299,8 @@ public:
     bool getSnapToGrid();
 
     /** Return current mouse button */
-    int getCurrentMouseButton();
-    int getCurrentModifier();
+    ButtonState getCurrentMouseButton();
+    ButtonState getCurrentModifier();
 
     ivf::Composite* getSelectedShapes();
 

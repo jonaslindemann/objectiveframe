@@ -95,9 +95,9 @@ void VisFemNodeLoad::initArrow()
 
             m_arrow[i]->setDirection(sign*ex, sign*ey, sign*ez);
             m_arrow[i]->setPosition(
-                x - sign*0.6*loadHeight*ex,
-                y - sign*0.6*loadHeight*ey,
-                z - sign*0.6*loadHeight*ez);
+                x - sign*0.7*loadHeight*ex,
+                y - sign*0.7*loadHeight*ey,
+                z - sign*0.7*loadHeight*ez);
             m_arrow[i]->refresh();
             if (m_beamModel!=NULL)
                 m_beamModel->getColorTable()->assignColor(m_nodeLoad->getColor(), m_arrowMaterial);

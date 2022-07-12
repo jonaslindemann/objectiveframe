@@ -17,8 +17,6 @@ CFemLSection::CFemLSection (double height, double width, double WT, double LFT)
     :CFemSection()
 {
     this->setSectionType(FEM_L_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(height, width, WT, LFT);
 }
 
@@ -114,6 +112,23 @@ void CFemLSection::setData()
 
     m_data[5] = 1.0/3.0*(pow(WT,3)*height + pow(LFT,3)*width);	//Kv
     //printf("\nKv: %e",m_data[5]);
+}
+
+void CFemLSection::calcDataFromSection()
+{
+    this->setData();
+}
+
+void CFemLSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+{
+    CFemSection::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->setSectionSize(width, height, WT, LFT);
+}
+
+void CFemLSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+{
+    CFemSection::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->getSectionSize(width, height, WT, LFT);
 }
 
 

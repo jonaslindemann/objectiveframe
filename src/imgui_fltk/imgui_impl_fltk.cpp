@@ -54,6 +54,7 @@ using namespace std;
 #endif
 
 static DWORD g_Time = 0;          // Current time, in milliseconds
+static float g_pixelsPerUnit;
 
 // Glut has 1 function for characters and one for "special keys". We map the characters in the 0..255 range and the keys above.
 static ImGuiKey ImGui_ImplFLTK_KeyToImGuiKey(int key)
@@ -194,7 +195,7 @@ void ImGui_ImplFLTK_NewFrame()
 {
     // Setup time step
     ImGuiIO& io = ImGui::GetIO();
-    DWORD current_time = GetTickCount();
+    DWORD current_time = GetTickCount64();
     DWORD delta_time = (current_time - g_Time);
     if (delta_time <= 0)
         delta_time = 1;
@@ -226,7 +227,7 @@ void ImGui_ImplFLTK_Keyboard()
 
     int flkey = Fl::event_key();
 
-    if ((Fl::event_key() > 32)&&(Fl::event_key() < 255))
+    if ((Fl::event_key() >= 32)&&(Fl::event_key() < 255))
         io.AddInputCharacter((unsigned int)Fl::event_key());
 
     ImGuiKey key = ImGui_ImplFLTK_KeyToImGuiKey(Fl::event_key());
@@ -268,7 +269,7 @@ void ImGui_ImplFLTK_Push(int& button)
     io.AddKeyEvent(ImGuiKey_ModShift, Fl::get_key(FL_Shift_L) != 0);
     io.AddKeyEvent(ImGuiKey_ModAlt, Fl::get_key(FL_Alt_L) != 0);
 
-    io.AddMousePosEvent((float)Fl::event_x(), (float)Fl::event_y());
+    io.AddMousePosEvent((float)Fl::event_x() * g_pixelsPerUnit, (float)Fl::event_y() * g_pixelsPerUnit);
     button = -1;
     if (Fl::event_button() == FL_LEFT_MOUSE) button = 0;
     if (Fl::event_button() == FL_MIDDLE_MOUSE) button = 1;
@@ -281,7 +282,7 @@ void ImGui_ImplFLTK_Push(int& button)
 void ImGui_ImplFLTK_Drag()
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.AddMousePosEvent((float)Fl::event_x(), (float)Fl::event_y());
+    io.AddMousePosEvent((float)Fl::event_x() * g_pixelsPerUnit, (float)Fl::event_y() * g_pixelsPerUnit);
 }
 
 IMGUI_IMPL_API void ImGui_ImplFLTK_Release(int& button)
@@ -301,7 +302,7 @@ void ImGui_ImplFLTK_Resize(int w, int h)
 void ImGui_ImplFLTK_Move()
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.AddMousePosEvent((float)Fl::event_x(), (float)Fl::event_y());
+    io.AddMousePosEvent((float)Fl::event_x()*g_pixelsPerUnit, (float)Fl::event_y() * g_pixelsPerUnit);
 }
 
 ImGuiFLTKImpl::ImGuiFLTKImpl()
@@ -309,6 +310,12 @@ ImGuiFLTKImpl::ImGuiFLTKImpl()
      m_firstDraw{true},
      m_initialised{false}
 {
+    g_pixelsPerUnit = 1.0f;
+}
+
+void ImGuiFLTKImpl::setPixelsPerUnit(float ppu)
+{
+    g_pixelsPerUnit = ppu;
 }
 
 bool ImGuiFLTKImpl::isImGuiInitialised()
@@ -326,7 +333,7 @@ void ImGuiFLTKImpl::doDrawImGui()
 {
     ImGuiIO& io = ImGui::GetIO();
 
-    glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
+    //glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
 
     if (m_firstDraw)
     {

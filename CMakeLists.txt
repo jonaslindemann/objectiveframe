@@ -11,9 +11,9 @@ set( IVF_ROOT "d:/Users/Jonas/Development/ivfplusplus" )
 set( IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set( IVF_LIBS ${IVF_ROOT}/lib/Debug )
+    set( IVF_LIBS ${IVF_ROOT}/lib/Debug )
 else()
-	set( IVF_LIBS ${IVF_ROOT}/lib/Release )
+    set( IVF_LIBS ${IVF_ROOT}/lib/Release )
 endif()
 
 if (WIN32)
@@ -75,11 +75,11 @@ if (WIN32)
 endif()
 
 if (USE_LEAP)
-	set( LEAP_LIBS ${PROJECT_SOURCE_DIR}/LeapSDK/lib )
-	set( LEAP_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/LeapSDK/include )
+    set( LEAP_LIBS ${PROJECT_SOURCE_DIR}/LeapSDK/lib )
+    set( LEAP_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/LeapSDK/include )
 else()
-	set( LEAP_LIBS "" )
-	set( LEAP_INCLUDE_DIR "" )
+    set( LEAP_LIBS "" )
+    set( LEAP_INCLUDE_DIR "" )
 endif()
 
 configure_file (
@@ -98,7 +98,7 @@ configure_file (
 #set( FTGL_INCLUDE_DIR ${FTGL_ROOT}/src )
 #set( FTGL_LIBS ${FTGL_ROOT}/msvc/Build )
 
-set( OBJFRAME_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/vc ${PROJECT_SOURCE_DIR}/src/fem ${PROJECT_SOURCE_DIR}/src/visfem ${PROJECT_SOURCE_DIR}/src/newmat ${PROJECT_SOURCE_DIR}/src/util ${PROJECT_SOURCE_DIR}/src/imgui ${PROJECT_SOURCE_DIR}/src/imgui_fltk)
+set( OBJFRAME_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/vc ${PROJECT_SOURCE_DIR}/src/fem ${PROJECT_SOURCE_DIR}/src/visfem ${PROJECT_SOURCE_DIR}/src/newmat ${PROJECT_SOURCE_DIR}/src/util ${PROJECT_SOURCE_DIR}/src/imgui ${PROJECT_SOURCE_DIR}/src/imgui_fltk ${PROJECT_SOURCE_DIR}/src/objframe)
 
 include_directories( ${OBJFRAME_INCLUDE_DIR} ${FLTK_INCLUDE_DIR} ${FLTK_ABI_INCLUDE_DIR} ${JPEG_INCLUDE_DIR} ${PNG_PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${IVF_INCLUDE_DIR} ${OBJFRAME_INCLUDE} ${LEAP_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} )
 
@@ -106,8 +106,8 @@ link_directories( ${PROJECT_SOURCE_DIR}/lib ${IVF_LIBS} ${LEAP_LIBS})
 
 if(WIN32)
     if(IVF_DEBUG)
-		string(REPLACE "/zi" "/z7" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-		string(REPLACE "/zi" "/z7" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
+        string(REPLACE "/zi" "/z7" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+        string(REPLACE "/zi" "/z7" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
     endif(IVF_DEBUG)
 endif(WIN32)
 

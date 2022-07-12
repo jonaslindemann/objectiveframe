@@ -42,7 +42,7 @@ public:
 
     virtual void refresh();
 protected:
-    virtual void createSelect();
-    virtual void createGeometry();
+    virtual void doCreateSelect();
+    virtual void doCreateGeometry();
 };
 #endif

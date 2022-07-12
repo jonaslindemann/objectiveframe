@@ -21,12 +21,12 @@ FemSmartPointer(CFemModel);
 
 class CFemModel : public CFemObject {
 private:
-    CFemNodeSet* m_nodeSet;
-    CFemElementSet* m_elementSet;
-    CFemMaterialSet* m_materialSet;
-    CFemNodeLoadSet* m_nodeLoadSet;
-    CFemElementLoadSet* m_elementLoadSet;
-    CFemNodeBCSet* m_bcSet;
+    CFemNodeSetPtr m_nodeSet;
+    CFemElementSetPtr m_elementSet;
+    CFemMaterialSetPtr m_materialSet;
+    CFemNodeLoadSetPtr m_nodeLoadSet;
+    CFemElementLoadSetPtr m_elementLoadSet;
+    CFemNodeBCSetPtr m_bcSet;
     std::string m_fileName;
 protected:
     virtual CFemNodeBCSet* createBCSet();

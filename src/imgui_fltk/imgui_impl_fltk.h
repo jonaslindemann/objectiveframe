@@ -29,6 +29,8 @@ private:
 public:
 	ImGuiFLTKImpl();
 
+	void setPixelsPerUnit(float ppu);
+
 	bool isImGuiInitialised();
 	bool isOverWindow();
 

@@ -75,38 +75,6 @@ GLFWwindow* GLFWWindow::ref()
     return m_window;
 }
 
-void GLFWWindow::doKey(int key, int scancode, int action, int mods)
-{
-    cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
-}
-
-void GLFWWindow::doMousePosition(double x, double y)
-{
-    cout << "doMousePosition: " << x << ", " << y << endl;
-}
-
-void GLFWWindow::doMouseButton(int button, int action, int mods)
-{
-    cout << "doMouseButton: " << button << ", " << action << ", " << mods << endl;
-}
-
-void GLFWWindow::doResize(int width, int height)
-{
-    cout << "doResize: " << width << ", " << height << endl;
-}
-
-void GLFWWindow::doDraw()
-{
-    int width, height;
-
-    this->getSize(width, height);
-
-    const float ratio = width / (float)height;
-
-    glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
 int GLFWWindow::width()
 {
     if (m_window)
@@ -142,5 +110,63 @@ void GLFWWindow::getSize(int& width, int& height)
         width = -1;
         height = -1;
     }
+}
+
+void GLFWWindow::doKey(int key, int scancode, int action, int mods)
+{
+    cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
+    onKey(key, scancode, action, mods);
+}
+
+void GLFWWindow::doMousePosition(double x, double y)
+{
+    cout << "doMousePosition: " << x << ", " << y << endl;
+    onMousePosition(x, y);
+}
+
+void GLFWWindow::doMouseButton(int button, int action, int mods)
+{
+    cout << "doMouseButton: " << button << ", " << action << ", " << mods << endl;
+    onMouseButton(button, action, mods);
+}
+
+void GLFWWindow::doResize(int width, int height)
+{
+    cout << "doResize: " << width << ", " << height << endl;
+    onResize(width, height);
+}
+
+void GLFWWindow::doDraw()
+{
+    int width, height;
+
+    this->getSize(width, height);
+
+    const float ratio = width / (float)height;
+
+    glViewport(0, 0, width, height);
+
+    onDraw();
+}
+
+void GLFWWindow::onKey(int key, int scancode, int action, int mods)
+{
+}
+
+void GLFWWindow::onMousePosition(double x, double y)
+{
+}
+
+void GLFWWindow::onMouseButton(int button, int action, int mods)
+{
+}
+
+void GLFWWindow::onResize(int width, int height)
+{
+}
+
+void GLFWWindow::onDraw()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 

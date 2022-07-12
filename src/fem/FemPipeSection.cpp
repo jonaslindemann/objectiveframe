@@ -17,8 +17,6 @@ CFemPipeSection::CFemPipeSection (double outerRadius, double innerRadius)
     :CFemSection()
 {
     this->setSectionType(FEM_PIPE_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(outerRadius, innerRadius);
 }
 
@@ -26,8 +24,6 @@ CFemPipeSection::CFemPipeSection (double outerRadius, double innerRadius)
 CFemPipeSection::CFemPipeSection()
 {
     this->setSectionType(FEM_PIPE_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(0.0, 0.0);
 }
 
@@ -136,6 +132,23 @@ void CFemPipeSection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[9] / 2.0;
     emin = emax;
+}
+
+void CFemPipeSection::calcDataFromSection()
+{
+    this->setData();
+}
+
+void CFemPipeSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+{
+    CFemSection::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->setSectionSize(outerRadius, innerRadius);
+}
+
+void CFemPipeSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+{
+    CFemSection::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->getSectionSize(outerRadius, innerRadius);
 }
 
 // ------------------------------------------------------------

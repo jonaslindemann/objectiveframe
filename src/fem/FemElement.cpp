@@ -125,7 +125,7 @@ void CFemElement::readFromStream(std::istream &in)
 long CFemElement::getElementIndex(unsigned int node)
 {
     if (node<m_nodeIndex.size())
-        return m_nodeIndex[node];
+        return m_nodeIndex[node]; 
     else
         return -1;
 }

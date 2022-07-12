@@ -10,12 +10,18 @@ using namespace std;
 #endif
 
 // ------------------------------------------------------------
-CFemSection::CFemSection ()
-    :CFemObject()
+CFemSection::CFemSection()
+    :CFemObject(),
+     m_data{nullptr},
+     m_nbrOfProps{0},
+     m_autoCalc{false},
+     m_sectionType{-1},
+     m_prop{nullptr},
+     m_nbrOfData{0},
+     m_repr{-1}
 {
-    m_nbrOfProps = 0;
-    m_autoCalc = false;
-    m_sectionType = -1;
+    this->setPropSize(11);
+    this->setDataSize(6);
 }
 
 // ------------------------------------------------------------
@@ -150,6 +156,10 @@ bool CFemSection::autoCalc()
     return m_autoCalc;
 }
 
+void CFemSection::calcDataFromSection()
+{
+}
+
 void CFemSection::saveToStream(std::ostream &out)
 {
     unsigned int i;
@@ -225,6 +235,82 @@ void CFemSection::getExcY(double &emax, double &emin)
 {
     emax = -1.0;
     emin = -1.0;
+}
+
+double CFemSection::prop(int idx)
+{
+    if ((idx >= 0) && (idx < 11))
+        return m_prop[idx];
+    else
+        return -1.0;
+}
+
+double CFemSection::data(int idx)
+{
+    if ((idx >= 0) && (idx < 6))
+        return m_data[idx];
+    else
+        return -1.0;
+}
+
+double CFemSection::E()
+{
+    return m_data[0];
+}
+
+double CFemSection::A()
+{
+    return m_data[1];
+}
+
+double CFemSection::G()
+{
+    return m_data[2];
+}
+
+double CFemSection::Iy()
+{
+    return m_data[3];
+}
+
+double CFemSection::Iz()
+{
+    return m_data[4];
+}
+
+double CFemSection::Kv()
+{
+    return m_data[5];
+}
+
+void CFemSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+{
+    m_prop[0] = height;
+    m_prop[1] = width;
+    m_prop[2] = UFW;
+    m_prop[3] = LFW;
+    m_prop[4] = WT;
+    m_prop[5] = UFT;
+    m_prop[6] = LFT;
+    m_prop[7] = ULFW;
+    m_prop[8] = LLFW;
+    m_prop[9] = outerRadius;
+    m_prop[10] = innerRadius;
+}
+
+void CFemSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+{
+    height = m_prop[0];
+    width = m_prop[1];
+    UFW = m_prop[2];
+    LFW = m_prop[3];
+    WT = m_prop[4];
+    UFT = m_prop[5];
+    LFT = m_prop[6];
+    ULFW = m_prop[7];
+    LLFW = m_prop[8];
+    outerRadius = m_prop[9];
+    innerRadius = m_prop[10];
 }
 
 void CFemSection::getExcZ(double &emax, double &emin)

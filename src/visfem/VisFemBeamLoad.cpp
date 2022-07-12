@@ -172,7 +172,7 @@ void VisFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
 }
 
 // ------------------------------------------------------------
-void VisFemBeamLoad::createGeometry()
+void VisFemBeamLoad::doCreateGeometry()
 {
     int old_style = ivfGetGLEJoinStyle();
     int i;
@@ -186,7 +186,7 @@ void VisFemBeamLoad::createGeometry()
 }
 
 // ------------------------------------------------------------
-void VisFemBeamLoad::createSelect()
+void VisFemBeamLoad::doCreateSelect()
 {
     int old_style = ivfGetGLEJoinStyle();
     int i;

@@ -39,6 +39,8 @@ public:
     CFemSection* getSection();
     void setSection(CFemSection* section);
 
+    void assignPropFromSection();
+
     // IO Methods
 
     virtual void readFromStream(std::istream &in);

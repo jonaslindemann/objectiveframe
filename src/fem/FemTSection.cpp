@@ -17,8 +17,6 @@ CFemTSection::CFemTSection (double width, double height, double WT, double UFT, 
     :CFemSection()
 {
     this->setSectionType(FEM_T_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(width, height, WT, UFT, ULFW);
 }
 
@@ -108,6 +106,23 @@ void CFemTSection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[1] / 2.0;
     emin = emax;
+}
+
+void CFemTSection::calcDataFromSection()
+{
+    this->setData();
+}
+
+void CFemTSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+{
+    CFemSection::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->setSectionSize(width, height, WT, UFT, ULFW);
+}
+
+void CFemTSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+{
+    CFemSection::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->getSectionSize(width, height, WT, UFT, ULFW);
 }
 
 // ------------------------------------------------------------

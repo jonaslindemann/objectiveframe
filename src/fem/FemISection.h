@@ -62,5 +62,14 @@ public:
 
     virtual void getExcZ(double &emax, double &emin);
     virtual void getExcY(double &emax, double &emin);
+
+    virtual void calcDataFromSection();
+
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
+        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+
+    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
+        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+
 };
 #endif

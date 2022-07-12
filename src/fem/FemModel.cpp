@@ -6,30 +6,11 @@
 CFemModel::CFemModel ()
     :CFemObject()
 {
-    m_nodeSet = NULL;
-    m_elementSet = NULL;
-    m_materialSet = NULL;
-    m_fileName = "";
-    m_nodeLoadSet = NULL;
-    m_elementLoadSet = NULL;
-    m_bcSet = NULL;
 }
 
 // ------------------------------------------------------------
 CFemModel::~CFemModel ()
 {
-    if (m_nodeSet!=NULL)
-        delete m_nodeSet;
-    if (m_elementSet!=NULL)
-        delete m_elementSet;
-    if (m_materialSet!=NULL)
-        delete m_materialSet;
-    if (m_nodeLoadSet!=NULL)
-        delete m_nodeLoadSet;
-    if (m_elementLoadSet!=NULL)
-        delete m_elementLoadSet;
-    if (m_bcSet!=NULL)
-        delete m_bcSet;
 }
 
 // ------------------------------------------------------------
@@ -277,21 +258,6 @@ void CFemModel::save()
 // ------------------------------------------------------------
 void CFemModel::initialize()
 {
-    // If existing structures exits delete them
-
-    if (m_nodeSet!=NULL)
-        delete m_nodeSet;
-    if (m_elementSet!=NULL)
-        delete m_elementSet;
-    if (m_materialSet!=NULL)
-        delete m_materialSet;
-    if (m_nodeLoadSet!=NULL)
-        delete m_nodeLoadSet;
-    if (m_elementLoadSet!=NULL)
-        delete m_elementLoadSet;
-    if (m_bcSet!=NULL)
-        delete m_bcSet;
-
     // Create new sets
 
     m_elementLoadSet = this->createElementLoadSet();

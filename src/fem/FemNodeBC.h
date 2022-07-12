@@ -43,6 +43,9 @@ public:
     int getNodeIndexSize();
     double getPrescribedValue(int dof);
 
+    bool* getPrescribedArr();
+    double* getPrescribedValueArr();
+
     // IO Methods
 
     virtual void readFromStream(std::istream &in) override;

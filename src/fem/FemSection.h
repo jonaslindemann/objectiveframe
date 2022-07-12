@@ -27,38 +27,9 @@ private:
     unsigned int m_nbrOfProps;
     unsigned int m_nbrOfData;
     int m_sectionType;
-public:
-    void readFromStream(std::istream &in);
-    int getSectionType();
-    void setSectionType(int type);
-    void saveToStream(std::ostream &out);
     int m_repr;
     bool m_autoCalc;
-    double* m_prop;
-    /*
-    m_prop[0]  = height
-    m_prop[1]  = width
-    m_prop[2]  = UFW	(Upper Flange Width)
-    m_prop[3]  = LFW	(Lower Flange Width)
-    m_prop[4]  = WT		(Waist Thickness)
-    m_prop[5]  = UFT	(Upper Flange Thickness)
-    m_prop[6]  = LFT	(Lower Flange Thickness)
-    m_prop[7]  = ULFW	(Upper Left Flange Width)
-    m_prop[8]  = LLFW	(Lower Left Flange Width)
-    m_prop[9]  = OuterRadius
-    m_prop[10] = InnerRadius
-    */
-    double* m_data;
-    /*
-    m_data[0]  = Young´s modulus (E)
-    m_data[1]  = Area (A)
-    m_data[2]  = Shear modulus (G)
-    m_data[3]  = Moment of inertia, y (Iy)
-    m_data[4]  = Moment of inertia, z (Iz)
-    m_data[5]  = Saint-Venant const. (Kv)
-    */
-
-
+public:
     /** CFemSection constructor */
     CFemSection ();
 
@@ -66,6 +37,11 @@ public:
     virtual ~CFemSection ();
 
     FemClassInfo("CFemSection",CFemObject);
+
+    void readFromStream(std::istream& in);
+    int getSectionType();
+    void setSectionType(int type);
+    void saveToStream(std::ostream& out);
 
     /**
     * Get normal
@@ -171,6 +147,8 @@ public:
     */
     bool autoCalc();
 
+    virtual void calcDataFromSection(); 
+
     /**
     * Get size
     *
@@ -181,5 +159,46 @@ public:
 
     virtual void getExcZ(double& emax, double &emin);
     virtual void getExcY(double &emax, double &emin);
+
+    double prop(int idx);
+    double data(int idx);
+
+    double E();
+    double A();
+    double G();
+    double Iy();
+    double Iz();
+    double Kv();
+
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
+        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius);
+
+    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
+        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius);
+
+protected:
+    double* m_prop;
+    /*
+    m_prop[0]  = height
+    m_prop[1]  = width
+    m_prop[2]  = UFW	(Upper Flange Width)
+    m_prop[3]  = LFW	(Lower Flange Width)
+    m_prop[4]  = WT		(Waist Thickness)
+    m_prop[5]  = UFT	(Upper Flange Thickness)
+    m_prop[6]  = LFT	(Lower Flange Thickness)
+    m_prop[7]  = ULFW	(Upper Left Flange Width)
+    m_prop[8]  = LLFW	(Lower Left Flange Width)
+    m_prop[9]  = OuterRadius
+    m_prop[10] = InnerRadius
+    */
+    double* m_data;
+    /*
+    m_data[0]  = Young´s modulus (E)
+    m_data[1]  = Area (A)
+    m_data[2]  = Shear modulus (G)
+    m_data[3]  = Moment of inertia, y (Iy)
+    m_data[4]  = Moment of inertia, z (Iz)
+    m_data[5]  = Saint-Venant const. (Kv)
+    */
 };
 #endif

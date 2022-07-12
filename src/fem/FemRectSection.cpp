@@ -96,6 +96,23 @@ void CFemRectSection::getExcY(double &emax, double &emin)
     emin = emax;
 }
 
+void CFemRectSection::calcDataFromSection()
+{
+    this->setData();
+}
+
+void CFemRectSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+{
+    CFemSection::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->setSectionSize(width, height);
+}
+
+void CFemRectSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+{
+    CFemSection::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->getSectionSize(width, height);
+}
+
 // ------------------------------------------------------------
 void CFemRectSection::getExcZ(double &emax, double &emin)
 {

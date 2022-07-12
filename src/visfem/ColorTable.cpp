@@ -43,9 +43,9 @@ void ColorTable::assignColor(int idx, Material *material)
             m_colorTable[idx][1],
             m_colorTable[idx][2],1.0f);
         material->setAmbientColor(
-            m_colorTable[idx][0]*0.25,
-            m_colorTable[idx][1]*0.25,
-            m_colorTable[idx][2]*0.25,1.0f);
+            m_colorTable[idx][0]*0.25f,
+            m_colorTable[idx][1]*0.25f,
+            m_colorTable[idx][2]*0.25f,1.0f);
     }
 }
 

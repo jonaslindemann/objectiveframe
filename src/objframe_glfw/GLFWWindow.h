@@ -33,11 +33,21 @@ public:
 
     GLFWwindow* ref();
 
+public:
+
     void doKey(int key, int scancode, int action, int mods);
     void doMousePosition(double x, double y); 
     void doMouseButton(int button, int action, int mods);
     void doResize(int width, int height);
     void doDraw();
+
+    virtual void onKey(int key, int scancode, int action, int mods);
+    virtual void onMousePosition(double x, double y);
+    virtual void onMouseButton(int button, int action, int mods);
+    virtual void onResize(int width, int height);
+    virtual void onDraw();
+
+
 };
 
 typedef std::shared_ptr<GLFWWindow> GLFWWindowPtr;

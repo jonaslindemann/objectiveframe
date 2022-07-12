@@ -184,6 +184,21 @@ void CFemBeamMaterial::setSection(CFemSection *section)
     section->addReference();
 }
 
+void CFemBeamMaterial::assignPropFromSection()
+{
+    if (m_section != nullptr)
+    {
+        this->setProperties(
+            m_section->data(0),
+            m_section->data(1),
+            m_section->data(2),
+            m_section->data(3),
+            m_section->data(4),
+            m_section->data(5)
+        );
+    }
+}
+
 // ------------------------------------------------------------
 CFemSection* CFemBeamMaterial::getSection()
 {

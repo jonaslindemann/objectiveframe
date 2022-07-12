@@ -1,5 +1,5 @@
 //
-// Copyright 1999-2018 by Structural Mechanics, Lund University.
+// Copyright 1999-2022 by Structural Mechanics, Lund University.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -34,7 +34,7 @@
 #include <GL/glu.h>
 
 
-#define USE_OFFSCREEN_RENDERING
+#undef USE_OFFSCREEN_RENDERING
 
 using namespace ivf;
 
@@ -61,9 +61,8 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     this->mode(FL_RGB8 | FL_DOUBLE | FL_STENCIL | FL_MULTISAMPLE);
     int newMode = this->mode();
 
-    m_currentButton = IVF_NO_BUTTON;
-    m_currentModifier = IVF_NO_BUTTON;
-    m_currentState = 0;
+    m_currentButton = ButtonState::NoButton;
+    m_currentModifier = ButtonState::NoButton;
 
     m_angleX = 0.0f;
     m_angleY = 0.0f;
@@ -74,7 +73,7 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
 
     m_snapToGrid = true;
     m_selectedShape = NULL;
-    m_editMode = IVF_VIEW_PAN;
+    m_editMode = WidgetMode::ViewPan;
     m_clickNumber = 0;
     m_nNodes = 0;
     m_nLines = 0;
@@ -84,6 +83,8 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     m_lastShape = NULL;
     m_initDone = false;
     m_snapToGrid = true;
+
+    m_mouseUpdate = false;
 
     m_workspaceSize = 10.0f;
 
@@ -104,6 +105,12 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
 
     m_selectedShapes = Composite::create();
     m_selectedShapes->setUseReference(false);
+
+    m_quit = false;
+
+    Fl::use_high_res_GL(1);
+
+    setPixelsPerUnit(this->pixels_per_unit());
 
     this->enableRedrawTimer();
     Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)this);
@@ -276,7 +283,7 @@ void FltkWidget::selectAll()
 // Get/set methods
 // ------------------------------------------------------------
 
-void FltkWidget::setEditMode(int mode)
+void FltkWidget::setEditMode(WidgetMode mode)
 {
     m_editMode = mode;
 
@@ -287,13 +294,13 @@ void FltkWidget::setEditMode(int mode)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    if ( getEditMode() == IVF_SELECT )
+    if ( getEditMode() == WidgetMode::Select )
     {
         m_selectedShape = NULL;
         m_scene->disableCursor();
     };
 
-    if ( getEditMode() == IVF_CREATE_LINE)
+    if ( getEditMode() == WidgetMode::CreateLine )
     {
         clearSelection();
         m_scene->disableCursor();
@@ -301,7 +308,7 @@ void FltkWidget::setEditMode(int mode)
         m_selectedShapes->clear();
     }
 
-    if ( getEditMode() == IVF_CREATE_NODE)
+    if ( getEditMode() == WidgetMode::CreateNode )
     {
         clearSelection();
         m_scene->enableCursor();
@@ -310,19 +317,19 @@ void FltkWidget::setEditMode(int mode)
         m_scene->unlockCursor();
     }
 
-    if ( getEditMode() == IVF_MOVE)
+    if ( getEditMode() == WidgetMode::Move )
     {
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_scene->unlockCursor();
     }
 
-    if ( getEditMode() == IVF_VIEW_PAN)
+    if ( getEditMode() == WidgetMode::ViewPan)
     {
         m_scene->disableCursor();
     }
 
-    if ( getEditMode() == IVF_VIEW_ZOOM)
+    if ( getEditMode() == WidgetMode::ViewZoom)
     {
         m_scene->disableCursor();
     }
@@ -331,7 +338,7 @@ void FltkWidget::setEditMode(int mode)
 }
 
 // ------------------------------------------------------------
-int FltkWidget::getEditMode()
+WidgetMode FltkWidget::getEditMode()
 {
     return m_editMode;
 }
@@ -342,6 +349,11 @@ Workspace* FltkWidget::getScene()
     return m_scene;
 }
 
+void FltkWidget::quit()
+{
+    m_quit = true;
+}
+
 // ------------------------------------------------------------
 Camera* FltkWidget::getCamera()
 {
@@ -349,12 +361,15 @@ Camera* FltkWidget::getCamera()
 }
 
 // ------------------------------------------------------------
-void FltkWidget::setWorkspace(double size)
+void FltkWidget::setWorkspace(double size, bool resetCamera)
 {
     m_workspaceSize = size;
 
     m_scene->setSize(size);
-    m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize/2.0);
+
+    if (resetCamera)
+        m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize/2.0);
+
     m_controlSize = m_workspaceSize/50.0;
 }
 
@@ -415,28 +430,28 @@ int FltkWidget::getManipulatorMode()
 }
 
 // ------------------------------------------------------------
-int FltkWidget::getCurrentMouseButton()
+ButtonState FltkWidget::getCurrentMouseButton()
 {
     return m_currentButton;
 }
 
 // ------------------------------------------------------------
-int FltkWidget::getCurrentModifier()
+ButtonState FltkWidget::getCurrentModifier()
 {
-    m_currentModifier = IVF_NO_BUTTON;
+    m_currentModifier = ButtonState::NoButton;
 
     if (Fl::get_key(FL_Shift_L))
-        m_currentModifier = IVF_SHIFT;
+        m_currentModifier = ButtonState::Shift;
     if (Fl::get_key(FL_Shift_R))
-        m_currentModifier = IVF_SHIFT;
+        m_currentModifier = ButtonState::Shift;
     if (Fl::get_key(FL_Control_L))
-        m_currentModifier = IVF_CTRL;
+        m_currentModifier = ButtonState::Ctrl;
     if (Fl::get_key(FL_Control_R))
-        m_currentModifier = IVF_CTRL;
+        m_currentModifier = ButtonState::Ctrl;
     if (Fl::get_key(FL_Alt_R))
-        m_currentModifier = IVF_ALT;
+        m_currentModifier = ButtonState::Alt;
     if (Fl::get_key(FL_Alt_L))
-        m_currentModifier = IVF_ALT;
+        m_currentModifier = ButtonState::Alt;
 
     return m_currentModifier;
 }
@@ -458,17 +473,17 @@ void FltkWidget::updateOffscreenBuffers()
 {
 	// Create multisample texture
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, w(), h(), GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, pixel_w(), pixel_h(), GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, w(), h());
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, pixel_w(), pixel_h());
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_colorBuffer);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w(), h());
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, pixel_w(), pixel_h());
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
 
@@ -493,7 +508,7 @@ void FltkWidget::blitOffscreenBuffers()
 {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_multiFbo);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, w(), h(), 0, 0, w(), h(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(0, 0, pixel_w(), pixel_h(), 0, 0, pixel_w(), pixel_h(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
 void FltkWidget::draw()
@@ -530,23 +545,23 @@ void FltkWidget::draw()
 			
             onInit();
             m_initDone = true;
-			m_prevWindowSize[0] = w();
-			m_prevWindowSize[1] = h();
+			m_prevWindowSize[0] = pixel_w();
+			m_prevWindowSize[1] = pixel_h();
 		}
 
         // Set up camera
 
-        m_camera->setViewPort(w(), h());
+        m_camera->setViewPort(pixel_w(), pixel_h());
         m_camera->initialize();
 
     }
 
 #ifdef USE_OFFSCREEN_RENDERING
 
-	if ((m_prevWindowSize[0] != w()) || (m_prevWindowSize[1] != h()))
+	if ((m_prevWindowSize[0] != pixel_w()) || (m_prevWindowSize[1] != h()))
 	{
-		m_prevWindowSize[0] = w();
-		m_prevWindowSize[1] = h();
+		m_prevWindowSize[0] = pixel_w();
+		m_prevWindowSize[1] = pixel_h();
 
 		updateOffscreenBuffers();
 	}
@@ -560,12 +575,20 @@ void FltkWidget::draw()
 
     glPushMatrix();
 
+    //m_camera->rotateAbsolute(m_angleX / 100.0, m_ang)
     m_camera->rotatePositionY(m_angleX/100.0);
     m_camera->rotatePositionX(m_angleY/100.0);
+
 
     m_camera->moveSideways(m_moveX*m_workspaceSize/1000.0);
     m_camera->moveVertical(m_moveY*m_workspaceSize/1000.0);
     m_camera->moveDepth(m_zoomY*m_workspaceSize/500.0);
+
+    m_angleX = 0.0;
+    m_angleY = 0.0;
+    m_moveX = 0.0;
+    m_moveY = 0.0;
+    m_zoomY = 0.0;
 
     glPopMatrix();
 
@@ -583,7 +606,7 @@ void FltkWidget::draw()
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0.0, (double)w(), (double)h(), 0.0, 0.0, 1.0);
+        glOrtho(0.0, (double)pixel_w(), (double)pixel_h(), 0.0, 0.0, 1.0);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
@@ -591,7 +614,7 @@ void FltkWidget::draw()
 
         glPopAttrib();
 
-        m_camera->setViewPort(w(), h());
+        m_camera->setViewPort(pixel_w(), pixel_h());
         m_camera->initialize();
     }
 
@@ -616,11 +639,14 @@ int FltkWidget::handle(int event)
 
         gladLoadGL();
 
-        this->doInitImGui(w(), h());
+        this->doInitImGui(pixel_w(), pixel_h());
 
         this->focus(this);
 	}
 #endif
+
+    if (m_quit)
+        Fl::first_window()->hide();
 
 	switch(event)
     {
@@ -629,6 +655,7 @@ int FltkWidget::handle(int event)
         //cout << "FL_ENTER" << endl;
         return 1;
     case FL_LEAVE:
+        cout << "FL_LEAVE" << endl;
         m_angleX = 0.0f;
         m_angleY = 0.0f;
         m_moveX = 0.0f;
@@ -637,42 +664,44 @@ int FltkWidget::handle(int event)
         m_zoomY = 0.0f;
         return 1;
     case FL_MOVE:
-        m_beginX = Fl::event_x();
-        m_beginY = Fl::event_y();
+        cout << "FL_MOVE" << endl;
+        m_beginX = Fl::event_x()*pixels_per_unit();
+        m_beginY = Fl::event_y()*pixels_per_unit();
         if (!Fl::get_key(FL_Shift_L))
             m_scene->unlockCursor();
         this->doPassiveMotion(m_beginX, m_beginY);
         this->doImGuiMove();
         return 1;
     case FL_PUSH:
-        m_beginX = Fl::event_x();
-        m_beginY = Fl::event_y();
+        cout << "FL_PUSH" << endl;
+        m_beginX = Fl::event_x() * pixels_per_unit();
+        m_beginY = Fl::event_y() * pixels_per_unit();
 
         if (!isOverWindow())
         {
-            m_currentModifier = IVF_NO_BUTTON;
+            m_currentModifier = ButtonState::NoButton;
 
             if (Fl::get_key(FL_Shift_L))
-                m_currentModifier = IVF_SHIFT;
+                m_currentModifier = ButtonState::Shift;
             if (Fl::get_key(FL_Shift_R))
-                m_currentModifier = IVF_SHIFT;
+                m_currentModifier = ButtonState::Shift;
             if (Fl::get_key(FL_Control_L))
-                m_currentModifier = IVF_CTRL;
+                m_currentModifier = ButtonState::Ctrl;
             if (Fl::get_key(FL_Control_R))
-                m_currentModifier = IVF_CTRL;
+                m_currentModifier = ButtonState::Ctrl;
             if (Fl::get_key(FL_Alt_L))
-                m_currentModifier = IVF_ALT;
+                m_currentModifier = ButtonState::Alt;
             if (Fl::get_key(FL_Alt_R))
-                m_currentModifier = IVF_ALT;
+                m_currentModifier = ButtonState::Alt;
 
             if (!Fl::get_key(FL_Shift_L))
                 m_scene->unlockCursor();
             if (Fl::event_button() == FL_LEFT_MOUSE)
-                m_currentButton = IVF_BUTTON1;
+                m_currentButton = ButtonState::Button1;
             if (Fl::event_button() == FL_MIDDLE_MOUSE)
-                m_currentButton = IVF_BUTTON2;
+                m_currentButton = ButtonState::Button2;
             if (Fl::event_button() == FL_RIGHT_MOUSE)
-                m_currentButton = IVF_BUTTON3;
+                m_currentButton = ButtonState::Button3;
 
             if (Fl::get_key(FL_Shift_L))
                 cout << "SHIFT_LEFT" << endl;
@@ -704,22 +733,24 @@ int FltkWidget::handle(int event)
         }
         return 1;
     case FL_DRAG:
-        if (m_editMode!=IVF_MANIPULATE)
+        cout << "FL_DRAG" << endl;
+        if (m_editMode != WidgetMode::Manipulate)
             if (Fl::get_key(FL_Shift_L)==FALSE)
                 m_scene->unlockCursor();
         if (Fl::event_state()==FL_BUTTON1)
-            m_currentButton = IVF_BUTTON1;
+            m_currentButton = ButtonState::Button1;
         if (Fl::event_state()==FL_BUTTON2)
-            m_currentButton = IVF_BUTTON2;
+            m_currentButton = ButtonState::Button2;
         if (Fl::event_state()==FL_BUTTON3)
-            m_currentButton = IVF_BUTTON3;
-        this->doMotion(Fl::event_x(),Fl::event_y());
+            m_currentButton = ButtonState::Button3;
+        this->doMotion(Fl::event_x() * pixels_per_unit(),Fl::event_y() * pixels_per_unit());
         //cout << "FL_DRAG" << endl;
         this->doImGuiDrag();
         return 1;
     case FL_RELEASE:
-        this->doMouseUp(Fl::event_x(), Fl::event_y());
-        m_currentButton = IVF_NO_BUTTON;
+        cout << "FL_RELEASE" << endl;
+        this->doMouseUp(Fl::event_x() * pixels_per_unit(), Fl::event_y() * pixels_per_unit());
+        m_currentButton = ButtonState::NoButton;
         if (isOverWindow())
             this->doImGuiRelease();
         return 1;
@@ -749,18 +780,22 @@ int FltkWidget::handle(int event)
 
     case FL_SHORTCUT:
 
-        return 0;
-    default:
+        cout << "Shortcut!" << endl;
+        cout << Fl::event_key() << endl;
 
+        return 1;
+    default:
         return 0;
     }
+
+
 }
 
 void FltkWidget::resize(int x, int y, int w, int h)
 {
     Fl_Gl_Window::resize(x, y, w, h); 
     if (this->isImGuiInitialised())
-        this->doImGuiResize(w, h);
+        this->doImGuiResize(pixel_w(), pixel_h());
 }
 
 // ------------------------------------------------------------
@@ -779,7 +814,7 @@ void FltkWidget::doMouse(int x, int y)
     Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
-    if ((m_editMode == IVF_SELECT)&&(m_selectEnabled))
+    if ((m_editMode == WidgetMode::Select)&&(m_selectEnabled))
     {
         if (m_selectedShape!=NULL)
         {
@@ -807,7 +842,7 @@ void FltkWidget::doMouse(int x, int y)
 
     // Handle node creation
 
-    if ((m_editMode == IVF_CREATE_NODE)&&(Fl::event_state(FL_BUTTON1)>0))
+    if ((m_editMode == WidgetMode::CreateNode)&&(Fl::event_state(FL_BUTTON1)>0))
     {
         double vx, vy, vz;
         Node* node = NULL;
@@ -828,7 +863,7 @@ void FltkWidget::doMouse(int x, int y)
 
     }
 
-    if (m_editMode == IVF_CREATE_LINE)
+    if (m_editMode == WidgetMode::CreateLine)
     {
         if (m_selectedShapes->getSize()<2)
         {
@@ -885,12 +920,12 @@ void FltkWidget::doMotion(int x, int y)
             //if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
         {
                 this->getScene()->hideCursor();
-                if (getCurrentModifier()==IVF_ALT)
+                if (getCurrentModifier()==ButtonState::Alt)
                 {
                     m_zoomX = ((float)x - m_beginX);
                     m_zoomY = ((float)y - m_beginY);
                 }
-                else if (getCurrentModifier()==IVF_SHIFT)
+                else if (getCurrentModifier()==ButtonState::Shift)
                 {
                     m_moveX = ((float)x - m_beginX);
                     m_moveY = ((float)y - m_beginY);
@@ -943,7 +978,7 @@ void FltkWidget::doMotion(int x, int y)
 #endif
     }
 
-    if (getEditMode()==IVF_MOVE&&(Fl::event_state(FL_BUTTON1)>0))
+    if (getEditMode()==WidgetMode::Move&&(Fl::event_state(FL_BUTTON1)>0))
     {
         m_scene->updateCursor(x, y);
         double x, y, z;
@@ -997,7 +1032,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
 
     m_scene->updateCursor(x, y);
 
-    if ((getEditMode() == IVF_SELECT)&&(m_selectEnabled))
+    if ((getEditMode() == WidgetMode::Select)&&(m_selectEnabled))
     {
         bool needInvalidate = false;
 
@@ -1030,7 +1065,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
     }
 
 
-    if (getEditMode()==IVF_CREATE_NODE)
+    if (getEditMode()==WidgetMode::CreateNode)
     {
         double wx, wy, wz;
         Vec3d pos;
@@ -1041,7 +1076,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if (getEditMode()==IVF_MOVE)
+    if (getEditMode()==WidgetMode::Move)
     {
         double wx, wy, wz;
         m_scene->updateCursor(x, y);
@@ -1051,7 +1086,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if ((getEditMode() == IVF_CREATE_LINE)&&(m_selectEnabled))
+    if ((getEditMode() == WidgetMode::CreateLine)&&(m_selectEnabled))
     {
         bool needInvalidate = false;
 

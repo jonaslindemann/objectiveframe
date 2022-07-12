@@ -18,8 +18,6 @@ CFemRHSSection::CFemRHSSection (double height, double width, double WT)
     //TODO: check and complete member initialisation list!
 {
     this->setSectionType(FEM_RHS_SECTION);
-    this->setPropSize(11);
-    this->setDataSize(6);
     this->setSectionSize(height, width, WT);
 }
 
@@ -114,6 +112,23 @@ void CFemRHSSection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[1] / 2.0;
     emin = emax;
+}
+
+void CFemRHSSection::calcDataFromSection()
+{
+    this->setData();
+}
+
+void CFemRHSSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+{
+    CFemSection::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->setSectionSize(height, width, WT);
+}
+
+void CFemRHSSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+{
+    CFemSection::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
+    this->getSectionSize(height, width, WT);
 }
 
 // ------------------------------------------------------------

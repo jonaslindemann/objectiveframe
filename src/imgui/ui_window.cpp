@@ -5,7 +5,7 @@
 UiWindow::UiWindow(const std::string name)
 	:m_name{name},
 	 m_visible{true},
-	 m_windowFlags{0},
+	 m_windowFlags{ ImGuiWindowFlags_AlwaysAutoResize },
 	 m_updatePos{false},
 	 m_corner{-1}
 {

@@ -224,3 +224,13 @@ double CFemNodeBC::getPrescribedValue(int dof)
     else
         return 0.0;
 }
+
+bool* CFemNodeBC::getPrescribedArr()
+{
+    return m_prescribedDof;
+}
+
+double* CFemNodeBC::getPrescribedValueArr()
+{
+    return m_prescribedValues;
+}

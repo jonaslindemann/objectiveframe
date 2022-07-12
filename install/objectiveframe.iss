@@ -13,7 +13,7 @@ UsePreviousAppDir=no
 UsePreviousGroup=no
 DefaultDirName={autopf}\Structural Mechanics\ObjectiveFrame
 DefaultGroupName=ObjectiveFrame
-SignedUninstaller=yes
+;SignedUninstaller=yes
 OutputBaseFilename=objframe_setup
 ArchitecturesInstallIn64BitMode=x64
 

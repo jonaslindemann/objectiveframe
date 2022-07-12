@@ -1,0 +1,142 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cpp}
+decl {\#define MR_OK 0} {public local
+}
+
+decl {\#define MR_CANCEL 1} {public local
+}
+
+decl {\#include <VisFemNode.h>} {public local
+}
+
+class NodePropDlg {open
+} {
+  decl {VisFemNode* m_node} {private local
+  }
+  decl {Fl_Widget* m_workspace} {private local
+  }
+  Function {NodePropDlg()} {open selected
+  } {
+    Fl_Window wndNodeProp {
+      label {Node properties} open
+      xywh {414 285 184 268} type Double color 0 non_modal visible
+    } {
+      Fl_Button btnApply {
+        label Apply
+        callback {if (m_node!=NULL)
+{
+	m_node->setPosition(
+		edtXCoord->value(),
+		edtYCoord->value(),
+		edtZCoord->value());
+	if (m_workspace!=NULL)
+	{
+		m_workspace->set_changed();
+		m_workspace->redraw();
+	}
+}}
+        xywh {108 235 67 25} box FLAT_BOX down_box FLAT_BOX color 41 labelsize 12
+      }
+      Fl_Group grpWorkspace {
+        label Coordinates open
+        xywh {8 19 169 96} box FLAT_BOX color 36 labelsize 12 labelcolor 7 align 5
+      } {
+        Fl_Value_Input edtXCoord {
+          label {X-Coordinate}
+          xywh {94 26 74 24} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+        Fl_Value_Input edtZCoord {
+          label {Z-Coordinate}
+          xywh {94 82 74 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 textsize 12
+        }
+        Fl_Value_Input edtYCoord {
+          label {Y-Coordinate}
+          xywh {94 54 74 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 textsize 12
+        }
+      }
+      Fl_Button btnClose {
+        label Close
+        callback {wndNodeProp->hide();}
+        xywh {40 235 61 25} box FLAT_BOX down_box FLAT_BOX color 41 labelsize 12
+      }
+      Fl_Group grpDisplacements {
+        label {Computed displacements} open
+        xywh {9 136 168 93} box FLAT_BOX color 36 labelsize 12 labelcolor 7 align 5
+      } {
+        Fl_Value_Input edtXDispl {
+          label {X-Displ.}
+          xywh {91 142 78 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+        Fl_Value_Input edtYDispl {
+          label {Y-Displ.}
+          xywh {91 170 78 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+        Fl_Value_Input edtZDispl {
+          label {Z-Displ.}
+          xywh {91 198 78 25} box FLAT_BOX color 41 labelsize 12 labelcolor 7 minimum -1e+300 maximum 1e+300 textsize 12
+        }
+      }
+    }
+    code {m_node = NULL;} {}
+  }
+  Function {show()} {} {
+    code {this->setNode(m_node);
+wndNodeProp->show();} {}
+  }
+  Function {setNode(VisFemNode* node)} {open
+  } {
+    code {m_node = node;
+if (m_node==NULL)
+{
+	edtXCoord->deactivate();
+	edtYCoord->deactivate();
+	edtZCoord->deactivate();
+	edtXDispl->deactivate();
+	edtYDispl->deactivate();
+	edtZDispl->deactivate();
+	btnApply->deactivate();
+	edtXCoord->value(0);
+	edtYCoord->value(0);
+	edtZCoord->value(0);
+	edtXDispl->value(0);
+	edtYDispl->value(0);
+	edtZDispl->value(0);
+}
+else
+{
+	edtXCoord->activate();
+	edtYCoord->activate();
+	edtZCoord->activate();
+	edtXDispl->activate();
+	edtYDispl->activate();
+	edtZDispl->activate();
+	btnApply->activate();
+	double x, y, z;
+	double dx, dy, dz;
+	m_node->getPosition(x, y, z);
+	dx = m_node->getFemNode()->getValue(0);
+	dy = m_node->getFemNode()->getValue(1);
+	dz = m_node->getFemNode()->getValue(2);
+	edtXCoord->value(x);
+	edtYCoord->value(y);
+	edtZCoord->value(z);
+	edtXDispl->value(dx);
+	edtYDispl->value(dy);
+	edtZDispl->value(dz);
+}} {}
+  }
+  Function {getNode()} {open return_type {VisFemNode*}
+  } {
+    code {return m_node;} {}
+  }
+  Function {setWorkspace(Fl_Widget* widget)} {open
+  } {
+    code {m_workspace = widget;} {}
+  }
+  Function {hide()} {open
+  } {
+    code {wndNodeProp->hide();} {}
+  }
+}

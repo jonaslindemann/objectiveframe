@@ -49,25 +49,25 @@
  * // material2 calls deleteRefernce() and deletes CIvfMaterial object
  * \endcode
  */
-template <class T,class R> class CFemPointerRefBase {
+template <class T,class R> class FemPointerRefBase {
 private:
     T* m_object;
 public:
-    CFemPointerRefBase(T* object = 0)
+    FemPointerRefBase(T* object = 0)
     {
         m_object = object;
         if (m_object)
             m_object->R::addReference();
     }
 
-    CFemPointerRefBase(const CFemPointerRefBase& femObject)
+    FemPointerRefBase(const FemPointerRefBase& femObject)
     {
         m_object = femObject.m_object;
         if (m_object)
             m_object->R::addReference();
     }
 
-    virtual ~CFemPointerRefBase()
+    virtual ~FemPointerRefBase()
     {
         if (m_object)
         {
@@ -87,7 +87,7 @@ public:
         return m_object;
     }
 
-    CFemPointerRefBase& operator= (const CFemPointerRefBase& FemPointerRefBase)
+    FemPointerRefBase& operator= (const FemPointerRefBase& FemPointerRefBase)
     {
         if (m_object!=FemPointerRefBase.m_object)
         {
@@ -106,7 +106,7 @@ public:
         return *this;
     }
 
-    CFemPointerRefBase& operator= (T* femObject)
+    FemPointerRefBase& operator= (T* femObject)
     {
         if (m_object!=femObject)
         {
@@ -131,36 +131,36 @@ public:
     bool operator!= (T* femObject) const {
         return m_object != femObject;
     }
-    bool operator== (const CFemPointerRefBase& FemPointerRefBase) const
+    bool operator== (const FemPointerRefBase& FemPointerRefBase) const
     {
         return m_object == FemPointerRefBase.m_object;
     }
 
-    bool operator!= (const CFemPointerRefBase& FemPointerRefBase) const
+    bool operator!= (const FemPointerRefBase& FemPointerRefBase) const
     {
         return m_object != FemPointerRefBase.m_object;
     }
 };
 
-template <class T> class CFemPointer {
+template <class T> class FemPointer {
 private:
     T* m_object;
 public:
-    CFemPointer(T* object = 0)
+    FemPointer(T* object = 0)
     {
         m_object = object;
         if (m_object)
             m_object->addReference();
     }
 
-    CFemPointer(const CFemPointer& femObject)
+    FemPointer(const FemPointer& femObject)
     {
         m_object = femObject.m_object;
         if (m_object)
             m_object->addReference();
     }
 
-    virtual ~CFemPointer()
+    virtual ~FemPointer()
     {
         if (m_object)
         {
@@ -180,7 +180,7 @@ public:
         return m_object;
     }
 
-    CFemPointer& operator= (const CFemPointer& femPointer)
+    FemPointer& operator= (const FemPointer& femPointer)
     {
         if (m_object!=femPointer.m_object)
         {
@@ -199,7 +199,7 @@ public:
         return *this;
     }
 
-    CFemPointer& operator= (T* femObject)
+    FemPointer& operator= (T* femObject)
     {
         if (m_object!=femObject)
         {
@@ -224,12 +224,12 @@ public:
     bool operator!= (T* femObject) const {
         return m_object != femObject;
     }
-    bool operator== (const CFemPointer& femPointer) const
+    bool operator== (const FemPointer& femPointer) const
     {
         return m_object == femPointer.m_object;
     }
 
-    bool operator!= (const CFemPointer& femPointer) const
+    bool operator!= (const FemPointer& femPointer) const
     {
         return m_object != femPointer.m_object;
     }

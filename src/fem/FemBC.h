@@ -6,24 +6,24 @@
 
 #include <vector>
 
-FemSmartPointer(CFemBC);
+FemSmartPointer(FemBC);
 
-class CFemBC : public CFemObject {
+class FemBC : public FemObject {
 private:
     long m_number;
-    std::vector<CFemDofPtr> m_prescribedDofs;
+    std::vector<FemDofPtr> m_prescribedDofs;
     std::vector<double>   m_prescribedValues;
 public:
-    CFemBC ();
-    virtual ~CFemBC ();
+    FemBC ();
+    virtual ~FemBC ();
 
-    FemClassInfo("CFemBC",CFemObject);
+    FemClassInfo("FemBC",FemObject);
 
     // Methods
 
-    bool isPrescribed(CFemDof* dof);
-    void prescribeDof(CFemDof* dof, double value);
-    void unprescribeDof(CFemDof* dof);
+    bool isPrescribed(FemDof* dof);
+    void prescribeDof(FemDof* dof, double value);
+    void unprescribeDof(FemDof* dof);
     void clearDofs();
 
     // Get/set methods
@@ -35,7 +35,7 @@ public:
 
     double getValue(unsigned int idx);
 
-    CFemDof* getDof(unsigned int idx);
+    FemDof* getDof(unsigned int idx);
 
     // IO Methods
 

@@ -5,21 +5,21 @@
 using namespace std;
 
 // ------------------------------------------------------------
-CFemBC::CFemBC ()
-    :CFemObject(), m_number{-1}
+FemBC::FemBC ()
+    :FemObject(), m_number{-1}
 {
 }
 
 // ------------------------------------------------------------
-CFemBC::~CFemBC ()
+FemBC::~FemBC ()
 {
 }
 
 // ------------------------------------------------------------
-bool CFemBC::isPrescribed(CFemDof* dof)
+bool FemBC::isPrescribed(FemDof* dof)
 {
-    std::vector<CFemDofPtr>::iterator p = m_prescribedDofs.begin();
-    std::vector<CFemDofPtr>::iterator lastDof = m_prescribedDofs.end();
+    std::vector<FemDofPtr>::iterator p = m_prescribedDofs.begin();
+    std::vector<FemDofPtr>::iterator lastDof = m_prescribedDofs.end();
 
     while (p!=lastDof)
     {
@@ -31,17 +31,17 @@ bool CFemBC::isPrescribed(CFemDof* dof)
 }
 
 // ------------------------------------------------------------
-void CFemBC::prescribeDof(CFemDof* dof, double value)
+void FemBC::prescribeDof(FemDof* dof, double value)
 {
     if (!isPrescribed(dof))
     {
-        m_prescribedDofs.push_back(CFemDofPtr(dof));
+        m_prescribedDofs.push_back(FemDofPtr(dof));
         m_prescribedValues.push_back(value);
     }
 }
 
 // ------------------------------------------------------------
-void CFemBC::unprescribeDof(CFemDof* dof)
+void FemBC::unprescribeDof(FemDof* dof)
 {
     auto p = m_prescribedDofs.begin();
     auto q = m_prescribedValues.begin();
@@ -60,34 +60,34 @@ void CFemBC::unprescribeDof(CFemDof* dof)
 }
 
 // ------------------------------------------------------------
-void CFemBC::clearDofs()
+void FemBC::clearDofs()
 {
     m_prescribedDofs.clear();
     m_prescribedValues.clear();
 }
 
 // ------------------------------------------------------------
-void CFemBC::setNumber(long number)
+void FemBC::setNumber(long number)
 {
     m_number = number;
 }
 
 // ------------------------------------------------------------
-long CFemBC::getNumber()
+long FemBC::getNumber()
 {
     return m_number;
 }
 
 // ------------------------------------------------------------
-void CFemBC::saveToStream(std::ostream &out)
+void FemBC::saveToStream(std::ostream &out)
 {
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
 
     auto p = m_prescribedDofs.begin();
     auto q = m_prescribedValues.begin();
     auto lastDof = m_prescribedDofs.end();
 
-    CFemDof* dof;
+    FemDof* dof;
 
     out << m_prescribedDofs.size() << endl;
     while (p!=lastDof)
@@ -102,7 +102,7 @@ void CFemBC::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-json CFemBC::toJSON()
+json FemBC::toJSON()
 {
     json j;
     j["number"] = m_number;
@@ -118,39 +118,39 @@ json CFemBC::toJSON()
 }
 
 // ------------------------------------------------------------
-void CFemBC::readFromStream(std::istream &in)
+void FemBC::readFromStream(std::istream &in)
 {
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
 
     int nDofs, kind, number;
     double value;
-    CFemDofPtr dof;
+    FemDofPtr dof;
 
     this->clearDofs();
 
     in >> nDofs;
     for (int i=0; i<nDofs; i++)
     {
-        dof = new CFemDof();
+        dof = new FemDof();
         in >> kind;
         in >> number;
         in >> value;
-        dof->setKind(kind);
+        dof->setKind(static_cast<FemDofKind>(kind));
         dof->setNumber(number);
-        m_prescribedDofs.push_back(CFemDofPtr(dof));
+        m_prescribedDofs.push_back(FemDofPtr(dof));
         m_prescribedValues.push_back(value);
     }
 }
 
 // ------------------------------------------------------------
-void CFemBC::print(std::ostream &out)
+void FemBC::print(std::ostream &out)
 {
 
 }
 
 
 // ------------------------------------------------------------
-CFemDof* CFemBC::getDof(unsigned int idx)
+FemDof* FemBC::getDof(unsigned int idx)
 {
     if (idx<m_prescribedDofs.size())
         return m_prescribedDofs[idx];
@@ -159,7 +159,7 @@ CFemDof* CFemBC::getDof(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-double CFemBC::getValue(unsigned int idx)
+double FemBC::getValue(unsigned int idx)
 {
     if (idx<m_prescribedDofs.size())
         return m_prescribedValues[idx];
@@ -168,7 +168,7 @@ double CFemBC::getValue(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-size_t CFemBC::getSize()
+size_t FemBC::getSize()
 {
     return m_prescribedDofs.size();
 }

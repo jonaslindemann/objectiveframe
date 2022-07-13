@@ -130,7 +130,7 @@ void ElementLoadDlg::show() {
   while (wndElementLoad->visible()) Fl::wait();
 }
 
-void ElementLoadDlg::setLoad(CFemBeamLoad* load) {
+void ElementLoadDlg::setLoad(FemBeamLoad* load) {
   m_load = load;
   if (m_load==NULL)
   {
@@ -159,7 +159,7 @@ void ElementLoadDlg::setLoad(CFemBeamLoad* load) {
   }
 }
 
-CFemBeamLoad* ElementLoadDlg::getLoad() {
+FemBeamLoad* ElementLoadDlg::getLoad() {
   return m_load;
 }
 

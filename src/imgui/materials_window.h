@@ -14,7 +14,7 @@ class FemWidget;
 
 class MaterialsWindow : public UiWindow {
 private:
-	CFemBeamMaterialSet* m_materials;
+	FemBeamMaterialSet* m_materials;
 	FemWidget* m_widget;
 	std::vector<bool> m_selected;
 	int m_currentItemIdx;
@@ -25,7 +25,7 @@ public:
 
 	static std::shared_ptr<MaterialsWindow> create(const std::string name);
 
-	void setFemMaterialSet(CFemBeamMaterialSet* materialSet);
+	void setFemMaterialSet(FemBeamMaterialSet* materialSet);
 	void setFemWidget(FemWidget* widget);
 protected:
 	virtual void doPreDraw();

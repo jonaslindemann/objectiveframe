@@ -9,26 +9,26 @@
 namespace std {};
 using namespace std;
 
-FemSmartPointer(CFemNodeLoad);
+FemSmartPointer(FemNodeLoad);
 
-class CFemNodeLoad : public CFemLoad {
+class FemNodeLoad : public FemLoad {
 private:
-    std::vector<CFemNode*> m_nodes;
+    std::vector<FemNode*> m_nodes;
     std::vector<long> m_nodeIndex;
     double m_direction[3];
 public:
-    CFemNodeLoad ();
-    virtual ~CFemNodeLoad ();
+    FemNodeLoad ();
+    virtual ~FemNodeLoad ();
 
     // Class info
 
-    FemClassInfo("CFemNodeLoad",CFemLoad);
+    FemClassInfo("FemNodeLoad",FemLoad);
 
     // Methods
 
-    bool removeNode(CFemNode* node);
+    bool removeNode(FemNode* node);
     void clearNodes();
-    void addNode(CFemNode* node);
+    void addNode(FemNode* node);
 
     // Get/set methods
 
@@ -37,9 +37,9 @@ public:
     void getDirection(double &ex, double &ey, double &ez);
     void setDirection(double ex, double ey, double ez);
     long getNodeIndex(unsigned int idx);
-    CFemNode* getNode(unsigned int idx);
-    unsigned int getNodeSize();
-    unsigned int getNodeIndexSize();
+    FemNode* getNode(unsigned int idx);
+    size_t getNodeSize();
+    size_t getNodeIndexSize();
 
     // IO Methods
 

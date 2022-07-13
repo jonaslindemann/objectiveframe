@@ -23,7 +23,7 @@ std::shared_ptr<MaterialsWindow> MaterialsWindow::create(const std::string name)
 	return std::make_shared<MaterialsWindow>(name);
 }
 
-void MaterialsWindow::setFemMaterialSet(CFemBeamMaterialSet* materialSet)
+void MaterialsWindow::setFemMaterialSet(FemBeamMaterialSet* materialSet)
 {
 	m_materials = materialSet;
 	m_selected.resize(m_materials->getSize(), false);
@@ -50,7 +50,7 @@ void MaterialsWindow::doDraw()
 		{
 			for (auto i=0; i < m_materials->getSize(); i++)
 			{
-				CFemBeamMaterial* material = static_cast<CFemBeamMaterial*>(m_materials->getMaterial(i));
+				FemBeamMaterial* material = static_cast<FemBeamMaterial*>(m_materials->getMaterial(i));
 
 				ImGui::PushID(i);
 				if (ImGui::Selectable(material->getName().c_str(), i == m_currentItemIdx))
@@ -75,7 +75,7 @@ void MaterialsWindow::doDraw()
 	{ 
 		if (m_materials != nullptr)
 		{
-			auto material = new CFemBeamMaterial();
+			auto material = new FemBeamMaterial();
 			material->setName("new material");
 			m_materials->addMaterial(material);
 			//m_widget->addBeamLoad(load);

@@ -7,28 +7,28 @@
 
 #include <vector>
 
-FemSmartPointer(CFemElement);
+FemSmartPointer(FemElement);
 
-class CFemElement : public CFemObject {
+class FemElement : public FemObject {
 private:
-    std::vector<CFemNodePtr> m_nodes;
-    std::vector<CFemInternalDofsPtr> m_internalDofs;
+    std::vector<FemNodePtr> m_nodes;
+    std::vector<FemInternalDofsPtr> m_internalDofs;
     std::vector<long> m_nodeIndex;
     std::vector<double> m_properties;
     std::vector<double> m_values;
     double m_elementLoad[3];
     long m_number;
 public:
-    CFemElement ();
-    virtual ~CFemElement ();
+    FemElement ();
+    virtual ~FemElement ();
 
     // Class info
 
-    FemClassInfo("CFemElement",CFemObject);
+    FemClassInfo("FemElement",FemObject);
 
     // Methods
 
-    void addNode(CFemNode* node);
+    void addNode(FemNode* node);
     void addProperty(double value);
     void clearProperties();
     void deleteAll();
@@ -41,16 +41,16 @@ public:
     void setProperty(unsigned int idx, double value);
 
     void setValueSize(int size);
-    int getValueSize();
+    size_t getValueSize();
 
     double getValue(unsigned int idx);
     void setValue(unsigned int idx, double value);
 
     // Get/set methods
 
-    CFemNode* getNode(unsigned int index);
-    unsigned int getIndexSize();
-    unsigned int getSize();
+    FemNode* getNode(unsigned int index);
+    size_t getIndexSize();
+    size_t getSize();
     long getElementIndex(unsigned int node);
     long getNumber();
     void setNumber(long number);
@@ -58,7 +58,7 @@ public:
     void setElementLoad(double fx, double fy, double fz);
     double getProperty(unsigned int idx);
     void setPropertySize(unsigned int size);
-    unsigned int getPropertySize();
+    size_t getPropertySize();
 
     // IO Methods
 

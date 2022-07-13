@@ -4,9 +4,9 @@
 
 SettingsWindow::SettingsWindow(const std::string name)
 	:UiWindow(name),
-	m_size{ 20 },
+	m_size{ 20.0f },
 	m_nodeSize{ 0.4f },
-	m_lineRadius{ 0.15 },
+	m_lineRadius{ 0.15f },
 	m_loadSize{ 7.0f },
 	m_widget{ nullptr },
 	m_scaleFactor{ 1.0f },
@@ -22,20 +22,20 @@ SettingsWindow::~SettingsWindow()
 void SettingsWindow::setFemWidget(FemWidget* femWidget)
 {
 	m_widget = femWidget;
-	m_size = m_widget->getWorkspace();
-	m_nodeSize = m_widget->getRelNodeSize()*100.0f;
-	m_loadSize = m_widget->getRelLoadSize()*100.0f;
-	m_lineRadius = m_widget->getRelLineRadius()*100.0f;
-	m_scaleFactor = m_widget->getScalefactor();
+	m_size = float(m_widget->getWorkspace());
+	m_nodeSize = float(m_widget->getRelNodeSize()*100.0f);
+	m_loadSize = float(m_widget->getRelLoadSize()*100.0f);
+	m_lineRadius = float(m_widget->getRelLineRadius()*100.0f);
+	m_scaleFactor = float(m_widget->getScalefactor());
 }
 
 void SettingsWindow::update()
 {
-	m_size = m_widget->getWorkspace();
-	m_nodeSize = m_widget->getRelNodeSize() * 100.0f;
-	m_loadSize = m_widget->getRelLoadSize() * 100.0f;
-	m_lineRadius = m_widget->getRelLineRadius() * 100.0f;
-	m_scaleFactor = m_widget->getScalefactor();
+	m_size = float(m_widget->getWorkspace());
+	m_nodeSize = float(m_widget->getRelNodeSize() * 100.0f);
+	m_loadSize = float(m_widget->getRelLoadSize() * 100.0f);
+	m_lineRadius = float(m_widget->getRelLineRadius() * 100.0f);
+	m_scaleFactor = float(m_widget->getScalefactor());
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)

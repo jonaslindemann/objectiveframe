@@ -9,23 +9,23 @@
 #define FEM_DISPL_NODE      0
 #define FEM_DISPL_ROT_NODE  1
 
-FemSmartPointer(CFemNode);
+FemSmartPointer(FemNode);
 
-class CFemNode : public CFemObject {
+class FemNode : public FemObject {
 private:
     long m_number;
     int m_kind;
     double m_coord[3];
     std::vector<double> m_values;
-    std::vector<CFemDofPtr> m_dofs;
+    std::vector<FemDofPtr> m_dofs;
 public:
-    CFemNode ();
-    CFemNode (double x, double y, double z);
-    virtual ~CFemNode ();
+    FemNode ();
+    FemNode (double x, double y, double z);
+    virtual ~FemNode ();
 
     // Class info
 
-    FemClassInfo("CFemNode",CFemObject);
+    FemClassInfo("FemNode",FemObject);
 
     // Methods
 
@@ -41,7 +41,7 @@ public:
     double getValue(unsigned int idx);
     void setValue(unsigned int idx, double value);
     void clearValues();
-    int getValueSize();
+    size_t getValueSize();
 
     // Get/Set methods
 
@@ -51,7 +51,7 @@ public:
     long getNumber();
     int getKind();
     void setKind(int kind);
-    CFemDof* getDof(unsigned int dof);
+    FemDof* getDof(unsigned int dof);
 
     // IO methods
 

@@ -90,9 +90,9 @@ void VisFemBeamLoad::initExtrusion()
 
             // Get beam
 
-            CFemBeam* femBeam = (CFemBeam*)m_beamLoad->getElement(i);
-            CFemNode* node1 = femBeam->getNode(0);
-            CFemNode* node2 = femBeam->getNode(1);
+            FemBeam* femBeam = (FemBeam*)m_beamLoad->getElement(i);
+            FemNode* node1 = femBeam->getNode(0);
+            FemNode* node2 = femBeam->getNode(1);
 
             // Create section
 
@@ -145,7 +145,7 @@ void VisFemBeamLoad::initExtrusion()
 }
 
 // ------------------------------------------------------------
-void VisFemBeamLoad::setBeamLoad(CFemBeamLoad *load)
+void VisFemBeamLoad::setBeamLoad(FemBeamLoad *load)
 {
     int i;
     m_q.clear();

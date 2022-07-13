@@ -3,13 +3,13 @@
 
 #include "FemSection.h"
 
-FemSmartPointer(CFemTubeSection);
+FemSmartPointer(FemTubeSection);
 
-class CFemTubeSection : public CFemSection {
+class FemTubeSection : public FemSection {
 public:
-    CFemTubeSection ();
-    virtual ~CFemTubeSection ();
+    FemTubeSection ();
+    virtual ~FemTubeSection ();
 
-    FemClassInfo("CFemTubeSection",CFemSection);
+    FemClassInfo("FemTubeSection",FemSection);
 };
 #endif

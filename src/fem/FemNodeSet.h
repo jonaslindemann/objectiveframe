@@ -6,27 +6,27 @@
 
 #include <vector>
 
-FemSmartPointer(CFemNodeSet);
+FemSmartPointer(FemNodeSet);
 
-class CFemNodeSet : public CFemObject {
+class FemNodeSet : public FemObject {
 private:
-    std::vector<CFemNodePtr> m_nodes;
+    std::vector<FemNodePtr> m_nodes;
 public:
-    CFemNodeSet ();
-    virtual ~CFemNodeSet ();
+    FemNodeSet ();
+    virtual ~FemNodeSet ();
 
     // Class info
 
-    FemClassInfo("CFemNodeSet",CFemObject);
+    FemClassInfo("FemNodeSet",FemObject);
 
     // Methods
 
     void deleteAll();
-    CFemNode* removeNode(long i);
-    bool removeNode(CFemNode* node);
+    FemNode* removeNode(long i);
+    bool removeNode(FemNode* node);
     bool deleteNode(long i);
-    CFemNode* getNode(long i);
-    void addNode(CFemNode* node);
+    FemNode* getNode(long i);
+    void addNode(FemNode* node);
     void clear();
 
     void clearNodeValues();
@@ -36,7 +36,7 @@ public:
 
     // Get/set methods
 
-    long getSize();
+    size_t getSize();
 
     virtual void print(std::ostream &out);
     virtual void readFromStream(std::istream &in);

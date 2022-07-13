@@ -3,16 +3,16 @@
 
 #include "FemObject.h"
 
-FemSmartPointer(CFemMaterial);
+FemSmartPointer(FemMaterial);
 
-class CFemMaterial : public CFemObject {
+class FemMaterial : public FemObject {
 private:
     long m_number;
 public:
-    CFemMaterial ();
-    virtual ~CFemMaterial ();
+    FemMaterial ();
+    virtual ~FemMaterial ();
 
-    FemClassInfo("CFemMaterial",CFemObject);
+    FemClassInfo("FemMaterial",FemObject);
 
     // Get/set methods
 

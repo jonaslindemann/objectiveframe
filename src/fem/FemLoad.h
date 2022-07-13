@@ -3,17 +3,17 @@
 
 #include "FemObject.h"
 
-FemSmartPointer(CFemLoad);
+FemSmartPointer(FemLoad);
 
-class CFemLoad : public CFemObject {
+class FemLoad : public FemObject {
 private:
     long m_number;
     double m_value;
 public:
-    CFemLoad ();
-    virtual ~CFemLoad ();
+    FemLoad ();
+    virtual ~FemLoad ();
 
-    FemClassInfo("CFemLoad",CFemObject);
+    FemClassInfo("FemLoad",FemObject);
 
     // Get/set methods
 

@@ -7,7 +7,7 @@
 using namespace std;
 
 // ------------------------------------------------------------
-CFemObject::CFemObject ()
+FemObject::FemObject ()
 {
     m_ref = 0;
     m_user = NULL;
@@ -15,19 +15,19 @@ CFemObject::CFemObject ()
 }
 
 // ------------------------------------------------------------
-CFemObject::~CFemObject ()
+FemObject::~FemObject ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemObject::addReference()
+void FemObject::addReference()
 {
     m_ref++;
 	//cout << this->getClassName() << "->addReference() (refs = " << m_ref << ")" << endl;
 }
 
 // ------------------------------------------------------------
-void CFemObject::deleteReference()
+void FemObject::deleteReference()
 {
 	if (m_ref>0)
         m_ref--;
@@ -35,25 +35,25 @@ void CFemObject::deleteReference()
 }
 
 // ------------------------------------------------------------
-bool CFemObject::isReferenced()
+bool FemObject::isReferenced()
 {
     return (m_ref>0);
 }
 
 // ------------------------------------------------------------
-const std::string CFemObject::getClassNameThis()
+const std::string FemObject::getClassNameThis()
 {
-    return "CFemObject";
+    return "FemObject";
 }
 
 // ------------------------------------------------------------
-const std::string CFemObject::getClassName()
+const std::string FemObject::getClassName()
 {
-    return "CFemObject";
+    return "FemObject";
 }
 
 // ------------------------------------------------------------
-bool CFemObject::isClass(const std::string& name)
+bool FemObject::isClass(const std::string& name)
 {
     std::string className = this->getClassNameThis();
 
@@ -69,58 +69,58 @@ bool CFemObject::isClass(const std::string& name)
 }
 
 // ------------------------------------------------------------
-void CFemObject::saveToStream(std::ostream &out)
+void FemObject::saveToStream(std::ostream &out)
 {
     //out << getClassId() << endl;
 }
 
 // ------------------------------------------------------------
-void CFemObject::readFromStream(std::istream &in)
+void FemObject::readFromStream(std::istream &in)
 {
     //int classId;
     //in >> classId;
 }
 
 // ------------------------------------------------------------
-void CFemObject::print(std::ostream &out)
+void FemObject::print(std::ostream &out)
 {
 
 }
 
-json CFemObject::toJSON()
+json FemObject::toJSON()
 {
     nlohmann::json j;
     return j;
 }
 
-void CFemObject::fromJSON(json& j)
+void FemObject::fromJSON(json& j)
 {
 }
 
 // ------------------------------------------------------------
-void CFemObject::setUser(void *user)
+void FemObject::setUser(void *user)
 {
     m_user = user;
 }
 
 // ------------------------------------------------------------
-void* CFemObject::getUser()
+void* FemObject::getUser()
 {
     return m_user;
 }
 
 // ------------------------------------------------------------
-int CFemObject::getRefCount()
+int FemObject::getRefCount()
 {
     return m_ref;
 }
 
-bool CFemObject::isReadOnly()
+bool FemObject::isReadOnly()
 {
 	return m_readOnly;
 }
 
-void CFemObject::setReadOnly(bool flag)
+void FemObject::setReadOnly(bool flag)
 {
 	m_readOnly = flag;
 }

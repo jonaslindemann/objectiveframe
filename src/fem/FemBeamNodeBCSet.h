@@ -6,16 +6,16 @@
 
 FemSmartPointer(CFemBeamNodeSetBCSet);
 
-class CFemBeamNodeBCSet : public CFemNodeBCSet {
+class FemBeamNodeBCSet : public FemNodeBCSet {
 private:
 
 public:
-    CFemBeamNodeBCSet();
-    virtual ~CFemBeamNodeBCSet();
+    FemBeamNodeBCSet();
+    virtual ~FemBeamNodeBCSet();
 
-    FemClassInfo("CFemBeamNodeBCSet",CFemNodeBCSet);
+    FemClassInfo("FemBeamNodeBCSet",FemNodeBCSet);
 protected:
-    CFemBC* createBC();
+    FemBC* createBC();
 };
 
 #endif

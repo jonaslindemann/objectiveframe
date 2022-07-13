@@ -5,19 +5,19 @@
 #include "FemBeam.h"
 #include "FemBeamMaterialSet.h"
 
-FemSmartPointer(CFemBeamSet);
+FemSmartPointer(FemBeamSet);
 
-class CFemBeamSet : public CFemElementSet {
+class FemBeamSet : public FemElementSet {
 protected:
-    virtual CFemElement* createElement();
+    virtual FemElement* createElement();
 public:
-    CFemBeamSet ();
-    virtual ~CFemBeamSet ();
+    FemBeamSet ();
+    virtual ~FemBeamSet ();
 
-    FemClassInfo("CFemBeamSet",CFemElementSet);
+    FemClassInfo("FemBeamSet",FemElementSet);
 
     // Methods
 
-    void connectMaterials(CFemBeamMaterialSet* materialSet);
+    void connectMaterials(FemBeamMaterialSet* materialSet);
 };
 #endif

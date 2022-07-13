@@ -78,7 +78,7 @@ void UiWindow::hide()
 
 void UiWindow::setSize(int w, int h)
 {
-	ImGui::SetWindowSize(m_name.c_str(), ImVec2(w, h));
+	ImGui::SetWindowSize(m_name.c_str(), ImVec2(float(w), float(h)));
 }
 
 void UiWindow::align(int corner)

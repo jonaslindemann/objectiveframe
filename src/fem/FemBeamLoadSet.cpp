@@ -3,21 +3,21 @@
 #include "FemBeamLoad.h"
 
 // ------------------------------------------------------------
-CFemBeamLoadSet::CFemBeamLoadSet()
-    :CFemElementLoadSet()
+FemBeamLoadSet::FemBeamLoadSet()
+    :FemElementLoadSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemBeamLoadSet::~CFemBeamLoadSet()
+FemBeamLoadSet::~FemBeamLoadSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemLoad* CFemBeamLoadSet::createLoad()
+FemLoad* FemBeamLoadSet::createLoad()
 {
-    return new CFemBeamLoad();
+    return new FemBeamLoad();
 }
 

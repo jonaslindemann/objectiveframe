@@ -3,8 +3,8 @@
 #include "FemCoord.h"
 
 // ------------------------------------------------------------
-CFemCoord::CFemCoord ()
-    :CFemObject()
+FemCoord::FemCoord ()
+    :FemObject()
 {
     m_coord[0] = 0.0;
     m_coord[1] = 0.0;
@@ -12,12 +12,12 @@ CFemCoord::CFemCoord ()
 }
 
 // ------------------------------------------------------------
-CFemCoord::~CFemCoord ()
+FemCoord::~FemCoord ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemCoord::setCoord(double x, double y, double z)
+void FemCoord::setCoord(double x, double y, double z)
 {
     m_coord[0] = x;
     m_coord[1] = y;
@@ -25,20 +25,20 @@ void CFemCoord::setCoord(double x, double y, double z)
 }
 
 // ------------------------------------------------------------
-void CFemCoord::getCoord(double &x, double &y, double &z)
+void FemCoord::getCoord(double &x, double &y, double &z)
 {
     x = m_coord[0];
     y = m_coord[1];
     z = m_coord[2];
 }
 
-void CFemCoord::saveToStream(std::ostream &out)
+void FemCoord::saveToStream(std::ostream &out)
 {
     using namespace std;
     out << m_coord[0] << " " << m_coord[1] << " " << m_coord[2] << endl;
 }
 
-void CFemCoord::readFromStream(std::istream &in)
+void FemCoord::readFromStream(std::istream &in)
 {
     in >> m_coord[0] >> m_coord[1] >> m_coord[2];
 }

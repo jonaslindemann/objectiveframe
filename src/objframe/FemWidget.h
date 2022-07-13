@@ -162,10 +162,10 @@ private:
 
 	Fl_Widget* m_coordWidget;
 
-	CFemBeamMaterialPtr m_currentMaterial;
-	CFemBeamLoadPtr     m_currentElementLoad;
-	CFemBeamNodeLoadPtr m_currentNodeLoad;
-	CFemBeamNodeBCPtr   m_currentNodeBC;
+	FemBeamMaterialPtr m_currentMaterial;
+	FemBeamLoadPtr     m_currentElementLoad;
+	FemBeamNodeLoadPtr m_currentNodeLoad;
+	FemBeamNodeBCPtr   m_currentNodeBC;
 	VisFemNodePtr       m_interactionNode;
 #ifdef USE_LEAP
 	LeapInteraction* m_leapinteraction;
@@ -247,10 +247,10 @@ public:
 	// Get set methods
 	void setCoordWidget(Fl_Widget* widget);
 	void setFileName(const std::string& name);
-	void setCurrentMaterial(CFemBeamMaterial* material);
-	void setCurrentBeamLoad(CFemBeamLoad* elementLoad);
+	void setCurrentMaterial(FemBeamMaterial* material);
+	void setCurrentBeamLoad(FemBeamLoad* elementLoad);
 	ivf::Shape* getSelectedShape();
-	CFemBeamMaterial* getCurrentMaterial();
+	FemBeamMaterial* getCurrentMaterial();
 	Fl_Widget* getCoordWidget();
 	const std::string getFileName();
 	void setSelectFilter(SelectMode filter);
@@ -260,15 +260,15 @@ public:
 	void setScalefactor(double scalefactor);
 	double getScalefactor();
 	void setArguments(int argc, char** argv);
-	void setCurrentNodeBC(CFemBeamNodeBC* bc);
+	void setCurrentNodeBC(FemBeamNodeBC* bc);
 	void setRotationSelected(double rotation);
-	void setCurrentNodeLoad(CFemBeamNodeLoad* nodeLoad);
-	CFemBeamNodeLoad* getCurrentNodeLoad();
-	CFemBeamLoad* getCurrentBeamLoad();
+	void setCurrentNodeLoad(FemBeamNodeLoad* nodeLoad);
+	FemBeamNodeLoad* getCurrentNodeLoad();
+	FemBeamLoad* getCurrentBeamLoad();
 	void setProgramPath(const std::string& progPath);
 	const std::string getProgPath();
 	void setResultType(int type);
-	CFemBeamNodeBC* getCurrentNodeBC();
+	FemBeamNodeBC* getCurrentNodeBC();
 	void setRelLoadSize(double size);
 	double getRelLoadSize();
 	void setRelLineRadius(double radius);
@@ -302,24 +302,24 @@ public:
 	void assignMaterialToSelected();
 	void newModel();
 	void showBeamLoads();
-	void addBeamLoad(CFemBeamLoad* elementLoad);
-	void deleteBeamLoad(CFemBeamLoad* elementLoad);
+	void addBeamLoad(FemBeamLoad* elementLoad);
+	void deleteBeamLoad(FemBeamLoad* elementLoad);
 	void assignBeamLoadSelected();
 	void selectAllElements();
 	void selectAllNodes();
 	void showMaterials();
 	void showProperties();
 	void executeCalc();
-	void deleteNodeBC(CFemBeamNodeBC* bc);
-	void addNodeBC(CFemBeamNodeBC* bc);
+	void deleteNodeBC(FemBeamNodeBC* bc);
+	void addNodeBC(FemBeamNodeBC* bc);
 	void assignNodeBCSelected();
 	void assignNodeFixedBCSelected();
 	void assignNodePosBCSelected();
 	void assignNodeFixedBCGround();
 	void assignNodePosBCGround();
-	void deleteNodeLoad(CFemBeamNodeLoad* nodeLoad);
+	void deleteNodeLoad(FemBeamNodeLoad* nodeLoad);
 	void assignNodeLoadSelected();
-	void addNodeLoad(CFemBeamNodeLoad* nodeLoad);
+	void addNodeLoad(FemBeamNodeLoad* nodeLoad);
 	void doFeedback();
 
 	void showMessage(std::string message);

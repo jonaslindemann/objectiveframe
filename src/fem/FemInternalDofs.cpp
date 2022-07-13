@@ -1,7 +1,7 @@
 #include "FemInternalDofs.h"
 
 // ------------------------------------------------------------
-CFemInternalDofs::CFemInternalDofs()
+FemInternalDofs::FemInternalDofs()
 {
     // Default we define 6 internal dofs.
 
@@ -9,7 +9,7 @@ CFemInternalDofs::CFemInternalDofs()
 }
 
 // ------------------------------------------------------------
-CFemInternalDofs::~CFemInternalDofs()
+FemInternalDofs::~FemInternalDofs()
 {
     // Delete any extra dofs, if specified
 
@@ -20,7 +20,7 @@ CFemInternalDofs::~CFemInternalDofs()
 }
 
 // ------------------------------------------------------------
-void CFemInternalDofs::setKind(int kind)
+void FemInternalDofs::setKind(int kind)
 {
     m_kind = kind;
     unsigned int i;
@@ -53,19 +53,19 @@ void CFemInternalDofs::setKind(int kind)
 }
 
 // ------------------------------------------------------------
-int CFemInternalDofs::getKind()
+int FemInternalDofs::getKind()
 {
     return m_kind;
 }
 
 // ------------------------------------------------------------
-void CFemInternalDofs::add(unsigned int localDof)
+void FemInternalDofs::add(unsigned int localDof)
 {
     // Add an extra dof to a specified local dof
 
     if (localDof<m_dofs.size())
     {
-        CFemDof* dof = new CFemDof();
+        FemDof* dof = new FemDof();
         if (m_dofs[localDof]!=NULL)
             delete m_dofs[localDof];
         m_dofs[localDof] = dof;
@@ -73,7 +73,7 @@ void CFemInternalDofs::add(unsigned int localDof)
 }
 
 // ------------------------------------------------------------
-void CFemInternalDofs::clear(unsigned int localDof)
+void FemInternalDofs::clear(unsigned int localDof)
 {
     // Clear extra dof at local dof
 
@@ -86,7 +86,7 @@ void CFemInternalDofs::clear(unsigned int localDof)
 }
 
 // ------------------------------------------------------------
-long CFemInternalDofs::enumerateDofs(long count)
+long FemInternalDofs::enumerateDofs(long count)
 {
     // Enumerate dofs
 
@@ -100,7 +100,7 @@ long CFemInternalDofs::enumerateDofs(long count)
 }
 
 // ------------------------------------------------------------
-bool CFemInternalDofs::isAssigned(unsigned int localDof)
+bool FemInternalDofs::isAssigned(unsigned int localDof)
 {
     if (localDof<m_dofs.size())
     {
@@ -111,7 +111,7 @@ bool CFemInternalDofs::isAssigned(unsigned int localDof)
 }
 
 // ------------------------------------------------------------
-CFemDof* CFemInternalDofs::getDof(unsigned int localDof)
+FemDof* FemInternalDofs::getDof(unsigned int localDof)
 {
     if (localDof<m_dofs.size())
     {
@@ -122,12 +122,12 @@ CFemDof* CFemInternalDofs::getDof(unsigned int localDof)
 }
 
 // ------------------------------------------------------------
-void CFemInternalDofs::readFromStream(std::istream &in)
+void FemInternalDofs::readFromStream(std::istream &in)
 {
     unsigned int i;
     int kind;
     int idof;
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> kind;
     this->setKind(kind);
     for (i=0; i<m_dofs.size(); i++)
@@ -135,18 +135,18 @@ void CFemInternalDofs::readFromStream(std::istream &in)
         in >> idof;
         if (idof!=0)
         {
-            CFemDof* dof = new CFemDof();
+            FemDof* dof = new FemDof();
             m_dofs[i] = dof;
         }
     }
 }
 
 // ------------------------------------------------------------
-void CFemInternalDofs::saveToStream(std::ostream &out)
+void FemInternalDofs::saveToStream(std::ostream &out)
 {
     using namespace std;
     unsigned int i;
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     out << m_kind << endl;
     for (i=0; i<m_dofs.size(); i++)
     {

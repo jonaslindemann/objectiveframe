@@ -69,7 +69,7 @@ void VisFemNodeLoad::initArrow()
 
             // Set topolgy
 
-            CFemNode* node = m_nodeLoad->getNode(i);
+            FemNode* node = m_nodeLoad->getNode(i);
 
             // Define arrow
 
@@ -113,17 +113,15 @@ void VisFemNodeLoad::refresh()
 }
 
 // ------------------------------------------------------------
-void VisFemNodeLoad::setNodeLoad(CFemBeamNodeLoad *nodeLoad)
+void VisFemNodeLoad::setNodeLoad(FemBeamNodeLoad *nodeLoad)
 {
-    int i;
-
     m_arrow.clear();
 
     m_nodeLoad = nodeLoad;
 
     if (m_nodeLoad!=NULL)
     {
-        for (i=0; i<m_nodeLoad->getNodeSize(); i++)
+        for (unsigned int i=0; i<m_nodeLoad->getNodeSize(); i++)
         {
             auto arrow = ExtrArrow::create();
             m_arrow.push_back(arrow);

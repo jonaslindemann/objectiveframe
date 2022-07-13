@@ -23,7 +23,7 @@ std::shared_ptr<NodeBCsWindow> NodeBCsWindow::create(const std::string name)
 	return std::make_shared<NodeBCsWindow>(name);
 }
 
-void NodeBCsWindow::setFemNodeBCSet(CFemBeamNodeBCSet* bcSet)
+void NodeBCsWindow::setFemNodeBCSet(FemBeamNodeBCSet* bcSet)
 {
 	m_femNodeBCSet = bcSet;
 	m_selected.resize(m_femNodeBCSet->getSize(), false);
@@ -50,12 +50,12 @@ void NodeBCsWindow::doDraw()
 		{
 			for (size_t i=0; i < m_femNodeBCSet->getSize(); i++)
 			{
-				CFemBeamNodeBC* nodeBC = static_cast<CFemBeamNodeBC*>(m_femNodeBCSet->getBC(i));
+				FemBeamNodeBC* nodeBC = static_cast<FemBeamNodeBC*>(m_femNodeBCSet->getBC(static_cast<long>(i)));
 
-				ImGui::PushID(i);
+				ImGui::PushID(static_cast<int>(i));
 				if (ImGui::Selectable(nodeBC->getName().c_str(), i == m_currentItemIdx))
 				{
-					m_currentItemIdx = i;
+					m_currentItemIdx = static_cast<int>(i);
 					std::cout << ">" << m_currentItemIdx << std::endl;
 					m_widget->setCurrentNodeBC(nodeBC);
 					m_propPopup->update();
@@ -74,7 +74,7 @@ void NodeBCsWindow::doDraw()
 	{ 
 		if (m_femNodeBCSet != nullptr)
 		{
-			CFemBeamNodeBC* bc = new CFemBeamNodeBC();
+			FemBeamNodeBC* bc = new FemBeamNodeBC();
 			bc->setName("new bc");
 			m_femNodeBCSet->addBC(bc);
 		}

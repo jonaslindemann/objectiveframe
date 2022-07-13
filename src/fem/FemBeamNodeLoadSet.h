@@ -6,16 +6,16 @@
 
 FemSmartPointer(CFEmBeamNodeLoadSet);
 
-class CFemBeamNodeLoadSet : public CFemNodeLoadSet {
+class FemBeamNodeLoadSet : public FemNodeLoadSet {
 private:
 
 public:
-    CFemBeamNodeLoadSet();
-    virtual ~CFemBeamNodeLoadSet();
+    FemBeamNodeLoadSet();
+    virtual ~FemBeamNodeLoadSet();
 
-    FemClassInfo("CFemBeamNodeLoadSet",CFemNodeLoadSet);
+    FemClassInfo("FemBeamNodeLoadSet",FemNodeLoadSet);
 protected:
-    CFemLoad* createLoad();
+    FemLoad* createLoad();
 };
 
 #endif

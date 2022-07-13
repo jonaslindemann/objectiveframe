@@ -10,8 +10,8 @@ using namespace std;
 #endif
 
 // ------------------------------------------------------------
-CFemSection::CFemSection()
-    :CFemObject(),
+FemSection::FemSection()
+    :FemObject(),
      m_data{nullptr},
      m_nbrOfProps{0},
      m_autoCalc{false},
@@ -27,21 +27,21 @@ CFemSection::CFemSection()
 }
 
 // ------------------------------------------------------------
-CFemSection::~CFemSection ()
+FemSection::~FemSection ()
 {
     this->clear();
 }
 
 // ------------------------------------------------------------
-void CFemSection::addPoint(double x, double y)
+void FemSection::addPoint(double x, double y)
 {
-    CFemCoord* coord = new CFemCoord();
+    FemCoord* coord = new FemCoord();
     coord->setCoord(x, y, 0.0);
     m_coords.push_back(coord);
 }
 
 // ------------------------------------------------------------
-void CFemSection::clear()
+void FemSection::clear()
 {
     for (unsigned int i=0; i<m_coords.size(); i++)
         delete m_coords[i];
@@ -49,7 +49,7 @@ void CFemSection::clear()
 }
 
 // ------------------------------------------------------------
-void CFemSection::getCoord(unsigned int idx, double &x, double &y)
+void FemSection::getCoord(unsigned int idx, double &x, double &y)
 {
     double z;
     if (idx<m_coords.size())
@@ -57,13 +57,13 @@ void CFemSection::getCoord(unsigned int idx, double &x, double &y)
 }
 
 // ------------------------------------------------------------
-unsigned int CFemSection::getSize()
+size_t FemSection::getSize()
 {
     return m_coords.size();
 }
 
 // ------------------------------------------------------------
-void CFemSection::getNormal(unsigned int idx, double &ex, double &ey)
+void FemSection::getNormal(unsigned int idx, double &ex, double &ey)
 {
     double x1, y1, z;
     double x2, y2, l;
@@ -101,7 +101,7 @@ void CFemSection::getNormal(unsigned int idx, double &ex, double &ey)
 }
 
 // ------------------------------------------------------------
-void CFemSection::setPropSize(int size)
+void FemSection::setPropSize(int size)
 {
     m_nbrOfProps = size;
     /*if (m_prop != NULL)
@@ -112,19 +112,19 @@ void CFemSection::setPropSize(int size)
 }
 
 // ------------------------------------------------------------
-void CFemSection::getPropSize(int &size)
+void FemSection::getPropSize(int &size)
 {
     size = m_nbrOfProps;
 }
 
 // ------------------------------------------------------------
-void CFemSection::getAllProps(double* &props)
+void FemSection::getAllProps(double* &props)
 {
     props = m_prop;
 }
 
 // ------------------------------------------------------------
-void CFemSection::setDataSize(int size)
+void FemSection::setDataSize(int size)
 {
     m_nbrOfData = size;
     /*if (m_prop != NULL)
@@ -135,34 +135,34 @@ void CFemSection::setDataSize(int size)
 }
 
 // ------------------------------------------------------------
-void CFemSection::getDataSize(int &size)
+void FemSection::getDataSize(int &size)
 {
     size = m_nbrOfData;
 }
 
 // ------------------------------------------------------------
-void CFemSection::getAllData(double* &data)
+void FemSection::getAllData(double* &data)
 {
     data = m_data;
 }
 
 // ------------------------------------------------------------
-void CFemSection::setAutoCalc(bool mode)
+void FemSection::setAutoCalc(bool mode)
 {
     m_autoCalc = mode;
 }
 
 // ------------------------------------------------------------
-bool CFemSection::autoCalc()
+bool FemSection::autoCalc()
 {
     return m_autoCalc;
 }
 
-void CFemSection::calcDataFromSection()
+void FemSection::calcDataFromSection()
 {
 }
 
-void CFemSection::saveToStream(std::ostream &out)
+void FemSection::saveToStream(std::ostream &out)
 {
     unsigned int i;
 
@@ -191,17 +191,17 @@ void CFemSection::saveToStream(std::ostream &out)
 
 }
 
-void CFemSection::setSectionType(int type)
+void FemSection::setSectionType(int type)
 {
     m_sectionType = type;
 }
 
-int CFemSection::getSectionType()
+int FemSection::getSectionType()
 {
     return m_sectionType;
 }
 
-void CFemSection::readFromStream(std::istream &in)
+void FemSection::readFromStream(std::istream &in)
 {
     int i, propSize,  dataSize, coordSize;
 
@@ -227,19 +227,19 @@ void CFemSection::readFromStream(std::istream &in)
     this->clear();
     for (i=0; i<coordSize; i++)
     {
-        CFemCoord* coord = new CFemCoord();
+        FemCoord* coord = new FemCoord();
         coord->readFromStream(in);
         m_coords.push_back(coord);
     }
 }
 
-void CFemSection::getExcY(double &emax, double &emin)
+void FemSection::getExcY(double &emax, double &emin)
 {
     emax = -1.0;
     emin = -1.0;
 }
 
-double CFemSection::prop(int idx)
+double FemSection::prop(int idx)
 {
     if ((idx >= 0) && (idx < 11))
         return m_prop[idx];
@@ -247,7 +247,7 @@ double CFemSection::prop(int idx)
         return -1.0;
 }
 
-double CFemSection::data(int idx)
+double FemSection::data(int idx)
 {
     if ((idx >= 0) && (idx < 6))
         return m_data[idx];
@@ -255,67 +255,67 @@ double CFemSection::data(int idx)
         return -1.0;
 }
 
-double CFemSection::E()
+double FemSection::E()
 {
     return m_data[0];
 }
 
-double CFemSection::A()
+double FemSection::A()
 {
     return m_data[1];
 }
 
-double CFemSection::G()
+double FemSection::G()
 {
     return m_data[2];
 }
 
-double CFemSection::Iy()
+double FemSection::Iy()
 {
     return m_data[3];
 }
 
-double CFemSection::Iz()
+double FemSection::Iz()
 {
     return m_data[4];
 }
 
-double CFemSection::Kv()
+double FemSection::Kv()
 {
     return m_data[5];
 }
 
-void CFemSection::setE(double value)
+void FemSection::setE(double value)
 {
     m_data[0] = value;
 }
 
-void CFemSection::setA(double value)
+void FemSection::setA(double value)
 {
     m_data[1] = value;
 }
 
-void CFemSection::setG(double value)
+void FemSection::setG(double value)
 {
     m_data[2] = value;
 }
 
-void CFemSection::setIy(double value)
+void FemSection::setIy(double value)
 {
     m_data[3] = value;
 }
 
-void CFemSection::setIz(double value)
+void FemSection::setIz(double value)
 {
     m_data[4] = value;
 }
 
-void CFemSection::setKv(double value)
+void FemSection::setKv(double value)
 {
     m_data[5] = value;
 }
 
-void CFemSection::setSectionData(double E, double A, double G, double Iy, double Iz, double Kv)
+void FemSection::setSectionData(double E, double A, double G, double Iy, double Iz, double Kv)
 {
     m_data[0] = E;
     m_data[1] = A;
@@ -325,7 +325,7 @@ void CFemSection::setSectionData(double E, double A, double G, double Iy, double
     m_data[5] = Kv;
 }
 
-void CFemSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void FemSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     m_prop[0] = height;
     m_prop[1] = width;
@@ -340,7 +340,7 @@ void CFemSection::setSectionProps(double width, double height, double UFW, doubl
     m_prop[10] = innerRadius;
 }
 
-void CFemSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void FemSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
 {
     height = m_prop[0];
     width = m_prop[1];
@@ -355,7 +355,7 @@ void CFemSection::getSectionProps(double& width, double& height, double& UFW, do
     innerRadius = m_prop[10];
 }
 
-void CFemSection::getExcZ(double &emax, double &emin)
+void FemSection::getExcZ(double &emax, double &emin)
 {
     emax = -1.0;
     emin = -1.0;

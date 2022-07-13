@@ -8,35 +8,29 @@
 
 #include <vector>
 
-namespace std {};
-using namespace std;
+FemSmartPointer(FemBeam);
 
-FemSmartPointer(CFemBeam);
-
-class CFemBeam : public CFemElement {
+class FemBeam : public FemElement {
 private:
     void eulrot(double *axis, double angle, double *u, double *v);
-    CFemBeamMaterialPtr     m_material;
+    FemBeamMaterialPtr    m_material;
     long				  m_materialIndex;
     double                m_beamRotation;
     int					  m_evaluationPoints;
 public:
-    CFemBeam ();
-    virtual ~CFemBeam ();
+    FemBeam ();
+    virtual ~FemBeam ();
 
-    FemClassInfo("CFemBeam",CFemElement);
+    FemClassInfo("FemBeam",FemElement);
 
     // Methods
 
     // Get/set methods
 
-    void getOrientation(double* v);
-    void setOrientation(double* v);
     void getOrientationZ(double &ex, double &ey, double &ez);
     void getOrientationY(double &ex, double &ey, double &ez);
-    void setOrientation(double ex, double ey, double ez);
-    CFemBeamMaterial* getMaterial();
-    void setMaterial(CFemBeamMaterial* material);
+    FemBeamMaterial* getMaterial();
+    void setMaterial(FemBeamMaterial* material);
     long getMaterialIndex();
     double getBeamRotation();
     void setBeamRotation(double angle);

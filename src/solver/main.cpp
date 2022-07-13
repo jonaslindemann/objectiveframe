@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	cout << "Current dir : " << currentDir() << endl;
 
 	cout << "Creating beam model..." << endl;
-	CFemBeamModelPtr beamModel = new CFemBeamModel();
+	FemBeamModelPtr beamModel = new FemBeamModel();
 
 	cout << "Intialise beam model..." << endl;
 	beamModel->setFileName("large_building.df3");

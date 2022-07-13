@@ -3,17 +3,17 @@
 
 #include "FemNodeLoad.h"
 
-FemSmartPointer(CFemBeamNodeLoad);
+FemSmartPointer(FemBeamNodeLoad);
 
-class CFemBeamNodeLoad : public CFemNodeLoad {
+class FemBeamNodeLoad : public FemNodeLoad {
 private:
     int m_color;
     std::string m_name;
 public:
-    CFemBeamNodeLoad();
-    virtual ~CFemBeamNodeLoad();
+    FemBeamNodeLoad();
+    virtual ~FemBeamNodeLoad();
 
-    FemClassInfo("CFemBeamNodeLoad",CFemNodeLoad);
+    FemClassInfo("FemBeamNodeLoad",FemNodeLoad);
 
     void setColor(int color);
     int getColor();

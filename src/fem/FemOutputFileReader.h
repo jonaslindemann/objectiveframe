@@ -4,19 +4,19 @@
 #include "FemObject.h"
 #include "FemModel.h"
 
-FemSmartPointer(CFemOutputFileReader);
+FemSmartPointer(FemOutputFileReader);
 
-class CFemOutputFileReader : public CFemObject {
+class FemOutputFileReader : public FemObject {
 private:
-    CFemModel* m_femModel;
+    FemModel* m_femModel;
 public:
-    CFemOutputFileReader();
-    virtual ~CFemOutputFileReader();
+    FemOutputFileReader();
+    virtual ~FemOutputFileReader();
 
-    FemClassInfo("CFemOutputFileReader",CFemObject);
+    FemClassInfo("FemOutputFileReader",FemObject);
 
-    CFemModel* getFemModel();
-    void setFemModel(CFemModel* model);
+    FemModel* getFemModel();
+    void setFemModel(FemModel* model);
 
     virtual void readFromStream(istream &in);
 };

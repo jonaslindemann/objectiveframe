@@ -5,19 +5,19 @@
 #include "FemNodeBC.h"
 
 // ------------------------------------------------------------
-CFemBCSet::CFemBCSet ()
-    :CFemObject()
+FemBCSet::FemBCSet ()
+    :FemObject()
 {
 }
 
 // ------------------------------------------------------------
-CFemBCSet::~CFemBCSet ()
+FemBCSet::~FemBCSet ()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::print(std::ostream &out)
+void FemBCSet::print(std::ostream &out)
 {
     using namespace std;
     for (unsigned int i=0; i<m_bcs.size(); i++)
@@ -26,9 +26,9 @@ void CFemBCSet::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-json CFemBCSet::toJSON()
+json FemBCSet::toJSON()
 {
-    json j = CFemObject::toJSON();
+    json j = FemObject::toJSON();
 
     json bcList;
 
@@ -41,13 +41,13 @@ json CFemBCSet::toJSON()
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::addBC(CFemBC *bc)
+void FemBCSet::addBC(FemBC *bc)
 {
-    m_bcs.push_back(CFemBCPtr(bc));
+    m_bcs.push_back(FemBCPtr(bc));
 }
 
 // ------------------------------------------------------------
-CFemBC* CFemBCSet::getBC(long i)
+FemBC* FemBCSet::getBC(long i)
 {
     if ( (i>=0)&&(i<(long)m_bcs.size()) )
         return m_bcs[i];
@@ -56,9 +56,9 @@ CFemBC* CFemBCSet::getBC(long i)
 }
 
 // ------------------------------------------------------------
-bool CFemBCSet::deleteBC(long i)
+bool FemBCSet::deleteBC(long i)
 {
-    std::vector<CFemBCPtr>::iterator p = m_bcs.begin();
+    std::vector<FemBCPtr>::iterator p = m_bcs.begin();
 
     if ( (i>=0)&&(i<(long)m_bcs.size()) )
     {
@@ -70,13 +70,13 @@ bool CFemBCSet::deleteBC(long i)
 }
 
 // ------------------------------------------------------------
-CFemBCPtr CFemBCSet::removeBC(long i)
+FemBCPtr FemBCSet::removeBC(long i)
 {
-    std::vector<CFemBCPtr>::iterator p = m_bcs.begin();
+    std::vector<FemBCPtr>::iterator p = m_bcs.begin();
 
     if ( (i>=0)&&(i<(long)m_bcs.size()) )
     {
-        CFemBCPtr bc = m_bcs[i];
+        FemBCPtr bc = m_bcs[i];
         p += i;
         m_bcs.erase(p);
         return bc;
@@ -86,19 +86,19 @@ CFemBCPtr CFemBCSet::removeBC(long i)
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::deleteAll()
+void FemBCSet::deleteAll()
 {
     m_bcs.clear();
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::clear()
+void FemBCSet::clear()
 {
     m_bcs.clear();
 }
 
 // ------------------------------------------------------------
-long CFemBCSet::enumerateBCs(long count)
+long FemBCSet::enumerateBCs(long count)
 {
     for (auto i=0; i<m_bcs.size(); i++)
         m_bcs[i]->setNumber(count++);
@@ -106,31 +106,31 @@ long CFemBCSet::enumerateBCs(long count)
 }
 
 // ------------------------------------------------------------
-size_t CFemBCSet::getSize()
+size_t FemBCSet::getSize()
 {
     return m_bcs.size();
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::saveToStream(std::ostream &out)
+void FemBCSet::saveToStream(std::ostream &out)
 {
     using namespace std;
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     out << m_bcs.size() << endl;
     for (auto i=0; i<m_bcs.size(); i++)
         m_bcs[i]->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::readFromStream(std::istream &in)
+void FemBCSet::readFromStream(std::istream &in)
 {
     long nBCs;
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> nBCs;
     deleteAll();
     for (auto i=0; i<nBCs; i++)
     {
-        CFemBC* bc = createBC();
+        FemBC* bc = createBC();
         bc->addReference();
         bc->readFromStream(in);
         m_bcs.push_back(bc);
@@ -138,19 +138,19 @@ void CFemBCSet::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemBCSet::connectNodes(CFemNodeSet *nodes)
+void FemBCSet::connectNodes(FemNodeSet *nodes)
 {
     for (unsigned int i=0; i<m_bcs.size(); i++)
     {
-        CFemBC* bc = m_bcs[i];
-        if (bc->isClass("CFemNodeBC"))
+        FemBC* bc = m_bcs[i];
+        if (bc->isClass("FemNodeBC"))
         {
-            auto nodeBC = dynamic_cast<CFemNodeBC*>(bc);
+            auto nodeBC = dynamic_cast<FemNodeBC*>(bc);
             //CFemNodeBC* nodeBC = (CFemNodeBC*) bc;
             nodeBC->clearNodes();
             for (auto j=0; j<nodeBC->getNodeIndexSize(); j++)
             {
-                CFemNode* node =
+                FemNode* node =
                     nodes->getNode(nodeBC->getNodeIndex(j)-1);
                 nodeBC->addNode(node);
             }
@@ -159,13 +159,13 @@ void CFemBCSet::connectNodes(CFemNodeSet *nodes)
 }
 
 // ------------------------------------------------------------
-CFemBC* CFemBCSet::createBC()
+FemBC* FemBCSet::createBC()
 {
-    return new CFemBC();
+    return new FemBC();
 }
 
 // ------------------------------------------------------------
-bool CFemBCSet::removeBC(CFemBC *bc)
+bool FemBCSet::removeBC(FemBC *bc)
 {
     auto p = m_bcs.begin();
 

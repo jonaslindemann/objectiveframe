@@ -3,33 +3,33 @@
 #include "FemDof.h"
 
 // ------------------------------------------------------------
-CFemDof::CFemDof ()
-    :CFemObject()
+FemDof::FemDof ()
+    :FemObject()
 {
-    m_kind = FEM_DISPL_X;
+    m_kind = DisplX;
     m_number = -1;
 }
 
 // ------------------------------------------------------------
-CFemDof::CFemDof (int kind, int number)
-    :CFemObject()
+FemDof::FemDof (FemDofKind kind, int number)
+    :FemObject()
 {
     m_kind = kind;
     m_number = number;
 }
 
 // ------------------------------------------------------------
-CFemDof::~CFemDof ()
+FemDof::~FemDof ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemDof::print(std::ostream &out)
+void FemDof::print(std::ostream &out)
 {
     out << m_kind+1 << " ";
 }
 
-json CFemDof::toJSON()
+json FemDof::toJSON()
 {
     json j;
     j["kind"] = m_kind;
@@ -37,32 +37,32 @@ json CFemDof::toJSON()
     return j;
 }
 
-void CFemDof::fromJSON(json& j)
+void FemDof::fromJSON(json& j)
 {
-    m_kind = j.at("kind").get<int>();
-    m_number = j.at("number").get<long>();
+    //m_kind = j.at("kind").get<int>();
+    //m_number = j.at("number").get<long>();
 }
 
 // ------------------------------------------------------------
-void CFemDof::setKind(int kind)
+void FemDof::setKind(FemDofKind kind)
 {
     m_kind = kind;
 }
 
 // ------------------------------------------------------------
-int CFemDof::getKind()
+FemDofKind FemDof::getKind()
 {
     return m_kind;
 }
 
 // ------------------------------------------------------------
-void CFemDof::setNumber(long number)
+void FemDof::setNumber(long number)
 {
     m_number = number;
 }
 
 // ------------------------------------------------------------
-long CFemDof::getNumber()
+long FemDof::getNumber()
 {
     return m_number;
 }

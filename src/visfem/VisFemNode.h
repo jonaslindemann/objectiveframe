@@ -13,7 +13,7 @@ IvfSmartPointer(VisFemNode);
 // public class: VisFemNode
 class VisFemNode : public ivf::Node {
 private:
-    CFemNode* m_femNode;
+    FemNode* m_femNode;
     bool m_directRefresh;
     VisBeamModel* m_beamModel;
 public:
@@ -25,8 +25,8 @@ public:
 
     void refresh();
 
-    CFemNode* getFemNode();
-    void setFemNode(CFemNode* node);
+    FemNode* getFemNode();
+    void setFemNode(FemNode* node);
 
     void setBeamModel(VisBeamModel* model);
     void setDirectRefresh(bool flag);

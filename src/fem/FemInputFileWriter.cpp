@@ -3,29 +3,29 @@
 #include "FemInputFileWriter.h"
 
 // ------------------------------------------------------------
-CFemInputFileWriter::CFemInputFileWriter ()
+FemInputFileWriter::FemInputFileWriter ()
 {
     m_femModel = NULL;
 }
 
 // ------------------------------------------------------------
-CFemInputFileWriter::~CFemInputFileWriter ()
+FemInputFileWriter::~FemInputFileWriter ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemInputFileWriter::saveToStream (std::ostream &out)
+void FemInputFileWriter::saveToStream (std::ostream &out)
 {
 }
 
 // ------------------------------------------------------------
-void CFemInputFileWriter::setFemModel(CFemModel *model)
+void FemInputFileWriter::setFemModel(FemModel *model)
 {
     m_femModel = model;
 }
 
 // ------------------------------------------------------------
-CFemModel* CFemInputFileWriter::getFemModel()
+FemModel* FemInputFileWriter::getFemModel()
 {
     return m_femModel;
 }

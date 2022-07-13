@@ -5,32 +5,32 @@
 #include "FemElement.h"
 #include "FemNodeSet.h"
 
-FemSmartPointer(CFemElementSet);
+FemSmartPointer(FemElementSet);
 
-class CFemElementSet : public CFemObject {
+class FemElementSet : public FemObject {
 private:
-    std::vector<CFemElementPtr> m_elements;
+    std::vector<FemElementPtr> m_elements;
 public:
-    CFemElementSet ();
-    virtual ~CFemElementSet ();
+    FemElementSet ();
+    virtual ~FemElementSet ();
 
     // Class info
 
-    FemClassInfo("CFemElementSet",CFemObject);
+    FemClassInfo("FemElementSet",FemObject);
 
     // Methods
 
     void deleteAll();
-    CFemElement* removeElement(long i);
+    FemElement* removeElement(long i);
     bool deleteElement(long i);
-    CFemElement* getElement(long i);
-    void addElement(CFemElement* element);
-    long getSize();
+    FemElement* getElement(long i);
+    void addElement(FemElement* element);
+    size_t getSize();
     void clear();
     long enumerateElements(long count=1);
-    void connectNodes(CFemNodeSet* nodes);
+    void connectNodes(FemNodeSet* nodes);
     long enumerateDofs(long count=1);
-    bool removeElement(CFemElement* element);
+    bool removeElement(FemElement* element);
 
     // IO methods
 
@@ -38,6 +38,6 @@ public:
     void saveToStream(std::ostream &out);
     virtual void print(std::ostream &out);
 protected:
-    virtual CFemElement* createElement();
+    virtual FemElement* createElement();
 };
 #endif

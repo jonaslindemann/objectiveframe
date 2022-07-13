@@ -3,31 +3,31 @@
 #include "FemBeamSet.h"
 
 // ------------------------------------------------------------
-CFemBeamSet::CFemBeamSet ()
-    :CFemElementSet()
+FemBeamSet::FemBeamSet ()
+    :FemElementSet()
 {
 }
 
 // ------------------------------------------------------------
-CFemBeamSet::~CFemBeamSet ()
+FemBeamSet::~FemBeamSet ()
 {
 }
 
 // ------------------------------------------------------------
-CFemElement* CFemBeamSet::createElement()
+FemElement* FemBeamSet::createElement()
 {
-    return new CFemBeam();
+    return new FemBeam();
 }
 
 // ------------------------------------------------------------
-void CFemBeamSet::connectMaterials(CFemBeamMaterialSet *materialSet)
+void FemBeamSet::connectMaterials(FemBeamMaterialSet *materialSet)
 {
     for (int i=0; i<this->getSize(); i++)
     {
-        CFemBeam* element = (CFemBeam*) this->getElement(i);
+        FemBeam* element = (FemBeam*) this->getElement(i);
         if (element->getMaterialIndex()!=-1)
         {
-            element->setMaterial((CFemBeamMaterial*)
+            element->setMaterial((FemBeamMaterial*)
                                  materialSet->getMaterial(element->getMaterialIndex()-1));
         }
     }

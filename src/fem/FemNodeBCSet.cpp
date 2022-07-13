@@ -3,21 +3,21 @@
 #include "FemNodeBC.h"
 
 // ------------------------------------------------------------
-CFemNodeBCSet::CFemNodeBCSet()
-    :CFemBCSet()
+FemNodeBCSet::FemNodeBCSet()
+    :FemBCSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemNodeBCSet::~CFemNodeBCSet()
+FemNodeBCSet::~FemNodeBCSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemBC* CFemNodeBCSet::createBC()
+FemBC* FemNodeBCSet::createBC()
 {
-    return (CFemBC*) new CFemNodeBC();
+    return (FemBC*) new FemNodeBC();
 }
 

@@ -12,9 +12,9 @@ private:
     int m_size[3];
     double m_spacing[3];
     VisBeamModel* m_beamModel;
-    CFemBeamMaterial* m_currentMaterial;
+    FemBeamMaterial* m_currentMaterial;
 public:
-    void setCurrentMaterial(CFemBeamMaterial* material);
+    void setCurrentMaterial(FemBeamMaterial* material);
     CStructureFactory();
     virtual ~CStructureFactory();
 

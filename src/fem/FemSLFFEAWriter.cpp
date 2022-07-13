@@ -3,36 +3,36 @@
 #include "FemSLFFEAWriter.h"
 
 // ------------------------------------------------------------
-CFemSLFFEAWriter::CFemSLFFEAWriter ()
+FemSLFFEAWriter::FemSLFFEAWriter ()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemSLFFEAWriter::~CFemSLFFEAWriter ()
+FemSLFFEAWriter::~FemSLFFEAWriter ()
 {
 
 }
 
 // ------------------------------------------------------------
-void CFemSLFFEAWriter::saveToStream(std::ostream &out)
+void FemSLFFEAWriter::saveToStream(std::ostream &out)
 {
     long i, j;
     double E,G,A,Iy,Iz,Kv;
     double x, y, z;
     double ex, ey, ez;
 
-    CFemBeamModel* femModel = (CFemBeamModel*)this->getFemModel();
+    FemBeamModel* femModel = (FemBeamModel*)this->getFemModel();
 
     if (femModel==NULL)
         return;
 
-    CFemElementSet* elementSet = femModel->getElementSet();
-    CFemNodeSet* nodeSet = femModel->getNodeSet();
-    CFemMaterialSet* materialSet = femModel->getMaterialSet();
-    CFemNodeBCSet* bcSet = femModel->getNodeBCSet();
-    CFemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
-    CFemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    FemElementSet* elementSet = femModel->getElementSet();
+    FemNodeSet* nodeSet = femModel->getNodeSet();
+    FemMaterialSet* materialSet = femModel->getMaterialSet();
+    FemNodeBCSet* bcSet = femModel->getNodeBCSet();
+    FemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
+    FemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
     nodeSet->enumerateNodes();
     materialSet->enumerateMaterials();
@@ -58,7 +58,7 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<materialSet->getSize(); i++)
     {
-        CFemBeamMaterial* material = (CFemBeamMaterial*) materialSet->getMaterial(i);
+        FemBeamMaterial* material = (FemBeamMaterial*) materialSet->getMaterial(i);
         material->getProperties(E,G,A,Iy,Iz,Kv);
         out << i << " ";
         out << E << " ";
@@ -76,7 +76,7 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<elementSet->getSize(); i++)
     {
-        CFemBeam* element = (CFemBeam*) elementSet->getElement(i);
+        FemBeam* element = (FemBeam*) elementSet->getElement(i);
         out << i << " ";
         out << element->getNode(0)->getNumber()-1 << " ";
         out << element->getNode(1)->getNumber()-1 << " ";
@@ -91,7 +91,7 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<nodeSet->getSize(); i++)
     {
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         out << i << " ";
         node->getCoord(x, y, z);
         out << x << " " << y << " " << z << endl;
@@ -105,7 +105,7 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<elementSet->getSize(); i++)
     {
-        CFemBeam* element = (CFemBeam*) elementSet->getElement(i);
+        FemBeam* element = (FemBeam*) elementSet->getElement(i);
         out << i << " ";
         element->getOrientationZ(ex, ey, ez);
         out << ex << " ";
@@ -122,12 +122,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
+        FemNodeBC* nodeBC = (FemNodeBC*)bcSet->getBC(i);
         if (nodeBC->isPrescribed(1))
         {
             for (j=0; j<nodeBC->getNodeSize(); j++)
             {
-                CFemNode* node = nodeBC->getNode(j);
+                FemNode* node = nodeBC->getNode(j);
                 out << node->getNumber()-1 << " ";
                 out << nodeBC->getPrescribedValue(1) << endl;
             }
@@ -143,12 +143,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
+        FemNodeBC* nodeBC = (FemNodeBC*)bcSet->getBC(i);
         if (nodeBC->isPrescribed(2))
         {
             for (j=0; j<nodeBC->getNodeSize(); j++)
             {
-                CFemNode* node = nodeBC->getNode(j);
+                FemNode* node = nodeBC->getNode(j);
                 out << node->getNumber()-1 << " ";
                 out << nodeBC->getPrescribedValue(2) << endl;
             }
@@ -164,12 +164,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
+        FemNodeBC* nodeBC = (FemNodeBC*)bcSet->getBC(i);
         if (nodeBC->isPrescribed(3))
         {
             for (j=0; j<nodeBC->getNodeSize(); j++)
             {
-                CFemNode* node = nodeBC->getNode(j);
+                FemNode* node = nodeBC->getNode(j);
                 out << node->getNumber()-1 << " ";
                 out << nodeBC->getPrescribedValue(3) << endl;
             }
@@ -185,12 +185,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
+        FemNodeBC* nodeBC = (FemNodeBC*)bcSet->getBC(i);
         if (nodeBC->isPrescribed(4))
         {
             for (j=0; j<nodeBC->getNodeSize(); j++)
             {
-                CFemNode* node = nodeBC->getNode(j);
+                FemNode* node = nodeBC->getNode(j);
                 out << node->getNumber()-1 << " ";
                 out << nodeBC->getPrescribedValue(4) << endl;
             }
@@ -206,12 +206,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
+        FemNodeBC* nodeBC = (FemNodeBC*)bcSet->getBC(i);
         if (nodeBC->isPrescribed(5))
         {
             for (j=0; j<nodeBC->getNodeSize(); j++)
             {
-                CFemNode* node = nodeBC->getNode(j);
+                FemNode* node = nodeBC->getNode(j);
                 out << node->getNumber()-1 << " ";
                 out << nodeBC->getPrescribedValue(5) << endl;
             }
@@ -227,12 +227,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
+        FemNodeBC* nodeBC = (FemNodeBC*)bcSet->getBC(i);
         if (nodeBC->isPrescribed(6))
         {
             for (j=0; j<nodeBC->getNodeSize(); j++)
             {
-                CFemNode* node = nodeBC->getNode(j);
+                FemNode* node = nodeBC->getNode(j);
                 out << node->getNumber()-1 << " ";
                 out << nodeBC->getPrescribedValue(6) << endl;
             }
@@ -248,10 +248,10 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<nodeLoadSet->getSize(); i++)
     {
-        CFemNodeLoad* nodeLoad = (CFemNodeLoad*)nodeLoadSet->getLoad(i);
+        FemNodeLoad* nodeLoad = (FemNodeLoad*)nodeLoadSet->getLoad(i);
         for (j=0; j<(long)nodeLoad->getNodeSize(); j++)
         {
-            CFemNode* node = nodeLoad->getNode(j);
+            FemNode* node = nodeLoad->getNode(j);
             out << node->getNumber()-1 << " ";
             nodeLoad->getDirection(ex, ey, ez);
             out << nodeLoad->getValue()*ex << " ";
@@ -270,10 +270,10 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
     for (i=0; i<elementLoadSet->getSize(); i++)
     {
-        CFemBeamLoad* beamLoad = (CFemBeamLoad*) elementLoadSet->getLoad(i);
+        FemBeamLoad* beamLoad = (FemBeamLoad*) elementLoadSet->getLoad(i);
         for (j=0; j<beamLoad->getElementsSize(); j++)
         {
-            CFemBeam* beam = (CFemBeam*) beamLoad->getElement(j);
+            FemBeam* beam = (FemBeam*) beamLoad->getElement(j);
             out << beam->getNumber()-1 << " ";
             beamLoad->getLocalDirection(ex, ey, ez);
             out << -beamLoad->getValue()*ey << " ";
@@ -287,12 +287,12 @@ void CFemSLFFEAWriter::saveToStream(std::ostream &out)
 
 }
 
-void CFemSLFFEAWriter::setFileName(const char *fileName)
+void FemSLFFEAWriter::setFileName(const char *fileName)
 {
     m_fileName = fileName;
 }
 
-void CFemSLFFEAWriter::save()
+void FemSLFFEAWriter::save()
 {
     if (m_fileName!="")
     {

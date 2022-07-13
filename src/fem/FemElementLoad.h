@@ -9,24 +9,24 @@
 namespace std {};
 using namespace std;
 
-FemSmartPointer(CFemElementLoad);
+FemSmartPointer(FemElementLoad);
 
-class CFemElementLoad : public CFemLoad {
+class FemElementLoad : public FemLoad {
 private:
-    std::vector<CFemElement*> m_elements;
+    std::vector<FemElement*> m_elements;
     std::vector<long> m_elementIndex;
     double m_localDirection[3];
 public:
-    CFemElementLoad();
-    virtual ~CFemElementLoad ();
+    FemElementLoad();
+    virtual ~FemElementLoad ();
 
     // Class info
 
-    FemClassInfo("CFemElementLoad",CFemLoad);
+    FemClassInfo("FemElementLoad",FemLoad);
 
-    bool removeElement(CFemElement* element);
+    bool removeElement(FemElement* element);
     void clearElements();
-    void addElement(CFemElement* element);
+    void addElement(FemElement* element);
 
     // Get/set methods
 
@@ -35,9 +35,9 @@ public:
     void getLocalDirection(double &ex, double &ey, double &ez);
     void setLocalDirection(double ex, double ey, double ez);
     unsigned int getElementIndex(unsigned int idx);
-    unsigned int getElementIndexSize();
-    CFemElement* getElement(unsigned int idx);
-    int getElementsSize();
+    size_t getElementIndexSize();
+    FemElement* getElement(unsigned int idx);
+    size_t getElementsSize();
 
     // IO Methods
 

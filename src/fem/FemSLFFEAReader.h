@@ -5,17 +5,17 @@
 
 #include <string>
 
-FemSmartPointer(CFemSLFFEAReader);
+FemSmartPointer(FemSLFFEAReader);
 
-class CFemSLFFEAReader : public CFemOutputFileReader {
+class FemSLFFEAReader : public FemOutputFileReader {
 private:
     string m_fileName;
     fstream m_outputFile;
 public:
-    CFemSLFFEAReader();
-    virtual ~CFemSLFFEAReader();
+    FemSLFFEAReader();
+    virtual ~FemSLFFEAReader();
 
-    FemClassInfo("CFemSLFFEAReader",CFemOutputFileReader);
+    FemClassInfo("FemSLFFEAReader",FemOutputFileReader);
 
     void setFileName(const char* fileName);
     void load();

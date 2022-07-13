@@ -3,34 +3,34 @@
 #include "FemBeamLoad.h"
 
 // ------------------------------------------------------------
-CFemBeamLoad::CFemBeamLoad ()
-    :CFemElementLoad(),
+FemBeamLoad::FemBeamLoad ()
+    :FemElementLoad(),
      m_name{"Noname"},
      m_color{1}
 {
 }
 
 // ------------------------------------------------------------
-CFemBeamLoad::~CFemBeamLoad ()
+FemBeamLoad::~FemBeamLoad ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemBeamLoad::setName(const std::string& name)
+void FemBeamLoad::setName(const std::string& name)
 {
     m_name = name;
 }
 
 // ------------------------------------------------------------
-const std::string CFemBeamLoad::getName()
+const std::string FemBeamLoad::getName()
 {
     return m_name;
 }
 
 // ------------------------------------------------------------
-void CFemBeamLoad::saveToStream(std::ostream &out)
+void FemBeamLoad::saveToStream(std::ostream &out)
 {
-    CFemElementLoad::saveToStream(out);
+    FemElementLoad::saveToStream(out);
     if (m_name=="")
         out << "Noname" << endl;
     else
@@ -39,10 +39,10 @@ void CFemBeamLoad::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemBeamLoad::readFromStream(std::istream &in)
+void FemBeamLoad::readFromStream(std::istream &in)
 {
     char buffer[255];
-    CFemElementLoad::readFromStream(in);
+    FemElementLoad::readFromStream(in);
     in.getline(buffer,255);
     in.getline(buffer,255);
     this->setName(buffer);
@@ -50,13 +50,13 @@ void CFemBeamLoad::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemBeamLoad::setColor(int color)
+void FemBeamLoad::setColor(int color)
 {
     m_color = color;
 }
 
 // ------------------------------------------------------------
-int CFemBeamLoad::getColor()
+int FemBeamLoad::getColor()
 {
     return m_color;
 }

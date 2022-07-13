@@ -3,8 +3,8 @@
 #include "FemNodeLoad.h"
 
 // ------------------------------------------------------------
-CFemNodeLoad::CFemNodeLoad ()
-    :CFemLoad()
+FemNodeLoad::FemNodeLoad ()
+    :FemLoad()
 {
     m_direction[0] = 0.0;
     m_direction[1] = 0.0;
@@ -12,22 +12,22 @@ CFemNodeLoad::CFemNodeLoad ()
 }
 
 // ------------------------------------------------------------
-CFemNodeLoad::~CFemNodeLoad ()
+FemNodeLoad::~FemNodeLoad ()
 {
     this->clearNodes();
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::print(ostream &out)
+void FemNodeLoad::print(ostream &out)
 {
 
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::saveToStream(std::ostream &out)
+void FemNodeLoad::saveToStream(std::ostream &out)
 {
     unsigned int i;
-    CFemLoad::saveToStream(out);
+    FemLoad::saveToStream(out);
     out << m_nodes.size() << endl;
     for (i=0; i<m_nodes.size(); i++)
         out << m_nodes[i]->getNumber() << endl;
@@ -38,11 +38,11 @@ void CFemNodeLoad::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::readFromStream(std::istream &in)
+void FemNodeLoad::readFromStream(std::istream &in)
 {
     int nNodes, i;
     long idx;
-    CFemLoad::readFromStream(in);
+    FemLoad::readFromStream(in);
     in >> nNodes;
     for (i=0; i<nNodes; i++)
     {
@@ -55,7 +55,7 @@ void CFemNodeLoad::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::setDirection(double ex, double ey, double ez)
+void FemNodeLoad::setDirection(double ex, double ey, double ez)
 {
     m_direction[0] = ex;
     m_direction[1] = ey;
@@ -63,7 +63,7 @@ void CFemNodeLoad::setDirection(double ex, double ey, double ez)
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::getDirection(double &ex, double &ey, double &ez)
+void FemNodeLoad::getDirection(double &ex, double &ey, double &ez)
 {
     ex = m_direction[0];
     ey = m_direction[1];
@@ -71,7 +71,7 @@ void CFemNodeLoad::getDirection(double &ex, double &ey, double &ez)
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::setDirection(double *v)
+void FemNodeLoad::setDirection(double *v)
 {
     m_direction[0] = v[0];
     m_direction[1] = v[1];
@@ -79,7 +79,7 @@ void CFemNodeLoad::setDirection(double *v)
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::getDirection(double *v)
+void FemNodeLoad::getDirection(double *v)
 {
     v[0] = m_direction[0];
     v[1] = m_direction[1];
@@ -87,14 +87,14 @@ void CFemNodeLoad::getDirection(double *v)
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::addNode(CFemNode *node)
+void FemNodeLoad::addNode(FemNode *node)
 {
     node->addReference();
     m_nodes.push_back(node);
 }
 
 // ------------------------------------------------------------
-void CFemNodeLoad::clearNodes()
+void FemNodeLoad::clearNodes()
 {
     unsigned int i;
 
@@ -105,9 +105,9 @@ void CFemNodeLoad::clearNodes()
 }
 
 // ------------------------------------------------------------
-bool CFemNodeLoad::removeNode(CFemNode *node)
+bool FemNodeLoad::removeNode(FemNode *node)
 {
-    std::vector<CFemNode*>::iterator p = m_nodes.begin();
+    std::vector<FemNode*>::iterator p = m_nodes.begin();
 
     while ( (p!=m_nodes.end())&&(*p!=node) )
         p++;
@@ -128,7 +128,7 @@ bool CFemNodeLoad::removeNode(CFemNode *node)
 }
 
 // ------------------------------------------------------------
-CFemNode* CFemNodeLoad::getNode(unsigned int idx)
+FemNode* FemNodeLoad::getNode(unsigned int idx)
 {
     if (idx<m_nodes.size())
         return m_nodes[idx];
@@ -137,7 +137,7 @@ CFemNode* CFemNodeLoad::getNode(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-long CFemNodeLoad::getNodeIndex(unsigned int idx)
+long FemNodeLoad::getNodeIndex(unsigned int idx)
 {
     if (idx<m_nodeIndex.size())
         return m_nodeIndex[idx];
@@ -146,13 +146,13 @@ long CFemNodeLoad::getNodeIndex(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-unsigned int CFemNodeLoad::getNodeIndexSize()
+size_t FemNodeLoad::getNodeIndexSize()
 {
     return m_nodeIndex.size();
 }
 
 // ------------------------------------------------------------
-unsigned int CFemNodeLoad::getNodeSize()
+size_t FemNodeLoad::getNodeSize()
 {
     return m_nodes.size();
 }

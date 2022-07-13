@@ -17,24 +17,24 @@
 namespace std {};
 using namespace std;
 
-FemSmartPointer(CFemModel);
+FemSmartPointer(FemModel);
 
-class CFemModel : public CFemObject {
+class FemModel : public FemObject {
 private:
-    CFemNodeSetPtr m_nodeSet;
-    CFemElementSetPtr m_elementSet;
-    CFemMaterialSetPtr m_materialSet;
-    CFemNodeLoadSetPtr m_nodeLoadSet;
-    CFemElementLoadSetPtr m_elementLoadSet;
-    CFemNodeBCSetPtr m_bcSet;
+    FemNodeSetPtr m_nodeSet;
+    FemElementSetPtr m_elementSet;
+    FemMaterialSetPtr m_materialSet;
+    FemNodeLoadSetPtr m_nodeLoadSet;
+    FemElementLoadSetPtr m_elementLoadSet;
+    FemNodeBCSetPtr m_bcSet;
     std::string m_fileName;
 protected:
-    virtual CFemNodeBCSet* createBCSet();
-    virtual CFemElementLoadSet* createElementLoadSet();
-    virtual CFemNodeLoadSet* createNodeLoadSet();
-    virtual CFemMaterialSet* createMaterialSet();
-    virtual CFemNodeSet* createNodeSet();
-    virtual CFemElementSet* createElementSet();
+    virtual FemNodeBCSet* createBCSet();
+    virtual FemElementLoadSet* createElementLoadSet();
+    virtual FemNodeLoadSet* createNodeLoadSet();
+    virtual FemMaterialSet* createMaterialSet();
+    virtual FemNodeSet* createNodeSet();
+    virtual FemElementSet* createElementSet();
     virtual void connectElementLoads();
     virtual void connectNodeLoads();
     virtual void connectMaterials();
@@ -42,12 +42,12 @@ protected:
     virtual void connectNodeBCs();
     virtual void onInitialised();
 public:
-    CFemModel ();
-    virtual ~CFemModel ();
+    FemModel ();
+    virtual ~FemModel ();
 
     // Class info
 
-    FemClassInfo("CFemModel",CFemObject);
+    FemClassInfo("FemModel",FemObject);
 
     // Methods
 
@@ -60,25 +60,25 @@ public:
 
     // Get/set methods
 
-    CFemMaterialSet* getMaterialSet();
-	CFemMaterialSet* materialSet();
+    FemMaterialSet* getMaterialSet();
+	FemMaterialSet* materialSet();
 
-	CFemElementSet* getElementSet();
-	CFemElementSet* elementSet();
+	FemElementSet* getElementSet();
+	FemElementSet* elementSet();
 
-	CFemNodeSet* getNodeSet();
-	CFemNodeSet* nodeSet();
+	FemNodeSet* getNodeSet();
+	FemNodeSet* nodeSet();
 
-	CFemNodeLoadSet* getNodeLoadSet();
-	CFemNodeLoadSet* nodeLoadSet();
+	FemNodeLoadSet* getNodeLoadSet();
+	FemNodeLoadSet* nodeLoadSet();
 
-	CFemElementLoadSet* getElementLoadSet();
-	CFemElementLoadSet* elementLoadSet();
+	FemElementLoadSet* getElementLoadSet();
+	FemElementLoadSet* elementLoadSet();
 
-	CFemNodeBCSet* getBCSet();
-	CFemNodeBCSet* BCSet();
-	CFemNodeBCSet* getNodeBCSet();
-	CFemNodeBCSet* nodeBCSet();
+	FemNodeBCSet* getBCSet();
+	FemNodeBCSet* BCSet();
+	FemNodeBCSet* getNodeBCSet();
+	FemNodeBCSet* nodeBCSet();
 
     const std::string getFileName();
     void setFileName(const::string& fname);

@@ -3,19 +3,19 @@
 #include "FemElementSet.h"
 
 // ------------------------------------------------------------
-CFemElementSet::CFemElementSet ()
-    :CFemObject()
+FemElementSet::FemElementSet ()
+    :FemObject()
 {
 }
 
 // ------------------------------------------------------------
-CFemElementSet::~CFemElementSet ()
+FemElementSet::~FemElementSet ()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::print(std::ostream &out)
+void FemElementSet::print(std::ostream &out)
 {
     using namespace std;
     for (unsigned int i=0; i<m_elements.size(); i++)
@@ -24,13 +24,13 @@ void CFemElementSet::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::addElement(CFemElement *element)
+void FemElementSet::addElement(FemElement *element)
 {
-    m_elements.push_back(CFemElementPtr(element));
+    m_elements.push_back(FemElementPtr(element));
 }
 
 // ------------------------------------------------------------
-CFemElement* CFemElementSet::getElement(long i)
+FemElement* FemElementSet::getElement(long i)
 {
     if ( (i>=0)&&(i<(long)m_elements.size()) )
         return m_elements[i];
@@ -39,7 +39,7 @@ CFemElement* CFemElementSet::getElement(long i)
 }
 
 // ------------------------------------------------------------
-bool CFemElementSet::deleteElement(long i)
+bool FemElementSet::deleteElement(long i)
 {
     if ( (i>=0)&&(i<(long)m_elements.size()) )
     {
@@ -55,13 +55,13 @@ bool CFemElementSet::deleteElement(long i)
 }
 
 // ------------------------------------------------------------
-CFemElement* CFemElementSet::removeElement(long i)
+FemElement* FemElementSet::removeElement(long i)
 {
     if ( (i>=0)&&(i<(long)m_elements.size()) )
     {
         if (m_elements[i]->getRefCount()==1)
         {
-            CFemElement* element = m_elements[i];
+            FemElement* element = m_elements[i];
             element->addReference();
             m_elements.erase(m_elements.begin()+i);
             element->deleteReference();
@@ -75,19 +75,19 @@ CFemElement* CFemElementSet::removeElement(long i)
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::deleteAll()
+void FemElementSet::deleteAll()
 {
     m_elements.clear();
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::clear()
+void FemElementSet::clear()
 {
     m_elements.clear();
 }
 
 // ------------------------------------------------------------
-long CFemElementSet::enumerateElements(long count)
+long FemElementSet::enumerateElements(long count)
 {
     for (unsigned int i=0; i<m_elements.size(); i++)
         m_elements[i]->setNumber(count++);
@@ -95,55 +95,55 @@ long CFemElementSet::enumerateElements(long count)
 }
 
 // ------------------------------------------------------------
-long CFemElementSet::getSize()
+size_t FemElementSet::getSize()
 {
     return m_elements.size();
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::saveToStream(std::ostream &out)
+void FemElementSet::saveToStream(std::ostream &out)
 {
     using namespace std;
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     out << m_elements.size() << endl;
     for (unsigned int i=0; i<m_elements.size(); i++)
         m_elements[i]->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::readFromStream(std::istream &in)
+void FemElementSet::readFromStream(std::istream &in)
 {
     long nElements;
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> nElements;
     deleteAll();
     for (int i=0; i<nElements; i++)
     {
-        CFemElementPtr element = createElement();
+        FemElementPtr element = createElement();
         element->readFromStream(in);
         m_elements.push_back(element);
     }
 }
 
 // ------------------------------------------------------------
-void CFemElementSet::connectNodes(CFemNodeSet *nodes)
+void FemElementSet::connectNodes(FemNodeSet *nodes)
 {
     for (unsigned int i=0; i<m_elements.size(); i++)
     {
-        CFemElement* element = m_elements[i];
+        FemElement* element = m_elements[i];
         for (unsigned int j=0; j<element->getIndexSize(); j++)
             element->addNode(nodes->getNode(element->getElementIndex(j)-1));
     }
 }
 
 // ------------------------------------------------------------
-CFemElement* CFemElementSet::createElement()
+FemElement* FemElementSet::createElement()
 {
-    return new CFemElement();
+    return new FemElement();
 }
 
 // ------------------------------------------------------------
-bool CFemElementSet::removeElement(CFemElement *element)
+bool FemElementSet::removeElement(FemElement *element)
 {
     for (unsigned int i=0; i<m_elements.size(); i++)
     {
@@ -154,7 +154,7 @@ bool CFemElementSet::removeElement(CFemElement *element)
 }
 
 // ------------------------------------------------------------
-long CFemElementSet::enumerateDofs(long count)
+long FemElementSet::enumerateDofs(long count)
 {
     for (unsigned int i=0; i<m_elements.size(); i++)
         count = m_elements[i]->enumerateDofs(count);

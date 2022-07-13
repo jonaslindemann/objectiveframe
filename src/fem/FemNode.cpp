@@ -3,8 +3,8 @@
 #include "FemNode.h"
 
 // ------------------------------------------------------------
-CFemNode::CFemNode ()
-    :CFemObject()
+FemNode::FemNode ()
+    :FemObject()
 {
     m_number = -1;
     m_coord[0] = 0.0;
@@ -14,8 +14,8 @@ CFemNode::CFemNode ()
 }
 
 // ------------------------------------------------------------
-CFemNode::CFemNode (double x, double y, double z)
-    :CFemObject()
+FemNode::FemNode (double x, double y, double z)
+    :FemObject()
 {
     m_number = -1;
     this->setCoord(x, y, z);
@@ -23,13 +23,13 @@ CFemNode::CFemNode (double x, double y, double z)
 }
 
 // ------------------------------------------------------------
-CFemNode::~CFemNode ()
+FemNode::~FemNode ()
 {
 
 }
 
 // ------------------------------------------------------------
-void CFemNode::setCoord(double x, double y, double z)
+void FemNode::setCoord(double x, double y, double z)
 {
     m_coord[0] = x;
     m_coord[1] = y;
@@ -37,7 +37,7 @@ void CFemNode::setCoord(double x, double y, double z)
 }
 
 // ------------------------------------------------------------
-void CFemNode::getCoord(double &x, double &y, double &z)
+void FemNode::getCoord(double &x, double &y, double &z)
 {
     x = m_coord[0];
     y = m_coord[1];
@@ -45,19 +45,19 @@ void CFemNode::getCoord(double &x, double &y, double &z)
 }
 
 // ------------------------------------------------------------
-void CFemNode::setNumber(long number)
+void FemNode::setNumber(long number)
 {
     m_number = number;
 }
 
 // ------------------------------------------------------------
-long CFemNode::getNumber()
+long FemNode::getNumber()
 {
     return m_number;
 }
 
 // ------------------------------------------------------------
-void CFemNode::print(std::ostream &out)
+void FemNode::print(std::ostream &out)
 {
     using namespace std;
     out << "Node " << m_number << endl;;
@@ -75,14 +75,14 @@ void CFemNode::print(std::ostream &out)
     out << endl;
 }
 
-json CFemNode::toJSON()
+json FemNode::toJSON()
 {
     /*
     long m_number;
     int m_kind;
     double m_coord[3];
     std::vector<double> m_values;
-    std::vector<CFemDofPtr> m_dofs;
+    std::vector<FemDofPtr> m_dofs;
     */
     json j;
     j["number"] = m_number;
@@ -102,12 +102,12 @@ json CFemNode::toJSON()
     return j;
 }
 
-void CFemNode::fromJSON(nlohmann::json& j)
+void FemNode::fromJSON(nlohmann::json& j)
 {
 }
 
 // ------------------------------------------------------------
-void CFemNode::setKind(int kind)
+void FemNode::setKind(int kind)
 {
     m_kind = kind;
 
@@ -124,21 +124,21 @@ void CFemNode::setKind(int kind)
     case FEM_DISPL_NODE:
         for (i=0; i<3; i++)
         {
-            CFemDofPtr dof = new CFemDof(i);
+            FemDofPtr dof = new FemDof(static_cast<FemDofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
     case FEM_DISPL_ROT_NODE:
         for (i=0; i<6; i++)
         {
-            CFemDofPtr dof = new CFemDof(i);
+            FemDofPtr dof = new FemDof(static_cast<FemDofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
     default:
         for (i=0; i<3; i++)
         {
-            CFemDofPtr dof = new CFemDof(i);
+            FemDofPtr dof = new FemDof(static_cast<FemDofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
@@ -146,13 +146,13 @@ void CFemNode::setKind(int kind)
 }
 
 // ------------------------------------------------------------
-int CFemNode::getKind()
+int FemNode::getKind()
 {
     return m_kind;
 }
 
 // ------------------------------------------------------------
-CFemDof* CFemNode::getDof(unsigned int dof)
+FemDof* FemNode::getDof(unsigned int dof)
 {
     if (dof<m_dofs.size())
         return m_dofs[dof];
@@ -161,7 +161,7 @@ CFemDof* CFemNode::getDof(unsigned int dof)
 }
 
 // ------------------------------------------------------------
-long CFemNode::enumerateDofs(long count)
+long FemNode::enumerateDofs(long count)
 {
     for (unsigned int i=0; i<m_dofs.size(); i++)
         m_dofs[i]->setNumber(count++);
@@ -169,10 +169,10 @@ long CFemNode::enumerateDofs(long count)
 }
 
 // ------------------------------------------------------------
-void CFemNode::saveToStream(std::ostream &out)
+void FemNode::saveToStream(std::ostream &out)
 {
     using namespace std;
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     out << m_kind << " " ;
     out << m_number << " ";
     for (int i=0; i<3; i++)
@@ -198,9 +198,9 @@ void CFemNode::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemNode::readFromStream(std::istream &in)
+void FemNode::readFromStream(std::istream &in)
 {
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> m_kind;
     in >> m_number;
     for (int i=0; i<3; i++)
@@ -209,7 +209,7 @@ void CFemNode::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemNode::setValueSize(int size)
+void FemNode::setValueSize(int size)
 {
     int i;
     m_values.resize(size);
@@ -218,7 +218,7 @@ void CFemNode::setValueSize(int size)
 }
 
 // ------------------------------------------------------------
-double CFemNode::getValue(unsigned int idx)
+double FemNode::getValue(unsigned int idx)
 {
     if (idx<m_values.size())
         return m_values[idx];
@@ -227,20 +227,20 @@ double CFemNode::getValue(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-void CFemNode::setValue(unsigned int idx, double value)
+void FemNode::setValue(unsigned int idx, double value)
 {
     if (idx<m_values.size())
         m_values[idx] = value;
 }
 
 // ------------------------------------------------------------
-int CFemNode::getValueSize()
+size_t FemNode::getValueSize()
 {
     return m_values.size();
 }
 
 // ------------------------------------------------------------
-void CFemNode::clearValues()
+void FemNode::clearValues()
 {
     m_values.clear();
 }

@@ -26,7 +26,7 @@
 
 FemSmartPointer(VisBeamModel);
 
-class VisBeamModel : public CFemBeamModel {
+class VisBeamModel : public FemBeamModel {
 private:
     double m_nodeSize;
     double m_lineRadius;
@@ -51,15 +51,15 @@ private:
 
     std::string m_colorMapPath;
 
-	CFemBeamNodeBC* m_defaultNodePosBC;
-	CFemBeamNodeBC* m_defaultNodeFixedBC;
+	FemBeamNodeBC* m_defaultNodePosBC;
+	FemBeamNodeBC* m_defaultNodeFixedBC;
 protected:
     virtual void onInitialised();
 public:
     VisBeamModel();
     virtual ~VisBeamModel();
 
-    FemClassInfo("VisBeamModel",CFemBeamModel);
+    FemClassInfo("VisBeamModel",FemBeamModel);
 
     void generateModel();
 
@@ -108,7 +108,7 @@ public:
     void setBeamType(int type);
     int getBeamType();
 
-	CFemBeamNodeBC* defaultNodePosBC();
-	CFemBeamNodeBC* defaultNodeFixedBC();
+	FemBeamNodeBC* defaultNodePosBC();
+	FemBeamNodeBC* defaultNodeFixedBC();
 };
 #endif

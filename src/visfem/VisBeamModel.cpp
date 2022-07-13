@@ -21,7 +21,7 @@ using namespace ivf;
 
 // ------------------------------------------------------------
 VisBeamModel::VisBeamModel()
-    :CFemBeamModel()
+    :FemBeamModel()
 {
     m_nodeSize = 1.0;
     m_nodeType = Node::NT_CUBE;
@@ -57,7 +57,7 @@ VisBeamModel::~VisBeamModel()
 // ------------------------------------------------------------
 void VisBeamModel::onInitialised()
 {
-    CFemBeamMaterialPtr material = new CFemBeamMaterial();
+    FemBeamMaterialPtr material = new FemBeamMaterial();
     material->setProperties(2.1e9, 8.1e7, 1.0, 1.0, 1.0, 1.0 );
     material->setSectionType(ST_SolidPipe);
     material->setName("default");
@@ -67,13 +67,13 @@ void VisBeamModel::onInitialised()
 
 	// Create default Node BCs
 
-	m_defaultNodeFixedBC = new CFemBeamNodeBC();
+	m_defaultNodeFixedBC = new FemBeamNodeBC();
 	m_defaultNodeFixedBC->setName("fixed pos/rot");
 	m_defaultNodeFixedBC->fixed();
 	m_defaultNodeFixedBC->setReadOnly();
 	this->nodeBCSet()->addBC(m_defaultNodeFixedBC);
 
-	m_defaultNodePosBC = new CFemBeamNodeBC();
+	m_defaultNodePosBC = new FemBeamNodeBC();
 	m_defaultNodePosBC->setName("fixed pos");
 	m_defaultNodePosBC->fixedPosition();
 	m_defaultNodePosBC->setReadOnly();
@@ -96,7 +96,7 @@ void VisBeamModel::generateModel()
 
     // Create nodes
 
-    CFemNodeSet* nodeSet = this->getNodeSet();
+    FemNodeSet* nodeSet = this->getNodeSet();
 
     for (int i=0; i<nodeSet->getSize(); i++)
     {
@@ -115,17 +115,17 @@ void VisBeamModel::generateModel()
 
     // Generate elements
 
-    CFemBeamSet* beamSet = this->getElementSet();
+    FemBeamSet* beamSet = this->getElementSet();
 
     for (int i=0; i<beamSet->getSize(); i++)
     {
         VisFemBeam* ivfBeam = new VisFemBeam();
-        CFemBeam* femBeam = (CFemBeam*) beamSet->getElement(i);
+        FemBeam* femBeam = (FemBeam*) beamSet->getElement(i);
         ivfBeam->setBeam(femBeam);
         //ivfBeam->setMaterial(m_beamMaterial);
         ivfBeam->setBeamModel(this);
-        CFemNode* femNode1 = femBeam->getNode(0);
-        CFemNode* femNode2 = femBeam->getNode(1);
+        FemNode* femNode1 = femBeam->getNode(0);
+        FemNode* femNode2 = femBeam->getNode(1);
         ivfBeam->setNodes(ivfNodes[femNode1->getNumber()-1],ivfNodes[femNode2->getNumber()-1]);
         ivfBeam->refresh();
         m_scene->addChild(ivfBeam);
@@ -133,12 +133,12 @@ void VisBeamModel::generateModel()
 
     // Generate beam loads
 
-    CFemElementLoadSet* elementLoadSet = this->getElementLoadSet();
+    FemElementLoadSet* elementLoadSet = this->getElementLoadSet();
 
     for (int i=0; i<elementLoadSet->getSize(); i++)
     {
         VisFemBeamLoad* ivfBeamLoad = new VisFemBeamLoad();
-        CFemBeamLoad* femBeamLoad = (CFemBeamLoad*) elementLoadSet->getLoad(i);
+        FemBeamLoad* femBeamLoad = (FemBeamLoad*) elementLoadSet->getLoad(i);
         ivfBeamLoad->setBeamModel(this);
         ivfBeamLoad->setBeamLoad(femBeamLoad);
         femBeamLoad->setUser((void*)ivfBeamLoad);
@@ -150,12 +150,12 @@ void VisBeamModel::generateModel()
 
     // Generate node loads
 
-    CFemNodeLoadSet* nodeLoadSet = this->getNodeLoadSet();
+    FemNodeLoadSet* nodeLoadSet = this->getNodeLoadSet();
 
     for (int i=0; i<nodeLoadSet->getSize(); i++)
     {
         VisFemNodeLoad* ivfNodeLoad = new VisFemNodeLoad();
-        CFemBeamNodeLoad* femNodeLoad = (CFemBeamNodeLoad*) nodeLoadSet->getLoad(i);
+        FemBeamNodeLoad* femNodeLoad = (FemBeamNodeLoad*) nodeLoadSet->getLoad(i);
         ivfNodeLoad->setBeamModel(this);
         ivfNodeLoad->setNodeLoad(femNodeLoad);
         femNodeLoad->setUser((void*)ivfNodeLoad);
@@ -167,12 +167,12 @@ void VisBeamModel::generateModel()
 
     // Generate node bcs
 
-    CFemNodeBCSet* nodeBCSet = this->getNodeBCSet();
+    FemNodeBCSet* nodeBCSet = this->getNodeBCSet();
 
     for (int i=0; i<nodeBCSet->getSize(); i++)
     {
         VisFemNodeBC* ivfNodeBC = new VisFemNodeBC();
-        CFemBeamNodeBC* femNodeBC = (CFemBeamNodeBC*) nodeBCSet->getBC(i);
+        FemBeamNodeBC* femNodeBC = (FemBeamNodeBC*) nodeBCSet->getBC(i);
         ivfNodeBC->setBeamModel(this);
         //ivfNodeBC->setColorTable(this->getColorTable());
         //ivfNodeBC->setNodeSize(*m_pnodeSize);
@@ -283,12 +283,12 @@ int VisBeamModel::getBeamType()
     return m_beamType;
 }
 
-CFemBeamNodeBC * VisBeamModel::defaultNodePosBC()
+FemBeamNodeBC * VisBeamModel::defaultNodePosBC()
 {
 	return m_defaultNodePosBC;
 }
 
-CFemBeamNodeBC * VisBeamModel::defaultNodeFixedBC()
+FemBeamNodeBC * VisBeamModel::defaultNodeFixedBC()
 {
 	return m_defaultNodeFixedBC;
 }

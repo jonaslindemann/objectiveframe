@@ -1,35 +1,35 @@
 #include "FemBeamNodeBC.h"
 
 // ------------------------------------------------------------
-CFemBeamNodeBC::CFemBeamNodeBC()
-    :CFemNodeBC()
+FemBeamNodeBC::FemBeamNodeBC()
+    :FemNodeBC()
 {
     m_name = "Noname";
     m_color = 1;
 }
 
 // ------------------------------------------------------------
-CFemBeamNodeBC::~CFemBeamNodeBC()
+FemBeamNodeBC::~FemBeamNodeBC()
 {
 }
 
 // ------------------------------------------------------------
-void CFemBeamNodeBC::setName(const std::string& name)
+void FemBeamNodeBC::setName(const std::string& name)
 {
     m_name = name;
 }
 
 // ------------------------------------------------------------
-const std::string CFemBeamNodeBC::getName()
+const std::string FemBeamNodeBC::getName()
 {
     return m_name;
 }
 
 // ------------------------------------------------------------
-void CFemBeamNodeBC::saveToStream(std::ostream &out)
+void FemBeamNodeBC::saveToStream(std::ostream &out)
 {
     using namespace std;
-    CFemNodeBC::saveToStream(out);
+    FemNodeBC::saveToStream(out);
     if (m_name=="")
         out << "Noname" << endl;
     else
@@ -38,10 +38,10 @@ void CFemBeamNodeBC::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemBeamNodeBC::readFromStream(std::istream &in)
+void FemBeamNodeBC::readFromStream(std::istream &in)
 {
     char buffer[255];
-    CFemNodeBC::readFromStream(in);
+    FemNodeBC::readFromStream(in);
     in.getline(buffer,255);
     in.getline(buffer,255);
     this->setName(buffer);
@@ -49,13 +49,13 @@ void CFemBeamNodeBC::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemBeamNodeBC::setColor(int color)
+void FemBeamNodeBC::setColor(int color)
 {
     m_color = color;
 }
 
 // ------------------------------------------------------------
-int CFemBeamNodeBC::getColor()
+int FemBeamNodeBC::getColor()
 {
     return m_color;
 }

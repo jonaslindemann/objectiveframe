@@ -5,19 +5,19 @@
 #include "FemElementLoad.h"
 
 // ------------------------------------------------------------
-CFemLoadSet::CFemLoadSet ()
-    :CFemObject()
+FemLoadSet::FemLoadSet ()
+    :FemObject()
 {
 }
 
 // ------------------------------------------------------------
-CFemLoadSet::~CFemLoadSet ()
+FemLoadSet::~FemLoadSet ()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::print(std::ostream &out)
+void FemLoadSet::print(std::ostream &out)
 {
     for (unsigned int i=0; i<m_loads.size(); i++)
         out << m_loads[i];
@@ -25,14 +25,14 @@ void CFemLoadSet::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::addLoad(CFemLoad *load)
+void FemLoadSet::addLoad(FemLoad *load)
 {
     load->addReference();
     m_loads.push_back(load);
 }
 
 // ------------------------------------------------------------
-CFemLoad* CFemLoadSet::getLoad(long i)
+FemLoad* FemLoadSet::getLoad(long i)
 {
     if ( (i>=0)&&(i<(long)m_loads.size()) )
         return m_loads[i];
@@ -41,13 +41,13 @@ CFemLoad* CFemLoadSet::getLoad(long i)
 }
 
 // ------------------------------------------------------------
-bool CFemLoadSet::deleteLoad(long i)
+bool FemLoadSet::deleteLoad(long i)
 {
-    std::vector<CFemLoad*>::iterator p = m_loads.begin();
+    std::vector<FemLoad*>::iterator p = m_loads.begin();
 
     if ( (i>=0)&&(i<(long)m_loads.size()) )
     {
-        CFemLoad* load = m_loads[i];
+        FemLoad* load = m_loads[i];
 
         load->deleteReference();
         if (!load->isReferenced())
@@ -63,13 +63,13 @@ bool CFemLoadSet::deleteLoad(long i)
 }
 
 // ------------------------------------------------------------
-CFemLoad* CFemLoadSet::removeLoad(long i)
+FemLoad* FemLoadSet::removeLoad(long i)
 {
-    std::vector<CFemLoad*>::iterator p = m_loads.begin();
+    std::vector<FemLoad*>::iterator p = m_loads.begin();
 
     if ( (i>=0)&&(i<(long)m_loads.size()) )
     {
-        CFemLoad* load = m_loads[i];
+        FemLoad* load = m_loads[i];
         load->deleteReference();
         p += i;
         m_loads.erase(p);
@@ -80,11 +80,11 @@ CFemLoad* CFemLoadSet::removeLoad(long i)
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::deleteAll()
+void FemLoadSet::deleteAll()
 {
     for (unsigned int i=0; i<m_loads.size(); i++)
     {
-        CFemLoad* load = m_loads[i];
+        FemLoad* load = m_loads[i];
         load->deleteReference();
         if (!load->isReferenced())
             delete load;
@@ -93,18 +93,18 @@ void CFemLoadSet::deleteAll()
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::clear()
+void FemLoadSet::clear()
 {
     for (unsigned int i=0; i<m_loads.size(); i++)
     {
-        CFemLoad* load = m_loads[i];
+        FemLoad* load = m_loads[i];
         load->deleteReference();
     }
     m_loads.clear();
 }
 
 // ------------------------------------------------------------
-long CFemLoadSet::enumerateLoads(long count)
+long FemLoadSet::enumerateLoads(long count)
 {
     for (long i=0; i<(long)m_loads.size(); i++)
         m_loads[i]->setNumber(count++);
@@ -112,30 +112,30 @@ long CFemLoadSet::enumerateLoads(long count)
 }
 
 // ------------------------------------------------------------
-long CFemLoadSet::getSize()
+size_t FemLoadSet::getSize()
 {
     return m_loads.size();
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::saveToStream(std::ostream &out)
+void FemLoadSet::saveToStream(std::ostream &out)
 {
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     out << m_loads.size() << endl;
     for (unsigned int i=0; i<m_loads.size(); i++)
         m_loads[i]->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::readFromStream(std::istream &in)
+void FemLoadSet::readFromStream(std::istream &in)
 {
     long nLoads;
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> nLoads;
     deleteAll();
     for (int i=0; i<nLoads; i++)
     {
-        CFemLoad* load = createLoad();
+        FemLoad* load = createLoad();
         load->addReference();
         load->readFromStream(in);
         m_loads.push_back(load);
@@ -143,18 +143,18 @@ void CFemLoadSet::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::connectNodes(CFemNodeSet *nodes)
+void FemLoadSet::connectNodes(FemNodeSet *nodes)
 {
     for (unsigned int i=0; i<m_loads.size(); i++)
     {
-        CFemLoad* load = m_loads[i];
-        if (load->isClass("CFemNodeLoad"))
+        FemLoad* load = m_loads[i];
+        if (load->isClass("FemNodeLoad"))
         {
-            CFemNodeLoad* nodeLoad = (CFemNodeLoad*) load;
+            FemNodeLoad* nodeLoad = (FemNodeLoad*) load;
             nodeLoad->clearNodes();
             for (unsigned int j=0; j<nodeLoad->getNodeIndexSize(); j++)
             {
-                CFemNode* node =
+                FemNode* node =
                     nodes->getNode(nodeLoad->getNodeIndex(j)-1);
                 nodeLoad->addNode(node);
             }
@@ -163,24 +163,24 @@ void CFemLoadSet::connectNodes(CFemNodeSet *nodes)
 }
 
 // ------------------------------------------------------------
-CFemLoad* CFemLoadSet::createLoad()
+FemLoad* FemLoadSet::createLoad()
 {
-    return new CFemLoad();
+    return new FemLoad();
 }
 
 // ------------------------------------------------------------
-void CFemLoadSet::connectElements(CFemElementSet *elements)
+void FemLoadSet::connectElements(FemElementSet *elements)
 {
     for (unsigned int i=0; i<m_loads.size(); i++)
     {
-        CFemLoad* load = m_loads[i];
-        if (load->isClass("CFemElementLoad"))
+        FemLoad* load = m_loads[i];
+        if (load->isClass("FemElementLoad"))
         {
-            CFemElementLoad* elementLoad = (CFemElementLoad*) load;
+            FemElementLoad* elementLoad = (FemElementLoad*) load;
             elementLoad->clearElements();
             for (unsigned int j=0; j<elementLoad->getElementIndexSize(); j++)
             {
-                CFemElement* element =
+                FemElement* element =
                     elements->getElement(elementLoad->getElementIndex(j)-1);
                 elementLoad->addElement(element);
             }
@@ -189,16 +189,16 @@ void CFemLoadSet::connectElements(CFemElementSet *elements)
 }
 
 // ------------------------------------------------------------
-bool CFemLoadSet::removeLoad(CFemLoad *load)
+bool FemLoadSet::removeLoad(FemLoad *load)
 {
-    std::vector<CFemLoad*>::iterator p = m_loads.begin();
+    std::vector<FemLoad*>::iterator p = m_loads.begin();
 
     while ( (*p!=load)&&(p!=m_loads.end()) )
         p++;
 
     if (p!=m_loads.end())
     {
-        CFemLoad* l = *p;
+        FemLoad* l = *p;
         delete l;
         m_loads.erase(p);
         return true;

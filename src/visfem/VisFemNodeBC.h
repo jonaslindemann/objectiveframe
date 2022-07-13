@@ -21,7 +21,7 @@ IvfSmartPointer(CIVfFemNodeBC);
 // public class: VisFemNodeBC
 class VisFemNodeBC : public ivf::Shape {
 private:
-    CFemBeamNodeBC* m_nodeBC;
+    FemBeamNodeBC* m_nodeBC;
     vector<VisBC*> m_bc;
     ivf::MaterialPtr m_bcMaterial;
 
@@ -34,7 +34,7 @@ public:
 
     void refresh();
 
-    void setNodeBC(CFemBeamNodeBC* bc);
+    void setNodeBC(FemBeamNodeBC* bc);
     void setBeamModel(VisBeamModel* model);
 protected:
     virtual void doCreateGeometry();

@@ -19,7 +19,7 @@ IvfSmartPointer(VisFemBeamLoad);
 class VisFemBeamLoad : public ivf::Shape {
 private:
     vector<ivf::QuadSetPtr> m_q;
-    CFemBeamLoad* m_beamLoad;
+    FemBeamLoad* m_beamLoad;
     vector<ivf::ExtrArrowPtr> m_arrow;
     ivf::MaterialPtr m_extrMaterial;
     ivf::MaterialPtr m_arrowMaterial;
@@ -38,7 +38,7 @@ public:
     void setBeamModel(VisBeamModel* model);
 
 
-    void setBeamLoad(CFemBeamLoad* load);
+    void setBeamLoad(FemBeamLoad* load);
 
     virtual void refresh();
 protected:

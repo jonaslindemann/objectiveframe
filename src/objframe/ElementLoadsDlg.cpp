@@ -9,7 +9,7 @@ void ElementLoadsDlg::cb_lbLoadSet_i(Fl_Browser*, void*) {
 {
 	if (lbLoadSet->value()>0)
 	{
-		m_currentLoad = (CFemBeamLoad*)
+		m_currentLoad = (FemBeamLoad*)
 			m_loadSet->getLoad(lbLoadSet->value()-1);
 	}
 	else m_currentLoad = NULL;
@@ -34,7 +34,7 @@ void ElementLoadsDlg::cb_btnAddLoad_i(Fl_HoverButton*, void*) {
 		loadName = result;
 		if (loadName!="")
 		{
-			CFemBeamLoad* load = new CFemBeamLoad();
+			FemBeamLoad* load = new FemBeamLoad();
 			load->setName(loadName);
 			load->setLocalDirection(0.0, 1.0, 0.0);
 			m_loadSet->addLoad(load);
@@ -364,7 +364,7 @@ void ElementLoadsDlg::show() {
   this->fillListBox();
 }
 
-void ElementLoadsDlg::setLoadSet(CFemElementLoadSet* loadSet) {
+void ElementLoadsDlg::setLoadSet(FemElementLoadSet* loadSet) {
   m_loadSet = loadSet;
   if (m_loadSet==NULL)
   {
@@ -385,7 +385,7 @@ void ElementLoadsDlg::setLoadSet(CFemElementLoadSet* loadSet) {
   }
 }
 
-CFemElementLoadSet* ElementLoadsDlg::getLoadSet() {
+FemElementLoadSet* ElementLoadsDlg::getLoadSet() {
   return m_loadSet;
 }
 
@@ -400,8 +400,8 @@ void ElementLoadsDlg::fillListBox() {
   	lbLoadSet->clear();
   	for (int i=0; i<m_loadSet->getSize(); i++)
   	{
-  		CFemBeamLoad* beamLoad = 
-  			(CFemBeamLoad*) m_loadSet->getLoad(i);
+  		FemBeamLoad* beamLoad = 
+  			(FemBeamLoad*) m_loadSet->getLoad(i);
   		loadName = beamLoad->getName();
   		lbLoadSet->add(loadName.c_str(), beamLoad);
   	}
@@ -409,7 +409,7 @@ void ElementLoadsDlg::fillListBox() {
   }
 }
 
-CFemBeamLoad* ElementLoadsDlg::getCurrentLoad() {
+FemBeamLoad* ElementLoadsDlg::getCurrentLoad() {
   return m_currentLoad;
 }
 

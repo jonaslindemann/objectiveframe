@@ -3,20 +3,20 @@
 
 #include "FemLoadSet.h"
 
-FemSmartPointer(CFemNodeLoadSet);
+FemSmartPointer(FemNodeLoadSet);
 
-class CFemNodeLoadSet : public CFemLoadSet
+class FemNodeLoadSet : public FemLoadSet
 {
 public:
-    CFemNodeLoadSet();
-    virtual ~CFemNodeLoadSet();
+    FemNodeLoadSet();
+    virtual ~FemNodeLoadSet();
 
     // Class info
 
-    FemClassInfo("CFemNodeLoadSet",CFemLoadSet);
+    FemClassInfo("FemNodeLoadSet",FemLoadSet);
 
 protected:
-    CFemLoad* createLoad();
+    FemLoad* createLoad();
 };
 
 #endif

@@ -4,19 +4,19 @@
 #include "FemBCSet.h"
 #include "FemBC.h"
 
-FemSmartPointer(CFemNodeBCSet);
+FemSmartPointer(FemNodeBCSet);
 
-class CFemNodeBCSet : public CFemBCSet
+class FemNodeBCSet : public FemBCSet
 {
 public:
-    CFemNodeBCSet();
-    virtual ~CFemNodeBCSet();
+    FemNodeBCSet();
+    virtual ~FemNodeBCSet();
 
     // Class info
 
-    FemClassInfo("CFemNodeBCSet",CFemBCSet);
+    FemClassInfo("FemNodeBCSet",FemBCSet);
 protected:
-    virtual CFemBC* createBC();
+    virtual FemBC* createBC();
 };
 
 #endif

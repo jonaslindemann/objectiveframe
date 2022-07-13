@@ -3,17 +3,17 @@
 
 #include "FemNodeBC.h"
 
-FemSmartPointer(CFemBeamNodeBC);
+FemSmartPointer(FemBeamNodeBC);
 
-class CFemBeamNodeBC : public CFemNodeBC {
+class FemBeamNodeBC : public FemNodeBC {
 private:
     int m_color;
     std::string m_name;
 public:
-    CFemBeamNodeBC();
-    virtual ~CFemBeamNodeBC();
+    FemBeamNodeBC();
+    virtual ~FemBeamNodeBC();
 
-    FemClassInfo("CFemBeamNodeBC",CFemNodeBC);
+    FemClassInfo("FemBeamNodeBC",FemNodeBC);
 
     int getColor();
     void setColor(int color);

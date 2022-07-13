@@ -665,8 +665,8 @@ int FltkWidget::handle(int event)
         return 1;
     case FL_MOVE:
         cout << "FL_MOVE" << endl;
-        m_beginX = Fl::event_x()*pixels_per_unit();
-        m_beginY = Fl::event_y()*pixels_per_unit();
+        m_beginX = int(float(Fl::event_x())*pixels_per_unit());
+        m_beginY = int(float(Fl::event_y())*pixels_per_unit());
         if (!Fl::get_key(FL_Shift_L))
             m_scene->unlockCursor();
         this->doPassiveMotion(m_beginX, m_beginY);
@@ -674,8 +674,8 @@ int FltkWidget::handle(int event)
         return 1;
     case FL_PUSH:
         cout << "FL_PUSH" << endl;
-        m_beginX = Fl::event_x() * pixels_per_unit();
-        m_beginY = Fl::event_y() * pixels_per_unit();
+        m_beginX = int(float(Fl::event_x()) * pixels_per_unit());
+        m_beginY = int(float(Fl::event_y()) * pixels_per_unit());
 
         if (!isOverWindow())
         {
@@ -743,13 +743,13 @@ int FltkWidget::handle(int event)
             m_currentButton = ButtonState::Button2;
         if (Fl::event_state()==FL_BUTTON3)
             m_currentButton = ButtonState::Button3;
-        this->doMotion(Fl::event_x() * pixels_per_unit(),Fl::event_y() * pixels_per_unit());
+        this->doMotion(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
         //cout << "FL_DRAG" << endl;
         this->doImGuiDrag();
         return 1;
     case FL_RELEASE:
         cout << "FL_RELEASE" << endl;
-        this->doMouseUp(Fl::event_x() * pixels_per_unit(), Fl::event_y() * pixels_per_unit());
+        this->doMouseUp(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
         m_currentButton = ButtonState::NoButton;
         if (isOverWindow())
             this->doImGuiRelease();

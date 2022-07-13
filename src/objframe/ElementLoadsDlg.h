@@ -16,9 +16,9 @@
 #include "Fl_HoverButton.h"
 
 class ElementLoadsDlg {
-  CFemElementLoadSet* m_loadSet;
+  FemElementLoadSet* m_loadSet;
   void* m_femWidget;
-  CFemBeamLoad* m_currentLoad;
+  FemBeamLoad* m_currentLoad;
 public:
   ElementLoadsDlg();
   Fl_Double_Window *wndElementLoads;
@@ -53,13 +53,13 @@ private:
   static void cb_btnClearElements(Fl_HoverButton*, void*);
 public:
   void show();
-  void setLoadSet(CFemElementLoadSet* loadSet);
-  CFemElementLoadSet* getLoadSet();
+  void setLoadSet(FemElementLoadSet* loadSet);
+  FemElementLoadSet* getLoadSet();
   void hide();
 private:
   void fillListBox();
 public:
-  CFemBeamLoad* getCurrentLoad();
+  FemBeamLoad* getCurrentLoad();
   void setFemWidget(void* femWidget);
 };
 #endif

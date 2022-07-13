@@ -5,10 +5,10 @@
 
 NewModelPopup::NewModelPopup(const std::string name, bool modal)
 	:PopupWindow(name, modal),
-	 m_lineRadius{0.15},
-	 m_modelSize{20.0},
-	 m_nodeSize{0.5},
-	 m_loadSize{7}
+	 m_lineRadius{0.15f},
+	 m_modelSize{20.0f},
+	 m_nodeSize{0.5f},
+	 m_loadSize{7.0f}
 {
 }
 
@@ -44,9 +44,9 @@ float NewModelPopup::loadSize()
 void NewModelPopup::doPopup()
 {
 	ImGui::DragFloat("Size (units)", &m_modelSize, 1.0f, 5.0f, 100.0f, "%.3f");
-	ImGui::DragFloat("Node size (% workspace)", &m_nodeSize, 0.1, 0.5f, 5.0f, "%.3f");
-	ImGui::DragFloat("Line radius (% workspace)", &m_lineRadius, 0.1, 0.5f, 5.0f, "%.3f");
-	ImGui::DragFloat("Load size (% workspace)", &m_loadSize, 0.1, 0.5f, 5.0f, "%.3f");
+	ImGui::DragFloat("Node size (% workspace)", &m_nodeSize, 0.1f, 0.5f, 5.0f, "%.3f");
+	ImGui::DragFloat("Line radius (% workspace)", &m_lineRadius, 0.1f, 0.5f, 5.0f, "%.3f");
+	ImGui::DragFloat("Load size (% workspace)", &m_loadSize, 0.1f, 0.5f, 5.0f, "%.3f");
 	/*DragFloat
 	ImGui::InputFloat("Size (units)", &m_modelSize, 1.0f, 5.0f, "%.3f");
 	ImGui::InputFloat("Node size (% workspace)", &m_nodeSize, 0.05f, 0.5f, "%.3f");

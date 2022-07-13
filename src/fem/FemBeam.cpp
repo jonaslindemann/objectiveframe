@@ -9,8 +9,8 @@
 #endif
 
 // ------------------------------------------------------------
-CFemBeam::CFemBeam ()
-    :CFemElement(),
+FemBeam::FemBeam ()
+    :FemElement(),
      m_beamRotation{0.0},
      m_evaluationPoints{8},
      m_materialIndex{-1}
@@ -18,20 +18,20 @@ CFemBeam::CFemBeam ()
 }
 
 // ------------------------------------------------------------
-CFemBeam::~CFemBeam ()
+FemBeam::~FemBeam ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemBeam::print(std::ostream &out)
+void FemBeam::print(std::ostream &out)
 {
-    CFemElement::print(out);
+    FemElement::print(out);
 }
 
 // ------------------------------------------------------------
-void CFemBeam::saveToStream(std::ostream &out)
+void FemBeam::saveToStream(std::ostream &out)
 {
-    CFemElement::saveToStream(out);
+    FemElement::saveToStream(out);
     out << m_beamRotation << " ";
     if (m_material!=NULL)
         out << this->getMaterial()->getNumber() << endl;
@@ -40,45 +40,45 @@ void CFemBeam::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemBeam::readFromStream(std::istream &in)
+void FemBeam::readFromStream(std::istream &in)
 {
-    CFemElement::readFromStream(in);
+    FemElement::readFromStream(in);
     in >> m_beamRotation;
     in >> m_materialIndex;
 }
 
 // ------------------------------------------------------------
-void CFemBeam::setMaterial(CFemBeamMaterial *material)
+void FemBeam::setMaterial(FemBeamMaterial *material)
 {
     m_material = material;
 }
 
 // ------------------------------------------------------------
-CFemBeamMaterial* CFemBeam::getMaterial()
+FemBeamMaterial* FemBeam::getMaterial()
 {
     return m_material;
 }
 
 // ------------------------------------------------------------
-long CFemBeam::getMaterialIndex()
+long FemBeam::getMaterialIndex()
 {
     return m_materialIndex;
 }
 
 // ------------------------------------------------------------
-void CFemBeam::setBeamRotation(double angle)
+void FemBeam::setBeamRotation(double angle)
 {
     m_beamRotation = angle;
 }
 
 // ------------------------------------------------------------
-double CFemBeam::getBeamRotation()
+double FemBeam::getBeamRotation()
 {
     return m_beamRotation;
 }
 
 // ------------------------------------------------------------
-void CFemBeam::getOrientationZ(double &ex, double &ey, double &ez)
+void FemBeam::getOrientationZ(double &ex, double &ey, double &ez)
 {
     double x1, y1, z1, x2, y2, z2;
     double dx, dy, dz;
@@ -132,7 +132,7 @@ void CFemBeam::getOrientationZ(double &ex, double &ey, double &ez)
 }
 
 // ------------------------------------------------------------
-void CFemBeam::getOrientationY(double &ex, double &ey, double &ez)
+void FemBeam::getOrientationY(double &ex, double &ey, double &ez)
 {
     double x1, y1, z1, x2, y2, z2;
     double dx, dy, dz;
@@ -185,7 +185,7 @@ void CFemBeam::getOrientationY(double &ex, double &ey, double &ez)
     ez = v[2];
 }
 
-void CFemBeam::eulrot(double *axis, double angle, double *u, double *v)
+void FemBeam::eulrot(double *axis, double angle, double *u, double *v)
 {
     double c, s, a;
     double n1, n2, n3;
@@ -203,12 +203,12 @@ void CFemBeam::eulrot(double *axis, double angle, double *u, double *v)
     v[2] = u[0]*(a*n1*n3-s*n2) + u[1]*(a*n2*n3+s*n1) + u[2]*(a*pow(n3,2)+c);
 }
 
-void CFemBeam::setEvaluationPoints(int n)
+void FemBeam::setEvaluationPoints(int n)
 {
     m_evaluationPoints = n;
 }
 
-int CFemBeam::getEvaluationPoints()
+int FemBeam::getEvaluationPoints()
 {
     return m_evaluationPoints;
 }

@@ -3,16 +3,16 @@
 
 #include "FemObject.h"
 
-FemSmartPointer(CFemCoord);
+FemSmartPointer(FemCoord);
 
-class CFemCoord : public CFemObject {
+class FemCoord : public FemObject {
 private:
     double m_coord[3];
 public:
-    CFemCoord ();
-    virtual ~CFemCoord ();
+    FemCoord ();
+    virtual ~FemCoord ();
 
-    FemClassInfo("CFemCoord",CFemObject);
+    FemClassInfo("FemCoord",FemObject);
 
     void setCoord(double x, double y, double z);
     void getCoord(double &x, double &y, double &z);

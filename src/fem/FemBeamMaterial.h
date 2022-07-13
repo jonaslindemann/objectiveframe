@@ -4,7 +4,7 @@
 #include "FemMaterial.h"
 #include "FemSection.h"
 
-FemSmartPointer(CFemBeamMaterial);
+FemSmartPointer(FemBeamMaterial);
 
 enum SectionType {
     ST_I=1,
@@ -16,7 +16,7 @@ enum SectionType {
     ST_Rectangle=4
 };
 
-class CFemBeamMaterial : public CFemMaterial {
+class FemBeamMaterial : public FemMaterial {
 private:
     double m_E;
     double m_G;
@@ -24,17 +24,17 @@ private:
     double m_Iy;
     double m_Iz;
     double m_Kv;
-    CFemSectionPtr m_section;
+    FemSectionPtr m_section;
     std::string m_name;
     int m_color;
     double m_height;
     double m_width;
     int m_representation;
 public:
-    CFemBeamMaterial ();
-    virtual ~CFemBeamMaterial ();
+    FemBeamMaterial ();
+    virtual ~FemBeamMaterial ();
 
-    FemClassInfo("CFemBeamMaterial",CFemMaterial);
+    FemClassInfo("FemBeamMaterial",FemMaterial);
 
     // Get/set methods
 
@@ -46,8 +46,8 @@ public:
     void setColor(int color);
     const std::string getName();
     void setName(const std::string& name);
-    CFemSection* getSection();
-    void setSection(CFemSection* section);
+    FemSection* getSection();
+    void setSection(FemSection* section);
 
     void assignPropFromSection();
 

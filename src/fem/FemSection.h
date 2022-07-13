@@ -9,7 +9,7 @@
 namespace std {};
 using namespace std;
 
-FemSmartPointer(CFemSection);
+FemSmartPointer(FemSection);
 
 /**
  * FemSection class.
@@ -21,9 +21,9 @@ FemSmartPointer(CFemSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class CFemSection : public CFemObject {
+class FemSection : public FemObject {
 private:
-    std::vector<CFemCoord*> m_coords;
+    std::vector<FemCoord*> m_coords;
     unsigned int m_nbrOfProps;
     unsigned int m_nbrOfData;
     int m_sectionType;
@@ -31,12 +31,12 @@ private:
     bool m_autoCalc;
 public:
     /** CFemSection constructor */
-    CFemSection ();
+    FemSection ();
 
     /** CFemSection destructor */
-    virtual ~CFemSection ();
+    virtual ~FemSection ();
 
-    FemClassInfo("CFemSection",CFemObject);
+    FemClassInfo("FemSection",FemObject);
 
     void readFromStream(std::istream& in);
     int getSectionType();
@@ -155,7 +155,7 @@ public:
     * This method returns the the number of points used to create the crossection..
     *
     */
-    unsigned int getSize();
+    size_t getSize();
 
     virtual void getExcZ(double& emax, double &emin);
     virtual void getExcY(double &emax, double &emin);

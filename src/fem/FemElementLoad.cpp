@@ -3,8 +3,8 @@
 #include "FemElementLoad.h"
 
 // ------------------------------------------------------------
-CFemElementLoad::CFemElementLoad ()
-    :CFemLoad()
+FemElementLoad::FemElementLoad ()
+    :FemLoad()
 {
     m_localDirection[0] = 0.0;
     m_localDirection[1] = 0.0;
@@ -12,21 +12,21 @@ CFemElementLoad::CFemElementLoad ()
 }
 
 // ------------------------------------------------------------
-CFemElementLoad::~CFemElementLoad ()
+FemElementLoad::~FemElementLoad ()
 {
     this->clearElements();
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::print(ostream &out)
+void FemElementLoad::print(ostream &out)
 {
 
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::saveToStream(std::ostream &out)
+void FemElementLoad::saveToStream(std::ostream &out)
 {
-    CFemLoad::saveToStream(out);
+    FemLoad::saveToStream(out);
     out << m_localDirection[0] << " ";
     out << m_localDirection[1] << " ";
     out << m_localDirection[2] << " ";
@@ -38,11 +38,11 @@ void CFemElementLoad::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::readFromStream(std::istream &in)
+void FemElementLoad::readFromStream(std::istream &in)
 {
     int nElements;
     long elementIndex;
-    CFemLoad::readFromStream(in);
+    FemLoad::readFromStream(in);
     in >> m_localDirection[0];
     in >> m_localDirection[1];
     in >> m_localDirection[2];
@@ -56,7 +56,7 @@ void CFemElementLoad::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::setLocalDirection(double ex, double ey, double ez)
+void FemElementLoad::setLocalDirection(double ex, double ey, double ez)
 {
     m_localDirection[0] = ex;
     m_localDirection[1] = ey;
@@ -64,7 +64,7 @@ void CFemElementLoad::setLocalDirection(double ex, double ey, double ez)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::getLocalDirection(double &ex, double &ey, double &ez)
+void FemElementLoad::getLocalDirection(double &ex, double &ey, double &ez)
 {
     ex = m_localDirection[0];
     ey = m_localDirection[1];
@@ -72,7 +72,7 @@ void CFemElementLoad::getLocalDirection(double &ex, double &ey, double &ez)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::setLocalDirection(double *v)
+void FemElementLoad::setLocalDirection(double *v)
 {
     m_localDirection[0] = v[0];
     m_localDirection[1] = v[1];
@@ -80,7 +80,7 @@ void CFemElementLoad::setLocalDirection(double *v)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::getLocalDirection(double *v)
+void FemElementLoad::getLocalDirection(double *v)
 {
     v[0] = m_localDirection[0];
     v[1] = m_localDirection[1];
@@ -88,7 +88,7 @@ void CFemElementLoad::getLocalDirection(double *v)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::addElement(CFemElement *element)
+void FemElementLoad::addElement(FemElement *element)
 {
     // We do not allow duplicates in the
     // element load.
@@ -97,7 +97,7 @@ void CFemElementLoad::addElement(CFemElement *element)
 
     for (unsigned int i=0; i<m_elements.size(); i++)
     {
-        CFemElement* e = m_elements[i];
+        FemElement* e = m_elements[i];
         if (e==element)
         {
             return;
@@ -109,20 +109,20 @@ void CFemElementLoad::addElement(CFemElement *element)
 }
 
 // ------------------------------------------------------------
-void CFemElementLoad::clearElements()
+void FemElementLoad::clearElements()
 {
     for (unsigned int i=0; i<m_elements.size(); i++)
     {
-        CFemElement* e = m_elements[i];
+        FemElement* e = m_elements[i];
         e->deleteReference();
     }
     m_elements.clear();
 }
 
 // ------------------------------------------------------------
-bool CFemElementLoad::removeElement(CFemElement *element)
+bool FemElementLoad::removeElement(FemElement *element)
 {
-    std::vector<CFemElement*>::iterator p = m_elements.begin();
+    std::vector<FemElement*>::iterator p = m_elements.begin();
 
     while ( (p!=m_elements.end())&&(*p!=element) )
         p++;
@@ -137,13 +137,13 @@ bool CFemElementLoad::removeElement(CFemElement *element)
 }
 
 // ------------------------------------------------------------
-int CFemElementLoad::getElementsSize()
+size_t FemElementLoad::getElementsSize()
 {
     return m_elements.size();
 }
 
 // ------------------------------------------------------------
-CFemElement* CFemElementLoad::getElement(unsigned int idx)
+FemElement* FemElementLoad::getElement(unsigned int idx)
 {
     if (idx<m_elements.size())
         return m_elements[idx];
@@ -152,13 +152,13 @@ CFemElement* CFemElementLoad::getElement(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-unsigned int CFemElementLoad::getElementIndexSize()
+size_t FemElementLoad::getElementIndexSize()
 {
     return m_elementIndex.size();
 }
 
 // ------------------------------------------------------------
-unsigned int CFemElementLoad::getElementIndex(unsigned int idx)
+unsigned int FemElementLoad::getElementIndex(unsigned int idx)
 {
     if (idx<m_elementIndex.size())
         return m_elementIndex[idx];

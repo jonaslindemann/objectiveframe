@@ -53,7 +53,7 @@ using namespace std;
 #pragma warning (disable: 4505) // unreferenced local function has been removed (stb stuff)
 #endif
 
-static DWORD g_Time = 0;          // Current time, in milliseconds
+static ULONGLONG g_Time = 0;          // Current time, in milliseconds
 static float g_pixelsPerUnit;
 
 // Glut has 1 function for characters and one for "special keys". We map the characters in the 0..255 range and the keys above.
@@ -196,8 +196,8 @@ void ImGui_ImplFLTK_NewFrame()
 {
     // Setup time step
     ImGuiIO& io = ImGui::GetIO();
-    DWORD current_time = GetTickCount64();
-    DWORD delta_time = (current_time - g_Time);
+    ULONGLONG current_time = GetTickCount64();
+    ULONGLONG delta_time = (current_time - g_Time);
     if (delta_time <= 0)
         delta_time = 1;
     io.DeltaTime = delta_time / 1000.0f;

@@ -24,7 +24,7 @@ IvfSmartPointer(VisFemBeam);
 
 class VisFemBeam : public ivf::Composite {
 private:
-    CFemBeam*			m_femBeam;
+    FemBeam*			m_femBeam;
     ivf::SimpleLineSetPtr	m_lineSet;
     ivf::SolidLinePtr		m_solidLine;
     VisFemNode*		    m_nodes[2];
@@ -51,8 +51,8 @@ public:
 
     // Get/set methods
 
-    void setBeam(CFemBeam* beam);
-    CFemBeam* getBeam();
+    void setBeam(FemBeam* beam);
+    FemBeam* getBeam();
     void setNodes(VisFemNode* node1, VisFemNode* node2);
 
     void setBeamModel(VisBeamModel* beamModel);

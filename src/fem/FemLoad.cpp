@@ -3,58 +3,58 @@
 #include "FemLoad.h"
 
 // ------------------------------------------------------------
-CFemLoad::CFemLoad ()
-    :CFemObject()
+FemLoad::FemLoad ()
+    :FemObject()
 {
     m_number = -1;
     m_value = 0.0;
 }
 
 // ------------------------------------------------------------
-CFemLoad::~CFemLoad ()
+FemLoad::~FemLoad ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemLoad::setNumber(long number)
+void FemLoad::setNumber(long number)
 {
     m_number = number;
 }
 
 // ------------------------------------------------------------
-long CFemLoad::getNumber()
+long FemLoad::getNumber()
 {
     return m_number;
 }
 
 // ------------------------------------------------------------
-void CFemLoad::print(std::ostream &out)
+void FemLoad::print(std::ostream &out)
 {
 
 }
 
 // ------------------------------------------------------------
-void CFemLoad::saveToStream(std::ostream &out)
+void FemLoad::saveToStream(std::ostream &out)
 {
     using namespace std;
     out << m_number << " " << m_value << endl;
 }
 
 // ------------------------------------------------------------
-void CFemLoad::readFromStream(std::istream &in)
+void FemLoad::readFromStream(std::istream &in)
 {
     in >> m_number;
     in >> m_value;
 }
 
 // ------------------------------------------------------------
-void CFemLoad::setValue(double value)
+void FemLoad::setValue(double value)
 {
     m_value = value;
 }
 
 // ------------------------------------------------------------
-double CFemLoad::getValue()
+double FemLoad::getValue()
 {
     return m_value;
 }

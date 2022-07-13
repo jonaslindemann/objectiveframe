@@ -126,8 +126,8 @@ void MaterialPropPopup::updateMaterial()
 
 void MaterialPropPopup::doPopup()
 {
-	CFemBeamMaterial* material = nullptr;
-	CFemSection* section = nullptr;
+	FemBeamMaterial* material = nullptr;
+	FemSection* section = nullptr;
 
 	if (m_widget != nullptr)
 	{

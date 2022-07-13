@@ -13,7 +13,7 @@ class FemWidget;
 
 class ElementLoadsWindow : public UiWindow {
 private:
-	CFemBeamLoadSet* m_femBeamLoadSet;
+	FemBeamLoadSet* m_femBeamLoadSet;
 	FemWidget* m_widget;
 	std::vector<bool> m_selected;
 	int m_currentItemIdx;
@@ -24,7 +24,7 @@ public:
 
 	static std::shared_ptr<ElementLoadsWindow> create(const std::string name);
 
-	void setFemLoadSet(CFemBeamLoadSet* bcSet);
+	void setFemLoadSet(FemBeamLoadSet* bcSet);
 	void setFemWidget(FemWidget* widget);
 protected:
 	virtual void doPreDraw();

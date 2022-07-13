@@ -8,27 +8,27 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CFemOutputFileReader::CFemOutputFileReader()
+FemOutputFileReader::FemOutputFileReader()
 {
     m_femModel = NULL;
 }
 
-CFemOutputFileReader::~CFemOutputFileReader()
+FemOutputFileReader::~FemOutputFileReader()
 {
 
 }
 
-void CFemOutputFileReader::setFemModel(CFemModel *model)
+void FemOutputFileReader::setFemModel(FemModel *model)
 {
     m_femModel = model;
 }
 
-CFemModel* CFemOutputFileReader::getFemModel()
+FemModel* FemOutputFileReader::getFemModel()
 {
     return m_femModel;
 }
 
-void CFemOutputFileReader::readFromStream(std::istream &in)
+void FemOutputFileReader::readFromStream(std::istream &in)
 {
 
 }

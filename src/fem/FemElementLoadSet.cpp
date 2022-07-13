@@ -2,18 +2,18 @@
 
 #include "FemElementLoad.h"
 
-CFemElementLoadSet::CFemElementLoadSet()
-    :CFemLoadSet()
+FemElementLoadSet::FemElementLoadSet()
+    :FemLoadSet()
 {
 
 }
 
-CFemElementLoadSet::~CFemElementLoadSet()
+FemElementLoadSet::~FemElementLoadSet()
 {
 
 }
 
-CFemLoad* CFemElementLoadSet::createLoad()
+FemLoad* FemElementLoadSet::createLoad()
 {
-    return new CFemElementLoad();
+    return new FemElementLoad();
 }

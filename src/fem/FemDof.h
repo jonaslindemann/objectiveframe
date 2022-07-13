@@ -3,27 +3,29 @@
 
 #include "FemObject.h"
 
-#define FEM_DISPL_X  0
-#define FEM_DISPL_Y  1
-#define FEM_DISPL_Z  2
-#define FEM_ROT_X	 3
-#define FEM_ROT_Y	 4
-#define FEM_ROT_Z	 5
+enum FemDofKind {
+    DisplX,
+    DisplY,
+    DisplZ, 
+    RotX,
+    RotY,
+    RotZ
+};
 
-FemSmartPointer(CFemDof);
+FemSmartPointer(FemDof);
 
-class CFemDof : public CFemObject {
+class FemDof : public FemObject {
 private:
-    int m_kind;
+    FemDofKind m_kind;
     long m_number;
 public:
-    CFemDof ();
-    CFemDof (int kind, int number=-1);
-    virtual ~CFemDof ();
+    FemDof ();
+    FemDof (FemDofKind kind, int number=-1);
+    virtual ~FemDof ();
 
     // Class info
 
-    FemClassInfo("CFemDof",CFemObject);
+    FemClassInfo("FemDof",FemObject);
 
     // Methods
 
@@ -33,8 +35,8 @@ public:
 
     // Get/Set methods
 
-    void setKind(int kind);
-    int getKind();
+    void setKind(FemDofKind kind);
+    FemDofKind getKind();
     void setNumber(long number);
     long getNumber();
 };

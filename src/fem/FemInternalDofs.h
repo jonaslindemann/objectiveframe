@@ -10,23 +10,23 @@
 #define FEM_DISPL_DOFS      0
 #define FEM_DISPL_ROT_DOFS  1
 
-FemSmartPointer(CFemInternalDofs);
+FemSmartPointer(FemInternalDofs);
 
-class CFemInternalDofs : public CFemObject  {
+class FemInternalDofs : public FemObject  {
 private:
-    std::vector<CFemDof*> m_dofs;
+    std::vector<FemDof*> m_dofs;
     int m_kind;
 public:
-    CFemInternalDofs();
-    virtual ~CFemInternalDofs();
+    FemInternalDofs();
+    virtual ~FemInternalDofs();
 
-    FemClassInfo("CFemInternalDofs",CFemObject);
+    FemClassInfo("FemInternalDofs",FemObject);
 
     // Get/set methods
 
     int getKind();
     void setKind(int kind);
-    CFemDof* getDof(unsigned int localDof);
+    FemDof* getDof(unsigned int localDof);
 
     // Methods
 

@@ -6,39 +6,39 @@
 
 #include <vector>
 
-FemSmartPointer(CFemMaterialSet);
+FemSmartPointer(FemMaterialSet);
 
-class CFemMaterialSet : public CFemObject {
+class FemMaterialSet : public FemObject {
 private:
-    std::vector<CFemMaterialPtr> m_materials;
+    std::vector<FemMaterialPtr> m_materials;
     long m_currentMaterialIdx;
 protected:
 
     // Allocators
 
-    virtual CFemMaterial* createMaterial();
+    virtual FemMaterial* createMaterial();
 public:
-    CFemMaterialSet ();
-    virtual ~CFemMaterialSet ();
+    FemMaterialSet ();
+    virtual ~FemMaterialSet ();
 
     // Class info
 
-    FemClassInfo("CFemMaterialSet",CFemObject);
+    FemClassInfo("FemMaterialSet",FemObject);
 
     // Methods
 
     void deleteAll();
-    CFemMaterial* removeMaterial(long i);
+    FemMaterial* removeMaterial(long i);
     bool deleteMaterial(long i);
-    CFemMaterial* getMaterial(long i);
-    void addMaterial(CFemMaterial* material);
-    long getSize();
+    FemMaterial* getMaterial(long i);
+    void addMaterial(FemMaterial* material);
+    size_t getSize();
     void clear();
     long enumerateMaterials(long count=1);
-    bool removeMaterial(CFemMaterial* material);
+    bool removeMaterial(FemMaterial* material);
     
     void setCurrentMaterial(long i);
-    CFemMaterial* currentMaterial();
+    FemMaterial* currentMaterial();
 
     // IO methods
 

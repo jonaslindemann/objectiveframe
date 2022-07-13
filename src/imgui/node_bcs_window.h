@@ -13,7 +13,7 @@ class FemWidget;
 
 class NodeBCsWindow : public UiWindow {
 private:
-	CFemBeamNodeBCSet* m_femNodeBCSet;
+	FemBeamNodeBCSet* m_femNodeBCSet;
 	FemWidget* m_widget;
 	std::vector<bool> m_selected;
 	int m_currentItemIdx;
@@ -24,7 +24,7 @@ public:
 
 	static std::shared_ptr<NodeBCsWindow> create(const std::string name);
 
-	void setFemNodeBCSet(CFemBeamNodeBCSet* bcSet);
+	void setFemNodeBCSet(FemBeamNodeBCSet* bcSet);
 	void setFemWidget(FemWidget* widget);
 protected:
 	virtual void doPreDraw();

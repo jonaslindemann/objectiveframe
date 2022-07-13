@@ -8,18 +8,18 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CFemBeamNodeBCSet::CFemBeamNodeBCSet()
+FemBeamNodeBCSet::FemBeamNodeBCSet()
 {
 
 }
 
-CFemBeamNodeBCSet::~CFemBeamNodeBCSet()
+FemBeamNodeBCSet::~FemBeamNodeBCSet()
 {
 
 }
 
-CFemBC* CFemBeamNodeBCSet::createBC()
+FemBC* FemBeamNodeBCSet::createBC()
 {
-    return new CFemBeamNodeBC();
+    return new FemBeamNodeBC();
 }
 

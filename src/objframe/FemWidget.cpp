@@ -367,7 +367,7 @@ void FemWidget::setWorkspace(double size, bool resetCamera)
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentMaterial(CFemBeamMaterial* material)
+void FemWidget::setCurrentMaterial(FemBeamMaterial* material)
 {
 	// Set current material
 
@@ -375,7 +375,7 @@ void FemWidget::setCurrentMaterial(CFemBeamMaterial* material)
 }
 
 // ------------------------------------------------------------
-CFemBeamMaterial* FemWidget::getCurrentMaterial()
+FemBeamMaterial* FemWidget::getCurrentMaterial()
 {
 	// Return current material
 
@@ -383,7 +383,7 @@ CFemBeamMaterial* FemWidget::getCurrentMaterial()
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentBeamLoad(CFemBeamLoad* elementLoad)
+void FemWidget::setCurrentBeamLoad(FemBeamLoad* elementLoad)
 {
 	// Set current elementload
 
@@ -444,19 +444,19 @@ Shape* FemWidget::getSelectedShape()
 }
 
 // ------------------------------------------------------------
-CFemBeamLoad* FemWidget::getCurrentBeamLoad()
+FemBeamLoad* FemWidget::getCurrentBeamLoad()
 {
 	return m_currentElementLoad;
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentNodeLoad(CFemBeamNodeLoad* nodeLoad)
+void FemWidget::setCurrentNodeLoad(FemBeamNodeLoad* nodeLoad)
 {
 	m_currentNodeLoad = nodeLoad;
 }
 
 // ------------------------------------------------------------
-CFemBeamNodeLoad* FemWidget::getCurrentNodeLoad()
+FemBeamNodeLoad* FemWidget::getCurrentNodeLoad()
 {
 	return m_currentNodeLoad;
 }
@@ -568,7 +568,7 @@ double FemWidget::getScalefactor()
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentNodeBC(CFemBeamNodeBC* bc)
+void FemWidget::setCurrentNodeBC(FemBeamNodeBC* bc)
 {
 	m_currentNodeBC = bc;
 }
@@ -925,7 +925,7 @@ void FemWidget::removeMaterialFromSelected()
 }
 
 // ------------------------------------------------------------
-void FemWidget::deleteBeamLoad(CFemBeamLoad* elementLoad)
+void FemWidget::deleteBeamLoad(FemBeamLoad* elementLoad)
 {
 	// Delete a beam load
 
@@ -958,7 +958,7 @@ void FemWidget::deleteSelected()
 }
 
 // ------------------------------------------------------------
-void FemWidget::addBeamLoad(CFemBeamLoad* elementLoad)
+void FemWidget::addBeamLoad(FemBeamLoad* elementLoad)
 {
 	// Add a beam load
 
@@ -986,7 +986,7 @@ void FemWidget::addBeamLoad(CFemBeamLoad* elementLoad)
 }
 
 // ------------------------------------------------------------
-void FemWidget::addNodeLoad(CFemBeamNodeLoad* nodeLoad)
+void FemWidget::addNodeLoad(FemBeamNodeLoad* nodeLoad)
 {
 	// Add a node load
 
@@ -1014,7 +1014,7 @@ void FemWidget::addNodeLoad(CFemBeamNodeLoad* nodeLoad)
 }
 
 // ------------------------------------------------------------
-void FemWidget::addNodeBC(CFemBeamNodeBC* bc)
+void FemWidget::addNodeBC(FemBeamNodeBC* bc)
 {
 	// Add a node load
 
@@ -1067,7 +1067,7 @@ void FemWidget::assignBeamLoadSelected()
 			if (shape->isClass("VisFemBeam"))
 			{
 				VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-				m_currentElementLoad->addElement((CFemElement*)visBeam->getBeam());
+				m_currentElementLoad->addElement((FemElement*)visBeam->getBeam());
 			}
 		}
 
@@ -1094,7 +1094,7 @@ void FemWidget::assignNodeLoadSelected()
 			if (shape->isClass("VisFemNode"))
 			{
 				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				m_currentNodeLoad->addNode(static_cast<CFemNode*>(visNode->getFemNode()));
+				m_currentNodeLoad->addNode(static_cast<FemNode*>(visNode->getFemNode()));
 			}
 		}
 
@@ -1108,7 +1108,7 @@ void FemWidget::assignNodeLoadSelected()
 }
 
 // ------------------------------------------------------------
-void FemWidget::deleteNodeLoad(CFemBeamNodeLoad* nodeLoad)
+void FemWidget::deleteNodeLoad(FemBeamNodeLoad* nodeLoad)
 {
 	// Delete a node load
 
@@ -1129,7 +1129,7 @@ void FemWidget::deleteNodeLoad(CFemBeamNodeLoad* nodeLoad)
 }
 
 // ------------------------------------------------------------
-void FemWidget::deleteNodeBC(CFemBeamNodeBC* bc)
+void FemWidget::deleteNodeBC(FemBeamNodeBC* bc)
 {
 	// Delete a node load
 
@@ -1310,7 +1310,7 @@ void FemWidget::assignNodeBCSelected()
 			if (shape->isClass("VisFemNode"))
 			{
 				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				m_currentNodeBC->addNode((CFemNode*)visNode->getFemNode());
+				m_currentNodeBC->addNode((FemNode*)visNode->getFemNode());
 			}
 		}
 
@@ -1718,12 +1718,12 @@ void FemWidget::onCreateNode(double x, double y, double z, Node*& newNode)
 
 	// First we create a FemNode
 
-	CFemNode* femNode = new CFemNode();
+	FemNode* femNode = new FemNode();
 
 	// Add it to the Fem model
 
 	m_beamModel->getNodeSet()->addNode(femNode);
-	femNode->setNumber(m_beamModel->getNodeSet()->getSize() - 1);
+	femNode->setNumber(static_cast<long>(m_beamModel->getNodeSet()->getSize()) - 1);
 
 	// Create Ivf representation
 
@@ -1751,7 +1751,7 @@ void FemWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
 
 	// Create model representation
 
-	CFemBeam* femBeam = new CFemBeam();
+	FemBeam* femBeam = new FemBeam();
 
 	// Extract FemNode:s from the IvfNodes
 
@@ -1768,7 +1768,7 @@ void FemWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
 
 	// Set the material
 
-	femBeam->setMaterial((CFemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
+	femBeam->setMaterial((FemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
 	/*
 	femBeam->setMaterial(
 		m_dlgMaterials->getCurrentMaterial());
@@ -1893,8 +1893,8 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
 		if (shape->isClass("VisFemBeam"))
 		{
 			VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-			CFemBeam* femBeam = visBeam->getBeam();
-			CFemBeamSet* beamSet = m_beamModel->getElementSet();
+			FemBeam* femBeam = visBeam->getBeam();
+			FemBeamSet* beamSet = m_beamModel->getElementSet();
 
 			if (beamSet->removeElement(femBeam))
 				doit = true;
@@ -2254,23 +2254,23 @@ void FemWidget::onButton(int objectName, CIvfPlaneButton* button)
 		m_editButtons->recheck();
 		break;
 	case ToolbarButton::NodeLoad:
-		m_nodeLoadsWindow->setFemNodeLoadSet((CFemBeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
+		m_nodeLoadsWindow->setFemNodeLoadSet((FemBeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
 		m_nodeLoadsWindow->setVisible(true);
 		break;
 	case ToolbarButton::BeamLoad:
-		m_elementLoadsWindow->setFemLoadSet((CFemBeamLoadSet*)m_beamModel->getElementLoadSet());
+		m_elementLoadsWindow->setFemLoadSet((FemBeamLoadSet*)m_beamModel->getElementLoadSet());
 		m_elementLoadsWindow->setVisible(true);
 		//this->showBeamLoads();
 		//m_objectButtons->recheck();
 		break;
 	case ToolbarButton::Materials:
-		m_materialsWindow->setFemMaterialSet((CFemBeamMaterialSet*)m_beamModel->getMaterialSet());
+		m_materialsWindow->setFemMaterialSet((FemBeamMaterialSet*)m_beamModel->getMaterialSet());
 		m_materialsWindow->setVisible(true);
 		//this->showMaterials();
 		//m_objectButtons->recheck();
 		break;
 	case ToolbarButton::NodeBC:
-		m_nodeBCsWindow->setFemNodeBCSet((CFemBeamNodeBCSet*)m_beamModel->getNodeBCSet());
+		m_nodeBCsWindow->setFemNodeBCSet((FemBeamNodeBCSet*)m_beamModel->getNodeBCSet());
 		m_nodeBCsWindow->setVisible(true);
 		break;
 	default:
@@ -2587,7 +2587,7 @@ void FemWidget::removeNodeLoadsFromSelected()
 {
 	// Remove materials from selected shapes
 
-	CFemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+	FemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
 	if (nodeLoad != nullptr)
 	{
@@ -2598,7 +2598,7 @@ void FemWidget::removeNodeLoadsFromSelected()
 			if (shape->isClass("VisFemNode"))
 			{
 				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				CFemNode* node = visNode->getFemNode();
+				FemNode* node = visNode->getFemNode();
 				nodeLoad->removeNode(node);
 			}
 		}
@@ -2614,7 +2614,7 @@ void FemWidget::removeNodeLoadsFromSelected()
 
 void FemWidget::removeNodesFromNodeLoad()
 {
-	CFemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+	FemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
 	if (nodeLoad != nullptr)
 		nodeLoad->clearNodes();
@@ -2628,7 +2628,7 @@ void FemWidget::removeNodeBCsFromSelected()
 {
 	// Remove materials from selected shapes
 
-	CFemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
+	FemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
 	if (nodeBC != nullptr)
 	{
@@ -2639,7 +2639,7 @@ void FemWidget::removeNodeBCsFromSelected()
 			if (shape->isClass("VisFemNode"))
 			{
 				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				CFemNode* node = visNode->getFemNode();
+				FemNode* node = visNode->getFemNode();
 				nodeBC->removeNode(node);
 			}
 		}
@@ -2655,7 +2655,7 @@ void FemWidget::removeNodeBCsFromSelected()
 
 void FemWidget::removeBCsFromBC()
 {
-	CFemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
+	FemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
 	if (nodeBC != nullptr)
 		nodeBC->clearNodes();
@@ -2669,7 +2669,7 @@ void FemWidget::removeBeamLoadsFromSelected()
 {
 	// Remove materials from selected shapes
 
-	CFemBeamLoad* beamLoad = this->getCurrentBeamLoad();
+	FemBeamLoad* beamLoad = this->getCurrentBeamLoad();
 
 	if (beamLoad != nullptr)
 	{
@@ -2680,7 +2680,7 @@ void FemWidget::removeBeamLoadsFromSelected()
 			if (shape->isClass("VisFemBeam"))
 			{
 				VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-				CFemBeam* beam = visBeam->getBeam();
+				FemBeam* beam = visBeam->getBeam();
 				beamLoad->removeElement(beam);
 			}
 		}
@@ -2694,7 +2694,7 @@ void FemWidget::removeBeamLoadsFromSelected()
 	this->redraw();
 }
 
-CFemBeamNodeBC* FemWidget::getCurrentNodeBC()
+FemBeamNodeBC* FemWidget::getCurrentNodeBC()
 {
 	return m_currentNodeBC;
 }

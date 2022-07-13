@@ -3,50 +3,50 @@
 #include "FemMaterial.h"
 
 // ------------------------------------------------------------
-CFemMaterial::CFemMaterial ()
-    :CFemObject()
+FemMaterial::FemMaterial ()
+    :FemObject()
     //TODO: check and complete member initialisation list!
 {
     m_number = -1;
 }
 
 // ------------------------------------------------------------
-CFemMaterial::~CFemMaterial ()
+FemMaterial::~FemMaterial ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemMaterial::setNumber(long number)
+void FemMaterial::setNumber(long number)
 {
     m_number = number;
 }
 
 // ------------------------------------------------------------
-long CFemMaterial::getNumber()
+long FemMaterial::getNumber()
 {
     return m_number;
 }
 
 // ------------------------------------------------------------
-void CFemMaterial::print(std::ostream &out)
+void FemMaterial::print(std::ostream &out)
 {
     using namespace std;
-    CFemObject::print(out);
+    FemObject::print(out);
     out << "Material " << this->getNumber() << endl;
 }
 
 // ------------------------------------------------------------
-void CFemMaterial::saveToStream(std::ostream &out)
+void FemMaterial::saveToStream(std::ostream &out)
 {
     using namespace std;
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     out << this->getNumber() << endl;
 }
 
 // ------------------------------------------------------------
-void CFemMaterial::readFromStream(std::istream &in)
+void FemMaterial::readFromStream(std::istream &in)
 {
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> m_number;
 }
 

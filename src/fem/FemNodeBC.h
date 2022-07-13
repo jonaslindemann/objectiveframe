@@ -4,27 +4,27 @@
 #include "FemBC.h"
 #include "FemNode.h"
 
-FemSmartPointer(CFemNodeBC);
+FemSmartPointer(FemNodeBC);
 
-class CFemNodeBC : public CFemBC {
+class FemNodeBC : public FemBC {
 private:
-    std::vector<CFemNode*> m_nodes;
+    std::vector<FemNode*> m_nodes;
     std::vector<long> m_nodeIndex;
     bool m_prescribedDof[6];
     double m_prescribedValues[6];
 public:
-    CFemNodeBC ();
-    virtual ~CFemNodeBC ();
+    FemNodeBC ();
+    virtual ~FemNodeBC ();
 
     // Class info
 
-    FemClassInfo("CFemNodeBC",CFemBC);
+    FemClassInfo("FemNodeBC",FemBC);
 
     // Methods
 
-    bool removeNode(CFemNode* node);
+    bool removeNode(FemNode* node);
     void clearNodes();
-    void addNode(CFemNode* node);
+    void addNode(FemNode* node);
     bool isPrescribed(int dof);
     void unprescribe(int dof);
     void prescribe(int dof, double value);
@@ -38,9 +38,9 @@ public:
     // Get/set methods
 
     long getNodeIndex(unsigned int idx);
-    CFemNode* getNode(unsigned int idx);
-    int getNodeSize();
-    int getNodeIndexSize();
+    FemNode* getNode(unsigned int idx);
+    size_t getNodeSize();
+    size_t getNodeIndexSize();
     double getPrescribedValue(int dof);
 
     bool* getPrescribedArr();

@@ -8,17 +8,17 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CFemSLFFEAReader::CFemSLFFEAReader()
+FemSLFFEAReader::FemSLFFEAReader()
 {
 
 }
 
-CFemSLFFEAReader::~CFemSLFFEAReader()
+FemSLFFEAReader::~FemSLFFEAReader()
 {
 
 }
 
-void CFemSLFFEAReader::readFromStream(std::istream &in)
+void FemSLFFEAReader::readFromStream(std::istream &in)
 {
     int i, j;
     int ival;
@@ -26,17 +26,17 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     double dvals[8];
     char buff[255];
 
-    CFemModel* femModel = this->getFemModel();
+    FemModel* femModel = this->getFemModel();
 
     if (femModel==NULL)
         return;
 
-    CFemElementSet* elementSet = femModel->getElementSet();
-    CFemNodeSet* nodeSet = femModel->getNodeSet();
-    CFemMaterialSet* materialSet = femModel->getMaterialSet();
-    CFemNodeBCSet* bcSet = femModel->getNodeBCSet();
-    CFemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
-    CFemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    FemElementSet* elementSet = femModel->getElementSet();
+    FemNodeSet* nodeSet = femModel->getNodeSet();
+    FemMaterialSet* materialSet = femModel->getMaterialSet();
+    FemNodeBCSet* bcSet = femModel->getNodeBCSet();
+    FemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
+    FemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
     nodeSet->enumerateNodes();
     materialSet->enumerateMaterials();
@@ -87,7 +87,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     for (i=0; i<nodeSet->getSize(); i++)
     {
         in >> ival >> dval;
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValueSize(6);
         node->setValue(0,dval);
     }
@@ -102,7 +102,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     for (i=0; i<nodeSet->getSize(); i++)
     {
         in >> ival >> dval;
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValue(1,dval);
     }
     in.getline(buff,255);
@@ -116,7 +116,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     for (i=0; i<nodeSet->getSize(); i++)
     {
         in >> ival >> dval;
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValue(2,dval);
     }
     in.getline(buff,255);
@@ -130,7 +130,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     for (i=0; i<nodeSet->getSize(); i++)
     {
         in >> ival >> dval;
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValue(3,dval);
     }
     in.getline(buff,255);
@@ -144,7 +144,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     for (i=0; i<nodeSet->getSize(); i++)
     {
         in >> ival >> dval;
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValue(4,dval);
     }
     in.getline(buff,255);
@@ -158,7 +158,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     for (i=0; i<nodeSet->getSize(); i++)
     {
         in >> ival >> dval;
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValue(5,dval);
     }
     in.getline(buff,255);
@@ -192,7 +192,7 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     in.getline(buff,255);
     for (i=0; i<elementSet->getSize(); i++)
     {
-        CFemElement* element = elementSet->getElement(i);
+        FemElement* element = elementSet->getElement(i);
         element->setValueSize(8);
         in >> ival >> ival;
         for (j=0; j<4; j++)
@@ -207,12 +207,12 @@ void CFemSLFFEAReader::readFromStream(std::istream &in)
     }
 }
 
-void CFemSLFFEAReader::setFileName(const char *fileName)
+void FemSLFFEAReader::setFileName(const char *fileName)
 {
     m_fileName = fileName;
 }
 
-void CFemSLFFEAReader::load()
+void FemSLFFEAReader::load()
 {
     if (m_fileName!="")
     {

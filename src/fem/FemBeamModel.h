@@ -8,26 +8,26 @@
 #include "FemBeamNodeLoadSet.h"
 #include "FemBeamNodeBCSet.h"
 
-FemSmartPointer(CFemBeamModel);
+FemSmartPointer(FemBeamModel);
 
-class CFemBeamModel : public CFemModel {
+class FemBeamModel : public FemModel {
 protected:
-    virtual CFemNodeBCSet* createBCSet();
-    virtual CFemElementLoadSet* createElementLoadSet();
-    virtual CFemNodeLoadSet* createNodeLoadSet();
-    virtual CFemMaterialSet* createMaterialSet();
-    virtual CFemElementSet* createElementSet();
+    virtual FemNodeBCSet* createBCSet();
+    virtual FemElementLoadSet* createElementLoadSet();
+    virtual FemNodeLoadSet* createNodeLoadSet();
+    virtual FemMaterialSet* createMaterialSet();
+    virtual FemElementSet* createElementSet();
     void connectMaterials();
 public:
-    CFemBeamModel ();
-    virtual ~CFemBeamModel ();
+    FemBeamModel ();
+    virtual ~FemBeamModel ();
 
-    FemClassInfo("CFemBeamModel",CFemModel);
+    FemClassInfo("FemBeamModel",FemModel);
 
     // Get/set methods
 
-    CFemBeamMaterialSet* getMaterialSet();
-    CFemBeamSet* getElementSet();
+    FemBeamMaterialSet* getMaterialSet();
+    FemBeamSet* getElementSet();
 
 };
 #endif

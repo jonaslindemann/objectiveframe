@@ -3,20 +3,20 @@
 #include "FemNodeLoad.h"
 
 // ------------------------------------------------------------
-CFemNodeLoadSet::CFemNodeLoadSet()
-    :CFemLoadSet()
+FemNodeLoadSet::FemNodeLoadSet()
+    :FemLoadSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemNodeLoadSet::~CFemNodeLoadSet()
+FemNodeLoadSet::~FemNodeLoadSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemLoad* CFemNodeLoadSet::createLoad()
+FemLoad* FemNodeLoadSet::createLoad()
 {
-    return new CFemNodeLoad();
+    return new FemNodeLoad();
 }

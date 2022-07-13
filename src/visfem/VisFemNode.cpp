@@ -23,7 +23,7 @@ VisFemNode::~VisFemNode ()
 }
 
 // ------------------------------------------------------------
-void VisFemNode::setFemNode(CFemNode *node)
+void VisFemNode::setFemNode(FemNode *node)
 {
     double x, y, z;
     m_femNode = node;
@@ -32,7 +32,7 @@ void VisFemNode::setFemNode(CFemNode *node)
 }
 
 // ------------------------------------------------------------
-CFemNode* VisFemNode::getFemNode()
+FemNode* VisFemNode::getFemNode()
 {
     return m_femNode;
 }

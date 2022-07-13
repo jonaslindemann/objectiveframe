@@ -315,7 +315,7 @@ CFemInternalSolver::~CFemInternalSolver()
         delete m_X;
 }
 
-void CFemInternalSolver::setBeamModel(CFemBeamModel* model)
+void CFemInternalSolver::setBeamModel(FemBeamModel* model)
 {
     m_beamModel = model;
 }
@@ -338,7 +338,7 @@ void CFemInternalSolver::execute()
     // Retrieve fem model
     //
 
-    CFemBeamModel* femModel = m_beamModel;
+    FemBeamModel* femModel = m_beamModel;
 
     if (femModel==NULL)
     {
@@ -351,12 +351,12 @@ void CFemInternalSolver::execute()
     // Retrieve individual parts of fem model
     //
 
-    CFemElementSet* elementSet = femModel->getElementSet();
-    CFemNodeSet* nodeSet = femModel->getNodeSet();
-    CFemMaterialSet* materialSet = femModel->getMaterialSet();
-    CFemNodeBCSet* bcSet = femModel->getNodeBCSet();
-    CFemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
-    CFemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    FemElementSet* elementSet = femModel->getElementSet();
+    FemNodeSet* nodeSet = femModel->getNodeSet();
+    FemMaterialSet* materialSet = femModel->getMaterialSet();
+    FemNodeBCSet* bcSet = femModel->getNodeBCSet();
+    FemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
+    FemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
     //
     // Check if we have a valid model
@@ -410,7 +410,7 @@ void CFemInternalSolver::execute()
     RowVector Ex(2);
     RowVector Ey(2);
     RowVector Ez(2);
-    Matrix Eq(elementSet->getSize(),4);
+    Matrix Eq(static_cast<int>(elementSet->getSize()),4);
     Eq = 0.0;
     RowVector Eo(3);
     RowVector Ep(6);
@@ -432,15 +432,15 @@ void CFemInternalSolver::execute()
         double vx, vy, vz;
         double value;
 
-        CFemBeamLoad* elementLoad =
-            (CFemBeamLoad*) elementLoadSet->getLoad(i);
+        FemBeamLoad* elementLoad =
+            (FemBeamLoad*) elementLoadSet->getLoad(i);
 
         elementLoad->getLocalDirection(vx, vy, vz);
         value = -elementLoad->getValue();
 
         for (j=0; j<elementLoad->getElementsSize(); j++)
         {
-            CFemElement* element = elementLoad->getElement(j);
+            FemElement* element = elementLoad->getElement(j);
 
             Eq(element->getNumber(),1) = Eq(element->getNumber(),1) + vx*value;
             Eq(element->getNumber(),2) = Eq(element->getNumber(),2) + vy*value;
@@ -460,7 +460,7 @@ void CFemInternalSolver::execute()
 
     for (i=1; i<=elementSet->getSize(); i++)
     {
-        CFemBeam* beam = (CFemBeam*) elementSet->getElement(i-1);
+        FemBeam* beam = (FemBeam*) elementSet->getElement(i-1);
 
         for (j=0; j<6; j++)
             DofTopo(j+1) = beam->getNode(0)->getDof(j)->getNumber();
@@ -488,7 +488,7 @@ void CFemInternalSolver::execute()
         double x2, y2, z2;
         double ex, ey, ez;
 
-        CFemBeam* beam = (CFemBeam*) elementSet->getElement(i-1);
+        FemBeam* beam = (FemBeam*) elementSet->getElement(i-1);
 
         beam->getNode(0)->getCoord(x1, y1, z1);
         beam->getNode(1)->getCoord(x2, y2, z2);
@@ -552,15 +552,15 @@ void CFemInternalSolver::execute()
         double vx, vy, vz;
         double value;
 
-        CFemBeamNodeLoad* nodeLoad =
-            (CFemBeamNodeLoad*) nodeLoadSet->getLoad(i);
+        FemBeamNodeLoad* nodeLoad =
+            (FemBeamNodeLoad*) nodeLoadSet->getLoad(i);
 
         nodeLoad->getDirection(vx, vy, vz);
         value = nodeLoad->getValue();
 
         for (j=0; j<(int)nodeLoad->getNodeSize(); j++)
         {
-            CFemNode* node = nodeLoad->getNode(j);
+            FemNode* node = nodeLoad->getNode(j);
             m_f(node->getDof(0)->getNumber()) = vx*value;
             m_f(node->getDof(1)->getNumber()) = vy*value;
             m_f(node->getDof(2)->getNumber()) = vz*value;
@@ -579,12 +579,12 @@ void CFemInternalSolver::execute()
 
     for (i=0; i<bcSet->getSize(); i++)
     {
-        CFemBeamNodeBC* nodeBC =
-            (CFemBeamNodeBC*) bcSet->getBC(i);
+        FemBeamNodeBC* nodeBC =
+            (FemBeamNodeBC*) bcSet->getBC(i);
 
         for (j=0; j<nodeBC->getNodeSize(); j++)
         {
-            CFemNode* node = nodeBC->getNode(j);
+            FemNode* node = nodeBC->getNode(j);
 
             for (k=0; k<6; k++)
             {
@@ -751,7 +751,7 @@ void CFemInternalSolver::execute()
 
     for (i=0; i<nodeSet->getSize(); i++)
     {
-        CFemNode* node = nodeSet->getNode(i);
+        FemNode* node = nodeSet->getNode(i);
         node->setValueSize(3);
         for (j=0; j<3; j++)
         {
@@ -780,7 +780,7 @@ void CFemInternalSolver::execute()
         double x2, y2, z2;
         double ex, ey, ez;
 
-        CFemBeam* beam = (CFemBeam*) elementSet->getElement(i-1);
+        FemBeam* beam = (FemBeam*) elementSet->getElement(i-1);
         n = beam->getEvaluationPoints();
         beam->setValueSize(n*11);
 
@@ -856,7 +856,7 @@ void CFemInternalSolver::recompute()
     {
         int i, j;
 
-        CFemBeamModel* femModel = m_beamModel;
+        FemBeamModel* femModel = m_beamModel;
 
         if (femModel==NULL)
         {
@@ -869,7 +869,7 @@ void CFemInternalSolver::recompute()
         // Retrieve individual parts of fem model
         //
 
-        CFemNodeSet* nodeSet = femModel->getNodeSet();
+        FemNodeSet* nodeSet = femModel->getNodeSet();
 
         //
         // Apply feedback force
@@ -914,7 +914,7 @@ void CFemInternalSolver::recompute()
 
         for (i=0; i<nodeSet->getSize(); i++)
         {
-            CFemNode* node = nodeSet->getNode(i);
+            FemNode* node = nodeSet->getNode(i);
             node->setValueSize(3);
             for (j=0; j<3; j++)
             {
@@ -933,7 +933,7 @@ void CFemInternalSolver::update()
     // Retrieve fem model
     //
 
-    CFemBeamModel* femModel = m_beamModel;
+    FemBeamModel* femModel = m_beamModel;
 
     if (femModel==NULL)
     {
@@ -946,19 +946,19 @@ void CFemInternalSolver::update()
     // Retrieve individual parts of fem model
     //
 
-    CFemElementSet* elementSet = femModel->getElementSet();
+    FemElementSet* elementSet = femModel->getElementSet();
     /*
     CFemNodeSet* nodeSet = femModel->getNodeSet();
     CFemMaterialSet* materialSet = femModel->getMaterialSet();
     CFemNodeBCSet* bcSet = femModel->getNodeBCSet();
     CFemNodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
     */
-    CFemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    FemElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
     RowVector Ex(2);
     RowVector Ey(2);
     RowVector Ez(2);
-    Matrix Eq(elementSet->getSize(),4);
+    Matrix Eq(static_cast<int>(elementSet->getSize()),4);
     Eq = 0.0;
     RowVector Eo(3);
     RowVector Ep(6);
@@ -976,15 +976,15 @@ void CFemInternalSolver::update()
         double vx, vy, vz;
         double value;
 
-        CFemBeamLoad* elementLoad =
-            (CFemBeamLoad*) elementLoadSet->getLoad(i);
+        FemBeamLoad* elementLoad =
+            (FemBeamLoad*) elementLoadSet->getLoad(i);
 
         elementLoad->getLocalDirection(vx, vy, vz);
         value = -elementLoad->getValue();
 
         for (j=0; j<elementLoad->getElementsSize(); j++)
         {
-            CFemElement* element = elementLoad->getElement(j);
+            FemElement* element = elementLoad->getElement(j);
 
             Eq(element->getNumber(),1) = Eq(element->getNumber(),1) + vx*value;
             Eq(element->getNumber(),2) = Eq(element->getNumber(),2) + vy*value;
@@ -1014,7 +1014,7 @@ void CFemInternalSolver::update()
         double x2, y2, z2;
         double ex, ey, ez;
 
-        CFemBeam* beam = (CFemBeam*) elementSet->getElement(i-1);
+        FemBeam* beam = (FemBeam*) elementSet->getElement(i-1);
         n = beam->getEvaluationPoints();
         beam->setValueSize(n*10);
 
@@ -1078,7 +1078,7 @@ void CFemInternalSolver::update()
     printMaxMin();
 }
 
-void CFemInternalSolver::setFeedbackForce(CFemNode* node, double fx, double fy, double fz)
+void CFemInternalSolver::setFeedbackForce(FemNode* node, double fx, double fy, double fz)
 {
     m_forceNode = node;
     m_force[0] = fx;
@@ -1188,7 +1188,7 @@ void CFemInternalSolver::setResultInfo(CResultInfo *resultInfo)
     m_resultInfo = resultInfo;
 }
 
-double CFemInternalSolver::calcNavier(double N, double My, double Mz, CFemBeam *beam)
+double CFemInternalSolver::calcNavier(double N, double My, double Mz, FemBeam *beam)
 {
     double E, G, A, Iy, Iz, Kv;
     double eyMax, eyMin, ezMax, ezMin;

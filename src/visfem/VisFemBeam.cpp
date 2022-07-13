@@ -116,13 +116,13 @@ VisFemBeam::~VisFemBeam ()
 }
 
 // ------------------------------------------------------------
-void VisFemBeam::setBeam(CFemBeam *beam)
+void VisFemBeam::setBeam(FemBeam *beam)
 {
     m_femBeam = beam;
 }
 
 // ------------------------------------------------------------
-CFemBeam* VisFemBeam::getBeam()
+FemBeam* VisFemBeam::getBeam()
 {
     return m_femBeam;
 }
@@ -134,8 +134,8 @@ void VisFemBeam::refresh()
     {
         double x1, y1, z1;
         double x2, y2, z2;
-        CFemNode* node1 = m_nodes[0]->getFemNode();
-        CFemNode* node2 = m_nodes[1]->getFemNode();
+        FemNode* node1 = m_nodes[0]->getFemNode();
+        FemNode* node2 = m_nodes[1]->getFemNode();
         node1->getCoord(x1, y1, z1);
         node2->getCoord(x2, y2, z2);
 
@@ -319,9 +319,9 @@ void VisFemBeam::initExtrusion()
             (m_femBeam->getMaterial()!=NULL)&&
             (m_femBeam->getMaterial()->getSection()!=NULL) )
     {
-        CFemSection* section = m_femBeam->getMaterial()->getSection();
+        FemSection* section = m_femBeam->getMaterial()->getSection();
         double x, y;
-        m_extrusion->setSectionSize(section->getSize());
+        m_extrusion->setSectionSize(static_cast<int>(section->getSize()));
         for (unsigned int i=0; i<section->getSize(); i++)
         {
             section->getCoord(i, x, y);

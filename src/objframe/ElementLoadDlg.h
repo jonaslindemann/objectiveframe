@@ -16,7 +16,7 @@
 #include <FL/Fl_Round_Button.H>
 
 class ElementLoadDlg {
-  CFemBeamLoad* m_load;
+  FemBeamLoad* m_load;
   Fl_Widget* m_workspace;
   int m_modalResult;
   Fl_Color m_colorIndex;
@@ -49,8 +49,8 @@ public:
   Fl_Round_Button *rbYDirection;
   Fl_Round_Button *rbZDirection;
   void show();
-  void setLoad(CFemBeamLoad* load);
-  CFemBeamLoad* getLoad();
+  void setLoad(FemBeamLoad* load);
+  FemBeamLoad* getLoad();
   void setWorkspace(Fl_Widget* widget);
   void hide();
   int getModalResult();

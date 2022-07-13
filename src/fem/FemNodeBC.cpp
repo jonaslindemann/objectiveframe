@@ -3,7 +3,7 @@
 #include "FemNodeBC.h"
 
 // ------------------------------------------------------------
-CFemNodeBC::CFemNodeBC ()
+FemNodeBC::FemNodeBC ()
 {
     int i;
     for (i=0; i<6; i++)
@@ -14,19 +14,19 @@ CFemNodeBC::CFemNodeBC ()
 }
 
 // ------------------------------------------------------------
-CFemNodeBC::~CFemNodeBC ()
+FemNodeBC::~FemNodeBC ()
 {
     this->clearNodes();
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::print(std::ostream &out)
+void FemNodeBC::print(std::ostream &out)
 {
 
 }
 
 // ------------------------------------------------------------
-json CFemNodeBC::toJSON()
+json FemNodeBC::toJSON()
 {
     json j;
 
@@ -43,7 +43,7 @@ json CFemNodeBC::toJSON()
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::saveToStream(std::ostream &out)
+void FemNodeBC::saveToStream(std::ostream &out)
 {
     using namespace std;
     unsigned int i;
@@ -62,7 +62,7 @@ void CFemNodeBC::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::readFromStream(std::istream &in)
+void FemNodeBC::readFromStream(std::istream &in)
 {
     int nNodes, i;
     long idx;
@@ -86,14 +86,14 @@ void CFemNodeBC::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::addNode(CFemNode *node)
+void FemNodeBC::addNode(FemNode *node)
 {
     node->addReference();
     m_nodes.push_back(node);
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::clearNodes()
+void FemNodeBC::clearNodes()
 {
     unsigned int i;
 
@@ -104,9 +104,9 @@ void CFemNodeBC::clearNodes()
 }
 
 // ------------------------------------------------------------
-bool CFemNodeBC::removeNode(CFemNode *node)
+bool FemNodeBC::removeNode(FemNode *node)
 {
-    std::vector<CFemNode*>::iterator p = m_nodes.begin();
+    std::vector<FemNode*>::iterator p = m_nodes.begin();
 
     while ( (p!=m_nodes.end())&&(*p!=node) )
         p++;
@@ -127,7 +127,7 @@ bool CFemNodeBC::removeNode(CFemNode *node)
 }
 
 // ------------------------------------------------------------
-CFemNode* CFemNodeBC::getNode(unsigned int idx)
+FemNode* FemNodeBC::getNode(unsigned int idx)
 {
     if (idx<m_nodes.size())
         return m_nodes[idx];
@@ -136,7 +136,7 @@ CFemNode* CFemNodeBC::getNode(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-long CFemNodeBC::getNodeIndex(unsigned int idx)
+long FemNodeBC::getNodeIndex(unsigned int idx)
 {
     if (idx<m_nodeIndex.size())
         return m_nodeIndex[idx];
@@ -145,19 +145,19 @@ long CFemNodeBC::getNodeIndex(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-int CFemNodeBC::getNodeIndexSize()
+size_t FemNodeBC::getNodeIndexSize()
 {
     return m_nodeIndex.size();
 }
 
 // ------------------------------------------------------------
-int CFemNodeBC::getNodeSize()
+size_t FemNodeBC::getNodeSize()
 {
     return m_nodes.size();
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::prescribe(int dof, double value)
+void FemNodeBC::prescribe(int dof, double value)
 {
     if ((dof>=1)&&(dof<=6))
     {
@@ -166,39 +166,39 @@ void CFemNodeBC::prescribe(int dof, double value)
     }
 }
 
-void CFemNodeBC::prescribePos(double value)
+void FemNodeBC::prescribePos(double value)
 {
 	for (int i = 1; i <= 3; i++)
 		this->prescribe(i, value);
 }
 
-void CFemNodeBC::prescribeRot(double value)
+void FemNodeBC::prescribeRot(double value)
 {
 	for (int i = 4; i <= 6; i++)
 		this->prescribe(i, value);
 }
 
-void CFemNodeBC::fixed()
+void FemNodeBC::fixed()
 {
 	this->release();
 	this->prescribePos(0.0);
 	this->prescribeRot(0.0);
 }
 
-void CFemNodeBC::fixedPosition()
+void FemNodeBC::fixedPosition()
 {
 	this->release();
 	this->prescribePos(0.0);
 }
 
-void CFemNodeBC::release()
+void FemNodeBC::release()
 {
 	for (int i = 1; i <= 6; i++)
 		this->unprescribe(i);
 }
 
 // ------------------------------------------------------------
-void CFemNodeBC::unprescribe(int dof)
+void FemNodeBC::unprescribe(int dof)
 {
     if ((dof>=1)&&(dof<=6))
     {
@@ -208,7 +208,7 @@ void CFemNodeBC::unprescribe(int dof)
 }
 
 // ------------------------------------------------------------
-bool CFemNodeBC::isPrescribed(int dof)
+bool FemNodeBC::isPrescribed(int dof)
 {
     if ((dof>=1)&&(dof<=6))
         return m_prescribedDof[dof-1];
@@ -217,7 +217,7 @@ bool CFemNodeBC::isPrescribed(int dof)
 }
 
 // ------------------------------------------------------------
-double CFemNodeBC::getPrescribedValue(int dof)
+double FemNodeBC::getPrescribedValue(int dof)
 {
     if ((dof>=1)&&(dof<=6))
         return m_prescribedValues[dof-1];
@@ -225,12 +225,12 @@ double CFemNodeBC::getPrescribedValue(int dof)
         return 0.0;
 }
 
-bool* CFemNodeBC::getPrescribedArr()
+bool* FemNodeBC::getPrescribedArr()
 {
     return m_prescribedDof;
 }
 
-double* CFemNodeBC::getPrescribedValueArr()
+double* FemNodeBC::getPrescribedValueArr()
 {
     return m_prescribedValues;
 }

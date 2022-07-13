@@ -31,12 +31,12 @@ typedef int BOOL;
 
 #define FemSmartPointer(classname) \
 	class classname; \
-	typedef CFemPointer<classname> classname##Ptr; \
+	typedef FemPointer<classname> classname##Ptr; \
 	typedef classname* classname##StdPtr;
 
 #define FemSmartPointerRefBase(classname,refbase) \
 	class classname; \
-	typedef CFemPointerRefBase<classname,refbase> classname##Ptr; \
+	typedef FemPointerRefBase<classname,refbase> classname##Ptr; \
 	typedef classname* classname##StdPtr;
 
 #define FemClassInfo(femclassname,femparent) \

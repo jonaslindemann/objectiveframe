@@ -33,9 +33,9 @@ using namespace NEWMAT;
 
 class CFemInternalSolver {
 private:
-    CFemBeamModel* m_beamModel;
+    FemBeamModel* m_beamModel;
     double m_maxNodeValue;
-    CFemNode* m_forceNode;
+    FemNode* m_forceNode;
     double m_force[3];
     LinearEquationSolver* m_X;
     int m_nDof;
@@ -63,7 +63,7 @@ private:
     CResultInfo* m_resultInfo;
 
 public:
-    double calcNavier(double N, double My, double Mz, CFemBeam* beam);
+    double calcNavier(double N, double My, double Mz, FemBeam* beam);
     void setResultInfo(CResultInfo* resultInfo);
     CFemInternalSolver();
     virtual ~CFemInternalSolver();
@@ -76,8 +76,8 @@ public:
     void printMaxMin();
     void updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier);
 
-    void setBeamModel(CFemBeamModel* model);
-    void setFeedbackForce(CFemNode* node, double fx, double fy, double fz);
+    void setBeamModel(FemBeamModel* model);
+    void setFeedbackForce(FemNode* node, double fx, double fy, double fz);
     double getMaxNodeValue();
     int getLastError();
 };

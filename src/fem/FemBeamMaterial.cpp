@@ -11,8 +11,8 @@
 #include "FemRHSSection.h"
 
 // ------------------------------------------------------------
-CFemBeamMaterial::CFemBeamMaterial ()
-    :CFemMaterial()
+FemBeamMaterial::FemBeamMaterial ()
+    :FemMaterial()
 {
     m_width = 0.0;
     m_height = 0.0;
@@ -28,12 +28,12 @@ CFemBeamMaterial::CFemBeamMaterial ()
 }
 
 // ------------------------------------------------------------
-CFemBeamMaterial::~CFemBeamMaterial ()
+FemBeamMaterial::~FemBeamMaterial ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::setProperties(double E, double G,
+void FemBeamMaterial::setProperties(double E, double G,
                                      double A, double Iy,
                                      double Iz, double Kv)
 {
@@ -46,7 +46,7 @@ void CFemBeamMaterial::setProperties(double E, double G,
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::getProperties(double &E, double &G, double &A,
+void FemBeamMaterial::getProperties(double &E, double &G, double &A,
                                      double &Iy, double &Iz, double &Kv)
 {
     E = m_E;
@@ -58,7 +58,7 @@ void CFemBeamMaterial::getProperties(double &E, double &G, double &A,
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::print(ostream &out)
+void FemBeamMaterial::print(ostream &out)
 {
     out << "Material : " << this->getName() << endl;
     out << "   E  = " << m_E << endl;
@@ -70,9 +70,9 @@ void CFemBeamMaterial::print(ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::saveToStream(std::ostream &out)
+void FemBeamMaterial::saveToStream(std::ostream &out)
 {
-	CFemMaterial::saveToStream(out);
+	FemMaterial::saveToStream(out);
 	out << this->getName() << endl;
     out << m_color << endl;
     out << m_width << " ";
@@ -97,11 +97,11 @@ void CFemBeamMaterial::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::readFromStream(std::istream &in)
+void FemBeamMaterial::readFromStream(std::istream &in)
 {
     int sectionType;
     string matName;
-    CFemMaterial::readFromStream(in);
+    FemMaterial::readFromStream(in);
     in.ignore(1000,'\n');
     getline(in, matName);
     //in.getline(matName, 255, '\n');
@@ -124,28 +124,28 @@ void CFemBeamMaterial::readFromStream(std::istream &in)
     {
         switch (sectionType) {
         case FEM_I_SECTION:
-            m_section = new CFemISection();
+            m_section = new FemISection();
             break;
         case FEM_U_SECTION:
-            m_section = new CFemUSection();
+            m_section = new FemUSection();
             break;
         case FEM_L_SECTION:
-            m_section = new CFemLSection();
+            m_section = new FemLSection();
             break;
         case FEM_RHS_SECTION:
-            m_section = new CFemRHSSection();
+            m_section = new FemRHSSection();
             break;
         case FEM_PIPE_SECTION:
-            m_section = new CFemPipeSection();
+            m_section = new FemPipeSection();
             break;
         case FEM_SOLIDPIPE_SECTION:
-            m_section = new CFemSolidPipeSection();
+            m_section = new FemSolidPipeSection();
             break;
         case FEM_RECT_SECTION:
-            m_section = new CFemRectSection();
+            m_section = new FemRectSection();
             break;
         default:
-            m_section = new CFemRectSection();
+            m_section = new FemRectSection();
             break;
         }
         m_section->readFromStream(in);
@@ -157,7 +157,7 @@ void CFemBeamMaterial::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::setSection(CFemSection *section)
+void FemBeamMaterial::setSection(FemSection *section)
 {
     if (m_section!=NULL)
     {
@@ -169,7 +169,7 @@ void CFemBeamMaterial::setSection(CFemSection *section)
     section->addReference();
 }
 
-void CFemBeamMaterial::assignPropFromSection()
+void FemBeamMaterial::assignPropFromSection()
 {
     if (m_section != nullptr)
     {
@@ -184,62 +184,62 @@ void CFemBeamMaterial::assignPropFromSection()
     }
 }
 
-void CFemBeamMaterial::setSectionType(SectionType sectionType)
+void FemBeamMaterial::setSectionType(SectionType sectionType)
 {
     switch (sectionType) {
     case ST_I:
-        m_section = new CFemISection();
+        m_section = new FemISection();
         break;
     case ST_U:
-        m_section = new CFemUSection();
+        m_section = new FemUSection();
         break;
     case ST_L:
-        m_section = new CFemLSection();
+        m_section = new FemLSection();
         break;
     case ST_RHS:
-        m_section = new CFemRHSSection();
+        m_section = new FemRHSSection();
         break;
     case ST_Pipe:
-        m_section = new CFemPipeSection();
+        m_section = new FemPipeSection();
         break;
     case ST_SolidPipe:
-        m_section = new CFemSolidPipeSection();
+        m_section = new FemSolidPipeSection();
         break;
     case ST_Rectangle:
-        m_section = new CFemRectSection();
+        m_section = new FemRectSection();
         break;
     default:
-        m_section = new CFemRectSection();
+        m_section = new FemRectSection();
         break;
     }
 }
 
 // ------------------------------------------------------------
-CFemSection* CFemBeamMaterial::getSection()
+FemSection* FemBeamMaterial::getSection()
 {
     return m_section;
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::setName(const std::string& name)
+void FemBeamMaterial::setName(const std::string& name)
 {
     m_name = name;
 }
 
 // ------------------------------------------------------------
-const std::string CFemBeamMaterial::getName()
+const std::string FemBeamMaterial::getName()
 {
     return m_name;
 }
 
 // ------------------------------------------------------------
-void CFemBeamMaterial::setColor(int color)
+void FemBeamMaterial::setColor(int color)
 {
     m_color = color;
 }
 
 // ------------------------------------------------------------
-int CFemBeamMaterial::getColor()
+int FemBeamMaterial::getColor()
 {
     return m_color;
 }

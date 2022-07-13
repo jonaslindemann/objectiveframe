@@ -3,14 +3,14 @@
 #include "FemTubeSection.h"
 
 // ------------------------------------------------------------
-CFemTubeSection::CFemTubeSection ()
-    :CFemSection()
+FemTubeSection::FemTubeSection ()
+    :FemSection()
     //TODO: check and complete member initialisation list!
 {
 }
 
 // ------------------------------------------------------------
-CFemTubeSection::~CFemTubeSection ()
+FemTubeSection::~FemTubeSection ()
 {
 }
 

@@ -3,8 +3,8 @@
 #include "FemElement.h"
 
 // ------------------------------------------------------------
-CFemElement::CFemElement ()
-    :CFemObject()
+FemElement::FemElement ()
+    :FemObject()
 {
     m_number = -1;
     m_elementLoad[0] = 0.0;
@@ -13,13 +13,13 @@ CFemElement::CFemElement ()
 }
 
 // ------------------------------------------------------------
-CFemElement::~CFemElement ()
+FemElement::~FemElement ()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void CFemElement::print(std::ostream &out)
+void FemElement::print(std::ostream &out)
 {
     using namespace std;
     out << "Element " << this->getNumber() << endl;
@@ -30,44 +30,44 @@ void CFemElement::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemElement::addNode(CFemNode *node)
+void FemElement::addNode(FemNode *node)
 {
-    m_nodes.push_back(CFemNodePtr(node));
-    CFemInternalDofsPtr iDof = new CFemInternalDofs();
+    m_nodes.push_back(FemNodePtr(node));
+    FemInternalDofsPtr iDof = new FemInternalDofs();
     m_internalDofs.push_back(iDof);
 }
 
 // ------------------------------------------------------------
-void CFemElement::clear()
+void FemElement::clear()
 {
     m_nodes.clear();
     m_internalDofs.clear();
 }
 
 // ------------------------------------------------------------
-void CFemElement::deleteAll()
+void FemElement::deleteAll()
 {
     m_nodes.clear();
     m_internalDofs.clear();
 }
 
 // ------------------------------------------------------------
-void CFemElement::setNumber(long number)
+void FemElement::setNumber(long number)
 {
     m_number = number;
 }
 
 // ------------------------------------------------------------
-long CFemElement::getNumber()
+long FemElement::getNumber()
 {
     return m_number;
 }
 
 // ------------------------------------------------------------
-void CFemElement::saveToStream(std::ostream &out)
+void FemElement::saveToStream(std::ostream &out)
 {
     using namespace std;
-    CFemObject::saveToStream(out);
+    FemObject::saveToStream(out);
     unsigned int i;
     out << m_number << "  ";
     out << m_nodes.size() << " ";
@@ -86,12 +86,12 @@ void CFemElement::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemElement::readFromStream(std::istream &in)
+void FemElement::readFromStream(std::istream &in)
 {
     long nNodes, nProperties;
     double prop;
     long i;
-    CFemObject::readFromStream(in);
+    FemObject::readFromStream(in);
     in >> m_number;
     in >> nNodes;
     m_nodeIndex.clear();
@@ -115,14 +115,14 @@ void CFemElement::readFromStream(std::istream &in)
 
     for (i=0; i<nNodes; i++)
     {
-        CFemInternalDofsPtr intDof = new CFemInternalDofs();
+        FemInternalDofsPtr intDof = new FemInternalDofs();
         m_internalDofs.push_back(intDof);
         intDof->readFromStream(in);
     }
 }
 
 // ------------------------------------------------------------
-long CFemElement::getElementIndex(unsigned int node)
+long FemElement::getElementIndex(unsigned int node)
 {
     if (node<m_nodeIndex.size())
         return m_nodeIndex[node]; 
@@ -131,19 +131,19 @@ long CFemElement::getElementIndex(unsigned int node)
 }
 
 // ------------------------------------------------------------
-unsigned int CFemElement::getSize()
+size_t FemElement::getSize()
 {
     return m_nodes.size();
 }
 
 // ------------------------------------------------------------
-unsigned int CFemElement::getIndexSize()
+size_t FemElement::getIndexSize()
 {
     return m_nodeIndex.size();
 }
 
 // ------------------------------------------------------------
-CFemNode* CFemElement::getNode(unsigned int index)
+FemNode* FemElement::getNode(unsigned int index)
 {
     if (index<m_nodes.size())
         return m_nodes[index];
@@ -152,25 +152,25 @@ CFemNode* CFemElement::getNode(unsigned int index)
 }
 
 // ------------------------------------------------------------
-void CFemElement::addProperty(double value)
+void FemElement::addProperty(double value)
 {
     m_properties.push_back(value);
 }
 
 // ------------------------------------------------------------
-double CFemElement::getProperty(unsigned int idx)
+double FemElement::getProperty(unsigned int idx)
 {
     return m_properties[idx];
 }
 
 // ------------------------------------------------------------
-void CFemElement::clearProperties()
+void FemElement::clearProperties()
 {
     m_properties.clear();
 }
 
 // ------------------------------------------------------------
-void CFemElement::setElementLoad(double fx, double fy, double fz)
+void FemElement::setElementLoad(double fx, double fy, double fz)
 {
     m_elementLoad[0] = fx;
     m_elementLoad[1] = fy;
@@ -178,7 +178,7 @@ void CFemElement::setElementLoad(double fx, double fy, double fz)
 }
 
 // ------------------------------------------------------------
-void CFemElement::getElementLoad(double &fx, double &fy, double &fz)
+void FemElement::getElementLoad(double &fx, double &fy, double &fz)
 {
     fx = m_elementLoad[0];
     fy = m_elementLoad[1];
@@ -186,13 +186,13 @@ void CFemElement::getElementLoad(double &fx, double &fy, double &fz)
 }
 
 // ------------------------------------------------------------
-unsigned int CFemElement::getPropertySize()
+size_t FemElement::getPropertySize()
 {
     return m_properties.size();
 }
 
 // ------------------------------------------------------------
-void CFemElement::setPropertySize(unsigned int size)
+void FemElement::setPropertySize(unsigned int size)
 {
     m_properties.clear();
     for (unsigned int i=0; i<size; i++)
@@ -200,14 +200,14 @@ void CFemElement::setPropertySize(unsigned int size)
 }
 
 // ------------------------------------------------------------
-void CFemElement::setProperty(unsigned int idx, double value)
+void FemElement::setProperty(unsigned int idx, double value)
 {
     if (idx<m_properties.size())
         m_properties[idx] = value;
 }
 
 // ------------------------------------------------------------
-void CFemElement::addInternalDof(unsigned int localIdx, int localDof)
+void FemElement::addInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx<m_internalDofs.size())
     {
@@ -216,7 +216,7 @@ void CFemElement::addInternalDof(unsigned int localIdx, int localDof)
 }
 
 // ------------------------------------------------------------
-void CFemElement::clearInternalDof(unsigned int localIdx, int localDof)
+void FemElement::clearInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx<m_internalDofs.size())
     {
@@ -225,7 +225,7 @@ void CFemElement::clearInternalDof(unsigned int localIdx, int localDof)
 }
 
 // ------------------------------------------------------------
-bool CFemElement::hasInternalDof(unsigned int localIdx, int localDof)
+bool FemElement::hasInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx<m_internalDofs.size())
     {
@@ -236,7 +236,7 @@ bool CFemElement::hasInternalDof(unsigned int localIdx, int localDof)
 }
 
 // ------------------------------------------------------------
-long CFemElement::enumerateDofs(long count)
+long FemElement::enumerateDofs(long count)
 {
     for (unsigned int i=0; i<m_nodes.size(); i++)
     {
@@ -246,7 +246,7 @@ long CFemElement::enumerateDofs(long count)
 }
 
 // ------------------------------------------------------------
-long CFemElement::getInternalDof(unsigned int localIdx, int localDof)
+long FemElement::getInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx<m_internalDofs.size())
     {
@@ -257,7 +257,7 @@ long CFemElement::getInternalDof(unsigned int localIdx, int localDof)
 }
 
 // ------------------------------------------------------------
-void CFemElement::setValueSize(int size)
+void FemElement::setValueSize(int size)
 {
     int i;
     m_values.resize(size);
@@ -266,7 +266,7 @@ void CFemElement::setValueSize(int size)
 }
 
 // ------------------------------------------------------------
-double CFemElement::getValue(unsigned int idx)
+double FemElement::getValue(unsigned int idx)
 {
     if (idx<m_values.size())
         return m_values[idx];
@@ -275,14 +275,14 @@ double CFemElement::getValue(unsigned int idx)
 }
 
 // ------------------------------------------------------------
-void CFemElement::setValue(unsigned int idx, double value)
+void FemElement::setValue(unsigned int idx, double value)
 {
     if (idx<m_values.size())
         m_values[idx] = value;
 }
 
 // ------------------------------------------------------------
-int CFemElement::getValueSize()
+size_t FemElement::getValueSize()
 {
     return m_values.size();
 }

@@ -23,7 +23,7 @@ std::shared_ptr<ElementLoadsWindow> ElementLoadsWindow::create(const std::string
 	return std::make_shared<ElementLoadsWindow>(name);
 }
 
-void ElementLoadsWindow::setFemLoadSet(CFemBeamLoadSet* bcSet)
+void ElementLoadsWindow::setFemLoadSet(FemBeamLoadSet* bcSet)
 {
 	m_femBeamLoadSet = bcSet;
 	m_selected.resize(m_femBeamLoadSet->getSize(), false);
@@ -50,7 +50,7 @@ void ElementLoadsWindow::doDraw()
 		{
 			for (auto i=0; i < m_femBeamLoadSet->getSize(); i++)
 			{
-				CFemBeamLoad* beamLoad = static_cast<CFemBeamLoad*>(m_femBeamLoadSet->getLoad(i));
+				FemBeamLoad* beamLoad = static_cast<FemBeamLoad*>(m_femBeamLoadSet->getLoad(i));
 
 				ImGui::PushID(i);
 				if (ImGui::Selectable(beamLoad->getName().c_str(), i == m_currentItemIdx))
@@ -74,7 +74,7 @@ void ElementLoadsWindow::doDraw()
 	{ 
 		if (m_femBeamLoadSet != nullptr)
 		{
-			CFemBeamLoad* load = new CFemBeamLoad();
+			FemBeamLoad* load = new FemBeamLoad();
 			load->setName("new load");
 			m_femBeamLoadSet->addLoad(load);
 			m_widget->addBeamLoad(load);

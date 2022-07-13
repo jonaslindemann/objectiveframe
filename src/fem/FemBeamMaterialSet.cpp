@@ -1,20 +1,20 @@
 #include "FemBeamMaterialSet.h"
 
 // ------------------------------------------------------------
-CFemBeamMaterialSet::CFemBeamMaterialSet()
-    :CFemMaterialSet()
+FemBeamMaterialSet::FemBeamMaterialSet()
+    :FemMaterialSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemBeamMaterialSet::~CFemBeamMaterialSet()
+FemBeamMaterialSet::~FemBeamMaterialSet()
 {
 
 }
 
 // ------------------------------------------------------------
-CFemMaterial* CFemBeamMaterialSet::createMaterial()
+FemMaterial* FemBeamMaterialSet::createMaterial()
 {
-    return new CFemBeamMaterial();
+    return new FemBeamMaterial();
 }

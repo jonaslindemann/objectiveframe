@@ -4,15 +4,15 @@
 #include "FemMaterialSet.h"
 #include "FemBeamMaterial.h"
 
-class CFemBeamMaterialSet : public CFemMaterialSet
+class FemBeamMaterialSet : public FemMaterialSet
 {
 public:
-    CFemBeamMaterialSet();
-    virtual ~CFemBeamMaterialSet();
+    FemBeamMaterialSet();
+    virtual ~FemBeamMaterialSet();
 
 
 protected:
-    virtual CFemMaterial* createMaterial();
+    virtual FemMaterial* createMaterial();
 };
 
 #endif

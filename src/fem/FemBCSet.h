@@ -7,31 +7,31 @@
 
 #include <vector>
 
-FemSmartPointer(CFemBCSet);
+FemSmartPointer(FemBCSet);
 
-class CFemBCSet : public CFemObject {
+class FemBCSet : public FemObject {
 private:
-    std::vector<CFemBCPtr> m_bcs;
+    std::vector<FemBCPtr> m_bcs;
 public:
-    CFemBCSet ();
-    virtual ~CFemBCSet ();
+    FemBCSet ();
+    virtual ~FemBCSet ();
 
-    FemClassInfo("CFemBCSet",CFemObject);
+    FemClassInfo("FemBCSet",FemObject);
 
     // Methods
 
     void deleteAll();
-    CFemBCPtr removeBC(long i);
+    FemBCPtr removeBC(long i);
     bool deleteBC(long i);
-    void addBC(CFemBC* element);
+    void addBC(FemBC* element);
     void clear();
     long enumerateBCs(long count=1);
-    bool removeBC(CFemBC* bc);
-    void connectNodes(CFemNodeSet* nodes);
+    bool removeBC(FemBC* bc);
+    void connectNodes(FemNodeSet* nodes);
 
     // Get/set methods
 
-    CFemBC* getBC(long i);
+    FemBC* getBC(long i);
     size_t getSize();
 
     // IO methods
@@ -41,6 +41,6 @@ public:
     virtual void print(std::ostream &out) override;
     virtual json toJSON() override;
 protected:
-    virtual CFemBC* createBC();
+    virtual FemBC* createBC();
 };
 #endif

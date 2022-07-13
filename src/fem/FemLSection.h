@@ -5,7 +5,7 @@
 
 #define FEM_L_SECTION 2
 
-FemSmartPointer(CFemLSection);
+FemSmartPointer(FemLSection);
 
 /**
  * FemLSection class.
@@ -18,20 +18,20 @@ FemSmartPointer(CFemLSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class CFemLSection : public CFemSection {
+class FemLSection : public FemSection {
 private:
     double m_Xtp;
     double m_Ytp;
 public:
-    CFemLSection();
+    FemLSection();
 
     /** CFemLSection constructor */
-    CFemLSection (double height, double width, double WT, double LFT);
+    FemLSection (double height, double width, double WT, double LFT);
 
     /** CFemLSection destructor */
-    virtual ~CFemLSection ();
+    virtual ~FemLSection ();
 
-    FemClassInfo("CFemLSection",CFemSection);
+    FemClassInfo("FemLSection",FemSection);
 
     /**
     * Get section size

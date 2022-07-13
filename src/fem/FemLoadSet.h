@@ -6,30 +6,30 @@
 #include "FemNodeSet.h"
 #include "FemElementSet.h"
 
-FemSmartPointer(CFemLoadSet);
+FemSmartPointer(FemLoadSet);
 
-class CFemLoadSet : public CFemObject {
+class FemLoadSet : public FemObject {
 private:
-    std::vector<CFemLoad*> m_loads;
+    std::vector<FemLoad*> m_loads;
 public:
-    bool removeLoad(CFemLoad* load);
-    void connectElements(CFemElementSet *elements);
-    void connectNodes(CFemNodeSet* nodes);
-    CFemLoadSet ();
-    virtual ~CFemLoadSet ();
+    bool removeLoad(FemLoad* load);
+    void connectElements(FemElementSet *elements);
+    void connectNodes(FemNodeSet* nodes);
+    FemLoadSet ();
+    virtual ~FemLoadSet ();
 
     // Class info
 
-    FemClassInfo("CFemLoadSet",CFemObject);
+    FemClassInfo("FemLoadSet",FemObject);
 
     // Methods
 
     void deleteAll();
-    CFemLoad* removeLoad(long i);
+    FemLoad* removeLoad(long i);
     bool deleteLoad(long i);
-    CFemLoad* getLoad(long i);
-    void addLoad(CFemLoad* element);
-    long getSize();
+    FemLoad* getLoad(long i);
+    void addLoad(FemLoad* element);
+    size_t getSize();
     void clear();
     long enumerateLoads(long count=1);
 
@@ -39,6 +39,6 @@ public:
     void saveToStream(std::ostream &out);
     virtual void print(std::ostream &out);
 protected:
-    virtual CFemLoad* createLoad();
+    virtual FemLoad* createLoad();
 };
 #endif

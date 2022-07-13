@@ -4,62 +4,62 @@
 #include "FemBeamSet.h"
 
 // ------------------------------------------------------------
-CFemBeamModel::CFemBeamModel ()
-    :CFemModel()
+FemBeamModel::FemBeamModel ()
+    :FemModel()
     //TODO: check and complete member initialisation list!
 {
 }
 
 // ------------------------------------------------------------
-CFemBeamModel::~CFemBeamModel ()
+FemBeamModel::~FemBeamModel ()
 {
 }
 
 // ------------------------------------------------------------
-void CFemBeamModel::connectMaterials()
+void FemBeamModel::connectMaterials()
 {
-    CFemBeamSet* elementSet = this->getElementSet();
+    FemBeamSet* elementSet = this->getElementSet();
     elementSet->connectMaterials(this->getMaterialSet());
 }
 
 // ------------------------------------------------------------
-CFemElementSet* CFemBeamModel::createElementSet()
+FemElementSet* FemBeamModel::createElementSet()
 {
-    return new CFemBeamSet();
+    return new FemBeamSet();
 }
 
 // ------------------------------------------------------------
-CFemMaterialSet* CFemBeamModel::createMaterialSet()
+FemMaterialSet* FemBeamModel::createMaterialSet()
 {
-    return new CFemBeamMaterialSet();
+    return new FemBeamMaterialSet();
 }
 
 // ------------------------------------------------------------
-CFemBeamSet* CFemBeamModel::getElementSet()
+FemBeamSet* FemBeamModel::getElementSet()
 {
-    return (CFemBeamSet*)(CFemModel::getElementSet());
+    return (FemBeamSet*)(FemModel::getElementSet());
 }
 
 // ------------------------------------------------------------
-CFemBeamMaterialSet* CFemBeamModel::getMaterialSet()
+FemBeamMaterialSet* FemBeamModel::getMaterialSet()
 {
-    return (CFemBeamMaterialSet*)(CFemModel::getMaterialSet());
+    return (FemBeamMaterialSet*)(FemModel::getMaterialSet());
 }
 
 // ------------------------------------------------------------
-CFemElementLoadSet* CFemBeamModel::createElementLoadSet()
+FemElementLoadSet* FemBeamModel::createElementLoadSet()
 {
-    return new CFemBeamLoadSet();
+    return new FemBeamLoadSet();
 }
 
 // ------------------------------------------------------------
-CFemNodeLoadSet* CFemBeamModel::createNodeLoadSet()
+FemNodeLoadSet* FemBeamModel::createNodeLoadSet()
 {
-    return new CFemBeamNodeLoadSet();
+    return new FemBeamNodeLoadSet();
 }
 
 // ------------------------------------------------------------
-CFemNodeBCSet* CFemBeamModel::createBCSet()
+FemNodeBCSet* FemBeamModel::createBCSet()
 {
-    return new CFemBeamNodeBCSet();
+    return new FemBeamNodeBCSet();
 }

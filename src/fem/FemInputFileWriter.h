@@ -7,19 +7,19 @@
 #include "FemObject.h"
 #include "FemModel.h"
 
-FemSmartPointer(CFemInputFileWriter);
+FemSmartPointer(FemInputFileWriter);
 
-class CFemInputFileWriter : public CFemObject {
+class FemInputFileWriter : public FemObject {
 private:
-    CFemModel* m_femModel;
+    FemModel* m_femModel;
 public:
-    CFemInputFileWriter ();
-    virtual ~CFemInputFileWriter ();
+    FemInputFileWriter ();
+    virtual ~FemInputFileWriter ();
 
-    FemClassInfo("CFemInputFileWriter",CFemObject);
+    FemClassInfo("FemInputFileWriter",FemObject);
 
-    void setFemModel(CFemModel* model);
-    CFemModel* getFemModel();
+    void setFemModel(FemModel* model);
+    FemModel* getFemModel();
     virtual void saveToStream (std::ostream &out);
 };
 #endif

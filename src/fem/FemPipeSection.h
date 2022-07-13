@@ -5,7 +5,7 @@
 
 #define FEM_PIPE_SECTION 3
 
-FemSmartPointer(CFemPipeSection);
+FemSmartPointer(FemPipeSection);
 
 /**
  * FemPipeSection class.
@@ -18,17 +18,17 @@ FemSmartPointer(CFemPipeSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class CFemPipeSection : public CFemSection {
+class FemPipeSection : public FemSection {
 public:
-    CFemPipeSection();
+    FemPipeSection();
 
     /** CFemPipeSection constructor */
-    CFemPipeSection (double outerRadius, double innerRadius);
+    FemPipeSection (double outerRadius, double innerRadius);
 
     /** CFemPipeSection destructor */
-    virtual ~CFemPipeSection ();
+    virtual ~FemPipeSection ();
 
-    FemClassInfo("CFemPipeSection",CFemSection);
+    FemClassInfo("FemPipeSection",FemSection);
 
     /**
     * Get section size

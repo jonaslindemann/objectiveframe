@@ -4,17 +4,17 @@
 #include "FemElementLoad.h"
 #include "FemBeam.h"
 
-FemSmartPointer(CFemBeamLoad);
+FemSmartPointer(FemBeamLoad);
 
-class CFemBeamLoad : public CFemElementLoad {
+class FemBeamLoad : public FemElementLoad {
 private:
     std::string m_name;
     int m_color;
 public:
-    CFemBeamLoad();
-    virtual ~CFemBeamLoad ();
+    FemBeamLoad();
+    virtual ~FemBeamLoad ();
 
-    FemClassInfo("CFemBeamLoad",CFemElementLoad);
+    FemClassInfo("FemBeamLoad",FemElementLoad);
 
     const std::string getName();
     void setName(const std::string& name);

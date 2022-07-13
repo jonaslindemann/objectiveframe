@@ -55,7 +55,7 @@ void CStructureFactory::create()
         // Create nodes
         //
         
-        m_currentMaterial = (CFemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial();
+        m_currentMaterial = (FemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial();
 
         vector<VisFemNode*> nodes;
 
@@ -71,14 +71,14 @@ void CStructureFactory::create()
                     // Create a fem node
                     //
 
-                    CFemNode* femNode = new CFemNode();
+                    FemNode* femNode = new FemNode();
 
                     //
                     // Add it to the Fem model
                     //
 
                     m_beamModel->getNodeSet()->addNode(femNode);
-                    femNode->setNumber(m_beamModel->getNodeSet()->getSize()-1);
+                    femNode->setNumber(static_cast<long>(m_beamModel->getNodeSet()->getSize()-1));
 
                     //
                     // Create Ivf representation
@@ -128,7 +128,7 @@ void CStructureFactory::create()
                     // Create model representation
                     //
 
-                    CFemBeam* femBeam =  new CFemBeam();
+                    FemBeam* femBeam =  new FemBeam();
 
                     //
                     // Extract FemNode:s from the IvfNodes
@@ -199,7 +199,7 @@ void CStructureFactory::create()
                     // Create model representation
                     //
 
-                    CFemBeam* femBeam =  new CFemBeam();
+                    FemBeam* femBeam =  new FemBeam();
 
                     //
                     // Extract FemNode:s from the IvfNodes
@@ -270,7 +270,7 @@ void CStructureFactory::create()
                     // Create model representation
                     //
 
-                    CFemBeam* femBeam =  new CFemBeam();
+                    FemBeam* femBeam =  new FemBeam();
 
                     //
                     // Extract FemNode:s from the IvfNodes
@@ -332,7 +332,7 @@ VisBeamModel* CStructureFactory::getBeamModel()
     return m_beamModel;
 }
 
-void CStructureFactory::setCurrentMaterial(CFemBeamMaterial *material)
+void CStructureFactory::setCurrentMaterial(FemBeamMaterial *material)
 {
     m_currentMaterial = material;
 }

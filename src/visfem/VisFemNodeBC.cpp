@@ -27,7 +27,7 @@ VisFemNodeBC::~VisFemNodeBC ()
 }
 
 // ------------------------------------------------------------
-void VisFemNodeBC::setNodeBC(CFemBeamNodeBC *bc)
+void VisFemNodeBC::setNodeBC(FemBeamNodeBC *bc)
 {
     int i, j;
 

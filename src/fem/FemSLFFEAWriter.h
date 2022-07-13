@@ -7,16 +7,16 @@
 
 #include <string>
 
-FemSmartPointer(CFemSLFFEAWriter);
+FemSmartPointer(FemSLFFEAWriter);
 
-class CFemSLFFEAWriter : public CFemInputFileWriter {
+class FemSLFFEAWriter : public FemInputFileWriter {
 private:
     string m_fileName;
 public:
-    CFemSLFFEAWriter ();
-    virtual ~CFemSLFFEAWriter ();
+    FemSLFFEAWriter ();
+    virtual ~FemSLFFEAWriter ();
 
-    FemClassInfo("CFemSLFFEAWriter",CFemInputFileWriter);
+    FemClassInfo("FemSLFFEAWriter",FemInputFileWriter);
 
     void save();
 

@@ -13,7 +13,7 @@ IvfSmartPointer(VisFemNodeLoad);
 // public class: VisFemNodeLoad
 class VisFemNodeLoad : public ivf::Shape {
 private:
-    CFemBeamNodeLoad* m_nodeLoad;
+    FemBeamNodeLoad* m_nodeLoad;
     vector<ivf::ExtrArrowPtr> m_arrow;
     ivf::MaterialPtr m_arrowMaterial;
     VisBeamModel* m_beamModel;
@@ -30,7 +30,7 @@ public:
     // Get/set methods
 
     void setBeamModel(VisBeamModel* model);
-    void setNodeLoad(CFemBeamNodeLoad* nodeLoad);
+    void setNodeLoad(FemBeamNodeLoad* nodeLoad);
 
     // Methods
 

@@ -4,16 +4,16 @@
 #include "FemElementLoadSet.h"
 #include "FemLoad.h"
 
-FemSmartPointer(CFemBeamLoadSet);
+FemSmartPointer(FemBeamLoadSet);
 
-class CFemBeamLoadSet : public CFemElementLoadSet {
+class FemBeamLoadSet : public FemElementLoadSet {
 public:
-    CFemBeamLoadSet();
-    virtual ~CFemBeamLoadSet();
+    FemBeamLoadSet();
+    virtual ~FemBeamLoadSet();
 
-    FemClassInfo("CFemBeamLoadSet",CFemElementLoadSet);
+    FemClassInfo("FemBeamLoadSet",FemElementLoadSet);
 protected:
-    CFemLoad* createLoad();
+    FemLoad* createLoad();
 };
 
 #endif

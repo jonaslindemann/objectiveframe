@@ -23,7 +23,7 @@ std::shared_ptr<NodeLoadsWindow> NodeLoadsWindow::create(const std::string name)
 	return std::make_shared<NodeLoadsWindow>(name);
 }
 
-void NodeLoadsWindow::setFemNodeLoadSet(CFemBeamNodeLoadSet* bcSet)
+void NodeLoadsWindow::setFemNodeLoadSet(FemBeamNodeLoadSet* bcSet)
 {
 	m_femNodeLoadSet = bcSet;
 	m_selected.resize(m_femNodeLoadSet->getSize(), false);
@@ -50,7 +50,7 @@ void NodeLoadsWindow::doDraw()
 		{
 			for (auto i=0; i < m_femNodeLoadSet->getSize(); i++)
 			{
-				CFemBeamNodeLoad* nodeLoad = static_cast<CFemBeamNodeLoad*>(m_femNodeLoadSet->getLoad(i));
+				FemBeamNodeLoad* nodeLoad = static_cast<FemBeamNodeLoad*>(m_femNodeLoadSet->getLoad(i));
 
 				ImGui::PushID(i);
 				if (ImGui::Selectable(nodeLoad->getName().c_str(), i == m_currentItemIdx))
@@ -74,7 +74,7 @@ void NodeLoadsWindow::doDraw()
 	{ 
 		if (m_femNodeLoadSet != nullptr)
 		{
-			CFemBeamNodeLoad* load = new CFemBeamNodeLoad();
+			FemBeamNodeLoad* load = new FemBeamNodeLoad();
 			load->setName("new load");
 			m_femNodeLoadSet->addLoad(load);
 			m_widget->addNodeLoad(load);

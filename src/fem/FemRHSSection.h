@@ -5,7 +5,7 @@
 
 #define FEM_RHS_SECTION 5
 
-FemSmartPointer(CFemRHSSection);
+FemSmartPointer(FemRHSSection);
 
 /**
  * FemRHSSection class.
@@ -18,17 +18,17 @@ FemSmartPointer(CFemRHSSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class CFemRHSSection : public CFemSection {
+class FemRHSSection : public FemSection {
 public:
-    CFemRHSSection();
+    FemRHSSection();
 
     /** CFemRHSSection constructor */
-    CFemRHSSection (double height, double width, double WT);
+    FemRHSSection (double height, double width, double WT);
 
     /** CFemRHSSection destructor */
-    virtual ~CFemRHSSection ();
+    virtual ~FemRHSSection ();
 
-    FemClassInfo("CFemRHSSection",CFemSection);
+    FemClassInfo("FemRHSSection",FemSection);
 
     /**
     * Get section size

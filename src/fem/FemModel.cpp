@@ -3,120 +3,120 @@
 #include "FemModel.h"
 
 // ------------------------------------------------------------
-CFemModel::CFemModel ()
-    :CFemObject()
+FemModel::FemModel ()
+    :FemObject()
 {
 }
 
 // ------------------------------------------------------------
-CFemModel::~CFemModel ()
+FemModel::~FemModel ()
 {
 }
 
 // ------------------------------------------------------------
-CFemNodeSet* CFemModel::getNodeSet()
+FemNodeSet* FemModel::getNodeSet()
 {
     return m_nodeSet;
 }
 
-CFemNodeSet* CFemModel::nodeSet()
+FemNodeSet* FemModel::nodeSet()
 {
 	return m_nodeSet;
 }
 
 // ------------------------------------------------------------
-CFemElementSet* CFemModel::getElementSet()
+FemElementSet* FemModel::getElementSet()
 {
 	return m_elementSet;
 }
 
-CFemElementSet* CFemModel::elementSet()
+FemElementSet* FemModel::elementSet()
 {
 	return m_elementSet;
 }
 
 // ------------------------------------------------------------
-CFemMaterialSet* CFemModel::getMaterialSet()
+FemMaterialSet* FemModel::getMaterialSet()
 {
     return m_materialSet;
 }
 
-CFemMaterialSet* CFemModel::materialSet()
+FemMaterialSet* FemModel::materialSet()
 {
 	return m_materialSet;
 }
 
 // ------------------------------------------------------------
-CFemNodeLoadSet* CFemModel::getNodeLoadSet()
+FemNodeLoadSet* FemModel::getNodeLoadSet()
 {
     return m_nodeLoadSet;
 }
 
-CFemNodeLoadSet* CFemModel::nodeLoadSet()
+FemNodeLoadSet* FemModel::nodeLoadSet()
 {
 	return m_nodeLoadSet;
 }
 
 // ------------------------------------------------------------
-CFemElementLoadSet* CFemModel::getElementLoadSet()
+FemElementLoadSet* FemModel::getElementLoadSet()
 {
     return m_elementLoadSet;
 }
 
-CFemElementLoadSet* CFemModel::elementLoadSet()
+FemElementLoadSet* FemModel::elementLoadSet()
 {
 	return m_elementLoadSet;
 }
 
 // ------------------------------------------------------------
-CFemNodeBCSet* CFemModel::getBCSet()
+FemNodeBCSet* FemModel::getBCSet()
 {
     return m_bcSet;
 }
 
-CFemNodeBCSet* CFemModel::BCSet()
+FemNodeBCSet* FemModel::BCSet()
 {
 	return m_bcSet;
 }
 
 // ------------------------------------------------------------
-CFemNodeSet* CFemModel::createNodeSet()
+FemNodeSet* FemModel::createNodeSet()
 {
-    return new CFemNodeSet();
+    return new FemNodeSet();
 }
 
 // ------------------------------------------------------------
-CFemElementSet* CFemModel::createElementSet()
+FemElementSet* FemModel::createElementSet()
 {
-    return new CFemElementSet();
+    return new FemElementSet();
 }
 
 // ------------------------------------------------------------
-CFemMaterialSet* CFemModel::createMaterialSet()
+FemMaterialSet* FemModel::createMaterialSet()
 {
-    return new CFemMaterialSet();
+    return new FemMaterialSet();
 }
 
 // ------------------------------------------------------------
-CFemNodeLoadSet* CFemModel::createNodeLoadSet()
+FemNodeLoadSet* FemModel::createNodeLoadSet()
 {
-    return new CFemNodeLoadSet();
+    return new FemNodeLoadSet();
 }
 
 // ------------------------------------------------------------
-CFemElementLoadSet* CFemModel::createElementLoadSet()
+FemElementLoadSet* FemModel::createElementLoadSet()
 {
-    return new CFemElementLoadSet();
+    return new FemElementLoadSet();
 }
 
 // ------------------------------------------------------------
-CFemNodeBCSet* CFemModel::createBCSet()
+FemNodeBCSet* FemModel::createBCSet()
 {
-    return new CFemNodeBCSet();
+    return new FemNodeBCSet();
 }
 
 // ------------------------------------------------------------
-void CFemModel::print(ostream &out)
+void FemModel::print(ostream &out)
 {
     m_materialSet->print(out);
     m_nodeSet->print(out);
@@ -124,7 +124,7 @@ void CFemModel::print(ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemModel::saveToStream(std::ostream &out)
+void FemModel::saveToStream(std::ostream &out)
 {
     // Enumerate model
 
@@ -152,7 +152,7 @@ void CFemModel::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void CFemModel::readFromStream(std::istream &in)
+void FemModel::readFromStream(std::istream &in)
 {
     initialize();
     deleteAll();
@@ -170,37 +170,37 @@ void CFemModel::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void CFemModel::connectElements()
+void FemModel::connectElements()
 {
     m_elementSet->connectNodes(m_nodeSet);
 }
 
 // ------------------------------------------------------------
-void CFemModel::connectMaterials()
+void FemModel::connectMaterials()
 {
 
 }
 
 // ------------------------------------------------------------
-void CFemModel::connectNodeLoads()
+void FemModel::connectNodeLoads()
 {
     m_nodeLoadSet->connectNodes(m_nodeSet);
 }
 
 // ------------------------------------------------------------
-void CFemModel::connectElementLoads()
+void FemModel::connectElementLoads()
 {
     m_elementLoadSet->connectElements(m_elementSet);
 }
 
 // ------------------------------------------------------------
-void CFemModel::connectNodeBCs()
+void FemModel::connectNodeBCs()
 {
     m_bcSet->connectNodes(m_nodeSet);
 }
 
 // ------------------------------------------------------------
-void CFemModel::deleteAll()
+void FemModel::deleteAll()
 {
     m_materialSet->deleteAll();
     m_elementSet->deleteAll();
@@ -211,19 +211,19 @@ void CFemModel::deleteAll()
 }
 
 // ------------------------------------------------------------
-void CFemModel::setFileName(const std::string& fname)
+void FemModel::setFileName(const std::string& fname)
 {
     m_fileName = fname;
 }
 
 // ------------------------------------------------------------
-const std::string CFemModel::getFileName()
+const std::string FemModel::getFileName()
 {
     return m_fileName;
 }
 
 // ------------------------------------------------------------
-bool CFemModel::open()
+bool FemModel::open()
 {
 	if (m_fileName != "")
 	{
@@ -244,7 +244,7 @@ bool CFemModel::open()
 }
 
 // ------------------------------------------------------------
-void CFemModel::save()
+void FemModel::save()
 {
     if (m_fileName!="")
     {
@@ -256,7 +256,7 @@ void CFemModel::save()
 }
 
 // ------------------------------------------------------------
-void CFemModel::initialize()
+void FemModel::initialize()
 {
     // Create new sets
 
@@ -271,25 +271,25 @@ void CFemModel::initialize()
 }
 
 // ------------------------------------------------------------
-void CFemModel::onInitialised()
+void FemModel::onInitialised()
 {
     
 }
 
 // ------------------------------------------------------------
-void CFemModel::clearNodeValues()
+void FemModel::clearNodeValues()
 {
     m_nodeSet->clearNodeValues();
 }
 
 
 // ------------------------------------------------------------
-CFemNodeBCSet* CFemModel::getNodeBCSet()
+FemNodeBCSet* FemModel::getNodeBCSet()
 {
     return m_bcSet;
 }
 
-CFemNodeBCSet* CFemModel::nodeBCSet()
+FemNodeBCSet* FemModel::nodeBCSet()
 {
 	return m_bcSet;
 }

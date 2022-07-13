@@ -11,16 +11,16 @@ using json = nlohmann::json;
 #include "FemDef.h"
 #include "FemPointer.h"
 
-FemSmartPointer(CFemObject);
+FemSmartPointer(FemObject);
 
-class CFemObject {
+class FemObject {
 private:
     int m_ref;
     void* m_user;
 	bool m_readOnly;
 public:
-    CFemObject ();
-    virtual ~CFemObject ();
+    FemObject ();
+    virtual ~FemObject ();
 
     // Class info
 

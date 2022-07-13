@@ -48,7 +48,7 @@ CFemDFEMCInterface::~CFemDFEMCInterface()
 
 }
 
-void CFemDFEMCInterface::setBeamModel(CFemBeamModel *model)
+void CFemDFEMCInterface::setBeamModel(FemBeamModel *model)
 {
     m_beamModel = model;
 }

@@ -13,18 +13,18 @@
 #include <ivfimage/SgiImage.h>
 #include <ivf/Fog.h>
 
-#include <FemBeam.h>
-#include <FemNode.h>
-#include <FemBeamLoad.h>
+#include <ofem/beam.h>
+#include <ofem/node.h>
+#include <ofem/beam_load.h>
 
-#include "BeamPropDlg.h"
-#include "ElementLoadsDlg.h"
+#include <logger.h>
 
 #include "StructureFactory.h"
-#include "StatusOutput.h"
 
 using namespace ivf;
 using namespace std;
+using namespace ofui;
+//using namespace ofem;
 
 // ------------------------------------------------------------
 // ------------------------------------------------------------
@@ -51,7 +51,7 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 {
 	m_width = W;
 	m_height = H;
-	so_print("FemWidget: Initializing variables.");
+	log("Initializing variables.");
 	m_tactileForce = nullptr;
 	m_internalSolver = nullptr;
 	m_relNodeSize = 0.004;
@@ -88,11 +88,11 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 
 void FemWidget::onInit()
 {
-	so_print("FemWidget: Initializing FemWidget.");
+	log("Initializing FemWidget.");
 
 	// Intialize transparent workspace plane
 
-	auto material = Material::create();
+	auto material = ivf::Material::create();
 	material->setDiffuseColor(1.0f, 1.0f, 1.0f, 0.8f);
 	material->setSpecularColor(1.0f, 1.0f, 1.0f, 0.8f);
 	material->setAmbientColor(0.3f, 0.3f, 0.3f, 0.8f);
@@ -105,7 +105,7 @@ void FemWidget::onInit()
 
 	// Common 3D gui state variables
 
-	so_print("FemWidget: Initializing variables.");
+	log("Initializing variables.");
 	this->setWorkspace(20.0);
 
 	// Initialize Ivf++ variables
@@ -115,12 +115,12 @@ void FemWidget::onInit()
 
 	// Initialize scene
 
-	so_print("FemWidget: Initializing scene.");
+	log("Initializing scene.");
 
 	// Define node material
 
-	so_print("FemWidget: Defining node material.");
-	m_nodeMaterial = Material::create();
+	log("Defining node material.");
+	m_nodeMaterial = ivf::Material::create();
 	m_nodeMaterial->addReference();
 	m_nodeMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
 	m_nodeMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -128,8 +128,8 @@ void FemWidget::onInit()
 
 	// Define line material
 
-	so_print("FemWidget: Defining line material.");
-	m_lineMaterial = Material::create();
+	log("Defining line material.");
+	m_lineMaterial = ivf::Material::create();
 	m_lineMaterial->addReference();
 	m_lineMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
 	m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -137,17 +137,17 @@ void FemWidget::onInit()
 
 	// Initialize beam model
 
-	so_print("FemWidget: Setting color map path.");
+	log("Setting color map path.");
 	std::string colorPath = m_progPath;
 	colorPath = colorPath + "maps/";
 
-	so_print("FemWidget: Initializing beam model.");
-	m_beamModel = new VisBeamModel();
+	log("Initializing beam model.");
+	m_beamModel = new vfem::BeamModel();
 	m_beamModel->initialize();
 	m_beamModel->setPath(colorPath);
 	m_beamModel->setScene(this->getScene()->getComposite());
 	m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
-	m_beamModel->setNodeType(Node::NT_CUBE);
+	m_beamModel->setNodeType(ivf::Node::NT_CUBE);
 	m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
 	m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
 	m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
@@ -158,7 +158,7 @@ void FemWidget::onInit()
 
 	// Initialize color table
 
-	so_print("FemWidget: Initializing color table.");
+	log("Initializing color table.");
 	auto colorTable = m_beamModel->getColorTable();
 	uchar r, g, b;
 
@@ -173,12 +173,12 @@ void FemWidget::onInit()
 
 	// Initialize gle library
 
-	so_print("FemWidget: Initializing gle library.");
+	log("Initializing gle library.");
 	ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
 
 	// Initialize model file name variables
 
-	so_print("FemWidget: Setting initial file name.");
+	log("Setting initial file name.");
 	m_fileName = "";
 	this->setFileName("noname.df3");
 
@@ -196,13 +196,13 @@ void FemWidget::onInit()
 
 	// Create tactile Force icon
 
-	so_print("FemWidget: Setting material for tactile force.");
-	material = Material::create();
+	log("Setting material for tactile force.");
+	material = ivf::Material::create();
 	material->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
 	material->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	material->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
 
-	so_print("FemWidget: Creating tactile force.");
+	log("Creating tactile force.");
 
 	double loadSize = m_beamModel->getLoadSize();
 
@@ -221,20 +221,9 @@ void FemWidget::onInit()
 	m_nodeCursor->setRadius(m_beamModel->getNodeSize());
 	this->getScene()->setCursorShape(m_nodeCursor);
 
-	so_print("DialogMgr: Creating element load dialog.");
-	m_dlgElementLoads = new ElementLoadsDlg();
-	m_dlgElementLoads->setFemWidget((void*)this);
-
-	so_print("DialogMgr: Creating beam prop dialog.");
-	m_dlgBeamProp = new BeamPropDlg();
-	m_dlgBeamProp->setFemWidget((void*)this);
-
-	//so_print("DialogMgr: Creating structure dialog.");
-	//m_dlgStructure = new StructureDlg();
-
 	// Set initial edit mode
 
-	so_print("FemWidget: Setting initial edit mode.");
+	log("Setting initial edit mode.");
 	this->setEditMode(WidgetMode::ViewZoom);
 
 	// Create ImGui interface
@@ -273,6 +262,7 @@ void FemWidget::onInit()
 	m_materialsWindow->setVisible(false);
 
 	m_elementPropWindow = ElementPropWindow::create("Element properties");
+	m_elementPropWindow->setWidget(this);
 	m_elementPropWindow->setVisible(false);
 }
 
@@ -284,16 +274,12 @@ void FemWidget::onInit()
 
 FemWidget::~FemWidget()
 {
-	so_print("FemWidget: Destructor.");
+	log("Destructor.");
 
 	// Do some cleanup
 
+	log("Deleting internal solver.");
 	delete m_internalSolver;
-
-	so_print("FemWidget: Deleting beam properties dialog.");
-	delete m_dlgBeamProp;
-	so_print("FemWidget: Deleting element load dialog.");
-	delete m_dlgElementLoads;
 }
 
 // ------------------------------------------------------------
@@ -337,7 +323,7 @@ void FemWidget::setWorkspace(double size, bool resetCamera)
 	if (m_beamModel != nullptr)
 	{
 		m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
-		m_beamModel->setNodeType(Node::NT_CUBE);
+		m_beamModel->setNodeType(ivf::Node::NT_CUBE);
 		m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
 		m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
 		m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
@@ -367,7 +353,7 @@ void FemWidget::setWorkspace(double size, bool resetCamera)
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentMaterial(FemBeamMaterial* material)
+void FemWidget::setCurrentMaterial(ofem::BeamMaterial* material)
 {
 	// Set current material
 
@@ -375,7 +361,7 @@ void FemWidget::setCurrentMaterial(FemBeamMaterial* material)
 }
 
 // ------------------------------------------------------------
-FemBeamMaterial* FemWidget::getCurrentMaterial()
+ofem::BeamMaterial* FemWidget::getCurrentMaterial()
 {
 	// Return current material
 
@@ -383,7 +369,7 @@ FemBeamMaterial* FemWidget::getCurrentMaterial()
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentBeamLoad(FemBeamLoad* elementLoad)
+void FemWidget::setCurrentBeamLoad(ofem::BeamLoad* elementLoad)
 {
 	// Set current elementload
 
@@ -399,25 +385,25 @@ void FemWidget::setRepresentation(RepresentationMode repr)
 
 	switch (m_representation) {
 	case RepresentationMode::Fem:
-		so_print("FemWidget: Setting representation to FRAME_FEM.");
+		log("Setting representation to FRAME_FEM.");
 		ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
 		m_beamModel->setBeamType(IVF_BEAM_SOLID);
 		m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
 		break;
 	case RepresentationMode::Geometry:
-		so_print("FemWidget: Setting representation to FRAME_GEOMETRY.");
+		log("Setting representation to FRAME_GEOMETRY.");
 		ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_FACET | TUBE_JN_ANGLE);
 		m_beamModel->setBeamType(IVF_BEAM_EXTRUSION);
 		m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
 		break;
 	case RepresentationMode::Displacements:
-		so_print("FemWidget: Setting representation to FRAME_DISPLACEMENTS.");
+		log("Setting representation to FRAME_DISPLACEMENTS.");
 		ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
 		m_beamModel->setBeamType(IVF_BEAM_SOLID);
 		m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
 		break;
 	case RepresentationMode::Results:
-		so_print("FemWidget: Setting representation to FRAME_RESULTS.");
+		log("Setting representation to FRAME_RESULTS.");
 		ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
 		m_beamModel->setBeamType(IVF_BEAM_RESULTS);
 		m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
@@ -444,19 +430,19 @@ Shape* FemWidget::getSelectedShape()
 }
 
 // ------------------------------------------------------------
-FemBeamLoad* FemWidget::getCurrentBeamLoad()
+ofem::BeamLoad* FemWidget::getCurrentBeamLoad()
 {
 	return m_currentElementLoad;
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentNodeLoad(FemBeamNodeLoad* nodeLoad)
+void FemWidget::setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
 	m_currentNodeLoad = nodeLoad;
 }
 
 // ------------------------------------------------------------
-FemBeamNodeLoad* FemWidget::getCurrentNodeLoad()
+ofem::BeamNodeLoad* FemWidget::getCurrentNodeLoad()
 {
 	return m_currentNodeLoad;
 }
@@ -538,7 +524,7 @@ void FemWidget::setBeamRefreshMode(int mode)
 	for (i = 0; i < scene->getSize(); i++)
 	{
 		auto shape = scene->getChild(i);
-		if (shape->isClass("SolidLine"))
+		if (shape->isClass("vfem::SolidLine"))
 		{
 			SolidLine* solidLine = static_cast<SolidLine*>(shape);
 			solidLine->setRefresh(mode);
@@ -568,7 +554,7 @@ double FemWidget::getScalefactor()
 }
 
 // ------------------------------------------------------------
-void FemWidget::setCurrentNodeBC(FemBeamNodeBC* bc)
+void FemWidget::setCurrentNodeBC(ofem::BeamNodeBC* bc)
 {
 	m_currentNodeBC = bc;
 }
@@ -717,7 +703,7 @@ void FemWidget::open()
 		this->deleteAll();
 		//this->addToScene(m_plane);
 
-		so_print("FemWidget: Setting color map path.");
+		log("Setting color map path.");
 		std::string colorPath = "";
 
 		colorPath = colorPath + m_progPath;
@@ -736,8 +722,8 @@ void FemWidget::open()
 
 		// Update dialogs
 
-		m_dlgBeamProp->setBeam(nullptr);
 		m_nodePropWindow->setNode(nullptr);
+		m_elementPropWindow->setBeam(nullptr);
 
 		// Add tactile force
 
@@ -769,17 +755,16 @@ void FemWidget::showProperties()
 
 	if (this->getSelectedShape() != nullptr)
 	{
-		if (this->getSelectedShape()->isClass("VisFemNode"))
+		if (this->getSelectedShape()->isClass("vfem::Node"))
 		{
 			m_nodePropWindow->align(3);
 			m_nodePropWindow->setVisible(true);
 		}
 
-		if (this->getSelectedShape()->isClass("VisFemBeam"))
+		if (this->getSelectedShape()->isClass("vfem::Beam"))
 		{
+			m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(this->getSelectedShape()));
 			m_elementPropWindow->setVisible(true);
-			m_dlgBeamProp->show();
-			makeToolWindow(m_dlgBeamProp->wndBeamProp);
 		}
 	}
 }
@@ -805,12 +790,12 @@ void FemWidget::newModel()
 
 	// Setup new beam model
 
-	m_beamModel = new VisBeamModel();
+	m_beamModel = new vfem::BeamModel();
 	m_beamModel->initialize();
 	m_beamModel->setPath(colorPath);
 	m_beamModel->setScene(this->getScene()->getComposite());
 	m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
-	m_beamModel->setNodeType(Node::NT_CUBE);
+	m_beamModel->setNodeType(ivf::Node::NT_CUBE);
 	m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
 	m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
 	m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
@@ -838,8 +823,8 @@ void FemWidget::newModel()
 
 	// Initialize dialogs
 
-	m_dlgBeamProp->setBeam(nullptr);
 	m_nodePropWindow->setNode(nullptr);
+	m_elementPropWindow->setBeam(nullptr);
 
 	// Add tactile force
 
@@ -884,9 +869,9 @@ void FemWidget::assignMaterialToSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemBeam"))
+			if (shape->isClass("vfem::Beam"))
 			{
-				VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+				vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
 				visBeam->getBeam()->setMaterial(this->getCurrentMaterial());
 			}
 		}
@@ -909,9 +894,9 @@ void FemWidget::removeMaterialFromSelected()
 	for (int i = 0; i < selected->getSize(); i++)
 	{
 		auto shape = selected->getChild(i);
-		if (shape->isClass("VisFemBeam"))
+		if (shape->isClass("vfem::Beam"))
 		{
-			VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+			vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
 			visBeam->getBeam()->setMaterial(nullptr);
 		}
 	}
@@ -925,14 +910,14 @@ void FemWidget::removeMaterialFromSelected()
 }
 
 // ------------------------------------------------------------
-void FemWidget::deleteBeamLoad(FemBeamLoad* elementLoad)
+void FemWidget::deleteBeamLoad(ofem::BeamLoad* elementLoad)
 {
 	// Delete a beam load
 
 
 	// Get ivf representation from element load
 
-	VisFemBeamLoad* visBeamLoad = static_cast<VisFemBeamLoad*>(elementLoad->getUser());
+	vfem::BeamLoad* visBeamLoad = static_cast<vfem::BeamLoad*>(elementLoad->getUser());
 
 	// Remove shape from scene and delete it
 
@@ -958,14 +943,14 @@ void FemWidget::deleteSelected()
 }
 
 // ------------------------------------------------------------
-void FemWidget::addBeamLoad(FemBeamLoad* elementLoad)
+void FemWidget::addBeamLoad(ofem::BeamLoad* elementLoad)
 {
 	// Add a beam load
 
 
 	// Create ivf represenation
 
-	VisFemBeamLoad* visLoad = new VisFemBeamLoad();
+	vfem::BeamLoad* visLoad = new vfem::BeamLoad();
 	visLoad->setBeamModel(m_beamModel);
 	visLoad->setBeamLoad(elementLoad);
 
@@ -986,14 +971,14 @@ void FemWidget::addBeamLoad(FemBeamLoad* elementLoad)
 }
 
 // ------------------------------------------------------------
-void FemWidget::addNodeLoad(FemBeamNodeLoad* nodeLoad)
+void FemWidget::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
 	// Add a node load
 
 
 	// Create ivf represenation
 
-	VisFemNodeLoad* visNodeLoad = new VisFemNodeLoad();
+	vfem::NodeLoad* visNodeLoad = new vfem::NodeLoad();
 	visNodeLoad->setBeamModel(m_beamModel);
 	visNodeLoad->setNodeLoad(nodeLoad);
 
@@ -1014,14 +999,14 @@ void FemWidget::addNodeLoad(FemBeamNodeLoad* nodeLoad)
 }
 
 // ------------------------------------------------------------
-void FemWidget::addNodeBC(FemBeamNodeBC* bc)
+void FemWidget::addNodeBC(ofem::BeamNodeBC* bc)
 {
 	// Add a node load
 
 
 	// Create ivf represenation
 
-	VisFemNodeBC* visNodeBC = new VisFemNodeBC();
+	vfem::NodeBC* visNodeBC = new vfem::NodeBC();
 	visNodeBC->setBeamModel(m_beamModel);
 	visNodeBC->setNodeBC(bc);
 
@@ -1045,12 +1030,6 @@ void FemWidget::addNodeBC(FemBeamNodeBC* bc)
 // ------------------------------------------------------------
 void FemWidget::showBeamLoads()
 {
-	// Show beam loads dialog
-
-	setRepresentation(RepresentationMode::Fem);
-	m_dlgElementLoads->setLoadSet(m_beamModel->getElementLoadSet());
-	m_dlgElementLoads->show();
-	makeToolWindow(m_dlgElementLoads->wndElementLoads);
 }
 
 // ------------------------------------------------------------
@@ -1064,10 +1043,10 @@ void FemWidget::assignBeamLoadSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemBeam"))
+			if (shape->isClass("vfem::Beam"))
 			{
-				VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-				m_currentElementLoad->addElement((FemElement*)visBeam->getBeam());
+				vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
+				m_currentElementLoad->addElement((ofem::Element*)visBeam->getBeam());
 			}
 		}
 
@@ -1091,10 +1070,10 @@ void FemWidget::assignNodeLoadSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemNode"))
+			if (shape->isClass("vfem::Node"))
 			{
-				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				m_currentNodeLoad->addNode(static_cast<FemNode*>(visNode->getFemNode()));
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+				m_currentNodeLoad->addNode(static_cast<ofem::Node*>(visNode->getFemNode()));
 			}
 		}
 
@@ -1108,14 +1087,14 @@ void FemWidget::assignNodeLoadSelected()
 }
 
 // ------------------------------------------------------------
-void FemWidget::deleteNodeLoad(FemBeamNodeLoad* nodeLoad)
+void FemWidget::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
 	// Delete a node load
 
 
 	// Get ivf representation from element load
 
-	VisFemNodeLoad* visNodeLoad = static_cast<VisFemNodeLoad*>(nodeLoad->getUser());
+	vfem::NodeLoad* visNodeLoad = static_cast<vfem::NodeLoad*>(nodeLoad->getUser());
 
 	// Remove shape from scene and delete it
 
@@ -1129,14 +1108,14 @@ void FemWidget::deleteNodeLoad(FemBeamNodeLoad* nodeLoad)
 }
 
 // ------------------------------------------------------------
-void FemWidget::deleteNodeBC(FemBeamNodeBC* bc)
+void FemWidget::deleteNodeBC(ofem::BeamNodeBC* bc)
 {
 	// Delete a node load
 
 
 	// Get ivf representation from element load
 
-	VisFemNodeBC* visNodeBC = static_cast<VisFemNodeBC*>(bc->getUser());
+	vfem::NodeBC* visNodeBC = static_cast<vfem::NodeBC*>(bc->getUser());
 
 	// Remove shape from scene and delete it
 
@@ -1171,9 +1150,9 @@ void FemWidget::setRotationSelected(double rotation)
 	for (int i = 0; i < selected->getSize(); i++)
 	{
 		auto shape = selected->getChild(i);
-		if (shape->isClass("VisFemBeam"))
+		if (shape->isClass("vfem::Beam"))
 		{
-			VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
+			vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
 			visBeam->getBeam()->setBeamRotation(rotation);
 		}
 	}
@@ -1189,9 +1168,9 @@ void FemWidget::setRotationSelected(double rotation)
 void FemWidget::setupOverlay()
 {
 #ifdef ADVANCED_GL
-	CIvfPlaneButton* button;
+	PlaneButton* button;
 
-	m_editArea = new CIvfArea2D();
+	m_editArea = new Area2D();
 	m_editArea->add(0, 0);
 	m_editArea->add(65, 0);
 	m_editArea->add(65, 400);
@@ -1202,7 +1181,7 @@ void FemWidget::setupOverlay()
 	m_editArea->setColor(3, 0.0f, 0.0f, 0.0f);
 	m_areas.push_back(m_editArea);
 
-	m_objectArea = new CIvfArea2D();
+	m_objectArea = new Area2D();
 	m_objectArea->add(0, 0);
 	m_objectArea->add(0, 0);
 	m_objectArea->add(0, 0);
@@ -1215,33 +1194,33 @@ void FemWidget::setupOverlay()
 
 	// Create edit toolbar
 
-	m_editButtons = new CIvfButtonGroup();
+	m_editButtons = new ButtonGroup();
 
-	button = new CIvfPlaneButton(ToolbarButton::Select, "images/tlselect.png");
+	button = new PlaneButton(ToolbarButton::Select, "images/tlselect.png");
 	button->setSize(40.0, 40.0);
 	button->setPosition(30.0, 60.0, 0.0);
 	button->setHint("Select nodes or elements");
 	m_editButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::Move, "images/tlmove.png");
+	button = new PlaneButton(ToolbarButton::Move, "images/tlmove.png");
 	button->setSize(40.0, 40.0);
 	button->setPosition(30.0, 140.0, 0.0);
 	button->setHint("Move nodes or elements");
 	m_editButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::Inspect, "images/tlinspect.png");
+	button = new PlaneButton(ToolbarButton::Inspect, "images/tlinspect.png");
 	button->setSize(40.0, 40.0);
 	button->setPosition(30.0, 200, 0.0);
 	button->setHint("Node or element info");
 	m_editButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::Delete, "images/tldelete.png");
+	button = new PlaneButton(ToolbarButton::Delete, "images/tldelete.png");
 	button->setSize(40.0, 40.0);
 	button->setPosition(30.0, 270.0, 0.0);
 	button->setHint("Delete node or element");
 	m_editButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::Feedback, "images/tlfeedback.png");
+	button = new PlaneButton(ToolbarButton::Feedback, "images/tlfeedback.png");
 	button->setSize(40.0, 40.0);
 	button->setPosition(30.0, 360.0, 0.0);
 	button->setHint("Feedback mode");
@@ -1253,39 +1232,39 @@ void FemWidget::setupOverlay()
 	// Create object toolbar
 	//
 
-	m_objectButtons = new CIvfButtonGroup();
+	m_objectButtons = new ButtonGroup();
 
-	button = new CIvfPlaneButton(ToolbarButton::CreateNode, "images/tlnode.png");
+	button = new PlaneButton(ToolbarButton::CreateNode, "images/tlnode.png");
 	button->setSize(50.0, 50.0);
 	button->setPosition(30.0, 30.0, 0.0);
 	button->setHint("Create node");
 	m_objectButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::CreateBeam, "images/tlsolidline.png");
+	button = new PlaneButton(ToolbarButton::CreateBeam, "images/tlsolidline.png");
 	button->setSize(50.0, 50.0);
 	button->setPosition(90.0, 30.0, 0.0);
 	button->setHint("Create element");
 	m_objectButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::NodeLoad, "images/tlnodeloads.png");
+	button = new PlaneButton(ToolbarButton::NodeLoad, "images/tlnodeloads.png");
 	button->setSize(50.0, 50.0);
 	button->setPosition(150.0, 30.0, 0.0);
 	button->setHint("Show node loads");
 	m_objectButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::BeamLoad, "images/tldload.png");
+	button = new PlaneButton(ToolbarButton::BeamLoad, "images/tldload.png");
 	button->setSize(50.0, 50.0);
 	button->setPosition(210.0, 30.0, 0.0);
 	button->setHint("Show element loads");
 	m_objectButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::NodeBC, "images/tlbc.png");
+	button = new PlaneButton(ToolbarButton::NodeBC, "images/tlbc.png");
 	button->setSize(50.0, 50.0);
 	button->setPosition(270.0, 30.0, 0.0);
 	button->setHint("Show boundary conditions");
 	m_objectButtons->addChild(button);
 
-	button = new CIvfPlaneButton(ToolbarButton::Materials, "images/tlmaterials.png");
+	button = new PlaneButton(ToolbarButton::Materials, "images/tlmaterials.png");
 	button->setSize(50.0, 50.0);
 	button->setPosition(330.0, 30.0, 0.0);
 	button->setHint("Show beam properties");
@@ -1307,10 +1286,10 @@ void FemWidget::assignNodeBCSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemNode"))
+			if (shape->isClass("vfem::Node"))
 			{
-				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				m_currentNodeBC->addNode((FemNode*)visNode->getFemNode());
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+				m_currentNodeBC->addNode((ofem::Node*)visNode->getFemNode());
 			}
 		}
 
@@ -1381,7 +1360,7 @@ void FemWidget::executeCalc()
 	if (m_internalSolver != nullptr)
 		delete m_internalSolver;
 
-	m_internalSolver = new CFemInternalSolver();
+	m_internalSolver = new FrameSolver();
 	m_internalSolver->setBeamModel(m_beamModel);
 	m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
 	m_internalSolver->execute();
@@ -1427,7 +1406,7 @@ void FemWidget::executeCalc()
 
 	// Calculate default scalefactor
 
-	//so_print("Max node value = " << maxNodeValue);
+	//log("Max node value = " << maxNodeValue);
 
 	if (!m_lockScaleFactor)
 	{
@@ -1439,7 +1418,7 @@ void FemWidget::executeCalc()
 
 	m_settingsWindow->update();
 
-	//so_print("Scale factor = " << m_scalefactor);
+	//log("Scale factor = " << m_scalefactor);
 
 	// Show displacements
 
@@ -1488,7 +1467,7 @@ void FemWidget::doFeedback()
 			if (m_internalSolver != nullptr)
 				delete m_internalSolver;
 
-			m_internalSolver = new CFemInternalSolver();
+			m_internalSolver = new FrameSolver();
 			m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
 			m_internalSolver->setBeamModel(m_beamModel);
 
@@ -1650,12 +1629,12 @@ void FemWidget::setTactileForce(ExtrArrowPtr force)
 	m_tactileForce = force;
 }
 
-VisFemNodePtr FemWidget::getInteractionNode()
+vfem::NodePtr FemWidget::getInteractionNode()
 {
 	return m_interactionNode;
 }
 
-void FemWidget::setInteractionNode(VisFemNode* interactionNode)
+void FemWidget::setInteractionNode(vfem::Node* interactionNode)
 {
 	m_interactionNode = interactionNode;
 }
@@ -1711,14 +1690,14 @@ void FemWidget::doMouse(int x, int y)
 
 
 // ------------------------------------------------------------
-void FemWidget::onCreateNode(double x, double y, double z, Node*& newNode)
+void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 {
 	// Create a node
 
 
 	// First we create a FemNode
 
-	FemNode* femNode = new FemNode();
+	ofem::Node* femNode = new ofem::Node();
 
 	// Add it to the Fem model
 
@@ -1727,7 +1706,7 @@ void FemWidget::onCreateNode(double x, double y, double z, Node*& newNode)
 
 	// Create Ivf representation
 
-	VisFemNode* ivfNode = new VisFemNode();
+	vfem::Node* ivfNode = new vfem::Node();
 	ivfNode->setBeamModel(m_beamModel);
 	ivfNode->setFemNode(femNode);
 	ivfNode->setPosition(x, y, z);
@@ -1742,21 +1721,21 @@ void FemWidget::onCreateNode(double x, double y, double z, Node*& newNode)
 }
 
 // ------------------------------------------------------------
-void FemWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
+void FemWidget::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine)
 {
 	// Create visual representation
 
-	VisFemBeam* visBeam = new VisFemBeam();
+	vfem::Beam* visBeam = new vfem::Beam();
 	visBeam->setBeamModel(m_beamModel);
 
 	// Create model representation
 
-	FemBeam* femBeam = new FemBeam();
+	ofem::Beam* femBeam = new ofem::Beam();
 
 	// Extract FemNode:s from the IvfNodes
 
-	VisFemNode* visNode1 = static_cast<VisFemNode*>(node1);
-	VisFemNode* visNode2 = static_cast<VisFemNode*>(node2);
+	vfem::Node* visNode1 = static_cast<vfem::Node*>(node1);
+	vfem::Node* visNode2 = static_cast<vfem::Node*>(node2);
 
 	if (node1 == node2)
 		return;
@@ -1768,7 +1747,7 @@ void FemWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
 
 	// Set the material
 
-	femBeam->setMaterial((FemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
+	femBeam->setMaterial((ofem::BeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
 	/*
 	femBeam->setMaterial(
 		m_dlgMaterials->getCurrentMaterial());
@@ -1781,7 +1760,7 @@ void FemWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
 	// Initialize the representation
 
 	visBeam->setBeam(femBeam);
-	visBeam->setNodes(static_cast<VisFemNode*>(node1), static_cast<VisFemNode*>(node2));
+	visBeam->setNodes(static_cast<vfem::Node*>(node1), static_cast<vfem::Node*>(node2));
 	visBeam->refresh();
 
 	// We need a recalc
@@ -1803,9 +1782,8 @@ void FemWidget::onSelect(Composite* selectedShapes)
 
 		// Disable all dialogs
 
-		//m_dlgNodeProp->setNode(nullptr);
-		m_dlgBeamProp->setBeam(nullptr);
 		m_nodePropWindow->setNode(nullptr);
+		m_elementPropWindow->setBeam(nullptr);
 
 		// Update dialogs with new selection
 
@@ -1813,13 +1791,15 @@ void FemWidget::onSelect(Composite* selectedShapes)
 		{
 			auto firstShape = selectedShapes->getChild(0);
 			m_selectedShape = firstShape;
-			if (firstShape->isClass("VisFemNode"))
+			if (firstShape->isClass("vfem::Node"))
 			{
 				//m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
-				m_nodePropWindow->setNode(static_cast<VisFemNode*>(firstShape));
+				m_nodePropWindow->setNode(static_cast<vfem::Node*>(firstShape));
 			}
-			if (firstShape->isClass("VisFemBeam"))
-				m_dlgBeamProp->setBeam(static_cast<VisFemBeam*>(firstShape));
+			if (firstShape->isClass("vfem::Beam"))
+			{
+				m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
+			}
 		}
 	}
 	else
@@ -1827,9 +1807,9 @@ void FemWidget::onSelect(Composite* selectedShapes)
 		if (selectedShapes->getSize() > 0)
 		{
 			auto shape = selectedShapes->getChild(0);
-			if (shape->isClass("VisFemNode"))
+			if (shape->isClass("vfem::Node"))
 			{
-				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
 				m_interactionNode = visNode;
 				clearSelection();
 				m_customModeSet = true;
@@ -1847,6 +1827,11 @@ std::string FemWidget::float2str(double value)
 	std::stringstream coordStream;
 	coordStream << std::fixed << std::setw(10) << std::setprecision(2) << value;
 	return coordStream.str();
+}
+
+void FemWidget::log(std::string message)
+{
+	Logger::instance()->log(LogLevel::Info, "FemWidget: " + message);
 }
 
 // ------------------------------------------------------------
@@ -1876,9 +1861,9 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
 
 	if ((m_deleteFilter == DeleteMode::All) || (m_deleteFilter == DeleteMode::Nodes))
 	{
-		if (shape->isClass("VisFemNode"))
+		if (shape->isClass("vfem::Node"))
 		{
-			VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+			vfem::Node* visNode = static_cast<vfem::Node*>(shape);
 
 			if (m_beamModel->getNodeSet()->removeNode(visNode->getFemNode()))
 				doit = true;
@@ -1890,11 +1875,11 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
 
 	if ((m_deleteFilter == DeleteMode::All) || (m_deleteFilter == DeleteMode::Elements))
 	{
-		if (shape->isClass("VisFemBeam"))
+		if (shape->isClass("vfem::Beam"))
 		{
-			VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-			FemBeam* femBeam = visBeam->getBeam();
-			FemBeamSet* beamSet = m_beamModel->getElementSet();
+			vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
+			ofem::Beam* femBeam = visBeam->getBeam();
+			ofem::BeamSet* beamSet = m_beamModel->getElementSet();
 
 			if (beamSet->removeElement(femBeam))
 				doit = true;
@@ -1986,7 +1971,7 @@ void FemWidget::onPassiveMotion(int x, int y)
 			this->setEditEnabled(false);
 			needInvalidate = false;
 
-			CIvfPlaneButton* oldButton = m_selectedButton;
+			PlaneButton* oldButton = m_selectedButton;
 
 			if (m_selectedButton != nullptr)
 			{
@@ -1998,7 +1983,7 @@ void FemWidget::onPassiveMotion(int x, int y)
 
 			m_overlayScene->setViewport(pixel_w(), pixel_h());
 			m_overlayScene->pick(x, y);
-			m_selectedButton = (CIvfPlaneButton*)m_overlayScene->getSelectedShape();
+			m_selectedButton = (PlaneButton*)m_overlayScene->getSelectedShape();
 
 			if (m_selectedButton != nullptr)
 			{
@@ -2049,7 +2034,7 @@ void FemWidget::onMouseDown(int x, int y)
 
 	if ((getEditMode() == WidgetMode::User) && (!m_overlaySelected))
 	{
-		so_print("FemWidget: onMouseDown USER_MODE.");
+		log("onMouseDown USER_MODE.");
 		if (getCurrentMouseButton() == ButtonState::Button1)
 		{
 			if (m_saneModel)
@@ -2065,7 +2050,7 @@ void FemWidget::onMouseUp(int x, int y)
 #ifdef ADVANCED_GL
 	if ((m_overlaySelected) && (m_selectedButton != nullptr))
 	{
-		this->onButton(m_selectedButton->getId(), (CIvfPlaneButton*)m_selectedButton);
+		this->onButton(m_selectedButton->getId(), (PlaneButton*)m_selectedButton);
 		this->redraw();
 	}
 #endif
@@ -2132,9 +2117,8 @@ void FemWidget::onMotion(int x, int y)
 // ------------------------------------------------------------
 void FemWidget::onDeSelect()
 {
-	//m_dlgNodeProp->setNode(nullptr);
-	m_dlgBeamProp->setBeam(nullptr);
 	m_nodePropWindow->setNode(nullptr);
+	m_elementPropWindow->setBeam(nullptr);
 
 	if (m_customMode == CustomMode::Feedback)
 	{
@@ -2149,7 +2133,7 @@ void FemWidget::onHighlightShape(Shape* shape)
 {
 	if (m_customMode == CustomMode::Feedback)
 	{
-		if ((shape->isClass("Node")) && (m_interactionNode == nullptr))
+		if ((shape->isClass("vfem::Node")) && (m_interactionNode == nullptr))
 		{
 			double x, y, z;
 			m_tactileForce->setState(Shape::OS_ON);
@@ -2173,21 +2157,21 @@ void FemWidget::onSelectFilter(Shape* shape, bool& select)
 		select = true;
 		break;
 	case SelectMode::Nodes:
-		if (shape->isClass("VisFemNode"))
+		if (shape->isClass("vfem::Node"))
 			select = true;
 		else
 			select = false;
 		break;
 	case SelectMode::Elements:
-		if (shape->isClass("VisFemBeam"))
+		if (shape->isClass("vfem::Beam"))
 			select = true;
 		else
 			select = false;
 		break;
 	case SelectMode::GroundNodes:
-		if (shape->isClass("VisNode"))
+		if (shape->isClass("vfem::Node"))
 		{
-			VisFemNode* visNode = static_cast<VisFemNode*>(shape);
+			vfem::Node* visNode = static_cast<vfem::Node*>(shape);
 
 			double x, y, z;
 			visNode->getPosition(x, y, z);
@@ -2208,7 +2192,7 @@ void FemWidget::onSelectFilter(Shape* shape, bool& select)
 
 // ------------------------------------------------------------
 #ifdef ADVANCED_GL
-void FemWidget::onButton(int objectName, CIvfPlaneButton* button)
+void FemWidget::onButton(int objectName, PlaneButton* button)
 {
 	m_editButtons->clearChecked();
 	m_objectButtons->clearChecked();
@@ -2254,23 +2238,23 @@ void FemWidget::onButton(int objectName, CIvfPlaneButton* button)
 		m_editButtons->recheck();
 		break;
 	case ToolbarButton::NodeLoad:
-		m_nodeLoadsWindow->setFemNodeLoadSet((FemBeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
+		m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
 		m_nodeLoadsWindow->setVisible(true);
 		break;
 	case ToolbarButton::BeamLoad:
-		m_elementLoadsWindow->setFemLoadSet((FemBeamLoadSet*)m_beamModel->getElementLoadSet());
+		m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet*)m_beamModel->getElementLoadSet());
 		m_elementLoadsWindow->setVisible(true);
 		//this->showBeamLoads();
 		//m_objectButtons->recheck();
 		break;
 	case ToolbarButton::Materials:
-		m_materialsWindow->setFemMaterialSet((FemBeamMaterialSet*)m_beamModel->getMaterialSet());
+		m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet*)m_beamModel->getMaterialSet());
 		m_materialsWindow->setVisible(true);
 		//this->showMaterials();
 		//m_objectButtons->recheck();
 		break;
 	case ToolbarButton::NodeBC:
-		m_nodeBCsWindow->setFemNodeBCSet((FemBeamNodeBCSet*)m_beamModel->getNodeBCSet());
+		m_nodeBCsWindow->setFemNodeBCSet((ofem::BeamNodeBCSet*)m_beamModel->getNodeBCSet());
 		m_nodeBCsWindow->setVisible(true);
 		break;
 	default:
@@ -2287,13 +2271,13 @@ void FemWidget::onHighlightFilter(Shape* shape, bool& highlight)
 		highlight = true;
 		break;
 	case HighlightMode::Nodes:
-		if (shape->isClass("VisFemNode"))
+		if (shape->isClass("vfem::Node"))
 			highlight = true;
 		else
 			highlight = false;
 		break;
 	case HighlightMode::Elements:
-		if (shape->isClass("VisFemBeam"))
+		if (shape->isClass("vfem::Beam"))
 			highlight = true;
 		else
 			highlight = false;
@@ -2377,6 +2361,12 @@ void FemWidget::onDrawImGui()
 				m_nodePropWindow->setVisible(true);
 			}
 
+			if (ImGui::MenuItem("Element properties...", ""))
+			{
+				m_elementPropWindow->align(3);
+				m_elementPropWindow->setVisible(true);
+			}
+
 			if (ImGui::MenuItem("Settings...", ""))
 			{
 				m_settingsWindow->show();
@@ -2448,7 +2438,7 @@ void FemWidget::onDrawImGui()
 		}
 		else if (m_newModelPopup->modalResult() == PopupResult::CANCEL)
 		{
-			cout << "Cancel pressed" << endl;
+			log("Cancel pressed");
 		}
 
 	}
@@ -2587,7 +2577,7 @@ void FemWidget::removeNodeLoadsFromSelected()
 {
 	// Remove materials from selected shapes
 
-	FemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+	ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
 	if (nodeLoad != nullptr)
 	{
@@ -2595,10 +2585,10 @@ void FemWidget::removeNodeLoadsFromSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemNode"))
+			if (shape->isClass("vfem::Node"))
 			{
-				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				FemNode* node = visNode->getFemNode();
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+				ofem::Node* node = visNode->getFemNode();
 				nodeLoad->removeNode(node);
 			}
 		}
@@ -2614,7 +2604,7 @@ void FemWidget::removeNodeLoadsFromSelected()
 
 void FemWidget::removeNodesFromNodeLoad()
 {
-	FemBeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+	ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
 	if (nodeLoad != nullptr)
 		nodeLoad->clearNodes();
@@ -2628,7 +2618,7 @@ void FemWidget::removeNodeBCsFromSelected()
 {
 	// Remove materials from selected shapes
 
-	FemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
+	ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
 	if (nodeBC != nullptr)
 	{
@@ -2636,10 +2626,10 @@ void FemWidget::removeNodeBCsFromSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemNode"))
+			if (shape->isClass("vfem::Node"))
 			{
-				VisFemNode* visNode = static_cast<VisFemNode*>(shape);
-				FemNode* node = visNode->getFemNode();
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+				ofem::Node* node = visNode->getFemNode();
 				nodeBC->removeNode(node);
 			}
 		}
@@ -2655,7 +2645,7 @@ void FemWidget::removeNodeBCsFromSelected()
 
 void FemWidget::removeBCsFromBC()
 {
-	FemBeamNodeBC* nodeBC = this->getCurrentNodeBC();
+	ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
 	if (nodeBC != nullptr)
 		nodeBC->clearNodes();
@@ -2669,7 +2659,7 @@ void FemWidget::removeBeamLoadsFromSelected()
 {
 	// Remove materials from selected shapes
 
-	FemBeamLoad* beamLoad = this->getCurrentBeamLoad();
+	ofem::BeamLoad* beamLoad = this->getCurrentBeamLoad();
 
 	if (beamLoad != nullptr)
 	{
@@ -2677,10 +2667,10 @@ void FemWidget::removeBeamLoadsFromSelected()
 		for (int i = 0; i < selected->getSize(); i++)
 		{
 			auto shape = selected->getChild(i);
-			if (shape->isClass("VisFemBeam"))
+			if (shape->isClass("vfem::Beam"))
 			{
-				VisFemBeam* visBeam = static_cast<VisFemBeam*>(shape);
-				FemBeam* beam = visBeam->getBeam();
+				vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
+				ofem::Beam* beam = visBeam->getBeam();
 				beamLoad->removeElement(beam);
 			}
 		}
@@ -2694,24 +2684,19 @@ void FemWidget::removeBeamLoadsFromSelected()
 	this->redraw();
 }
 
-FemBeamNodeBC* FemWidget::getCurrentNodeBC()
+ofem::BeamNodeBC* FemWidget::getCurrentNodeBC()
 {
 	return m_currentNodeBC;
 }
 
 void FemWidget::hideAllDialogs()
 {
-	so_print("FemWidget: Hiding all dialogs.");
-
-	m_dlgBeamProp->hide();
-	m_dlgElementLoads->hide();
+	log("Hiding all dialogs.");
 
 	m_nodeLoadsWindow->hide();
 	m_nodeBCsWindow->hide();
 	m_elementLoadsWindow->hide();
 	m_materialsWindow->hide();
-
-	so_hide();
 }
 
 void FemWidget::setResultType(int type)

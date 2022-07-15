@@ -3,12 +3,12 @@
 
 #include <ivf/Composite.h>
 
-class CIvfButtonGroup : public ivf::Composite {
+class ButtonGroup : public ivf::Composite {
 private:
     int m_checkIdx;
 public:
-    CIvfButtonGroup();
-    virtual ~CIvfButtonGroup();
+    ButtonGroup();
+    virtual ~ButtonGroup();
 
     void check(int idx);
     void clearChecked();

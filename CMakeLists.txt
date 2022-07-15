@@ -80,7 +80,7 @@ if (USE_LEAP)
 else()
     set( LEAP_LIBS "" )
     set( LEAP_INCLUDE_DIR "" )
-endif()
+endif() 
 
 configure_file (
     "${PROJECT_SOURCE_DIR}/include/ObjframeConfig.h.in"

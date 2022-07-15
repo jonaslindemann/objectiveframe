@@ -16,7 +16,7 @@ using namespace ivf;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CIvfPlaneButton::CIvfPlaneButton(int id)
+PlaneButton::PlaneButton(int id)
 {
     this->setUseName(true);
     this->setId(id);
@@ -85,7 +85,7 @@ CIvfPlaneButton::CIvfPlaneButton(int id)
     m_hint = "";
 }
 
-CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
+PlaneButton::PlaneButton(int id, const std::string& name)
 {
     PngImagePtr image = PngImage::create();
     image->setFileName(name);
@@ -178,19 +178,19 @@ CIvfPlaneButton::CIvfPlaneButton(int id, const std::string& name)
     m_hint = "";
 }
 
-CIvfPlaneButton::~CIvfPlaneButton()
+PlaneButton::~PlaneButton()
 {
 
 }
 
-void CIvfPlaneButton::setTexture(Texture *texture)
+void PlaneButton::setTexture(Texture *texture)
 {
     m_normalShape->setTexture(texture);
     m_pressedShape->setTexture(texture);
     m_disabledShape->setTexture(texture);
 }
 
-void CIvfPlaneButton::setSize(double width, double height)
+void PlaneButton::setSize(double width, double height)
 {
     m_normalShape->setSize(width,height);
     m_normalShape->flipVert();
@@ -207,12 +207,12 @@ void CIvfPlaneButton::setSize(double width, double height)
 }
 
 
-void CIvfPlaneButton::setHint(const std::string& hintText)
+void PlaneButton::setHint(const std::string& hintText)
 {
     m_hint = hintText;
 }
 
-const std::string CIvfPlaneButton::getHint()
+const std::string PlaneButton::getHint()
 {
     return m_hint;
 }

@@ -655,7 +655,6 @@ int FltkWidget::handle(int event)
         //cout << "FL_ENTER" << endl;
         return 1;
     case FL_LEAVE:
-        cout << "FL_LEAVE" << endl;
         m_angleX = 0.0f;
         m_angleY = 0.0f;
         m_moveX = 0.0f;
@@ -664,7 +663,6 @@ int FltkWidget::handle(int event)
         m_zoomY = 0.0f;
         return 1;
     case FL_MOVE:
-        cout << "FL_MOVE" << endl;
         m_beginX = int(float(Fl::event_x())*pixels_per_unit());
         m_beginY = int(float(Fl::event_y())*pixels_per_unit());
         if (!Fl::get_key(FL_Shift_L))
@@ -673,7 +671,6 @@ int FltkWidget::handle(int event)
         this->doImGuiMove();
         return 1;
     case FL_PUSH:
-        cout << "FL_PUSH" << endl;
         m_beginX = int(float(Fl::event_x()) * pixels_per_unit());
         m_beginY = int(float(Fl::event_y()) * pixels_per_unit());
 
@@ -733,7 +730,6 @@ int FltkWidget::handle(int event)
         }
         return 1;
     case FL_DRAG:
-        cout << "FL_DRAG" << endl;
         if (m_editMode != WidgetMode::Manipulate)
             if (Fl::get_key(FL_Shift_L)==FALSE)
                 m_scene->unlockCursor();
@@ -744,11 +740,9 @@ int FltkWidget::handle(int event)
         if (Fl::event_state()==FL_BUTTON3)
             m_currentButton = ButtonState::Button3;
         this->doMotion(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
-        //cout << "FL_DRAG" << endl;
         this->doImGuiDrag();
         return 1;
     case FL_RELEASE:
-        cout << "FL_RELEASE" << endl;
         this->doMouseUp(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
         m_currentButton = ButtonState::NoButton;
         if (isOverWindow())

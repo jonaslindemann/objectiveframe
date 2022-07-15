@@ -3,20 +3,20 @@
 
 #include <ivf/Scene.h>
 
-#include <VisBeamModel.h>
-#include <VisFemNode.h>
-#include <VisFemBeam.h>
+#include <vfem/beam_model.h>
+#include <vfem/node.h>
+#include <vfem/beam.h>
 
-class CStructureFactory {
+class StructureFactory {
 private:
     int m_size[3];
     double m_spacing[3];
-    VisBeamModel* m_beamModel;
-    FemBeamMaterial* m_currentMaterial;
+    vfem::BeamModel* m_beamModel;
+    ofem::BeamMaterial* m_currentMaterial;
 public:
-    void setCurrentMaterial(FemBeamMaterial* material);
-    CStructureFactory();
-    virtual ~CStructureFactory();
+    void setCurrentMaterial(ofem::BeamMaterial* material);
+    StructureFactory();
+    virtual ~StructureFactory();
 
     // Methods
 
@@ -28,8 +28,8 @@ public:
     void getSize(int &rows, int &cols, int &stacks);
     void setSpacing(double xSpacing, double ySpacing, double zSpacing);
     void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
-    void setBeamModel(VisBeamModel* model);
-    VisBeamModel* getBeamModel();
+    void setBeamModel(vfem::BeamModel* model);
+    vfem::BeamModel* getBeamModel();
 };
 
 #endif

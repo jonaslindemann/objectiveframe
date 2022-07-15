@@ -7,7 +7,7 @@
 namespace std {};
 using namespace std;
 
-class CIvfArea2D : public ivf::Base {
+class Area2D : public ivf::Base {
 private:
     vector<int> m_xCoords;
     vector<int> m_yCoords;
@@ -16,8 +16,8 @@ private:
     vector<float> m_blue;
     bool m_visible;
 public:
-    CIvfArea2D();
-    virtual ~CIvfArea2D();
+    Area2D();
+    virtual ~Area2D();
 
     void add(int x, int y);
     void clear();

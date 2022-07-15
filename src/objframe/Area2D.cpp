@@ -1,16 +1,16 @@
 #include "Area2D.h"
 
-CIvfArea2D::CIvfArea2D()
+Area2D::Area2D()
 {
     m_visible = true;
 }
 
-CIvfArea2D::~CIvfArea2D()
+Area2D::~Area2D()
 {
     this->clear();
 }
 
-void CIvfArea2D::add(int x, int y)
+void Area2D::add(int x, int y)
 {
     m_xCoords.push_back(x);
     m_yCoords.push_back(y);
@@ -20,7 +20,7 @@ void CIvfArea2D::add(int x, int y)
 }
 
 
-void CIvfArea2D::clear()
+void Area2D::clear()
 {
     m_xCoords.clear();
     m_yCoords.clear();
@@ -29,7 +29,7 @@ void CIvfArea2D::clear()
     m_blue.clear();
 }
 
-void CIvfArea2D::getCoord(int idx, int &x, int &y)
+void Area2D::getCoord(int idx, int &x, int &y)
 {
     if ((idx>=0)&&(idx<m_xCoords.size()))
     {
@@ -38,7 +38,7 @@ void CIvfArea2D::getCoord(int idx, int &x, int &y)
     }
 }
 
-void CIvfArea2D::setCoord(int idx, int x, int y)
+void Area2D::setCoord(int idx, int x, int y)
 {
     if ((idx>=0)&&(idx<m_xCoords.size()))
     {
@@ -47,7 +47,7 @@ void CIvfArea2D::setCoord(int idx, int x, int y)
     }
 }
 
-bool CIvfArea2D::inside(int x, int y)
+bool Area2D::inside(int x, int y)
 {
     // This code is (C)1998 Darel R. Finley. Permission is granted for
     // anyone to use this code, or any code derived from it, without
@@ -72,13 +72,13 @@ bool CIvfArea2D::inside(int x, int y)
     return oddNODES;
 }
 
-int CIvfArea2D::getSize()
+int Area2D::getSize()
 {
     return (int)m_xCoords.size();
 }
 
 
-void CIvfArea2D::render()
+void Area2D::render()
 {
     if (m_visible)
     {
@@ -93,12 +93,12 @@ void CIvfArea2D::render()
     }
 }
 
-void CIvfArea2D::setVisible(bool flag)
+void Area2D::setVisible(bool flag)
 {
     m_visible = flag;
 }
 
-void CIvfArea2D::setColor(int idx, float red, float green, float blue)
+void Area2D::setColor(int idx, float red, float green, float blue)
 {
     if ((idx>=0)&&(idx<m_xCoords.size()))
     {

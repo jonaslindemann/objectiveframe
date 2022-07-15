@@ -4,56 +4,42 @@
 #include <OB/CORBA.h>
 #include <OB/CosNaming.h>
 #include <dfemc.h>
-
-#ifdef HAVE_CONFIG_H
-#include <OB/Config.h>
-#endif
-#else
-#include <config.h>
 #endif
 
-#ifdef HAVE_IOSTREAM
 #include <iostream>
-using namespace std;
-#else
-#include <iostream.h>
-#endif
-
-#ifdef HAVE_CMATH
 #include <cmath>
-#else
-#include <math.h>
-#endif
 
-#include <FemElementSet.h>
-#include <FemNodeSet.h>
-#include <FemMaterialSet.h>
-#include <FemNodeBCSet.h>
-#include <FemNodeLoadSet.h>
-#include <FemElementLoadSet.h>
-#include <FemBeamLoad.h>
+#include <ofem/element_set.h>
+#include <ofem/node_set.h>
+#include <ofem/material_set.h>
+#include <ofem/node_bc_set.h>
+#include <ofem/node_load_set.h>
+#include <ofem/element_load_set.h>
+#include <ofem/beam_load.h>
+
+using namespace ofem;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CFemDFEMCInterface::CFemDFEMCInterface()
+FrameDFEMCInterface::FrameDFEMCInterface()
 {
     m_beamModel = NULL;
     m_maxNodeValue = -1.0e300;
 }
 
-CFemDFEMCInterface::~CFemDFEMCInterface()
+FrameDFEMCInterface::~FrameDFEMCInterface()
 {
 
 }
 
-void CFemDFEMCInterface::setBeamModel(FemBeamModel *model)
+void FrameDFEMCInterface::setBeamModel(BeamModel *model)
 {
     m_beamModel = model;
 }
 
-void CFemDFEMCInterface::execute()
+void FrameDFEMCInterface::execute()
 {
 #ifdef HAVE_CORBA
     if (m_beamModel!=NULL)
@@ -472,13 +458,13 @@ void CFemDFEMCInterface::execute()
 #endif
 }
 
-void CFemDFEMCInterface::setArguments(int argc, char **argv)
+void FrameDFEMCInterface::setArguments(int argc, char **argv)
 {
     m_argc = argc;
     m_argv = argv;
 }
 
-double CFemDFEMCInterface::getMaxNodeValue()
+double FrameDFEMCInterface::getMaxNodeValue()
 {
     return m_maxNodeValue;
 }

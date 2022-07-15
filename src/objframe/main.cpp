@@ -3,13 +3,7 @@
 #include "ObjframeConfig.h"
 #define ADVANCED_GL
 
-#ifdef ADVANCED_GL
 #include "MainFrame.h"
-#else
-#include "MainFrame_lt.h"
-#endif
-
-#include "SplashFrame.h"
 
 #include "StatusOutput.h"
 
@@ -17,8 +11,6 @@
 #include <stdlib.h>
 #include <windows.h>
 #endif
-
-#undef USE_SPLASH
 
 #ifdef USE_LEAP
 #include "LeapListener.h"
@@ -130,19 +122,6 @@ main(int argc, char **argv)
     LeapListener listener;
     controller.addListener(listener);
     listener.setWorkspace(frame->ivfWorkspace);
-#endif
-
-
-#ifdef USE_SPLASH
-    //
-    // Show a splash screen
-    //
-
-    so_print("Main: Creating splash window.");
-    CSplashFrame* splash = new CSplashFrame();
-    splash->setTimer(true);
-    splash->center();
-    splash->show();
 #endif
 
     //

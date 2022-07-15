@@ -2,8 +2,7 @@
 #define _CFemInternalSolver_h_
 
 
-#include <FemBeamModel.h>
-
+#include <ofem/beam_model.h>
 
 #include "calfem.h"
 
@@ -63,9 +62,9 @@ using namespace NEWMAT;
 
 class CBeamSolver {
 private:
-    FemBeamModel* m_beamModel;
+    ofem::BeamModel* m_beamModel;
     double m_maxNodeValue;
-    FemNode* m_forceNode;
+    ofem::Node* m_forceNode;
     double m_force[3];
     LinearEquationSolver* m_X;
     int m_nDof;
@@ -93,7 +92,7 @@ private:
     CResultInfo* m_resultInfo;
 
 public:
-    double calcNavier(double N, double My, double Mz, FemBeam* beam);
+    double calcNavier(double N, double My, double Mz, ofem::Beam* beam);
     void setResultInfo(CResultInfo* resultInfo);
 	CBeamSolver();
     virtual ~CBeamSolver();
@@ -106,8 +105,8 @@ public:
     void printMaxMin();
     void updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier);
 
-    void setBeamModel(FemBeamModel* model);
-    void setFeedbackForce(FemNode* node, double fx, double fy, double fz);
+    void setBeamModel(ofem::BeamModel* model);
+    void setFeedbackForce(ofem::Node* node, double fx, double fy, double fz);
     double getMaxNodeValue();
     int getLastError();
 };

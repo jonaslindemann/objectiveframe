@@ -12,18 +12,18 @@ using namespace ivf;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CIvfButtonGroup::CIvfButtonGroup()
+ButtonGroup::ButtonGroup()
 {
     this->setUseName(false);
     m_checkIdx = -1;
 }
 
-CIvfButtonGroup::~CIvfButtonGroup()
+ButtonGroup::~ButtonGroup()
 {
 
 }
 
-void CIvfButtonGroup::clearChecked()
+void ButtonGroup::clearChecked()
 {
     int i;
 
@@ -34,7 +34,7 @@ void CIvfButtonGroup::clearChecked()
     }
 }
 
-void CIvfButtonGroup::check(int idx)
+void ButtonGroup::check(int idx)
 {
     if ((idx>=0)&&(idx<this->getSize()))
     {
@@ -46,7 +46,7 @@ void CIvfButtonGroup::check(int idx)
 }
 
 
-void CIvfButtonGroup::recheck()
+void ButtonGroup::recheck()
 {
     if (m_checkIdx!=-1)
         this->check(m_checkIdx);

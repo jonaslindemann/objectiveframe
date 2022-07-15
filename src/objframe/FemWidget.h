@@ -18,41 +18,38 @@
 #include <ivf/Composite.h>
 #include <ivf/ExtrArrow.h>
 
-#include <VisFemNode.h>
-#include <VisFemBeam.h>
-#include <VisBeamModel.h>
-#include <VisFemBeamLoad.h>
-#include <VisFemNodeLoad.h>
-#include <VisFemNodeBC.h>
+#include <vfem/node.h>
+#include <vfem/beam.h>
+#include <vfem/beam_model.h>
+#include <vfem/beam_load.h>
+#include <vfem/node_load.h>
+#include <vfem/node_bc.h>
 
-#include <FemBeamLoad.h>
-#include <FemBeamNodeLoad.h>
-#include <FemBeamNodeBC.h>
+#include <ofem/beam_load.h>
+#include <ofem/beam_node_load.h>
+#include <ofem/beam_node_bc.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
 
-#include <coord_window.h>
-#include <node_prop_window.h>
-#include <new_model_popup.h>
-#include <message_popup.h>
-#include <node_bcs_window.h>
-#include <bc_prop_popup.h>
-#include <node_loads_window.h>
-#include <node_load_prop_popup.h>
-#include <settings_window.h>
-#include <element_loads_window.h>
-#include <materials_window.h>
-#include <element_prop_window.h>
+#include <ofui/coord_window.h>
+#include <ofui/node_prop_window.h>
+#include <ofui/new_model_popup.h>
+#include <ofui/message_popup.h>
+#include <ofui/node_bcs_window.h>
+#include <ofui/bc_prop_popup.h>
+#include <ofui/node_loads_window.h>
+#include <ofui/node_load_prop_popup.h>
+#include <ofui/settings_window.h>
+#include <ofui/element_loads_window.h>
+#include <ofui/materials_window.h>
+#include <ofui/element_prop_window.h>
 
 #include "Area2D.h"
 #include "PlaneButton.h"
 #include "ButtonGroup.h"
 
 #include "FemInternalSolver.h"
-
-#include "BeamPropDlg.h"
-#include "ElementLoadsDlg.h"
 
 enum class RepresentationMode {
 	Fem,
@@ -162,25 +159,25 @@ private:
 
 	Fl_Widget* m_coordWidget;
 
-	FemBeamMaterialPtr m_currentMaterial;
-	FemBeamLoadPtr     m_currentElementLoad;
-	FemBeamNodeLoadPtr m_currentNodeLoad;
-	FemBeamNodeBCPtr   m_currentNodeBC;
-	VisFemNodePtr       m_interactionNode;
+	ofem::BeamMaterialPtr m_currentMaterial;
+	ofem::BeamLoadPtr     m_currentElementLoad;
+	ofem::BeamNodeLoadPtr m_currentNodeLoad;
+	ofem::BeamNodeBCPtr   m_currentNodeBC;
+	vfem::NodePtr         m_interactionNode;
 #ifdef USE_LEAP
 	LeapInteraction* m_leapinteraction;
 #endif
 
-	CFemInternalSolver*  m_internalSolver;
+	FrameSolver*  m_internalSolver;
 
 	ivf::MaterialPtr     m_nodeMaterial;
 	ivf::MaterialPtr	 m_lineMaterial;
 	ivf::ShapePtr        m_selectedShape;
 #ifdef ADVANCED_GL
-	CIvfPlaneButton* m_selectedButton;
+	PlaneButton* m_selectedButton;
 #endif
 	ivf::CompositePtr    m_beamLoads;
-	VisBeamModelPtr	     m_beamModel;
+	vfem::BeamModelPtr	 m_beamModel;
 	ivf::QuadPlanePtr    m_plane;
 	ivf::SpherePtr       m_sphere;
 	ivf::ExtrArrowPtr    m_tactileForce;
@@ -189,15 +186,15 @@ private:
 
 	// Overlay stuff
 
-	vector<CIvfArea2D*> m_areas;
-	vector<CIvfPlaneButton*> m_buttons;
+	vector<Area2D*> m_areas;
+	vector<PlaneButton*> m_buttons;
 	ivf::SelectOrthoPtr m_overlayScene;
-	CIvfButtonGroup* m_editButtons;
-	CIvfButtonGroup* m_viewButtons;
-	CIvfButtonGroup* m_objectButtons;
-	CIvfArea2D* m_editArea;
-	CIvfArea2D* m_objectArea;
-	CIvfArea2D* m_viewArea;
+	ButtonGroup* m_editButtons;
+	ButtonGroup* m_viewButtons;
+	ButtonGroup* m_objectButtons;
+	Area2D* m_editArea;
+	Area2D* m_objectArea;
+	Area2D* m_viewArea;
 
 	float m_hintColor[3];
 	bool m_hintFinished;
@@ -211,23 +208,19 @@ private:
 
 	// Dialogs
 
-	BeamPropDlg* m_dlgBeamProp;
-	ElementLoadsDlg* m_dlgElementLoads;
-	//StructureDlg* m_dlgStructure;
-
 	bool m_showDemoWindow;
 
-	CoordWindowPtr m_coordWindow;
-	NodePropWindowPtr m_nodePropWindow;
-	NewModelPopupPtr m_newModelPopup;
-	MessagePopupPtr m_messagePopup;
-	NodeBCsWindowPtr m_nodeBCsWindow;
-	BCPropPopupPtr m_bcPropPopup;
-	NodeLoadsWindowPtr m_nodeLoadsWindow;
-	SettingsWindowPtr m_settingsWindow;
-	ElementLoadsWindowPtr m_elementLoadsWindow;
-	MaterialsWindowPtr m_materialsWindow;
-	ElementPropWindowPtr m_elementPropWindow;
+	ofui::CoordWindowPtr m_coordWindow;
+	ofui::NodePropWindowPtr m_nodePropWindow;
+	ofui::NewModelPopupPtr m_newModelPopup;
+	ofui::MessagePopupPtr m_messagePopup;
+	ofui::NodeBCsWindowPtr m_nodeBCsWindow;
+	ofui::BCPropPopupPtr m_bcPropPopup;
+	ofui::NodeLoadsWindowPtr m_nodeLoadsWindow;
+	ofui::SettingsWindowPtr m_settingsWindow;
+	ofui::ElementLoadsWindowPtr m_elementLoadsWindow;
+	ofui::MaterialsWindowPtr m_materialsWindow;
+	ofui::ElementPropWindowPtr m_elementPropWindow;
 
 	bool m_showStyleEditor;
 	bool m_showMetricsWindow;
@@ -240,6 +233,8 @@ private:
 	void makeToolWindow(Fl_Window* window);
 	std::string float2str(double value);
 
+	void log(std::string message);
+
 public:
 	FemWidget(int X, int Y, int W, int H, const char* L = 0);
 	virtual ~FemWidget();
@@ -247,10 +242,10 @@ public:
 	// Get set methods
 	void setCoordWidget(Fl_Widget* widget);
 	void setFileName(const std::string& name);
-	void setCurrentMaterial(FemBeamMaterial* material);
-	void setCurrentBeamLoad(FemBeamLoad* elementLoad);
+	void setCurrentMaterial(ofem::BeamMaterial* material);
+	void setCurrentBeamLoad(ofem::BeamLoad* elementLoad);
 	ivf::Shape* getSelectedShape();
-	FemBeamMaterial* getCurrentMaterial();
+	ofem::BeamMaterial* getCurrentMaterial();
 	Fl_Widget* getCoordWidget();
 	const std::string getFileName();
 	void setSelectFilter(SelectMode filter);
@@ -260,15 +255,15 @@ public:
 	void setScalefactor(double scalefactor);
 	double getScalefactor();
 	void setArguments(int argc, char** argv);
-	void setCurrentNodeBC(FemBeamNodeBC* bc);
+	void setCurrentNodeBC(ofem::BeamNodeBC* bc);
 	void setRotationSelected(double rotation);
-	void setCurrentNodeLoad(FemBeamNodeLoad* nodeLoad);
-	FemBeamNodeLoad* getCurrentNodeLoad();
-	FemBeamLoad* getCurrentBeamLoad();
+	void setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad);
+	ofem::BeamNodeLoad* getCurrentNodeLoad();
+	ofem::BeamLoad* getCurrentBeamLoad();
 	void setProgramPath(const std::string& progPath);
 	const std::string getProgPath();
 	void setResultType(int type);
-	FemBeamNodeBC* getCurrentNodeBC();
+	ofem::BeamNodeBC* getCurrentNodeBC();
 	void setRelLoadSize(double size);
 	double getRelLoadSize();
 	void setRelLineRadius(double radius);
@@ -302,32 +297,32 @@ public:
 	void assignMaterialToSelected();
 	void newModel();
 	void showBeamLoads();
-	void addBeamLoad(FemBeamLoad* elementLoad);
-	void deleteBeamLoad(FemBeamLoad* elementLoad);
+	void addBeamLoad(ofem::BeamLoad* elementLoad);
+	void deleteBeamLoad(ofem::BeamLoad* elementLoad);
 	void assignBeamLoadSelected();
 	void selectAllElements();
 	void selectAllNodes();
 	void showMaterials();
 	void showProperties();
 	void executeCalc();
-	void deleteNodeBC(FemBeamNodeBC* bc);
-	void addNodeBC(FemBeamNodeBC* bc);
+	void deleteNodeBC(ofem::BeamNodeBC* bc);
+	void addNodeBC(ofem::BeamNodeBC* bc);
 	void assignNodeBCSelected();
 	void assignNodeFixedBCSelected();
 	void assignNodePosBCSelected();
 	void assignNodeFixedBCGround();
 	void assignNodePosBCGround();
-	void deleteNodeLoad(FemBeamNodeLoad* nodeLoad);
+	void deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad);
 	void assignNodeLoadSelected();
-	void addNodeLoad(FemBeamNodeLoad* nodeLoad);
+	void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
 	void doFeedback();
 
 	void showMessage(std::string message);
 
 	ivf::ExtrArrowPtr getTactileForce();
 	void setTactileForce(ivf::ExtrArrowPtr force);
-	VisFemNodePtr getInteractionNode();
-	void setInteractionNode(VisFemNode* interactionNode);
+	vfem::NodePtr getInteractionNode();
+	void setInteractionNode(vfem::Node* interactionNode);
 
 	// Implemented widget events
 
@@ -346,7 +341,7 @@ public:
 	void onMotion(int x, int y);
 	void onDeSelect();
 	void onKeyboard(int key);
-	void onButton(int objectName, CIvfPlaneButton* button);
+	void onButton(int objectName, PlaneButton* button);
 
 	virtual void onDrawImGui();
 	virtual void onInitImGui();

@@ -8,7 +8,7 @@
 #include <ivf/Texture.h>
 #include <ivf/LineSet.h>
 
-class CIvfPlaneButton : public ivf::GenericButton {
+class PlaneButton : public ivf::GenericButton {
 private:
     ivf::QuadPlanePtr m_normalShape;
     ivf::QuadPlanePtr m_pressedShape;
@@ -19,10 +19,10 @@ private:
     ivf::TexturePtr m_buttonTexture;
     std::string m_hint;
 public:
-    CIvfPlaneButton(int id);
-    CIvfPlaneButton(int id, const std::string& name);
+    PlaneButton(int id);
+    PlaneButton(int id, const std::string& name);
 
-    virtual ~CIvfPlaneButton();
+    virtual ~PlaneButton();
 
 
     void setSize(double width, double height);

@@ -3,14 +3,12 @@
 #ifndef MainFrame_h
 #define MainFrame_h
 #include <FL/Fl.H>
-#include "SplashFrame.h"
 #include <FL/Fl_Double_Window.H>
 #include "FemWidget.h"
 
 class MainFrame {
   int m_argc;
   char** m_argv;
-  CSplashFrame* m_splash;
 public:
   MainFrame();
   Fl_Double_Window *wndMain;

@@ -1,19 +1,19 @@
 #ifndef _CFemDFEMCInterface_h_
 #define _CFemDFEMCInterface_h_
 
-#include <FemBeamModel.h>
+#include <ofem/beam_model.h>
 
-class CFemDFEMCInterface {
+class FrameDFEMCInterface {
 private:
-    FemBeamModel* m_beamModel;
+    ofem::BeamModel* m_beamModel;
     int m_argc;
     char** m_argv;
     double m_maxNodeValue;
 public:
-    CFemDFEMCInterface();
-    virtual ~CFemDFEMCInterface();
+    FrameDFEMCInterface();
+    virtual ~FrameDFEMCInterface();
 
-    void setBeamModel(FemBeamModel* model);
+    void setBeamModel(ofem::BeamModel* model);
     void setArguments(int argc, char** argv);
 
     void execute();

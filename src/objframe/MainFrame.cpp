@@ -28,8 +28,6 @@ MainFrame::MainFrame() {
     wndMain->end();
   } // Fl_Double_Window* wndMain
   wndMain->callback(cb_wndMain, this);
-
-  m_splash = NULL;
 }
 
 void MainFrame::show() {
@@ -58,8 +56,6 @@ void MainFrame::setArguments(int argc, char** argv) {
 }
 
 MainFrame::~MainFrame() {
-  if (m_splash!=NULL)
-  	delete m_splash;
 }
 
 void MainFrame::setProgramPath(const std::string& path) {

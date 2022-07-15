@@ -2,7 +2,10 @@
 
 #include <ivf/ivfconfig.h>
 
-CStructureFactory::CStructureFactory()
+using namespace std;
+using namespace ofem;
+
+StructureFactory::StructureFactory()
 {
     m_size[0] = 3;
     m_size[1] = 4;
@@ -14,40 +17,40 @@ CStructureFactory::CStructureFactory()
     m_currentMaterial = NULL;
 }
 
-CStructureFactory::~CStructureFactory()
+StructureFactory::~StructureFactory()
 {
 
 }
 
-void CStructureFactory::setSize(int rows, int cols, int stacks)
+void StructureFactory::setSize(int rows, int cols, int stacks)
 {
     m_size[0] = cols;
     m_size[1] = rows;
     m_size[2] = stacks;
 }
 
-void CStructureFactory::setSpacing(double xSpacing, double ySpacing, double zSpacing)
+void StructureFactory::setSpacing(double xSpacing, double ySpacing, double zSpacing)
 {
     m_spacing[0] = xSpacing;
     m_spacing[1] = ySpacing;
     m_spacing[2] = zSpacing;
 }
 
-void CStructureFactory::getSize(int &rows, int &cols, int &stacks)
+void StructureFactory::getSize(int &rows, int &cols, int &stacks)
 {
     rows = m_size[0];
     cols = m_size[1];
     stacks = m_size[2];
 }
 
-void CStructureFactory::getSpacing(double &xSpacing, double &ySpacing, double &zSpacing)
+void StructureFactory::getSpacing(double &xSpacing, double &ySpacing, double &zSpacing)
 {
     xSpacing = m_spacing[0];
     ySpacing = m_spacing[1];
     zSpacing = m_spacing[2];
 }
 
-void CStructureFactory::create()
+void StructureFactory::create()
 {
     if (m_beamModel!=NULL)
     {
@@ -55,9 +58,9 @@ void CStructureFactory::create()
         // Create nodes
         //
         
-        m_currentMaterial = (FemBeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial();
+        m_currentMaterial = (BeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial();
 
-        vector<VisFemNode*> nodes;
+        vector<vfem::Node*> nodes;
 
         int i, j, k;
 
@@ -71,7 +74,7 @@ void CStructureFactory::create()
                     // Create a fem node
                     //
 
-                    FemNode* femNode = new FemNode();
+                    Node* femNode = new Node();
 
                     //
                     // Add it to the Fem model
@@ -88,7 +91,7 @@ void CStructureFactory::create()
                     double z = i*m_spacing[2] - m_spacing[2]*((double)m_size[1]-1.0)/2.0;
                     double y = k*m_spacing[1];
 
-                    VisFemNode* ivfNode = new VisFemNode();
+                    vfem::Node* ivfNode = new vfem::Node();
                     ivfNode->setBeamModel(m_beamModel);
                     ivfNode->setFemNode(femNode);
                     ivfNode->setPosition(x, y, z);
@@ -121,23 +124,23 @@ void CStructureFactory::create()
                     // Create visual representation
                     //
 
-                    VisFemBeam* ivfBeam = new VisFemBeam();
+                    vfem::Beam* ivfBeam = new vfem::Beam();
                     ivfBeam->setBeamModel(m_beamModel);
 
                     //
                     // Create model representation
                     //
 
-                    FemBeam* femBeam =  new FemBeam();
+                    Beam* femBeam =  new Beam();
 
                     //
                     // Extract FemNode:s from the IvfNodes
                     //
 
-                    VisFemNode* ivfNode1 =
-                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
-                    VisFemNode* ivfNode2 =
-                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*(k+1)];
+                    vfem::Node* ivfNode1 =
+                        (vfem::Node*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    vfem::Node* ivfNode2 =
+                        (vfem::Node*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*(k+1)];
 
                     //
                     // Add FemNodes to beam element
@@ -192,23 +195,23 @@ void CStructureFactory::create()
                     // Create visual representation
                     //
 
-                    VisFemBeam* ivfBeam = new VisFemBeam();
+                    vfem::Beam* ivfBeam = new vfem::Beam();
                     ivfBeam->setBeamModel(m_beamModel);
 
                     //
                     // Create model representation
                     //
 
-                    FemBeam* femBeam =  new FemBeam();
+                    Beam* femBeam =  new Beam();
 
                     //
                     // Extract FemNode:s from the IvfNodes
                     //
 
-                    VisFemNode* ivfNode1 =
-                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
-                    VisFemNode* ivfNode2 =
-                        (VisFemNode*) nodes[j+(i+1)*m_size[0]+m_size[0]*m_size[1]*k];
+                    vfem::Node* ivfNode1 =
+                        (vfem::Node*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    vfem::Node* ivfNode2 =
+                        (vfem::Node*) nodes[j+(i+1)*m_size[0]+m_size[0]*m_size[1]*k];
 
                     //
                     // Add FemNodes to beam element
@@ -263,23 +266,23 @@ void CStructureFactory::create()
                     // Create visual representation
                     //
 
-                    VisFemBeam* ivfBeam = new VisFemBeam();
+                    vfem::Beam* ivfBeam = new vfem::Beam();
                     ivfBeam->setBeamModel(m_beamModel);
 
                     //
                     // Create model representation
                     //
 
-                    FemBeam* femBeam =  new FemBeam();
+                    Beam* femBeam =  new Beam();
 
                     //
                     // Extract FemNode:s from the IvfNodes
                     //
 
-                    VisFemNode* ivfNode1 =
-                        (VisFemNode*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
-                    VisFemNode* ivfNode2 =
-                        (VisFemNode*) nodes[j+1+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    vfem::Node* ivfNode1 =
+                        (vfem::Node*) nodes[j+i*m_size[0]+m_size[0]*m_size[1]*k];
+                    vfem::Node* ivfNode2 =
+                        (vfem::Node*) nodes[j+1+i*m_size[0]+m_size[0]*m_size[1]*k];
 
                     //
                     // Add FemNodes to beam element
@@ -322,17 +325,17 @@ void CStructureFactory::create()
     }
 }
 
-void CStructureFactory::setBeamModel(VisBeamModel *model)
+void StructureFactory::setBeamModel(vfem::BeamModel *model)
 {
     m_beamModel = model;
 }
 
-VisBeamModel* CStructureFactory::getBeamModel()
+vfem::BeamModel* StructureFactory::getBeamModel()
 {
     return m_beamModel;
 }
 
-void CStructureFactory::setCurrentMaterial(FemBeamMaterial *material)
+void StructureFactory::setCurrentMaterial(BeamMaterial *material)
 {
     m_currentMaterial = material;
 }

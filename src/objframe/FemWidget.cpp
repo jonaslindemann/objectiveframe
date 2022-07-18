@@ -21,17 +21,12 @@
 
 #include "StructureFactory.h"
 
+#include <functional>
+
 using namespace ivf;
 using namespace std;
 using namespace ofui;
 //using namespace ofem;
-
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-// IvfFemWidget feedback callback
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-
 
 void feedbackCallback(void* pointer)
 {
@@ -40,18 +35,11 @@ void feedbackCallback(void* pointer)
 	Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
 
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-// IvfFemWidget constructor
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-
 FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 	FltkWidget(X, Y, W, H, L)
 {
 	m_width = W;
 	m_height = H;
-	log("Initializing variables.");
 	m_tactileForce = nullptr;
 	m_internalSolver = nullptr;
 	m_relNodeSize = 0.004;
@@ -84,10 +72,32 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 
 	m_showNodeBCsWindow = false;
 	m_showBCPropPopup = false;
+	m_prevButton = nullptr;
 }
 
 void FemWidget::onInit()
 {
+	// Create log window early as it will be called by the logger.
+
+	m_logWindow = LogWindow::create("Log window");
+	m_logWindow->setVisible(false);
+
+	m_consoleWindow = ConsoleWindow::create("Hints");
+	m_consoleWindow->setVisible(true);
+
+	using std::placeholders::_1;
+	LoggerMessageFunc f = std::bind(&FemWidget::onMessage, this, _1);
+	Logger::instance()->assignOnMessageShort(f);
+
+	log(OBJFRAME_VERSION_STRING);
+	log(OBJFRAME_RELEASE);
+	log(OBJFRAME_COPYRIGHT_STRING);
+	log(OBJFRAME_AUTHOR1);
+	log(OBJFRAME_AUTHOR2);
+	log("---------------------------------------------");
+
+	console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
+
 	log("Initializing FemWidget.");
 
 	// Intialize transparent workspace plane
@@ -460,15 +470,29 @@ void FemWidget::setEditMode(WidgetMode mode)
 
 	switch (mode) {
 	case WidgetMode::Select:
+		m_consoleWindow->clear();
+		console("Select: Click on objects to select. Click outside to deselect.");
 		setHighlightFilter(HighlightMode::All);
 		setSelectFilter(SelectMode::All);
 		setRepresentation(RepresentationMode::Fem);
 		break;
 	case WidgetMode::CreateNode:
-	case WidgetMode::CreateLine:
+		m_consoleWindow->clear();
+		console("Create nodes: Use the cursor to create nodes. [Shift] moves up/down.");
 		setHighlightFilter(HighlightMode::Nodes);
 		setSelectFilter(SelectMode::Nodes);
 		setRepresentation(RepresentationMode::Fem);
+		break;
+	case WidgetMode::CreateLine:
+		m_consoleWindow->clear();
+		console("Create beams: Select 2 nodes to create a beam element.");
+		setHighlightFilter(HighlightMode::Nodes);
+		setSelectFilter(SelectMode::Nodes);
+		setRepresentation(RepresentationMode::Fem);
+		break;
+	case WidgetMode::Move:
+		m_consoleWindow->clear();
+		console("Move: Move selected nodes with cursor. Click and hold mouse to move. [Shift] moves up/down.");
 		break;
 	default:
 		setHighlightFilter(HighlightMode::All);
@@ -478,6 +502,8 @@ void FemWidget::setEditMode(WidgetMode mode)
 
 	if ((m_customMode == CustomMode::Feedback) && (m_customModeSet))
 	{
+		m_consoleWindow->clear();
+		console("Feedback mode: Click on a node to apply interactive force. Move mouse with button down to move force.");
 		setHighlightFilter(HighlightMode::Nodes);
 		setSelectFilter(SelectMode::Nodes);
 	}
@@ -766,6 +792,11 @@ void FemWidget::showProperties()
 			m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(this->getSelectedShape()));
 			m_elementPropWindow->setVisible(true);
 		}
+	}
+	else
+	{
+		m_consoleWindow->clear();
+		console("Inspect: Please select an object(s) to inspect.");
 	}
 }
 
@@ -1831,8 +1862,19 @@ std::string FemWidget::float2str(double value)
 
 void FemWidget::log(std::string message)
 {
-	Logger::instance()->log(LogLevel::Info, "FemWidget: " + message);
+	Logger::instance()->log(LogLevel::Info, message);
 }
+
+void FemWidget::onMessage(std::string message)
+{
+	m_logWindow->log(message + "\n");
+}
+
+void FemWidget::console(std::string message)
+{
+	m_consoleWindow->log(message + "\n");
+}
+
 
 // ------------------------------------------------------------
 void FemWidget::onCoordinate(double x, double y, double z)
@@ -1991,6 +2033,11 @@ void FemWidget::onPassiveMotion(int x, int y)
 				m_selectedButton->setScale(1.1, 1.1, 1.1);
 				needInvalidate = true;
 				m_overlaySelected = true;
+				if (m_selectedButton != m_prevButton)
+				{
+					this->onOverButton(m_selectedButton->getId(), m_selectedButton);
+					m_prevButton = m_selectedButton;
+				}
 			}
 		}
 	}
@@ -2262,6 +2309,53 @@ void FemWidget::onButton(int objectName, PlaneButton* button)
 	}
 	this->redraw();
 }
+void FemWidget::onOverButton(int objectName, PlaneButton* button)
+{
+	m_consoleWindow->clear();
+	switch (objectName) {
+	case ToolbarButton::Select:
+		console("Select nodes and beams.");
+		break;
+	case ToolbarButton::Move:
+		console("Move nodes.");
+		break;
+	case ToolbarButton::CreateNode:
+		console("Create nodes");
+		break;
+	case ToolbarButton::CreateBeam:
+		console("Create beams.");
+		break;
+	case ToolbarButton::Feedback:
+		console("Interact with model using an movable force.");
+		break;
+	case ToolbarButton::ViewZoom:
+		break;
+	case ToolbarButton::ViewPan:
+		break;
+	case ToolbarButton::ViewReset:
+		break;
+	case ToolbarButton::Delete:
+		console("Delete nodes and beams.");
+		break;
+	case ToolbarButton::Inspect:
+		console("Show object properties.");
+		break;
+	case ToolbarButton::NodeLoad:
+		console("Create node loads.");
+		break;
+	case ToolbarButton::BeamLoad:
+		console("Create element loads.");
+		break;
+	case ToolbarButton::Materials:
+		console("Create materials.");
+		break;
+	case ToolbarButton::NodeBC:
+		console("Create node boundary conditions.");
+		break;
+	default:
+		break;
+	}
+}
 #endif
 
 void FemWidget::onHighlightFilter(Shape* shape, bool& highlight)
@@ -2372,6 +2466,15 @@ void FemWidget::onDrawImGui()
 				m_settingsWindow->show();
 			}
 
+			if (ImGui::MenuItem("Hints...", ""))
+			{
+				m_consoleWindow->show();
+			}
+
+			if (ImGui::MenuItem("Log...", ""))
+			{
+				m_logWindow->show();
+			}
 			ImGui::EndMenu();
 
 		}
@@ -2464,6 +2567,8 @@ void FemWidget::onDrawImGui()
 	m_elementLoadsWindow->draw();
 	m_materialsWindow->draw();
 	m_elementPropWindow->draw();
+	m_logWindow->draw();
+	m_consoleWindow->draw();
 
 	ImGui::Render();
 
@@ -2491,7 +2596,8 @@ void FemWidget::onInitImGui()
 	ImGui::StyleColorsDark();
 
 	ImGuiIO& io = ImGui::GetIO();
-	ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 20*pixels_per_unit());
+	//ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 20*pixels_per_unit());
+	ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/RopaSans-Regular.ttf", 22 * pixels_per_unit());
 	//ImFont* font2 = io.Fonts->AddFontFromFileTTF("anotherfont.otf", 13);
 
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -2506,6 +2612,8 @@ void FemWidget::onInitImGui()
 		style.Colors[ImGuiCol_TitleBgActive].z,
 		0.8f
 	);
+
+	style.ScaleAllSizes(1.0);
 }
 
 void FemWidget::setRelNodeSize(double size)
@@ -2707,13 +2815,11 @@ void FemWidget::setResultType(int type)
 }
 
 
-// ------------------------------------------------------------
 void FemWidget::setProgramPath(const std::string& progPath)
 {
 	m_progPath = progPath;
 }
 
-// ------------------------------------------------------------
 const std::string FemWidget::getProgPath()
 {
 	return m_progPath;

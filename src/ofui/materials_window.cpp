@@ -113,7 +113,13 @@ void MaterialsWindow::doDraw()
 	}
 	if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))
 	{
-		m_propPopup->setVisible(true);
+		if (m_materials != nullptr)
+		{
+			if (m_widget->getCurrentMaterial() != nullptr)
+			{
+				m_propPopup->setVisible(true);
+			}
+		}
 	}
 
 	ImGui::EndGroup();

@@ -33,9 +33,6 @@
 
 #include "imgui_impl_fltk.h"
 
-namespace std {};
-using namespace std;
-
 // Widget modes
 
 enum class WidgetMode { Select, SimpleSelect, View, ViewZoom, ViewPan, CameraTarget, Move, Create, CreateNode, CreateLine, CreateObject, Manipulate, User };

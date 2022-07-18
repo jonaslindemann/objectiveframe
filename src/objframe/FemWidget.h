@@ -1,6 +1,11 @@
 #pragma once
 
-#define OBJFRAME_VERSION_STRING "ObjectiveFrame 2.0.0"
+#define OBJFRAME_VERSION_STRING "ObjectiveFrame 2"
+#define OBJFRAME_RELEASE "Release version - 2.0.0"
+#define OBJFRAME_COPYRIGHT_STRING "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund university"
+#define OBJFRAME_AUTHOR1 "Main author: Jonas Lindemann"
+#define OBJFRAME_AUTHOR2 "Contributors: Pierre Olsson, Daniel Akesson"
+
 #define ADVANCED_GL
 #define USE_IMGUI
 
@@ -44,6 +49,8 @@
 #include <ofui/element_loads_window.h>
 #include <ofui/materials_window.h>
 #include <ofui/element_prop_window.h>
+#include <ofui/log_window.h>
+#include <ofui/console_window.h>
 
 #include "Area2D.h"
 #include "PlaneButton.h"
@@ -196,6 +203,8 @@ private:
 	Area2D* m_objectArea;
 	Area2D* m_viewArea;
 
+	PlaneButton* m_prevButton;
+
 	float m_hintColor[3];
 	bool m_hintFinished;
 
@@ -221,6 +230,8 @@ private:
 	ofui::ElementLoadsWindowPtr m_elementLoadsWindow;
 	ofui::MaterialsWindowPtr m_materialsWindow;
 	ofui::ElementPropWindowPtr m_elementPropWindow;
+	ofui::LogWindowPtr m_logWindow;
+	ofui::ConsoleWindowPtr m_consoleWindow;
 
 	bool m_showStyleEditor;
 	bool m_showMetricsWindow;
@@ -234,6 +245,9 @@ private:
 	std::string float2str(double value);
 
 	void log(std::string message);
+	void onMessage(std::string message);
+
+	void console(std::string message);
 
 public:
 	FemWidget(int X, int Y, int W, int H, const char* L = 0);
@@ -342,6 +356,7 @@ public:
 	void onDeSelect();
 	void onKeyboard(int key);
 	void onButton(int objectName, PlaneButton* button);
+	void onOverButton(int objectName, PlaneButton* button);
 
 	virtual void onDrawImGui();
 	virtual void onInitImGui();

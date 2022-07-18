@@ -51,6 +51,11 @@ void Logger::log(LogLevel level, const std::string& message)
 	{
 		cout << currentDateTime() << ": " << logLevelText(level) << ": ";
 		cout << message << "\n";
+
+		if (m_onMessage)
+			m_onMessage(currentDateTime() + ": " + logLevelText(level) + ": " + message);
+		if (m_onMessageShort)
+			m_onMessageShort(message);
 	}
 }
 
@@ -72,6 +77,11 @@ void Logger::log(LogLevel level, const char* format, ...)
 	{
 		cout << currentDateTime() << ": " << logLevelText(level) << ": ";
 		cout << message << "\n";
+
+		if (m_onMessage)
+			m_onMessage(currentDateTime() + ": " + logLevelText(level) + ": " + message);
+		if (m_onMessageShort)
+			m_onMessageShort(message);
 	}
 	va_end(args);
 	delete[] message;
@@ -102,4 +112,14 @@ Logger* Logger::instance(LogDestination dest)
 			m_logFile.open(m_filename.c_str(), ios::out | ios::app);
 	}
 	return m_this;
+}
+
+void Logger::assignOnMessage(std::function<void(const std::string message)>& onMessageFunc)
+{
+	m_onMessage = onMessageFunc;
+}
+
+void Logger::assignOnMessageShort(std::function<void(const std::string message)>& onMessageFunc)
+{
+	m_onMessageShort = onMessageFunc;
 }

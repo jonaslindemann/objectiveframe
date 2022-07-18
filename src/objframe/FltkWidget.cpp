@@ -33,9 +33,9 @@
 
 #include <GL/glu.h>
 
-
 #define USE_OFFSCREEN_RENDERING
 
+using namespace std;
 using namespace ivf;
 
 void redrawCallback(void* view)

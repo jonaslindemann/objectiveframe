@@ -8,3 +8,4 @@ lib/
 *.ilk
 *.json
 *.sqlite
+src/fmt/

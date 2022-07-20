@@ -126,6 +126,8 @@ private:
 
     double m_controlSize;
 
+    bool m_offScreenRendering;
+
 	GLuint m_screenTexture;
 	GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
 

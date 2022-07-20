@@ -1,31 +1,49 @@
 #include <ofem/input_file_writer.h>
 
 using namespace ofem;
+using namespace std;
+
+#include <iostream>
+#include <fstream>
 
 // ------------------------------------------------------------
-InputFileWriter::InputFileWriter ()
+InputFileWriter::InputFileWriter (const std::string filename)
 {
-    m_femModel = NULL;
+    m_femModel = nullptr;
+    m_filename = filename;
 }
 
-// ------------------------------------------------------------
 InputFileWriter::~InputFileWriter ()
 {
 }
 
-// ------------------------------------------------------------
 void InputFileWriter::saveToStream (std::ostream &out)
 {
 }
 
-// ------------------------------------------------------------
 void InputFileWriter::setFemModel(Model *model)
 {
     m_femModel = model;
 }
 
-// ------------------------------------------------------------
 Model* InputFileWriter::getFemModel()
 {
     return m_femModel;
 }
+
+const std::string ofem::InputFileWriter::filename()
+{
+    return m_filename;
+}
+
+void InputFileWriter::save()
+{
+    if (m_filename != "")
+    {
+        fstream inputFile;
+        inputFile.open(m_filename, ios::out);
+        this->saveToStream(inputFile);
+        inputFile.close();
+    }
+}
+

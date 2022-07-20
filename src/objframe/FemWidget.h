@@ -33,6 +33,7 @@
 #include <ofem/beam_load.h>
 #include <ofem/beam_node_load.h>
 #include <ofem/beam_node_bc.h>
+#include <ofem/calfem_writer.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
@@ -136,6 +137,9 @@ private:
 	bool    m_overWorkspace;
 	bool    m_lastOverWorkspace;
 	bool    m_lockScaleFactor;
+	bool	m_nodeSelection;
+	bool	m_elementSelection;
+	bool	m_mixedSelection;
 
 	CustomMode m_customMode;
 	bool    m_customModeSet;
@@ -307,6 +311,7 @@ public:
 	void open();
 	void save();
 	void saveAs();
+	void exportAsCalfem();
 	void removeMaterialFromSelected();
 	void assignMaterialToSelected();
 	void newModel();

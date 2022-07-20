@@ -4,7 +4,8 @@ using namespace ofem;
 using namespace std;
 
 // ------------------------------------------------------------
-SLFFEAWriter::SLFFEAWriter ()
+SLFFEAWriter::SLFFEAWriter(const std::string filename)
+    :InputFileWriter(filename)
 {
 
 }
@@ -286,20 +287,4 @@ void SLFFEAWriter::saveToStream(std::ostream &out)
     out << "# ---" << endl;
     out << -10 << endl;
 
-}
-
-void SLFFEAWriter::setFileName(const char *fileName)
-{
-    m_fileName = fileName;
-}
-
-void SLFFEAWriter::save()
-{
-    if (m_fileName!="")
-    {
-        fstream inputFile;
-        inputFile.open(m_fileName.c_str(), ios::out);
-        this->saveToStream(inputFile);
-        inputFile.close();
-    }
 }

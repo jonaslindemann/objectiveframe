@@ -33,8 +33,6 @@
 
 #include <GL/glu.h>
 
-#define USE_OFFSCREEN_RENDERING
-
 using namespace std;
 using namespace ivf;
 
@@ -56,6 +54,8 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     Fl_Gl_Window(X, Y, W, H, L), ImGuiFLTKImpl()
 {
     // State variables
+
+    m_offScreenRendering = true;
 
     int oldMode = this->mode();
     this->mode(FL_RGB8 | FL_DOUBLE | FL_STENCIL | FL_MULTISAMPLE);
@@ -247,7 +247,7 @@ void FltkWidget::clearSelection()
 
     // Should onDeSelect be called ???
 
-    // onDeSelect();
+    //onDeSelect();
     redraw();
 }
 
@@ -538,10 +538,11 @@ void FltkWidget::draw()
 
 			// Create and bind the FBO
 
-#ifdef USE_OFFSCREEN_RENDERING
-			initOffscreenBuffers();
-			updateOffscreenBuffers();
-#endif
+            if (m_offScreenRendering)
+            {
+                initOffscreenBuffers();
+                updateOffscreenBuffers();
+            }
 			
             onInit();
             m_initDone = true;
@@ -556,19 +557,19 @@ void FltkWidget::draw()
 
     }
 
-#ifdef USE_OFFSCREEN_RENDERING
+    if (m_offScreenRendering)
+    {
+        if ((m_prevWindowSize[0] != pixel_w()) || (m_prevWindowSize[1] != h()))
+        {
+            m_prevWindowSize[0] = pixel_w();
+            m_prevWindowSize[1] = pixel_h();
 
-	if ((m_prevWindowSize[0] != pixel_w()) || (m_prevWindowSize[1] != h()))
-	{
-		m_prevWindowSize[0] = pixel_w();
-		m_prevWindowSize[1] = pixel_h();
+            updateOffscreenBuffers();
+        }
 
-		updateOffscreenBuffers();
-	}
+        bindOffscreenBuffers();
+    }
 
-	bindOffscreenBuffers();
-
-#endif
     // Drawing code
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -621,9 +622,10 @@ void FltkWidget::draw()
     glPopMatrix();
 
 
-#ifdef USE_OFFSCREEN_RENDERING
-    blitOffscreenBuffers();
-#endif
+    if (m_offScreenRendering)
+    {
+        blitOffscreenBuffers();
+    }
 
     this->doDrawImGui();
 }

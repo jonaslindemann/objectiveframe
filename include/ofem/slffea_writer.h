@@ -12,16 +12,11 @@ namespace ofem {
 
     class SLFFEAWriter : public InputFileWriter {
     private:
-        std::string m_fileName;
     public:
-        SLFFEAWriter();
+        SLFFEAWriter(const std::string filename);
         virtual ~SLFFEAWriter();
 
         ClassInfo("SLFFEAWriter", InputFileWriter);
-
-        void save();
-
-        void setFileName(const char* fileName);
 
         void saveToStream(std::ostream& out);
     };

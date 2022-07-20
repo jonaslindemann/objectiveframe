@@ -73,6 +73,10 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 	m_showNodeBCsWindow = false;
 	m_showBCPropPopup = false;
 	m_prevButton = nullptr;
+	
+	m_nodeSelection = false;
+	m_elementSelection = false;
+	m_mixedSelection = false;
 }
 
 void FemWidget::onInit()
@@ -164,7 +168,6 @@ void FemWidget::onInit()
 	m_beamModel->setNodeMaterial(m_nodeMaterial);
 	m_beamModel->setBeamMaterial(m_lineMaterial);
 	m_beamModel->generateModel();
-
 
 	// Initialize color table
 
@@ -699,6 +702,13 @@ void FemWidget::saveAs()
 	}
 }
 
+void FemWidget::exportAsCalfem()
+{
+	auto writer = new ofem::CalfemWriter("cfexport.py");
+	writer->setFemModel(m_beamModel);
+	writer->save();
+}
+
 // ------------------------------------------------------------
 void FemWidget::open()
 {
@@ -779,6 +789,15 @@ void FemWidget::showProperties()
 {
 	// Properties for selected shape
 
+	this->onSelect(this->getSelectedShapes());
+
+	if (m_nodeSelection)
+		m_nodePropWindow->show();
+
+	if (m_elementSelection)
+		m_nodePropWindow->show();
+
+	/*
 	if (this->getSelectedShape() != nullptr)
 	{
 		if (this->getSelectedShape()->isClass("vfem::Node"))
@@ -794,10 +813,15 @@ void FemWidget::showProperties()
 		}
 	}
 	else
+	*/
+	if ((!m_nodeSelection)&&(!m_elementSelection))
 	{
 		m_consoleWindow->clear();
 		console("Inspect: Please select an object(s) to inspect.");
 	}
+
+	setEditMode(WidgetMode::Select);
+	this->refreshToolbars();
 }
 
 // ------------------------------------------------------------
@@ -1377,17 +1401,8 @@ void FemWidget::assignNodePosBCGround()
 // ------------------------------------------------------------
 void FemWidget::executeCalc()
 {
-	// Execute DFEMC Beam solver (CORBA)
-
 	double maxNodeValue;
-#ifdef HAVE_CORBA
-	CFemDFEMCInterface* dfemcInterface = new CFemDFEMCInterface();
-	dfemcInterface->setBeamModel(m_beamModel);
-	dfemcInterface->setArguments(m_argc, m_argv);
-	dfemcInterface->execute();
-	maxNodeValue = dfemcInterface->getMaxNodeValue();
-	delete dfemcInterface;
-#else
+
 	if (m_internalSolver != nullptr)
 		delete m_internalSolver;
 
@@ -1432,7 +1447,6 @@ void FemWidget::executeCalc()
 		m_needRecalc = false;
 
 	maxNodeValue = m_internalSolver->getMaxNodeValue();
-#endif
 
 
 	// Calculate default scalefactor
@@ -1810,26 +1824,49 @@ void FemWidget::onSelect(Composite* selectedShapes)
 
 	if (m_customMode == CustomMode::Normal)
 	{
-
 		// Disable all dialogs
 
+		m_nodeSelection = false;
+		m_elementSelection = false;
+		m_mixedSelection = false;
+
 		m_nodePropWindow->setNode(nullptr);
+		m_nodePropWindow->setSelectedShapes(nullptr);
+
 		m_elementPropWindow->setBeam(nullptr);
 
 		// Update dialogs with new selection
 
 		if (selectedShapes->getSize() > 0)
 		{
-			auto firstShape = selectedShapes->getChild(0);
-			m_selectedShape = firstShape;
-			if (firstShape->isClass("vfem::Node"))
+			if (selectedShapes->getSize() == 1)
 			{
-				//m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
-				m_nodePropWindow->setNode(static_cast<vfem::Node*>(firstShape));
+				auto firstShape = selectedShapes->getChild(0);
+				m_selectedShape = firstShape;
+				if (firstShape->isClass("vfem::Node"))
+				{
+					//m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
+					m_nodePropWindow->setNode(static_cast<vfem::Node*>(firstShape));
+				}
+				if (firstShape->isClass("vfem::Beam"))
+				{
+					m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
+				}
 			}
-			if (firstShape->isClass("vfem::Beam"))
+
+			if (selectedShapes->getSize()>1)
 			{
-				m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
+				for (auto i = 0; i < selectedShapes->getSize(); i++)
+				{
+					if (selectedShapes->getChild(i)->isClass("vfem::Node"))
+						m_nodeSelection = true;
+					if (selectedShapes->getChild(i)->isClass("vfem::Beam"))
+						m_elementSelection = true;
+				}
+
+				m_nodePropWindow->setSelectedShapes(selectedShapes);
+
+				m_mixedSelection = m_nodeSelection && m_elementSelection;
 			}
 		}
 	}
@@ -2164,7 +2201,9 @@ void FemWidget::onMotion(int x, int y)
 // ------------------------------------------------------------
 void FemWidget::onDeSelect()
 {
+	log("onDeSelect");
 	m_nodePropWindow->setNode(nullptr);
+	m_nodePropWindow->setSelectedShapes(nullptr);
 	m_elementPropWindow->setBeam(nullptr);
 
 	if (m_customMode == CustomMode::Feedback)
@@ -2395,6 +2434,7 @@ void FemWidget::onDrawImGui()
 	bool saveAsDialog = false;
 	bool executeCalc = false;
 	bool quitApplication = false;
+	bool exportAsCalfem = false;
 
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -2415,6 +2455,10 @@ void FemWidget::onDrawImGui()
 
 			if (ImGui::MenuItem("Save as", "Ctrl+Shift+S"))
 				saveAsDialog = true;
+
+			if (ImGui::MenuItem("Save as CALFEM", ""))
+				exportAsCalfem = true;
+
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Quit", "Alt+F4"))
@@ -2583,6 +2627,9 @@ void FemWidget::onDrawImGui()
 
 	if (executeCalc)
 		this->executeCalc();
+
+	if (exportAsCalfem)
+		this->exportAsCalfem();
 
 	if (quitApplication)
 	{

@@ -4,10 +4,11 @@ using namespace ofui;
 
 NodePropWindow::NodePropWindow(const std::string name)
 	:UiWindow(name),
-	 m_node{nullptr},
-	 m_nodePos{0.0, 0.0, 0.0},
-	m_nodeDispl{ 0.0, 0.0, 0.0 }
-
+	m_node{ nullptr },
+	m_nodePos{ 0.0, 0.0, 0.0 },
+	m_nodeDispl{ 0.0, 0.0, 0.0 },
+	m_nodeMove{ 0.0, 0.0, 0.0 },
+	m_selectedShapes{ nullptr }
 {
 
 }
@@ -19,6 +20,11 @@ NodePropWindow::~NodePropWindow()
 void NodePropWindow::setNode(vfem::Node* node)
 {
 	m_node = node;
+}
+
+void NodePropWindow::setSelectedShapes(ivf::Composite* selected)
+{
+	m_selectedShapes = selected;
 }
 
 std::shared_ptr<NodePropWindow> NodePropWindow::create(const std::string name)
@@ -49,8 +55,42 @@ void NodePropWindow::doDraw()
 		m_nodeDispl[2] = float(dz);
 		ImGui::InputFloat3("Displacement", m_nodeDispl, "%.3f", ImGuiInputTextFlags_ReadOnly);
 	}
+	else if (m_selectedShapes != nullptr)
+	{
+		ImGui::InputFloat3("Offset", m_nodeMove, "%.3f");
+
+		if (ImGui::Button("Move", ImVec2(120, 0)))
+		{
+			for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+			{
+				if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
+				{
+					auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
+					double x, y, z;
+					node->getPosition(x, y, z);
+					node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
+				}
+			}
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Copy", ImVec2(120, 0)))
+		{
+			for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+			{
+				if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
+				{
+					auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
+					double x, y, z;
+					node->getPosition(x, y, z);
+					node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
+				}
+			}
+		}
+	}
 	else
 	{
-		ImGui::Text("Select a node to display node properties.");
+		ImGui::Text("Select a node(s) to display node properties.");
 	}
 }

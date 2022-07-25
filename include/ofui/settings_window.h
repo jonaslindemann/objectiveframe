@@ -14,6 +14,7 @@ private:
 	float m_loadSize;
 	float m_scaleFactor;
 	bool m_lockScaleFactor;
+	bool m_showNodeNumbers;
 
 	FemWidget* m_widget;
 public:

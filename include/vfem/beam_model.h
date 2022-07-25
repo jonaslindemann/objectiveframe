@@ -2,6 +2,7 @@
 
 #include <ivf/Scene.h>
 #include <ivf/Node.h>
+#include <ivf/BitmapFont.h>
 
 #include <ofem/beam_model.h>
 #include <vfem/color_table.h>
@@ -41,9 +42,14 @@ private:
     int m_resultType;
     int m_nodeType;
 
+    bool m_showNodeNumbers;
+    bool m_showElementNumbers;
+
     ivf::CompositePtr m_scene;
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_beamMaterial;
+    ivf::BitmapFontPtr m_textFont;
+    ivf::CameraPtr m_camera;
     ColorTablePtr m_colorTable;
 
     CColorMap* m_colorMapPos;
@@ -109,6 +115,15 @@ public:
 
     void setBeamType(int type);
     int getBeamType();
+
+    void setTextFont(ivf::BitmapFont* font);
+    ivf::BitmapFont* textFont();
+
+    void setShowNodeNumbers(bool flag);
+    bool showNodeNumbers();
+
+    void setCamera(ivf::Camera* camera);
+    ivf::Camera* camera();
 
 	ofem::BeamNodeBC* defaultNodePosBC();
 	ofem::BeamNodeBC* defaultNodeFixedBC();

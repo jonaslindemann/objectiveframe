@@ -12,6 +12,8 @@
 #include <ivf/Texture.h>
 #include <ivfimage/SgiImage.h>
 #include <ivf/Fog.h>
+#include <ivf/BitmapFont.h>
+#include <ivf/TextLabel.h>
 
 #include <ofem/beam.h>
 #include <ofem/node.h>
@@ -114,8 +116,11 @@ void FemWidget::onInit()
 	this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
 	this->getScene()->getCurrentPlane()->getGrid()->setUseAxis(true);
 	this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
+	this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(false);
+	this->getScene()->getCurrentPlane()->getGrid()->setUseOutline(true);
 	this->getScene()->setRenderFlatShadow(true);
 	this->getScene()->setShadowColor(0.3, 0.3, 0.3);
+	this->getScene()->setShadowPrePost(false, false);
 
 	// Common 3D gui state variables
 
@@ -149,6 +154,12 @@ void FemWidget::onInit()
 	m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
 	m_lineMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+	// Label rendering setup
+
+	m_labelFont = ivf::BitmapFont::create("fonts/white_font.fnt");
+	m_textLayer = ivf::Composite::create();
+	this->getScene()->getPostComposite()->addChild(m_textLayer);
+
 	// Initialize beam model
 
 	log("Setting color map path.");
@@ -167,6 +178,11 @@ void FemWidget::onInit()
 	m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
 	m_beamModel->setNodeMaterial(m_nodeMaterial);
 	m_beamModel->setBeamMaterial(m_lineMaterial);
+
+	m_beamModel->setTextFont(m_labelFont);
+	m_beamModel->setCamera(this->getCamera());
+	m_beamModel->setShowNodeNumbers(true);
+
 	m_beamModel->generateModel();
 
 	// Initialize color table
@@ -207,6 +223,7 @@ void FemWidget::onInit()
 
 	m_coordText = "";
 
+
 	// Create tactile Force icon
 
 	log("Setting material for tactile force.");
@@ -246,6 +263,7 @@ void FemWidget::onInit()
 	m_showNewFileDlg = false;
 	m_coordWindow = CoordWindow::create("Coord window");
 	m_nodePropWindow = NodePropWindow::create("Node properties");
+	m_nodePropWindow->setWidget(this);
 	m_nodePropWindow->setVisible(false);
 	m_newModelPopup = NewModelPopup::create("Workspace", true);
 	m_messagePopup = MessagePopup::create("Message", true);
@@ -432,6 +450,11 @@ void FemWidget::setRepresentation(RepresentationMode repr)
 
 	this->set_changed();
 	this->redraw();
+}
+
+ofem::BeamModel* FemWidget::getModel()
+{
+	return m_beamModel;
 }
 
 // ------------------------------------------------------------
@@ -751,6 +774,9 @@ void FemWidget::open()
 		m_beamModel->setFileName(m_fileName);
 		m_beamModel->setPath(colorPath);
 		m_beamModel->open();
+		m_beamModel->setTextFont(m_labelFont);
+		m_beamModel->setCamera(this->getCamera());
+		m_beamModel->setShowNodeNumbers(true);
 
 		// Generate a Ivf++ representation
 
@@ -1644,6 +1670,31 @@ void FemWidget::doFeedback()
 	}
 }
 
+vfem::Node* FemWidget::addNode(double x, double y, double z)
+{
+	// First we create a FemNode
+
+	ofem::Node* femNode = new ofem::Node();
+
+	// Add it to the Fem model
+
+	m_beamModel->getNodeSet()->addNode(femNode);
+	femNode->setNumber(static_cast<long>(m_beamModel->getNodeSet()->getSize()) - 1);
+
+	// Create Ivf representation
+
+	vfem::Node* ivfNode = new vfem::Node();
+	ivfNode->setBeamModel(m_beamModel);
+	ivfNode->setFemNode(femNode);
+	ivfNode->setPosition(x, y, z);
+	ivfNode->setMaterial(m_nodeMaterial);
+	ivfNode->setDirectRefresh(true);
+	ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize() * 1.5);
+
+	this->getScene()->addChild(ivfNode);
+	return ivfNode;
+}
+
 void FemWidget::showMessage(std::string message)
 {
 	m_messagePopup->setMessage(message);
@@ -1756,6 +1807,7 @@ void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 	ivfNode->setFemNode(femNode);
 	ivfNode->setPosition(x, y, z);
 	ivfNode->setMaterial(m_nodeMaterial);
+	ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize()*1.5);
 	ivfNode->setDirectRefresh(true);
 
 	// We need a recalc
@@ -2054,7 +2106,7 @@ void FemWidget::onPassiveMotion(int x, int y)
 
 			if (m_selectedButton != nullptr)
 			{
-				m_selectedButton->setHighlight(Shape::HS_OFF);
+				//m_selectedButton->setHighlight(Shape::HS_OFF);
 				m_selectedButton->setScale(1.0, 1.0, 1.0);
 				needInvalidate = true;
 				m_overlaySelected = false;
@@ -2066,7 +2118,7 @@ void FemWidget::onPassiveMotion(int x, int y)
 
 			if (m_selectedButton != nullptr)
 			{
-				m_selectedButton->setHighlight(Shape::HS_ON);
+				//m_selectedButton->setHighlight(Shape::HS_ON);
 				m_selectedButton->setScale(1.1, 1.1, 1.1);
 				needInvalidate = true;
 				m_overlaySelected = true;
@@ -2870,4 +2922,9 @@ void FemWidget::setProgramPath(const std::string& progPath)
 const std::string FemWidget::getProgPath()
 {
 	return m_progPath;
+}
+
+
+void FemWidget::onPostRender()
+{
 }

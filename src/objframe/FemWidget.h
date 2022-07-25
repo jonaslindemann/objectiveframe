@@ -22,6 +22,7 @@
 #include <ivf/SelectOrtho.h>
 #include <ivf/Composite.h>
 #include <ivf/ExtrArrow.h>
+#include <ivf/BitmapFont.h>
 
 #include <vfem/node.h>
 #include <vfem/beam.h>
@@ -195,6 +196,9 @@ private:
 
 	ivf::SpherePtr       m_nodeCursor;
 
+	ivf::CompositePtr    m_textLayer;
+	ivf::BitmapFontPtr	 m_labelFont;
+
 	// Overlay stuff
 
 	vector<Area2D*> m_areas;
@@ -293,6 +297,8 @@ public:
 	void setDeleteFilter(DeleteMode filter);
 	void setRepresentation(RepresentationMode repr);
 
+	ofem::BeamModel* getModel();
+
 	// Methods
 
 	void hideAllDialogs();
@@ -335,6 +341,7 @@ public:
 	void assignNodeLoadSelected();
 	void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
 	void doFeedback();
+	vfem::Node* addNode(double x, double y, double z);
 
 	void showMessage(std::string message);
 
@@ -369,5 +376,6 @@ public:
 	virtual void onInit();
 	virtual void onInitContext();
 	virtual void onOverlay();
+	virtual void onPostRender();
 };
 

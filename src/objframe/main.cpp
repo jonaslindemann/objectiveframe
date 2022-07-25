@@ -67,7 +67,7 @@ main(int argc, char **argv)
     //
 
     so_print("Main: Setting visual.");
-    Fl::visual(FL_DEPTH|FL_DOUBLE|FL_RGB|FL_MULTISAMPLE);
+    Fl::visual(FL_DEPTH|FL_DOUBLE|FL_RGB|FL_MULTISAMPLE|FL_ALPHA);
 
     //
     // Retrieve system colors, if any.

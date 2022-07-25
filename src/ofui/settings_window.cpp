@@ -1,6 +1,7 @@
 #include <ofui/settings_window.h>
 
 #include "FemWidget.h"
+#include <vfem/beam_model.h>
 
 using namespace ofui;
 
@@ -12,7 +13,8 @@ SettingsWindow::SettingsWindow(const std::string name)
 	m_loadSize{ 7.0f },
 	m_widget{ nullptr },
 	m_scaleFactor{ 1.0f },
-	m_lockScaleFactor{ false }
+	m_lockScaleFactor{ false },
+	m_showNodeNumbers{ false }
 {
 
 }
@@ -29,6 +31,7 @@ void SettingsWindow::setFemWidget(FemWidget* femWidget)
 	m_loadSize = float(m_widget->getRelLoadSize()*100.0f);
 	m_lineRadius = float(m_widget->getRelLineRadius()*100.0f);
 	m_scaleFactor = float(m_widget->getScalefactor());
+	m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_widget->getModel())->showNodeNumbers();
 }
 
 void SettingsWindow::update()
@@ -38,6 +41,7 @@ void SettingsWindow::update()
 	m_loadSize = float(m_widget->getRelLoadSize() * 100.0f);
 	m_lineRadius = float(m_widget->getRelLineRadius() * 100.0f);
 	m_scaleFactor = float(m_widget->getScalefactor());
+	static_cast<vfem::BeamModel*>(m_widget->getModel())->setShowNodeNumbers(m_showNodeNumbers);
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
@@ -60,6 +64,7 @@ void SettingsWindow::doDraw()
 
 	ImGui::SliderFloat("Scale factor", &m_scaleFactor, 1.0f, 1000.0f);
 	ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
+	ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
 
 	m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
@@ -77,6 +82,8 @@ void SettingsWindow::doDraw()
 			m_widget->lockScaleFactor();
 		else
 			m_widget->unlockScaleFactor();
+
+		static_cast<vfem::BeamModel*>(m_widget->getModel())->setShowNodeNumbers(m_showNodeNumbers);
 
 	}
 }

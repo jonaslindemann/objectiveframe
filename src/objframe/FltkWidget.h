@@ -466,6 +466,8 @@ protected:
     virtual void onPreRender();
 
 
+public:
+    void addSelection(ivf::Shape* shape);
 };
 
 #endif

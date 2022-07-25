@@ -1,5 +1,7 @@
 #include <ofui/node_prop_window.h>
 
+#include <FemWidget.h>
+
 using namespace ofui;
 
 NodePropWindow::NodePropWindow(const std::string name)
@@ -8,13 +10,19 @@ NodePropWindow::NodePropWindow(const std::string name)
 	m_nodePos{ 0.0, 0.0, 0.0 },
 	m_nodeDispl{ 0.0, 0.0, 0.0 },
 	m_nodeMove{ 0.0, 0.0, 0.0 },
-	m_selectedShapes{ nullptr }
+	m_selectedShapes{ nullptr },
+	m_widget{ nullptr }
 {
 
 }
 
 NodePropWindow::~NodePropWindow()
 {
+}
+
+void ofui::NodePropWindow::setWidget(FemWidget* widget)
+{
+	m_widget = widget;
 }
 
 void NodePropWindow::setNode(vfem::Node* node)
@@ -58,6 +66,7 @@ void NodePropWindow::doDraw()
 	else if (m_selectedShapes != nullptr)
 	{
 		ImGui::InputFloat3("Offset", m_nodeMove, "%.3f");
+		ImGui::Separator();
 
 		if (ImGui::Button("Move", ImVec2(120, 0)))
 		{
@@ -69,14 +78,19 @@ void NodePropWindow::doDraw()
 					double x, y, z;
 					node->getPosition(x, y, z);
 					node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
+
 				}
 			}
+			m_widget->getScene()->getComposite()->refresh();
+			m_widget->set_changed();
+			m_widget->redraw(); 
 		}
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Copy", ImVec2(120, 0)))
 		{
+			std::vector<ivf::Shape*> newSelected;
 			for (auto i = 0; i < m_selectedShapes->getSize(); i++)
 			{
 				if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
@@ -84,9 +98,27 @@ void NodePropWindow::doDraw()
 					auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
 					double x, y, z;
 					node->getPosition(x, y, z);
-					node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
+					auto newNode = m_widget->addNode(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
+					newSelected.push_back(newNode);
 				}
 			}
+			m_widget->clearSelection();
+
+			for (auto node : newSelected)
+				m_widget->addSelection(node);
+
+			m_widget->getScene()->getComposite()->refresh();
+			m_widget->set_changed();
+			m_widget->redraw();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Reset", ImVec2(120, 0)))
+		{
+			m_nodeMove[0] = 0.0;
+			m_nodeMove[1] = 0.0;
+			m_nodeMove[2] = 0.0;
 		}
 	}
 	else

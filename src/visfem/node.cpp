@@ -3,7 +3,7 @@
 //using namespace ivf;
 using namespace vfem;
 
-#include <ivf/Node.h>
+#include <sstream>
 
 // ------------------------------------------------------------
 Node::Node ()
@@ -11,6 +11,7 @@ Node::Node ()
 {
     m_femNode = nullptr;
     m_directRefresh = false;
+    m_nodeLabel = ivf::TextLabel::create();
 
     m_beamModel = nullptr;
 
@@ -30,6 +31,12 @@ void Node::setFemNode(ofem::Node *node)
     m_femNode = node;
     m_femNode->getCoord(x, y, z);
     Shape::setPosition(x, y, z);
+    
+    std::ostringstream ss;
+    ss << m_femNode->getNumber();
+    std::string s(ss.str());
+
+    m_nodeLabel->setText(s);
 }
 
 // ------------------------------------------------------------
@@ -109,11 +116,25 @@ void Node::refresh()
                 this->setState(ivf::Shape::OS_ON);
             
             ivf::Shape::setPosition(x + dx*scalefactor, y + dy*scalefactor,  z + dz*scalefactor);
+            if (m_beamModel->showNodeNumbers())
+            {
+                m_nodeLabel->setCamera(m_beamModel->camera());
+                //m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
+                m_nodeLabel->setBillboardType(IVF_BILLBOARD_XY);
+                m_nodeLabel->setPosition(m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0);
+            }
         }
         else
         {
             this->setSize(m_beamModel->getNodeSize());
             ivf::Shape::setPosition(x, y, z);
+            if (m_beamModel->showNodeNumbers())
+            {
+                m_nodeLabel->setCamera(m_beamModel->camera());
+                //m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
+                m_nodeLabel->setBillboardType(IVF_BILLBOARD_XY);
+                m_nodeLabel->setPosition(m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0);
+            }
         }
     }
 }
@@ -123,6 +144,8 @@ void Node::doCreateGeometry()
     if (m_directRefresh)
         this->refresh();
     ivf::Node::doCreateGeometry();
+    if (m_beamModel->showNodeNumbers())
+        m_nodeLabel->render();
 }
 
 void Node::setDirectRefresh(bool flag)
@@ -158,7 +181,15 @@ void Node::getDisplacedPosition(double &x, double &y, double &z)
     z = z + dz*scalefactor;
 }
 
+ivf::TextLabel* vfem::Node::nodeLabel()
+{
+    return m_nodeLabel;
+}
+
 void Node::setBeamModel(BeamModel*model)
 {
     m_beamModel = model;
+    m_nodeLabel->setCamera(m_beamModel->camera());
+    m_nodeLabel->setFont(m_beamModel->textFont());
+    m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
 }

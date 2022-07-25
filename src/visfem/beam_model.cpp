@@ -43,6 +43,11 @@ BeamModel::BeamModel()
     m_nodeType = ivf::Node::NT_CUBE;
 
     m_colorMapPath = "";
+
+    m_textFont = nullptr;
+    m_showNodeNumbers = false;
+    m_showElementNumbers = false;
+    m_camera = nullptr;
 }
 
 BeamModel::~BeamModel()
@@ -98,10 +103,11 @@ void BeamModel::generateModel()
     for (int i=0; i<nodeSet->getSize(); i++)
     {
         vfem::Node* ivfNode = new vfem::Node();
+        ivfNode->setBeamModel(this);
         ivfNode->setFemNode(nodeSet->getNode(i));
         ivfNode->setMaterial(m_nodeMaterial);
-        ivfNode->setBeamModel(this);
         ivfNode->setDirectRefresh(true);
+        ivfNode->nodeLabel()->setSize(m_nodeSize*1.5);
         ivfNode->refresh();
         //if (m_pnodeSize!=nullptr)
         //	ivfNode->setNodeSize(*m_pnodeSize);
@@ -276,6 +282,36 @@ void BeamModel::setBeamType(int type)
 int BeamModel::getBeamType()
 {
     return m_beamType;
+}
+
+void vfem::BeamModel::setTextFont(ivf::BitmapFont* font)
+{
+    m_textFont = font;
+}
+
+ivf::BitmapFont* vfem::BeamModel::textFont()
+{
+    return m_textFont;
+}
+
+void vfem::BeamModel::setShowNodeNumbers(bool flag)
+{
+    m_showNodeNumbers = flag;
+}
+
+bool vfem::BeamModel::showNodeNumbers()
+{
+    return m_showNodeNumbers;
+}
+
+void vfem::BeamModel::setCamera(ivf::Camera* camera)
+{
+    m_camera = camera;
+}
+
+ivf::Camera* vfem::BeamModel::camera()
+{
+    return m_camera;
 }
 
 ofem::BeamNodeBC * BeamModel::defaultNodePosBC()

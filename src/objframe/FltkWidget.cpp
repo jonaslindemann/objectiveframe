@@ -1291,3 +1291,13 @@ bool FltkWidget::isRedrawTimerEnabled()
     return !m_disableRedrawTimer;
 }
 
+
+
+void FltkWidget::addSelection(ivf::Shape* shape)
+{
+    m_selectedShapes->addChild(shape);
+    m_selectedShapes->setSelectChildren(GLBase::SS_ON);
+    onSelect(m_selectedShapes);
+
+    redraw();
+}

@@ -14,7 +14,7 @@ The application has also been used as an experimental application for user inter
 
 * Using 3D gesture controls for interacting with mechanical models - https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models-2
 
-* Using 3D gesture controls for interacting with mechanical models - ttps://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models
+* Using 3D gesture controls for interacting with mechanical models - https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models
 
 Pierre Olsson developed routines and user interfaces for computing section properties.
 

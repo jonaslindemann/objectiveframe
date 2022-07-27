@@ -139,7 +139,9 @@ private:
 	bool    m_lastOverWorkspace;
 	bool    m_lockScaleFactor;
 	bool	m_nodeSelection;
+	bool    m_singleNodeSelection;
 	bool	m_elementSelection;
+	bool    m_singleElementSelection;
 	bool	m_mixedSelection;
 
 	CustomMode m_customMode;
@@ -198,6 +200,9 @@ private:
 
 	ivf::CompositePtr    m_textLayer;
 	ivf::BitmapFontPtr	 m_labelFont;
+	ivf::BitmapFontPtr   m_axisFont;
+	ivf::BitmapFontPtr   m_redFont;
+	ivf::BitmapFontPtr   m_greenFont;
 
 	// Overlay stuff
 
@@ -249,7 +254,6 @@ private:
 	bool m_showNodeLoadssWindow;
 	bool m_showLoadPropPopup;
 
-	void makeToolWindow(Fl_Window* window);
 	std::string float2str(double value);
 
 	void log(std::string message);
@@ -349,6 +353,7 @@ public:
 	void setTactileForce(ivf::ExtrArrowPtr force);
 	vfem::NodePtr getInteractionNode();
 	void setInteractionNode(vfem::Node* interactionNode);
+	void updateAxisLabels();
 
 	// Implemented widget events
 
@@ -369,6 +374,7 @@ public:
 	void onKeyboard(int key);
 	void onButton(int objectName, PlaneButton* button);
 	void onOverButton(int objectName, PlaneButton* button);
+	void onShortcut(ModifierKey modifier, int key);
 
 	virtual void onDrawImGui();
 	virtual void onInitImGui();

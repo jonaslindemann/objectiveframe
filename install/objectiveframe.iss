@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-SignTool=signtool
+SignTool=signtool_lu
 AppName=ObjectiveFrame
 AppVerName=ObjectiveFrame 1.5
 AppPublisher=Division of Structural Mechanics
@@ -13,7 +13,7 @@ UsePreviousAppDir=no
 UsePreviousGroup=no
 DefaultDirName={autopf}\Structural Mechanics\ObjectiveFrame
 DefaultGroupName=ObjectiveFrame
-;SignedUninstaller=yes
+SignedUninstaller=yes
 OutputBaseFilename=objframe_setup
 ArchitecturesInstallIn64BitMode=x64
 

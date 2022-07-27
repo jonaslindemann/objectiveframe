@@ -233,7 +233,7 @@ void FltkWidget::centerSelected()
 // ------------------------------------------------------------
 void FltkWidget::resetView()
 {
-    m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize);
+    m_camera->setPosition(0.0, m_workspaceSize/8.0, m_workspaceSize);
     m_camera->setTarget(0.0, 0.0, 0.0);
     redraw();
 }
@@ -777,7 +777,16 @@ int FltkWidget::handle(int event)
     case FL_SHORTCUT:
 
         cout << "Shortcut!" << endl;
-        cout << Fl::event_key() << endl;
+        //if (Fl::event_key() == FL_Control_L)
+        //    cout << "Ctrl" << endl;
+
+        if (Fl::get_key(FL_Control_L))
+            doShortcut(ModifierKey::Ctrl, Fl::event_key());
+        else if (Fl::get_key(FL_Control_L))
+            doShortcut(ModifierKey::Ctrl, Fl::event_key());
+        else
+            doShortcut(ModifierKey::None, Fl::event_key());
+        
 
         return 1;
     default:
@@ -1152,6 +1161,11 @@ void FltkWidget::doKeyboard(int key)
     onKeyboard(key);
 }
 
+void FltkWidget::doShortcut(ModifierKey modifier, int key)
+{
+    onShortcut(modifier, key);
+}
+
 
 // ------------------------------------------------------------
 void FltkWidget::onMouseUp(int x, int y)
@@ -1269,6 +1283,11 @@ void FltkWidget::onPostRender()
 void FltkWidget::onPreRender()
 {
 
+}
+
+void FltkWidget::onShortcut(ModifierKey modifier, int key)
+{
+    
 }
 
 bool FltkWidget::isInitialized()

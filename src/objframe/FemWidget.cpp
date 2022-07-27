@@ -1,6 +1,7 @@
 #include "FemWidget.h"
 
 #include <sstream>
+#include <functional>
 
 #include <FL/x.H>
 #include <FL/gl.h>
@@ -19,16 +20,15 @@
 #include <ofem/node.h>
 #include <ofem/beam_load.h>
 
+#include <ofutil/util_functions.h>
+
 #include <logger.h>
 
 #include "StructureFactory.h"
 
-#include <functional>
-
 using namespace ivf;
 using namespace std;
 using namespace ofui;
-//using namespace ofem;
 
 void feedbackCallback(void* pointer)
 {
@@ -36,6 +36,10 @@ void feedbackCallback(void* pointer)
 	widget->doFeedback();
 	Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
+
+// ------------------------------------------------------------
+// Constructor/Destructor
+// ------------------------------------------------------------
 
 FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 	FltkWidget(X, Y, W, H, L)
@@ -75,233 +79,11 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L) :
 	m_showNodeBCsWindow = false;
 	m_showBCPropPopup = false;
 	m_prevButton = nullptr;
-	
+
 	m_nodeSelection = false;
 	m_elementSelection = false;
 	m_mixedSelection = false;
 }
-
-void FemWidget::onInit()
-{
-	// Create log window early as it will be called by the logger.
-
-	m_logWindow = LogWindow::create("Log window");
-	m_logWindow->setVisible(false);
-
-	m_consoleWindow = ConsoleWindow::create("Hints");
-	m_consoleWindow->setVisible(true);
-
-	using std::placeholders::_1;
-	LoggerMessageFunc f = std::bind(&FemWidget::onMessage, this, _1);
-	Logger::instance()->assignOnMessageShort(f);
-
-	log(OBJFRAME_VERSION_STRING);
-	log(OBJFRAME_RELEASE);
-	log(OBJFRAME_COPYRIGHT_STRING);
-	log(OBJFRAME_AUTHOR1);
-	log(OBJFRAME_AUTHOR2);
-	log("---------------------------------------------");
-
-	console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
-
-	log("Initializing FemWidget.");
-
-	// Intialize transparent workspace plane
-
-	auto material = ivf::Material::create();
-	material->setDiffuseColor(1.0f, 1.0f, 1.0f, 0.8f);
-	material->setSpecularColor(1.0f, 1.0f, 1.0f, 0.8f);
-	material->setAmbientColor(0.3f, 0.3f, 0.3f, 0.8f);
-
-	this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
-	this->getScene()->getCurrentPlane()->getGrid()->setUseAxis(true);
-	this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
-	this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(false);
-	this->getScene()->getCurrentPlane()->getGrid()->setUseOutline(true);
-	this->getScene()->setRenderFlatShadow(true);
-	this->getScene()->setShadowColor(0.3, 0.3, 0.3);
-	this->getScene()->setShadowPrePost(false, false);
-
-	// Common 3D gui state variables
-
-	log("Initializing variables.");
-	this->setWorkspace(20.0);
-
-	// Initialize Ivf++ variables
-
-	m_selectedShape = nullptr;
-	m_selectedButton = nullptr;
-
-	// Initialize scene
-
-	log("Initializing scene.");
-
-	// Define node material
-
-	log("Defining node material.");
-	m_nodeMaterial = ivf::Material::create();
-	m_nodeMaterial->addReference();
-	m_nodeMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
-	m_nodeMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_nodeMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
-
-	// Define line material
-
-	log("Defining line material.");
-	m_lineMaterial = ivf::Material::create();
-	m_lineMaterial->addReference();
-	m_lineMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
-	m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
-	m_lineMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-	// Label rendering setup
-
-	m_labelFont = ivf::BitmapFont::create("fonts/white_font.fnt");
-	m_textLayer = ivf::Composite::create();
-	this->getScene()->getPostComposite()->addChild(m_textLayer);
-
-	// Initialize beam model
-
-	log("Setting color map path.");
-	std::string colorPath = m_progPath;
-	colorPath = colorPath + "maps/";
-
-	log("Initializing beam model.");
-	m_beamModel = new vfem::BeamModel();
-	m_beamModel->initialize();
-	m_beamModel->setPath(colorPath);
-	m_beamModel->setScene(this->getScene()->getComposite());
-	m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
-	m_beamModel->setNodeType(ivf::Node::NT_CUBE);
-	m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
-	m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
-	m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
-	m_beamModel->setNodeMaterial(m_nodeMaterial);
-	m_beamModel->setBeamMaterial(m_lineMaterial);
-
-	m_beamModel->setTextFont(m_labelFont);
-	m_beamModel->setCamera(this->getCamera());
-	m_beamModel->setShowNodeNumbers(true);
-
-	m_beamModel->generateModel();
-
-	// Initialize color table
-
-	log("Initializing color table.");
-	auto colorTable = m_beamModel->getColorTable();
-	uchar r, g, b;
-
-	for (int i = 0; i < 256; i++)
-	{
-		Fl::get_color((Fl_Color)i, r, g, b);
-		colorTable->setColor(i,
-			(float)r / 255.0f,
-			(float)g / 255.0f,
-			(float)b / 255.0f);
-	}
-
-	// Initialize gle library
-
-	log("Initializing gle library.");
-	ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
-
-	// Initialize model file name variables
-
-	log("Setting initial file name.");
-	m_fileName = "";
-	this->setFileName("noname.df3");
-
-	// Overlay management
-
-	m_overlaySelected = false;
-
-	m_overlayScene = SelectOrtho::create();
-	m_overlayScene->setViewport(m_width, m_height);
-	m_overlayScene->setUseCustomTransform(false);
-	this->setUseOverlay(true);
-	this->setupOverlay();
-
-	m_coordText = "";
-
-
-	// Create tactile Force icon
-
-	log("Setting material for tactile force.");
-	material = ivf::Material::create();
-	material->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
-	material->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-	material->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
-
-	log("Creating tactile force.");
-
-	double loadSize = m_beamModel->getLoadSize();
-
-	m_tactileForce = ExtrArrow::create();
-	m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
-	m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
-	m_tactileForce->setDirection(0.0, -1.0, 0.0);
-	m_tactileForce->setOffset(-loadSize * 0.7);
-	m_tactileForce->setMaterial(material);
-	m_tactileForce->addReference();
-	m_tactileForce->setState(Shape::OS_OFF);
-	this->getScene()->addChild(m_tactileForce);
-
-	m_nodeCursor = Sphere::create();
-	m_nodeCursor->setMaterial(m_nodeMaterial);
-	m_nodeCursor->setRadius(m_beamModel->getNodeSize());
-	this->getScene()->setCursorShape(m_nodeCursor);
-
-	// Set initial edit mode
-
-	log("Setting initial edit mode.");
-	this->setEditMode(WidgetMode::ViewZoom);
-
-	// Create ImGui interface
-
-	m_showStyleEditor = false;
-	m_showMetricsWindow = false;
-	m_showNewFileDlg = false;
-	m_coordWindow = CoordWindow::create("Coord window");
-	m_nodePropWindow = NodePropWindow::create("Node properties");
-	m_nodePropWindow->setWidget(this);
-	m_nodePropWindow->setVisible(false);
-	m_newModelPopup = NewModelPopup::create("Workspace", true);
-	m_messagePopup = MessagePopup::create("Message", true);
-
-	m_nodeBCsWindow = NodeBCsWindow::create("Node BCs");
-	m_nodeBCsWindow->setFemWidget(this);
-	m_nodeBCsWindow->setVisible(false);
-
-	m_bcPropPopup = BCPropPopup::create("Node BC", true);
-
-	m_nodeLoadsWindow = NodeLoadsWindow::create("Node Loads");
-	m_nodeLoadsWindow->setFemWidget(this);
-	m_nodeLoadsWindow->setVisible(false);
-
-	m_settingsWindow = SettingsWindow::create("Settings");
-	m_settingsWindow->setFemWidget(this);
-	m_settingsWindow->setVisible(false);
-
-	//m_nodeLoadPropPopup = NodeLoadPropPopup::create("Node Load", true);
-
-	m_elementLoadsWindow = ElementLoadsWindow::create("Element Loads");
-	m_elementLoadsWindow->setFemWidget(this);
-	m_elementLoadsWindow->setVisible(false);
-
-	m_materialsWindow = MaterialsWindow::create("Materials");
-	m_materialsWindow->setFemWidget(this);
-	m_materialsWindow->setVisible(false);
-
-	m_elementPropWindow = ElementPropWindow::create("Element properties");
-	m_elementPropWindow->setWidget(this);
-	m_elementPropWindow->setVisible(false);
-}
-
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-// Ivf FemWidget destructor
-// ------------------------------------------------------------
-// ------------------------------------------------------------
 
 FemWidget::~FemWidget()
 {
@@ -314,11 +96,7 @@ FemWidget::~FemWidget()
 }
 
 // ------------------------------------------------------------
-// ------------------------------------------------------------
-// Set/Get methods
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-
+// Get/set methods
 // ------------------------------------------------------------
 
 void FemWidget::setCoordWidget(Fl_Widget* widget)
@@ -326,19 +104,16 @@ void FemWidget::setCoordWidget(Fl_Widget* widget)
 	m_coordWidget = widget;
 }
 
-// ------------------------------------------------------------
 Fl_Widget* FemWidget::getCoordWidget()
 {
 	return m_coordWidget;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setFileName(const std::string& name)
 {
 	m_fileName = name;
 }
 
-// ------------------------------------------------------------
 const std::string FemWidget::getFileName()
 {
 	// Return current filename
@@ -346,7 +121,92 @@ const std::string FemWidget::getFileName()
 	return m_fileName;
 }
 
-// ------------------------------------------------------------
+void FemWidget::updateAxisLabels()
+{
+	m_textLayer->clear();
+
+	auto axisLabelPlusX = ivf::TextLabel::create();
+	axisLabelPlusX->setCamera(this->getCamera());
+	axisLabelPlusX->setFont(m_redFont);
+	axisLabelPlusX->setText("+X", 0.5);
+	//axisLabelPlusX->setRotationQuat(1.0, 0.0, 0.0, 90.0);
+	axisLabelPlusX->setAlignObject(IVF_ALIGN_CAMERA);
+	axisLabelPlusX->setVector(0.0, 1.0, 0.0);
+	axisLabelPlusX->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, 0.0);
+	axisLabelPlusX->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(axisLabelPlusX);
+
+	auto axisLabelMinusX = ivf::TextLabel::create();
+	axisLabelMinusX->setCamera(this->getCamera());
+	axisLabelMinusX->setFont(m_redFont);
+	axisLabelMinusX->setText("-X", 0.5);
+	//axisLabelMinusX->setRotationQuat(1.0, 0.0, 0.0, 90.0);
+	axisLabelMinusX->setAlignObject(IVF_ALIGN_CAMERA);
+	axisLabelMinusX->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, 0.0);
+	axisLabelMinusX->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(axisLabelMinusX);
+
+	auto axisLabelPlusY = ivf::TextLabel::create();
+	axisLabelPlusY->setCamera(this->getCamera());
+	axisLabelPlusY->setFont(m_greenFont);
+	axisLabelPlusY->setText("+Z", 0.5);
+	//axisLabelPlusY->setRotationQuat(1.0, 0.0, 0.0, -90.0);
+	axisLabelPlusY->setAlignObject(IVF_ALIGN_CAMERA);
+	axisLabelPlusY->setPosition(0.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
+	axisLabelPlusY->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(axisLabelPlusY);
+
+	auto axisLabelMinusY = ivf::TextLabel::create();
+	axisLabelMinusY->setCamera(this->getCamera());
+	axisLabelMinusY->setFont(m_greenFont);
+	axisLabelMinusY->setText("-Z", 0.5);
+	//axisLabelMinusY->setRotationQuat(1.0, 0.0, 0.0, -90.0);
+	axisLabelMinusY->setAlignObject(IVF_ALIGN_CAMERA);
+	axisLabelMinusY->setPosition(0.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
+	axisLabelMinusY->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(axisLabelMinusY);
+
+	auto upperLeft = ivf::TextLabel::create();
+	upperLeft->setCamera(this->getCamera());
+	upperLeft->setFont(m_axisFont);
+	upperLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), 0.5);
+	//upperLeft->setRotationQuat(1.0, 0.0, 0.0, -90.0);
+	upperLeft->setAlignObject(IVF_ALIGN_CAMERA);
+	upperLeft->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
+	upperLeft->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(upperLeft);
+
+	auto upperRight = ivf::TextLabel::create();
+	upperRight->setCamera(this->getCamera());
+	upperRight->setFont(m_axisFont);
+	upperRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), 0.5);
+	//upperRight->setRotationQuat(1.0, 0.0, 0.0, -90.0);
+	upperRight->setAlignObject(IVF_ALIGN_CAMERA);
+	upperRight->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
+	upperRight->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(upperRight);
+
+	auto lowerLeft = ivf::TextLabel::create();
+	lowerLeft->setCamera(this->getCamera());
+	lowerLeft->setFont(m_axisFont);
+	lowerLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), 0.5);
+	//lowerLeft->setRotationQuat(1.0, 0.0, 0.0, -90.0);
+	lowerLeft->setAlignObject(IVF_ALIGN_CAMERA);
+	lowerLeft->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
+	lowerLeft->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(lowerLeft);
+
+	auto lowerRight = ivf::TextLabel::create();
+	lowerRight->setCamera(this->getCamera());
+	lowerRight->setFont(m_axisFont);
+	lowerRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), 0.5);
+	//lowerRight->setRotationQuat(1.0, 0.0, 0.0, -90.0);
+	lowerRight->setAlignObject(IVF_ALIGN_CAMERA);
+	lowerRight->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
+	lowerRight->setBillboardType(IVF_BILLBOARD_XY);
+	m_textLayer->addChild(lowerRight);
+}
+
 void FemWidget::setWorkspace(double size, bool resetCamera)
 {
 	FltkWidget::setWorkspace(size, resetCamera);
@@ -381,9 +241,9 @@ void FemWidget::setWorkspace(double size, bool resetCamera)
 		m_tactileForce->setDirection(0.0, -1.0, 0.0);
 		m_tactileForce->setOffset(-loadSize * 0.7);
 	}
+	updateAxisLabels();
 }
 
-// ------------------------------------------------------------
 void FemWidget::setCurrentMaterial(ofem::BeamMaterial* material)
 {
 	// Set current material
@@ -391,7 +251,6 @@ void FemWidget::setCurrentMaterial(ofem::BeamMaterial* material)
 	m_currentMaterial = material;
 }
 
-// ------------------------------------------------------------
 ofem::BeamMaterial* FemWidget::getCurrentMaterial()
 {
 	// Return current material
@@ -399,7 +258,6 @@ ofem::BeamMaterial* FemWidget::getCurrentMaterial()
 	return m_currentMaterial;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setCurrentBeamLoad(ofem::BeamLoad* elementLoad)
 {
 	// Set current elementload
@@ -407,7 +265,6 @@ void FemWidget::setCurrentBeamLoad(ofem::BeamLoad* elementLoad)
 	m_currentElementLoad = elementLoad;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setRepresentation(RepresentationMode repr)
 {
 	// Change model representation
@@ -457,7 +314,6 @@ ofem::BeamModel* FemWidget::getModel()
 	return m_beamModel;
 }
 
-// ------------------------------------------------------------
 Shape* FemWidget::getSelectedShape()
 {
 	// Return currently selected shape
@@ -465,25 +321,21 @@ Shape* FemWidget::getSelectedShape()
 	return m_selectedShape;
 }
 
-// ------------------------------------------------------------
 ofem::BeamLoad* FemWidget::getCurrentBeamLoad()
 {
 	return m_currentElementLoad;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
 	m_currentNodeLoad = nodeLoad;
 }
 
-// ------------------------------------------------------------
 ofem::BeamNodeLoad* FemWidget::getCurrentNodeLoad()
 {
 	return m_currentNodeLoad;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setEditMode(WidgetMode mode)
 {
 	// If setEditMode is not called in response to a setCustomMode call,
@@ -566,8 +418,6 @@ void FemWidget::setEditMode(WidgetMode mode)
 	}
 }
 
-
-// ------------------------------------------------------------
 void FemWidget::setBeamRefreshMode(int mode)
 {
 	auto scene = this->getScene()->getComposite();
@@ -584,14 +434,12 @@ void FemWidget::setBeamRefreshMode(int mode)
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::setArguments(int argc, char** argv)
 {
 	m_argc = argc;
 	m_argv = argv;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setScalefactor(double scalefactor)
 {
 	m_beamModel->setScaleFactor(scalefactor);
@@ -599,19 +447,16 @@ void FemWidget::setScalefactor(double scalefactor)
 	this->redraw();
 }
 
-// ------------------------------------------------------------
 double FemWidget::getScalefactor()
 {
 	return m_beamModel->getScaleFactor();
 }
 
-// ------------------------------------------------------------
 void FemWidget::setCurrentNodeBC(ofem::BeamNodeBC* bc)
 {
 	m_currentNodeBC = bc;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setCustomMode(CustomMode mode)
 {
 	if (m_customMode == CustomMode::Feedback)
@@ -635,47 +480,82 @@ void FemWidget::setCustomMode(CustomMode mode)
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::setSelectFilter(SelectMode filter)
 {
 	m_selectFilter = filter;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setDeleteFilter(DeleteMode filter)
 {
 	m_deleteFilter = filter;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setHighlightFilter(HighlightMode filter)
 {
 	m_highlightFilter = filter;
 }
 
-// ------------------------------------------------------------
 void FemWidget::setNeedRecalc(bool flag)
 {
 	m_needRecalc = flag;
 }
 
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-// Widget methods
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-void FemWidget::makeToolWindow(Fl_Window* window)
+void FemWidget::setRelNodeSize(double size)
 {
-#ifdef WIN32
-	HWND windowHandle = fl_xid(window);
-	SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_PALETTEWINDOW);
-	SetWindowPos(windowHandle, 0, 0, 0, 0, 0, (SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_FRAMECHANGED));
-#endif
+	m_relNodeSize = size;
+}
+
+void FemWidget::setRelLineRadius(double radius)
+{
+	m_relLineRadius = radius;
+}
+
+void FemWidget::setRelLoadSize(double size)
+{
+	m_relLoadSize = size;
+}
+
+double FemWidget::getRelNodeSize()
+{
+	return m_relNodeSize;
+}
+
+double FemWidget::getRelLineRadius()
+{
+	return m_relLineRadius;
+}
+
+double FemWidget::getRelLoadSize()
+{
+	return m_relLoadSize;
+}
+
+ofem::BeamNodeBC* FemWidget::getCurrentNodeBC()
+{
+	return m_currentNodeBC;
+}
+
+void FemWidget::setResultType(int type)
+{
+	m_beamModel->setResultType(type);
+	this->set_changed();
+	this->redraw();
+}
+
+void FemWidget::setProgramPath(const std::string& progPath)
+{
+	m_progPath = progPath;
+}
+
+const std::string FemWidget::getProgPath()
+{
+	return m_progPath;
 }
 
 // ------------------------------------------------------------
+// Widget methods
+// ------------------------------------------------------------
+
 void FemWidget::save()
 {
 	// Save model
@@ -703,7 +583,6 @@ void FemWidget::save()
 	//cout << m_beamModel->nodeBCSet()->toJSON().dump(4) << endl;
 }
 
-// ------------------------------------------------------------
 void FemWidget::saveAs()
 {
 	// Save model
@@ -732,7 +611,6 @@ void FemWidget::exportAsCalfem()
 	writer->save();
 }
 
-// ------------------------------------------------------------
 void FemWidget::open()
 {
 	// Open model
@@ -809,19 +687,17 @@ void FemWidget::open()
 	}
 }
 
-
-// ------------------------------------------------------------
 void FemWidget::showProperties()
 {
 	// Properties for selected shape
 
 	this->onSelect(this->getSelectedShapes());
 
-	if (m_nodeSelection)
+	if (m_nodeSelection || m_singleNodeSelection)
 		m_nodePropWindow->show();
 
-	if (m_elementSelection)
-		m_nodePropWindow->show();
+	if (m_elementSelection || m_singleElementSelection)
+		m_elementPropWindow->show();
 
 	/*
 	if (this->getSelectedShape() != nullptr)
@@ -840,7 +716,7 @@ void FemWidget::showProperties()
 	}
 	else
 	*/
-	if ((!m_nodeSelection)&&(!m_elementSelection))
+	if ((!m_nodeSelection) && (!m_elementSelection))
 	{
 		m_consoleWindow->clear();
 		console("Inspect: Please select an object(s) to inspect.");
@@ -850,12 +726,10 @@ void FemWidget::showProperties()
 	this->refreshToolbars();
 }
 
-// ------------------------------------------------------------
 void FemWidget::showMaterials()
 {
 }
 
-// ------------------------------------------------------------
 void FemWidget::newModel()
 {
 	this->hideAllDialogs();
@@ -939,7 +813,6 @@ void FemWidget::newModel()
 	this->redraw();
 }
 
-// ------------------------------------------------------------
 void FemWidget::assignMaterialToSelected()
 {
 	// Assigns a material to selected shapes
@@ -966,7 +839,6 @@ void FemWidget::assignMaterialToSelected()
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::removeMaterialFromSelected()
 {
 	// Remove materials from selected shapes
@@ -990,7 +862,6 @@ void FemWidget::removeMaterialFromSelected()
 	this->redraw();
 }
 
-// ------------------------------------------------------------
 void FemWidget::deleteBeamLoad(ofem::BeamLoad* elementLoad)
 {
 	// Delete a beam load
@@ -1011,7 +882,6 @@ void FemWidget::deleteBeamLoad(ofem::BeamLoad* elementLoad)
 	m_beamModel->getElementLoadSet()->removeLoad(elementLoad);
 }
 
-// ------------------------------------------------------------
 void FemWidget::deleteSelected()
 {
 	// Delete things in an orderly fashion
@@ -1021,9 +891,14 @@ void FemWidget::deleteSelected()
 	setDeleteFilter(DeleteMode::Nodes);
 	deleteSelectedKeep();
 	setDeleteFilter(DeleteMode::All);
+
+	m_beamModel->enumerate();
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
 }
 
-// ------------------------------------------------------------
 void FemWidget::addBeamLoad(ofem::BeamLoad* elementLoad)
 {
 	// Add a beam load
@@ -1051,7 +926,6 @@ void FemWidget::addBeamLoad(ofem::BeamLoad* elementLoad)
 	this->addToScene(visLoad);
 }
 
-// ------------------------------------------------------------
 void FemWidget::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
 	// Add a node load
@@ -1079,7 +953,6 @@ void FemWidget::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 	this->addToScene(visNodeLoad);
 }
 
-// ------------------------------------------------------------
 void FemWidget::addNodeBC(ofem::BeamNodeBC* bc)
 {
 	// Add a node load
@@ -1108,12 +981,10 @@ void FemWidget::addNodeBC(ofem::BeamNodeBC* bc)
 
 }
 
-// ------------------------------------------------------------
 void FemWidget::showBeamLoads()
 {
 }
 
-// ------------------------------------------------------------
 void FemWidget::assignBeamLoadSelected()
 {
 	// Assign a beam load to selected beams
@@ -1140,7 +1011,6 @@ void FemWidget::assignBeamLoadSelected()
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::assignNodeLoadSelected()
 {
 	// Assign a node load to selected nodes
@@ -1167,7 +1037,6 @@ void FemWidget::assignNodeLoadSelected()
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
 	// Delete a node load
@@ -1188,7 +1057,6 @@ void FemWidget::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 	setCurrentNodeLoad(nullptr);
 }
 
-// ------------------------------------------------------------
 void FemWidget::deleteNodeBC(ofem::BeamNodeBC* bc)
 {
 	// Delete a node load
@@ -1210,19 +1078,6 @@ void FemWidget::deleteNodeBC(ofem::BeamNodeBC* bc)
 	setCurrentNodeBC(nullptr);
 }
 
-
-// ------------------------------------------------------------
-//void FemWidget::showNodeLoads()
-//{
-//	// Show beam loads dialog
-//
-//	setRepresentation(FRAME_FEM);
-//	m_dlgNodeLoads->setLoadSet(m_beamModel->getNodeLoadSet());
-//	m_dlgNodeLoads->show();
-//	makeToolWindow(m_dlgNodeLoads->wndNodeLoads);
-//}
-
-// ------------------------------------------------------------
 void FemWidget::setRotationSelected(double rotation)
 {
 	// Assigns a material to selected shapes
@@ -1245,7 +1100,6 @@ void FemWidget::setRotationSelected(double rotation)
 	this->redraw();
 }
 
-// ------------------------------------------------------------
 void FemWidget::setupOverlay()
 {
 #ifdef ADVANCED_GL
@@ -1356,7 +1210,6 @@ void FemWidget::setupOverlay()
 #endif
 }
 
-// ------------------------------------------------------------
 void FemWidget::assignNodeBCSelected()
 {
 	// Assign a node load to selected nodes
@@ -1383,7 +1236,6 @@ void FemWidget::assignNodeBCSelected()
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::assignNodeFixedBCSelected()
 {
 	this->setCurrentNodeBC(m_beamModel->defaultNodeFixedBC());
@@ -1391,7 +1243,6 @@ void FemWidget::assignNodeFixedBCSelected()
 	this->setCurrentNodeBC(nullptr);
 }
 
-// ------------------------------------------------------------
 void FemWidget::assignNodePosBCSelected()
 {
 	this->setCurrentNodeBC(m_beamModel->defaultNodePosBC());
@@ -1413,18 +1264,6 @@ void FemWidget::assignNodePosBCGround()
 	this->assignNodePosBCSelected();
 }
 
-// ------------------------------------------------------------
-//void FemWidget::showNodeBCs()
-//{
-//	// Show beam loads dialog
-//
-//	setRepresentation(FRAME_FEM);
-//	m_dlgNodeBCs->setBCSet(m_beamModel->getNodeBCSet());
-//	m_dlgNodeBCs->show();
-//	makeToolWindow(m_dlgNodeBCs->wndNodeBCs);
-//}
-
-// ------------------------------------------------------------
 void FemWidget::executeCalc()
 {
 	double maxNodeValue;
@@ -1497,28 +1336,18 @@ void FemWidget::executeCalc()
 
 }
 
-// ------------------------------------------------------------
-//void FemWidget::showScalefactorDlg()
-//{
-//	m_dlgScalefactor->setScaling(m_beamModel->getScaleFactor());
-//	m_dlgScalefactor->show();
-//}
-
-// ------------------------------------------------------------
 void FemWidget::selectAllNodes()
 {
 	setSelectFilter(SelectMode::Nodes);
 	selectAll();
 }
 
-// ------------------------------------------------------------
 void FemWidget::selectAllElements()
 {
 	setSelectFilter(SelectMode::Elements);
 	selectAll();
 }
 
-// ------------------------------------------------------------
 void FemWidget::doFeedback()
 {
 	// Is there a calculation ?
@@ -1701,8 +1530,6 @@ void FemWidget::showMessage(std::string message)
 	m_messagePopup->show();
 }
 
-// ------------------------------------------------------------
-
 #ifdef USE_LEAP
 LeapInteraction* CIvfFemWidget::getLeapInteraction()
 {
@@ -1759,24 +1586,396 @@ void FemWidget::setInteractionNode(vfem::Node* interactionNode)
 //	}
 //}
 
-// ------------------------------------------------------------
 void FemWidget::lockScaleFactor()
 {
 	m_lockScaleFactor = true;
 }
 
-// ------------------------------------------------------------
 void FemWidget::unlockScaleFactor()
 {
 	m_lockScaleFactor = false;
 }
 
+void FemWidget::refreshToolbars()
+{
+#ifdef ADVANCED_GL
+	m_editButtons->clearChecked();
+	m_objectButtons->clearChecked();
+	//m_viewButtons->clearChecked();
 
-// ------------------------------------------------------------
+	switch (getEditMode()) {
+	case WidgetMode::Select:
+		m_editButtons->check(0);
+		break;
+	case WidgetMode::Move:
+		m_editButtons->check(1);
+		break;
+	case WidgetMode::CreateLine:
+		m_objectButtons->check(1);
+		break;
+	case WidgetMode::CreateNode:
+		m_objectButtons->check(0);
+		break;
+	case WidgetMode::ViewZoom:
+		//m_viewButtons->check(0);
+		break;
+	case WidgetMode::ViewPan:
+		//m_viewButtons->check(1);
+		break;
+	default:
+
+		break;
+	}
+
+	this->redraw();
+#endif
+}
+
+void FemWidget::removeNodeLoadsFromSelected()
+{
+	// Remove materials from selected shapes
+
+	ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+
+	if (nodeLoad != nullptr)
+	{
+		auto selected = this->getSelectedShapes();
+		for (int i = 0; i < selected->getSize(); i++)
+		{
+			auto shape = selected->getChild(i);
+			if (shape->isClass("vfem::Node"))
+			{
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+				ofem::Node* node = visNode->getFemNode();
+				nodeLoad->removeNode(node);
+			}
+		}
+	}
+
+	// Shapes has to be refreshed to represent the
+	// the changes
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
+}
+
+void FemWidget::removeNodesFromNodeLoad()
+{
+	ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
+
+	if (nodeLoad != nullptr)
+		nodeLoad->clearNodes();
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
+}
+
+void FemWidget::removeNodeBCsFromSelected()
+{
+	// Remove materials from selected shapes
+
+	ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
+
+	if (nodeBC != nullptr)
+	{
+		auto selected = this->getSelectedShapes();
+		for (int i = 0; i < selected->getSize(); i++)
+		{
+			auto shape = selected->getChild(i);
+			if (shape->isClass("vfem::Node"))
+			{
+				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+				ofem::Node* node = visNode->getFemNode();
+				nodeBC->removeNode(node);
+			}
+		}
+	}
+
+	// Shapes has to be refreshed to represent the
+	// the changes
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
+}
+
+void FemWidget::removeBCsFromBC()
+{
+	ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
+
+	if (nodeBC != nullptr)
+		nodeBC->clearNodes();
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
+}
+
+void FemWidget::removeBeamLoadsFromSelected()
+{
+	// Remove materials from selected shapes
+
+	ofem::BeamLoad* beamLoad = this->getCurrentBeamLoad();
+
+	if (beamLoad != nullptr)
+	{
+		auto selected = this->getSelectedShapes();
+		for (int i = 0; i < selected->getSize(); i++)
+		{
+			auto shape = selected->getChild(i);
+			if (shape->isClass("vfem::Beam"))
+			{
+				vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
+				ofem::Beam* beam = visBeam->getBeam();
+				beamLoad->removeElement(beam);
+			}
+		}
+	}
+
+	// Shapes has to be refreshed to represent the
+	// the changes
+
+	m_needRecalc = true;
+	this->set_changed();
+	this->redraw();
+}
+
+void FemWidget::hideAllDialogs()
+{
+	log("Hiding all dialogs.");
+
+	m_nodeLoadsWindow->hide();
+	m_nodeBCsWindow->hide();
+	m_elementLoadsWindow->hide();
+	m_materialsWindow->hide();
+}
+
 // ------------------------------------------------------------
 // Widget events
 // ------------------------------------------------------------
-// ------------------------------------------------------------
+
+void FemWidget::onInit()
+{
+	// Create log window early as it will be called by the logger.
+
+	m_logWindow = LogWindow::create("Log window");
+	m_logWindow->setVisible(false);
+
+	m_consoleWindow = ConsoleWindow::create("Hints");
+	m_consoleWindow->setVisible(true);
+
+	using std::placeholders::_1;
+	LoggerMessageFunc f = std::bind(&FemWidget::onMessage, this, _1);
+	Logger::instance()->assignOnMessageShort(f);
+
+	log(OBJFRAME_VERSION_STRING);
+	log(OBJFRAME_RELEASE);
+	log(OBJFRAME_COPYRIGHT_STRING);
+	log(OBJFRAME_AUTHOR1);
+	log(OBJFRAME_AUTHOR2);
+	log("---------------------------------------------");
+
+	console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
+
+	log("Initializing FemWidget.");
+
+	// Intialize transparent workspace plane
+
+	auto material = ivf::Material::create();
+	material->setDiffuseColor(1.0f, 1.0f, 1.0f, 0.8f);
+	material->setSpecularColor(1.0f, 1.0f, 1.0f, 0.8f);
+	material->setAmbientColor(0.3f, 0.3f, 0.3f, 0.8f);
+
+	this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
+	this->getScene()->getCurrentPlane()->getGrid()->setUseAxis(true);
+	this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
+	this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(false);
+	this->getScene()->getCurrentPlane()->getGrid()->setUseOutline(true);
+	this->getScene()->setRenderFlatShadow(true);
+	this->getScene()->setShadowColor(0.3, 0.3, 0.3);
+	this->getScene()->setShadowPrePost(false, false);
+
+	// Label rendering setup
+
+	m_labelFont = ivf::BitmapFont::create("fonts/white_font.fnt");
+	m_axisFont = ivf::BitmapFont::create("fonts/black_font.fnt");
+	m_greenFont = ivf::BitmapFont::create("fonts/green_font.fnt");
+	m_redFont = ivf::BitmapFont::create("fonts/red_font.fnt");
+
+	m_textLayer = ivf::Composite::create();
+	this->getScene()->getPostComposite()->addChild(m_textLayer);
+
+	// Common 3D gui state variables
+
+	log("Initializing variables.");
+	this->setWorkspace(20.0);
+
+	// Initialize Ivf++ variables
+
+	m_selectedShape = nullptr;
+	m_selectedButton = nullptr;
+
+	// Initialize scene
+
+	log("Initializing scene.");
+
+	// Define node material
+
+	log("Defining node material.");
+	m_nodeMaterial = ivf::Material::create();
+	m_nodeMaterial->addReference();
+	m_nodeMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
+	m_nodeMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_nodeMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
+
+	// Define line material
+
+	log("Defining line material.");
+	m_lineMaterial = ivf::Material::create();
+	m_lineMaterial->addReference();
+	m_lineMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
+	m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
+	m_lineMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+
+	// Initialize beam model
+
+	log("Setting color map path.");
+	std::string colorPath = m_progPath;
+	colorPath = colorPath + "maps/";
+
+	log("Initializing beam model.");
+	m_beamModel = new vfem::BeamModel();
+	m_beamModel->initialize();
+	m_beamModel->setPath(colorPath);
+	m_beamModel->setScene(this->getScene()->getComposite());
+	m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
+	m_beamModel->setNodeType(ivf::Node::NT_CUBE);
+	m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
+	m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
+	m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
+	m_beamModel->setNodeMaterial(m_nodeMaterial);
+	m_beamModel->setBeamMaterial(m_lineMaterial);
+
+	m_beamModel->setTextFont(m_labelFont);
+	m_beamModel->setCamera(this->getCamera());
+	m_beamModel->setShowNodeNumbers(true);
+
+	m_beamModel->generateModel();
+
+	// Initialize color table
+
+	log("Initializing color table.");
+	auto colorTable = m_beamModel->getColorTable();
+	uchar r, g, b;
+
+	for (int i = 0; i < 256; i++)
+	{
+		Fl::get_color((Fl_Color)i, r, g, b);
+		colorTable->setColor(i,
+			(float)r / 255.0f,
+			(float)g / 255.0f,
+			(float)b / 255.0f);
+	}
+
+	// Initialize gle library
+
+	log("Initializing gle library.");
+	ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+
+	// Initialize model file name variables
+
+	log("Setting initial file name.");
+	m_fileName = "";
+	this->setFileName("noname.df3");
+
+	// Overlay management
+
+	m_overlaySelected = false;
+
+	m_overlayScene = SelectOrtho::create();
+	m_overlayScene->setViewport(m_width, m_height);
+	m_overlayScene->setUseCustomTransform(false);
+	this->setUseOverlay(true);
+	this->setupOverlay();
+
+	m_coordText = "";
+
+
+	// Create tactile Force icon
+
+	log("Setting material for tactile force.");
+	material = ivf::Material::create();
+	material->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
+	material->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	material->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
+
+	log("Creating tactile force.");
+
+	double loadSize = m_beamModel->getLoadSize();
+
+	m_tactileForce = ExtrArrow::create();
+	m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
+	m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
+	m_tactileForce->setDirection(0.0, -1.0, 0.0);
+	m_tactileForce->setOffset(-loadSize * 0.7);
+	m_tactileForce->setMaterial(material);
+	m_tactileForce->addReference();
+	m_tactileForce->setState(Shape::OS_OFF);
+	this->getScene()->addChild(m_tactileForce);
+
+	m_nodeCursor = Sphere::create();
+	m_nodeCursor->setMaterial(m_nodeMaterial);
+	m_nodeCursor->setRadius(m_beamModel->getNodeSize());
+	this->getScene()->setCursorShape(m_nodeCursor);
+
+	// Set initial edit mode
+
+	log("Setting initial edit mode.");
+	this->setEditMode(WidgetMode::ViewZoom);
+
+	// Create ImGui interface
+
+	m_showStyleEditor = false;
+	m_showMetricsWindow = false;
+	m_showNewFileDlg = false;
+	m_coordWindow = CoordWindow::create("Coord window");
+	m_nodePropWindow = NodePropWindow::create("Node properties");
+	m_nodePropWindow->setWidget(this);
+	m_nodePropWindow->setVisible(false);
+	m_newModelPopup = NewModelPopup::create("Workspace", true);
+	m_messagePopup = MessagePopup::create("Message", true);
+
+	m_nodeBCsWindow = NodeBCsWindow::create("Node BCs");
+	m_nodeBCsWindow->setFemWidget(this);
+	m_nodeBCsWindow->setVisible(false);
+
+	m_bcPropPopup = BCPropPopup::create("Node BC", true);
+
+	m_nodeLoadsWindow = NodeLoadsWindow::create("Node Loads");
+	m_nodeLoadsWindow->setFemWidget(this);
+	m_nodeLoadsWindow->setVisible(false);
+
+	m_settingsWindow = SettingsWindow::create("Settings");
+	m_settingsWindow->setFemWidget(this);
+	m_settingsWindow->setVisible(false);
+
+	//m_nodeLoadPropPopup = NodeLoadPropPopup::create("Node Load", true);
+
+	m_elementLoadsWindow = ElementLoadsWindow::create("Element Loads");
+	m_elementLoadsWindow->setFemWidget(this);
+	m_elementLoadsWindow->setVisible(false);
+
+	m_materialsWindow = MaterialsWindow::create("Materials");
+	m_materialsWindow->setFemWidget(this);
+	m_materialsWindow->setVisible(false);
+
+	m_elementPropWindow = ElementPropWindow::create("Element properties");
+	m_elementPropWindow->setWidget(this);
+	m_elementPropWindow->setVisible(false);
+}
 
 void FemWidget::doMouse(int x, int y)
 {
@@ -1785,7 +1984,6 @@ void FemWidget::doMouse(int x, int y)
 }
 
 
-// ------------------------------------------------------------
 void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 {
 	// Create a node
@@ -1807,7 +2005,7 @@ void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 	ivfNode->setFemNode(femNode);
 	ivfNode->setPosition(x, y, z);
 	ivfNode->setMaterial(m_nodeMaterial);
-	ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize()*1.5);
+	ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize() * 1.5);
 	ivfNode->setDirectRefresh(true);
 
 	// We need a recalc
@@ -1817,7 +2015,6 @@ void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 	newNode = ivfNode;
 }
 
-// ------------------------------------------------------------
 void FemWidget::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine)
 {
 	// Create visual representation
@@ -1869,7 +2066,6 @@ void FemWidget::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine
 	newLine = static_cast<Shape*>(visBeam);
 }
 
-// ------------------------------------------------------------
 void FemWidget::onSelect(Composite* selectedShapes)
 {
 	// Handle object selection
@@ -1881,6 +2077,8 @@ void FemWidget::onSelect(Composite* selectedShapes)
 		m_nodeSelection = false;
 		m_elementSelection = false;
 		m_mixedSelection = false;
+		m_singleNodeSelection = false;
+		m_singleElementSelection = false;
 
 		m_nodePropWindow->setNode(nullptr);
 		m_nodePropWindow->setSelectedShapes(nullptr);
@@ -1899,14 +2097,16 @@ void FemWidget::onSelect(Composite* selectedShapes)
 				{
 					//m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
 					m_nodePropWindow->setNode(static_cast<vfem::Node*>(firstShape));
+					m_singleNodeSelection = true;
 				}
 				if (firstShape->isClass("vfem::Beam"))
 				{
 					m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
+					m_singleElementSelection = true;
 				}
 			}
 
-			if (selectedShapes->getSize()>1)
+			if (selectedShapes->getSize() > 1)
 			{
 				for (auto i = 0; i < selectedShapes->getSize(); i++)
 				{
@@ -1965,7 +2165,6 @@ void FemWidget::console(std::string message)
 }
 
 
-// ------------------------------------------------------------
 void FemWidget::onCoordinate(double x, double y, double z)
 {
 	// Update coordinate display
@@ -1985,7 +2184,6 @@ void FemWidget::onCoordinate(double x, double y, double z)
 	m_coordWindow->setCoord(x, y, z);
 }
 
-// ------------------------------------------------------------
 void FemWidget::onDeleteShape(Shape* shape, bool& doit)
 {
 	// Handle shape deletion
@@ -2022,14 +2220,12 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
 	m_needRecalc = doit;
 }
 
-// ------------------------------------------------------------
 void FemWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
 {
 	doit = true;
 	m_needRecalc = true;
 }
 
-// ------------------------------------------------------------
 void FemWidget::onOverlay()
 {
 	glEnable(GL_BLEND);
@@ -2059,7 +2255,6 @@ void FemWidget::onOverlay()
 	glEnable(GL_DEPTH_TEST);
 }
 
-// ------------------------------------------------------------
 void FemWidget::onInitContext()
 {
 	FltkWidget::onInitContext();
@@ -2078,7 +2273,6 @@ void FemWidget::onInitContext()
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::onPassiveMotion(int x, int y)
 {
 #ifdef ADVANCED_GL
@@ -2148,13 +2342,11 @@ void FemWidget::onPassiveMotion(int x, int y)
 #endif
 }
 
-// ------------------------------------------------------------
 void FemWidget::onMouse(int x, int y)
 {
 
 }
 
-// ------------------------------------------------------------
 void FemWidget::onMouseDown(int x, int y)
 {
 	m_mouseDownPos[0] = x;
@@ -2180,7 +2372,6 @@ void FemWidget::onMouseDown(int x, int y)
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::onMouseUp(int x, int y)
 {
 #ifdef ADVANCED_GL
@@ -2211,7 +2402,6 @@ void FemWidget::onMouseUp(int x, int y)
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::onMotion(int x, int y)
 {
 	if ((m_customMode == CustomMode::Feedback) && (getCurrentMouseButton() == ButtonState::Button1))
@@ -2249,8 +2439,6 @@ void FemWidget::onMotion(int x, int y)
 	}
 }
 
-
-// ------------------------------------------------------------
 void FemWidget::onDeSelect()
 {
 	log("onDeSelect");
@@ -2266,7 +2454,6 @@ void FemWidget::onDeSelect()
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::onHighlightShape(Shape* shape)
 {
 	if (m_customMode == CustomMode::Feedback)
@@ -2287,7 +2474,6 @@ void FemWidget::onHighlightShape(Shape* shape)
 	}
 }
 
-// ------------------------------------------------------------
 void FemWidget::onSelectFilter(Shape* shape, bool& select)
 {
 	switch (m_selectFilter) {
@@ -2328,7 +2514,6 @@ void FemWidget::onSelectFilter(Shape* shape, bool& select)
 	}
 }
 
-// ------------------------------------------------------------
 #ifdef ADVANCED_GL
 void FemWidget::onButton(int objectName, PlaneButton* button)
 {
@@ -2449,6 +2634,24 @@ void FemWidget::onOverButton(int objectName, PlaneButton* button)
 }
 #endif
 
+void FemWidget::onShortcut(ModifierKey modifier, int key)
+{
+	if (key == FL_Delete)
+		this->deleteSelected();
+
+	if ((modifier == ModifierKey::Ctrl) && (key == 'o'))
+		this->open();
+
+	if ((modifier == ModifierKey::Ctrl) && (key == 'n'))
+		this->newModel();
+
+	if ((modifier == ModifierKey::Ctrl) && (key == 's'))
+		this->save();
+
+	if ((modifier == ModifierKey::Ctrl) && (key == 'a'))
+		this->selectAll();
+}
+
 void FemWidget::onHighlightFilter(Shape* shape, bool& highlight)
 {
 	switch (m_highlightFilter) {
@@ -2477,6 +2680,9 @@ void FemWidget::onKeyboard(int key)
 {
 	if (key == 122)
 		this->setEditMode(WidgetMode::ViewPan);
+
+	if (key == ImGuiKey_Delete)
+		this->deleteSelected();
 }
 
 void FemWidget::onDrawImGui()
@@ -2715,216 +2921,8 @@ void FemWidget::onInitImGui()
 	style.ScaleAllSizes(1.0);
 }
 
-void FemWidget::setRelNodeSize(double size)
-{
-	m_relNodeSize = size;
-}
-
-void FemWidget::setRelLineRadius(double radius)
-{
-	m_relLineRadius = radius;
-}
-
-void FemWidget::setRelLoadSize(double size)
-{
-	m_relLoadSize = size;
-}
-
-double FemWidget::getRelNodeSize()
-{
-	return m_relNodeSize;
-}
-
-double FemWidget::getRelLineRadius()
-{
-	return m_relLineRadius;
-}
-
-double FemWidget::getRelLoadSize()
-{
-	return m_relLoadSize;
-}
-
-void FemWidget::refreshToolbars()
-{
-#ifdef ADVANCED_GL
-	m_editButtons->clearChecked();
-	m_objectButtons->clearChecked();
-	//m_viewButtons->clearChecked();
-
-	switch (getEditMode()) {
-	case WidgetMode::Select:
-		m_editButtons->check(0);
-		break;
-	case WidgetMode::Move:
-		m_editButtons->check(1);
-		break;
-	case WidgetMode::CreateLine:
-		m_objectButtons->check(1);
-		break;
-	case WidgetMode::CreateNode:
-		m_objectButtons->check(0);
-		break;
-	case WidgetMode::ViewZoom:
-		//m_viewButtons->check(0);
-		break;
-	case WidgetMode::ViewPan:
-		//m_viewButtons->check(1);
-		break;
-	default:
-
-		break;
-	}
-
-	this->redraw();
-#endif
-}
-
-void FemWidget::removeNodeLoadsFromSelected()
-{
-	// Remove materials from selected shapes
-
-	ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
-
-	if (nodeLoad != nullptr)
-	{
-		auto selected = this->getSelectedShapes();
-		for (int i = 0; i < selected->getSize(); i++)
-		{
-			auto shape = selected->getChild(i);
-			if (shape->isClass("vfem::Node"))
-			{
-				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
-				ofem::Node* node = visNode->getFemNode();
-				nodeLoad->removeNode(node);
-			}
-		}
-	}
-
-	// Shapes has to be refreshed to represent the
-	// the changes
-
-	m_needRecalc = true;
-	this->set_changed();
-	this->redraw();
-}
-
-void FemWidget::removeNodesFromNodeLoad()
-{
-	ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
-
-	if (nodeLoad != nullptr)
-		nodeLoad->clearNodes();
-
-	m_needRecalc = true;
-	this->set_changed();
-	this->redraw();
-}
-
-void FemWidget::removeNodeBCsFromSelected()
-{
-	// Remove materials from selected shapes
-
-	ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
-
-	if (nodeBC != nullptr)
-	{
-		auto selected = this->getSelectedShapes();
-		for (int i = 0; i < selected->getSize(); i++)
-		{
-			auto shape = selected->getChild(i);
-			if (shape->isClass("vfem::Node"))
-			{
-				vfem::Node* visNode = static_cast<vfem::Node*>(shape);
-				ofem::Node* node = visNode->getFemNode();
-				nodeBC->removeNode(node);
-			}
-		}
-	}
-
-	// Shapes has to be refreshed to represent the
-	// the changes
-
-	m_needRecalc = true;
-	this->set_changed();
-	this->redraw();
-}
-
-void FemWidget::removeBCsFromBC()
-{
-	ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
-
-	if (nodeBC != nullptr)
-		nodeBC->clearNodes();
-
-	m_needRecalc = true;
-	this->set_changed();
-	this->redraw();
-}
-
-void FemWidget::removeBeamLoadsFromSelected()
-{
-	// Remove materials from selected shapes
-
-	ofem::BeamLoad* beamLoad = this->getCurrentBeamLoad();
-
-	if (beamLoad != nullptr)
-	{
-		auto selected = this->getSelectedShapes();
-		for (int i = 0; i < selected->getSize(); i++)
-		{
-			auto shape = selected->getChild(i);
-			if (shape->isClass("vfem::Beam"))
-			{
-				vfem::Beam* visBeam = static_cast<vfem::Beam*>(shape);
-				ofem::Beam* beam = visBeam->getBeam();
-				beamLoad->removeElement(beam);
-			}
-		}
-	}
-
-	// Shapes has to be refreshed to represent the
-	// the changes
-
-	m_needRecalc = true;
-	this->set_changed();
-	this->redraw();
-}
-
-ofem::BeamNodeBC* FemWidget::getCurrentNodeBC()
-{
-	return m_currentNodeBC;
-}
-
-void FemWidget::hideAllDialogs()
-{
-	log("Hiding all dialogs.");
-
-	m_nodeLoadsWindow->hide();
-	m_nodeBCsWindow->hide();
-	m_elementLoadsWindow->hide();
-	m_materialsWindow->hide();
-}
-
-void FemWidget::setResultType(int type)
-{
-	m_beamModel->setResultType(type);
-	this->set_changed();
-	this->redraw();
-}
-
-
-void FemWidget::setProgramPath(const std::string& progPath)
-{
-	m_progPath = progPath;
-}
-
-const std::string FemWidget::getProgPath()
-{
-	return m_progPath;
-}
-
-
 void FemWidget::onPostRender()
 {
 }
+
+

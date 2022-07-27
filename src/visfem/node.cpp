@@ -84,7 +84,6 @@ void Node::refresh()
     double dx, dy, dz;
     double scalefactor;
 
-
     if (m_beamModel!=nullptr)
         scalefactor = m_beamModel->getScaleFactor();
     else
@@ -99,6 +98,12 @@ void Node::refresh()
         dx = m_femNode->getValue(0);
         dy = m_femNode->getValue(1);
         dz = m_femNode->getValue(2);
+
+        std::ostringstream ss;
+        ss << m_femNode->getNumber();
+        std::string s(ss.str());
+
+        m_nodeLabel->setText(s, m_beamModel->getNodeSize() * 1.5);
     }
     else
     {

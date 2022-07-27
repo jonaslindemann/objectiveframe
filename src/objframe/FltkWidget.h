@@ -62,6 +62,8 @@ enum class ButtonState { Button1, Button2, Button3, NoButton, Shift, Ctrl, Alt }
 
 IvfSmartPointer(FltkWidget);
 
+enum ModifierKey { Ctrl, Alt, None };
+
 /**
  * Ivf FLTK Widget
  *
@@ -74,8 +76,7 @@ IvfSmartPointer(FltkWidget);
  *
  * \author Jonas Lindemann
  */
-class IVFFLTK_API FltkWidget : public Fl_Gl_Window, ivf::Base, ImGuiFLTKImpl
-{
+class FltkWidget : public Fl_Gl_Window, ivf::Base, ImGuiFLTKImpl {
 private:
 
     // State variables
@@ -319,6 +320,7 @@ protected:
     virtual void doMotion(int x, int y);        // Calls onMotion
     virtual void doMouse(int x, int y);         // Calls onMouse
     virtual void doKeyboard(int key);
+    virtual void doShortcut(ModifierKey modifier, int key);
 
     /**
      * onInit event
@@ -464,6 +466,8 @@ protected:
 
     virtual void onPostRender();
     virtual void onPreRender();
+
+    virtual void onShortcut(ModifierKey modifier, int key);
 
 
 public:

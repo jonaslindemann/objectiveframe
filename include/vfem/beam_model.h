@@ -71,6 +71,8 @@ public:
 
     void generateModel();
 
+    void enumerate();
+
     void setScene(ivf::Composite* scene);
     ivf::Composite* getScene();
 

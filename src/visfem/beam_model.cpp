@@ -186,6 +186,19 @@ void BeamModel::generateModel()
     }
 }
 
+void vfem::BeamModel::enumerate()
+{
+    this->getNodeSet()->enumerateNodes();
+    this->getElementSet()->enumerateElements();
+
+    ofem::NodeSet* nodeSet = this->getNodeSet();
+
+    for (int i = 0; i < nodeSet->getSize(); i++)
+    {
+        nodeSet->getNode(i)->setNumber(i + 1);
+    }
+}
+
 void BeamModel::setScene(Composite *scene)
 {
     m_scene = scene;

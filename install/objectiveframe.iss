@@ -4,7 +4,7 @@
 [Setup]
 SignTool=signtool_lu
 AppName=ObjectiveFrame
-AppVerName=ObjectiveFrame 1.5
+AppVerName=ObjectiveFrame 2.0
 AppPublisher=Division of Structural Mechanics
 AppPublisherURL=http://www.byggmek.lth.se
 AppSupportURL=http://www.byggmek.lth.se

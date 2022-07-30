@@ -8,15 +8,15 @@ using namespace std;
 using namespace ofem;
 
 // ------------------------------------------------------------
-Base::Base ()
+Base::Base()
 {
     m_ref = 0;
     m_user = NULL;
-	m_readOnly = false;
+    m_readOnly = false;
 }
 
 // ------------------------------------------------------------
-Base::~Base ()
+Base::~Base()
 {
 }
 
@@ -24,21 +24,21 @@ Base::~Base ()
 void Base::addReference()
 {
     m_ref++;
-	//cout << this->getClassName() << "->addReference() (refs = " << m_ref << ")" << endl;
+    // cout << this->getClassName() << "->addReference() (refs = " << m_ref << ")" << endl;
 }
 
 // ------------------------------------------------------------
 void Base::deleteReference()
 {
-	if (m_ref>0)
+    if (m_ref > 0)
         m_ref--;
-	//cout << this->getClassName() << "->deleteReference() (refs = " << m_ref << ")" << endl;
+    // cout << this->getClassName() << "->deleteReference() (refs = " << m_ref << ")" << endl;
 }
 
 // ------------------------------------------------------------
 bool Base::isReferenced()
 {
-    return (m_ref>0);
+    return (m_ref > 0);
 }
 
 // ------------------------------------------------------------
@@ -70,22 +70,21 @@ bool Base::isClass(const std::string& name)
 }
 
 // ------------------------------------------------------------
-void Base::saveToStream(std::ostream &out)
+void Base::saveToStream(std::ostream& out)
 {
-    //out << getClassId() << endl;
+    // out << getClassId() << endl;
 }
 
 // ------------------------------------------------------------
-void Base::readFromStream(std::istream &in)
+void Base::readFromStream(std::istream& in)
 {
-    //int classId;
-    //in >> classId;
+    // int classId;
+    // in >> classId;
 }
 
 // ------------------------------------------------------------
-void Base::print(std::ostream &out)
+void Base::print(std::ostream& out)
 {
-
 }
 
 json Base::toJSON()
@@ -99,7 +98,7 @@ void Base::fromJSON(json& j)
 }
 
 // ------------------------------------------------------------
-void Base::setUser(void *user)
+void Base::setUser(void* user)
 {
     m_user = user;
 }
@@ -118,11 +117,10 @@ int Base::getRefCount()
 
 bool Base::isReadOnly()
 {
-	return m_readOnly;
+    return m_readOnly;
 }
 
 void Base::setReadOnly(bool flag)
 {
-	m_readOnly = flag;
+    m_readOnly = flag;
 }
-

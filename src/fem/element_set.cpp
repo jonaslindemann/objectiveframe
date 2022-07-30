@@ -3,28 +3,28 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-ElementSet::ElementSet ()
-    :Base()
+ElementSet::ElementSet()
+    : Base()
 {
 }
 
 // ------------------------------------------------------------
-ElementSet::~ElementSet ()
+ElementSet::~ElementSet()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void ElementSet::print(std::ostream &out)
+void ElementSet::print(std::ostream& out)
 {
     using namespace std;
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
         out << m_elements[i];
     out << endl;
 }
 
 // ------------------------------------------------------------
-void ElementSet::addElement(Element *element)
+void ElementSet::addElement(Element* element)
 {
     m_elements.push_back(ElementPtr(element));
 }
@@ -32,7 +32,7 @@ void ElementSet::addElement(Element *element)
 // ------------------------------------------------------------
 Element* ElementSet::getElement(long i)
 {
-    if ( (i>=0)&&(i<(long)m_elements.size()) )
+    if ((i >= 0) && (i < (long)m_elements.size()))
         return m_elements[i];
     else
         return NULL;
@@ -41,11 +41,11 @@ Element* ElementSet::getElement(long i)
 // ------------------------------------------------------------
 bool ElementSet::deleteElement(long i)
 {
-    if ( (i>=0)&&(i<(long)m_elements.size()) )
+    if ((i >= 0) && (i < (long)m_elements.size()))
     {
-        if (m_elements[i]->getRefCount()==1)
+        if (m_elements[i]->getRefCount() == 1)
         {
-            m_elements.erase(m_elements.begin()+i);
+            m_elements.erase(m_elements.begin() + i);
             return true;
         }
         else
@@ -57,13 +57,13 @@ bool ElementSet::deleteElement(long i)
 // ------------------------------------------------------------
 Element* ElementSet::removeElement(long i)
 {
-    if ( (i>=0)&&(i<(long)m_elements.size()) )
+    if ((i >= 0) && (i < (long)m_elements.size()))
     {
-        if (m_elements[i]->getRefCount()==1)
+        if (m_elements[i]->getRefCount() == 1)
         {
             Element* element = m_elements[i];
             element->addReference();
-            m_elements.erase(m_elements.begin()+i);
+            m_elements.erase(m_elements.begin() + i);
             element->deleteReference();
             return element;
         }
@@ -89,7 +89,7 @@ void ElementSet::clear()
 // ------------------------------------------------------------
 long ElementSet::enumerateElements(long count)
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
         m_elements[i]->setNumber(count++);
     return count;
 }
@@ -101,23 +101,23 @@ size_t ElementSet::getSize()
 }
 
 // ------------------------------------------------------------
-void ElementSet::saveToStream(std::ostream &out)
+void ElementSet::saveToStream(std::ostream& out)
 {
     using namespace std;
     Base::saveToStream(out);
     out << m_elements.size() << endl;
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
         m_elements[i]->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void ElementSet::readFromStream(std::istream &in)
+void ElementSet::readFromStream(std::istream& in)
 {
     long nElements;
     Base::readFromStream(in);
     in >> nElements;
     deleteAll();
-    for (int i=0; i<nElements; i++)
+    for (int i = 0; i < nElements; i++)
     {
         ElementPtr element = createElement();
         element->readFromStream(in);
@@ -126,13 +126,13 @@ void ElementSet::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void ElementSet::connectNodes(NodeSet *nodes)
+void ElementSet::connectNodes(NodeSet* nodes)
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
     {
         Element* element = m_elements[i];
-        for (unsigned int j=0; j<element->getIndexSize(); j++)
-            element->addNode(nodes->getNode(element->getElementIndex(j)-1));
+        for (unsigned int j = 0; j < element->getIndexSize(); j++)
+            element->addNode(nodes->getNode(element->getElementIndex(j) - 1));
     }
 }
 
@@ -143,11 +143,11 @@ Element* ElementSet::createElement()
 }
 
 // ------------------------------------------------------------
-bool ElementSet::removeElement(Element *element)
+bool ElementSet::removeElement(Element* element)
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
     {
-        if (element==m_elements[i])
+        if (element == m_elements[i])
             return this->deleteElement(i);
     }
     return false;
@@ -156,7 +156,7 @@ bool ElementSet::removeElement(Element *element)
 // ------------------------------------------------------------
 long ElementSet::enumerateDofs(long count)
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
         count = m_elements[i]->enumerateDofs(count);
     return count;
 }

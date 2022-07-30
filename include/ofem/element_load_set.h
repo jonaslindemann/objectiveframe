@@ -2,21 +2,22 @@
 
 #include <ofem/load_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(ElementLoadSet);
+SmartPointer(ElementLoadSet);
 
-    class ElementLoadSet : public LoadSet
-    {
-    public:
-        ElementLoadSet();
-        virtual ~ElementLoadSet();
+class ElementLoadSet : public LoadSet
+{
+public:
+    ElementLoadSet();
+    virtual ~ElementLoadSet();
 
-        // Class info
+    // Class info
 
-        ClassInfo("ElementLoadSet", LoadSet);
+    ClassInfo("ElementLoadSet", LoadSet);
 
-    protected:
-        virtual Load* createLoad();
-    };
+protected:
+    virtual Load* createLoad() override;
+};
 }

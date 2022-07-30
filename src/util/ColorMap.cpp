@@ -36,7 +36,7 @@ void CColorMap::open(const std::string& fname)
 
     std::string fileName = "";
 
-    if (m_progPath!="")
+    if (m_progPath != "")
         fileName = m_progPath;
 
     fileName = fileName + "/" + fname;
@@ -54,7 +54,7 @@ void CColorMap::open(const std::string& fname)
 
     m_mapFile >> nColors;
 
-    for (i=0; i<nColors; i++)
+    for (i = 0; i < nColors; i++)
     {
         m_mapFile >> r >> g >> b;
         color = new CColor();
@@ -71,15 +71,15 @@ void CColorMap::clear()
 {
     unsigned int i;
 
-    for (i=0; i<m_colors.size(); i++)
+    for (i = 0; i < m_colors.size(); i++)
         delete m_colors[i];
 
     m_colors.clear();
 }
 
-void CColorMap::getColor(double value, float &r, float &g, float &b)
+void CColorMap::getColor(double value, float& r, float& g, float& b)
 {
-    if (m_colors.size()>0)
+    if (m_colors.size() > 0)
     {
         double clampedValue;
         int colorIndex;
@@ -92,16 +92,16 @@ void CColorMap::getColor(double value, float &r, float &g, float &b)
 
         clampedValue = value;
 
-        if (value>1)
+        if (value > 1)
             clampedValue = 1.0;
 
-        if (value<0)
+        if (value < 0)
             clampedValue = 0.0;
 
         if (m_reverseColors)
-            clampedValue = 1-clampedValue;
+            clampedValue = 1 - clampedValue;
 
-        colorIndex = (int)( (double)(m_colors.size()-1)*clampedValue );
+        colorIndex = (int)((double)(m_colors.size() - 1) * clampedValue);
 
         color = m_colors[colorIndex];
         color->getColor(r, g, b, a);
@@ -133,7 +133,7 @@ void CColorMap::setFileName(const std::string& fileName)
 
 bool CColorMap::open()
 {
-    if (m_fileName!="")
+    if (m_fileName != "")
     {
         this->open(m_fileName);
         return m_error;

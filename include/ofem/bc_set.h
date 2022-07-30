@@ -6,42 +6,46 @@
 
 #include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(BCSet);
+SmartPointer(BCSet);
 
-    class BCSet : public Base {
-    private:
-        std::vector<BCPtr> m_bcs;
-    public:
-        BCSet();
-        virtual ~BCSet();
+class BCSet : public Base
+{
+private:
+    std::vector<BCPtr> m_bcs;
 
-        ClassInfo("BCSet", Base);
+public:
+    BCSet();
+    virtual ~BCSet();
 
-        // Methods
+    ClassInfo("BCSet", Base);
 
-        void deleteAll();
-        BCPtr removeBC(long i);
-        bool deleteBC(long i);
-        void addBC(BC* element);
-        void clear();
-        long enumerateBCs(long count = 1);
-        bool removeBC(BC* bc);
-        void connectNodes(NodeSet* nodes);
+    // Methods
 
-        // Get/set methods
+    void deleteAll();
+    BCPtr removeBC(long i);
+    bool deleteBC(long i);
+    void addBC(BC* element);
+    void clear();
+    long enumerateBCs(long count = 1);
+    bool removeBC(BC* bc);
+    void connectNodes(NodeSet* nodes);
 
-        BC* getBC(long i);
-        size_t getSize();
+    // Get/set methods
 
-        // IO methods
+    BC* getBC(long i);
+    size_t getSize();
 
-        virtual void readFromStream(std::istream& in) override;
-        virtual void saveToStream(std::ostream& out) override;
-        virtual void print(std::ostream& out) override;
-        virtual json toJSON() override;
-    protected:
-        virtual BC* createBC();
-    };
+    // IO methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+    virtual json toJSON() override;
+
+protected:
+    virtual BC* createBC();
+};
 }

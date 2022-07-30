@@ -7,15 +7,14 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 
-#include <ofem/beam_model.h>
 #include <ofem/beam_load.h>
+#include <ofem/beam_model.h>
 
 using namespace ofem;
 using namespace std;
 
-
 CalfemWriter::CalfemWriter(const std::string fname)
-	:InputFileWriter(fname)
+    : InputFileWriter(fname)
 {
 }
 
@@ -91,7 +90,8 @@ void CalfemWriter::saveToStream(std::ostream& out)
     // Write materials
     //
 
-    out << "\n# ---- Materials\n" << endl;
+    out << "\n# ---- Materials\n"
+        << endl;
 
     beginArr(out, "ep");
 
@@ -99,7 +99,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
     {
         BeamMaterial* material = (BeamMaterial*)materialSet->getMaterial(i);
         material->getProperties(E, G, A, Iy, Iz, Kv);
-        arrRow(out, vector<double>{ E, G, A, Iy, Iz, Kv});
+        arrRow(out, vector<double> { E, G, A, Iy, Iz, Kv });
     }
 
     endArr(out);
@@ -108,18 +108,15 @@ void CalfemWriter::saveToStream(std::ostream& out)
     // Write elements
     //
 
-    out << "\n# ---- Elements\n" << endl;
-    
+    out << "\n# ---- Elements\n"
+        << endl;
+
     beginArr(out, "beam_topo");
 
     for (i = 0; i < elementSet->getSize(); i++)
     {
         Beam* element = (Beam*)elementSet->getElement(i);
-        arrRow(out, vector<int>{ 
-            element->getNode(0)->getNumber() - 1, 
-            element->getNode(1)->getNumber() - 1,
-            element->getMaterial()->getNumber() - 1
-        });
+        arrRow(out, vector<int> { element->getNode(0)->getNumber() - 1, element->getNode(1)->getNumber() - 1, element->getMaterial()->getNumber() - 1 });
     }
 
     endArr(out);
@@ -129,7 +126,8 @@ void CalfemWriter::saveToStream(std::ostream& out)
     // Write node coordinates
     //
 
-    out << "\n# ----- Nodes\n" << endl;
+    out << "\n# ----- Nodes\n"
+        << endl;
 
     beginArr(out, "node_coords");
 
@@ -137,7 +135,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
     {
         Node* node = nodeSet->getNode(i);
         node->getCoord(x, y, z);
-        arrRow(out, vector<double>{x, y, z});
+        arrRow(out, vector<double> { x, y, z });
     }
 
     endArr(out);
@@ -146,7 +144,8 @@ void CalfemWriter::saveToStream(std::ostream& out)
     // Write specified local z axis
     //
 
-    out << "\n# ----- Local Z-axis\n" << endl;
+    out << "\n# ----- Local Z-axis\n"
+        << endl;
 
     beginArr(out, "beam_orientation");
 
@@ -154,7 +153,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
     {
         Beam* element = (Beam*)elementSet->getElement(i);
         element->getOrientationZ(ex, ey, ez);
-        arrRow(out, vector<double>{ex, ey, ez});
+        arrRow(out, vector<double> { ex, ey, ez });
     }
 
     endArr(out);
@@ -163,7 +162,8 @@ void CalfemWriter::saveToStream(std::ostream& out)
     // Write prescribed displacements X-direction
     //
 
-    out << "\n# ----- Boundary conditions\n" << endl;
+    out << "\n# ----- Boundary conditions\n"
+        << endl;
 
     map<int, int> node_bc_map;
 
@@ -225,12 +225,11 @@ void CalfemWriter::saveToStream(std::ostream& out)
 
     for (auto& v : node_bc_map)
     {
-        arrRow(out, vector<int>{v.first, v.second});
+        arrRow(out, vector<int> { v.first, v.second });
     }
 
     endArr(out);
     out << "\n";
-
 
     //
     // Write nodal loads
@@ -247,7 +246,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
         nodeLoad->getDirection(ex, ey, ez);
         double value = nodeLoad->getValue();
 
-        arrRow(out, vector<double>{ex*value, ey*value, ez*value});
+        arrRow(out, vector<double> { ex * value, ey * value, ez * value });
 
         for (j = 0; j < (long)nodeLoad->getNodeSize(); j++)
         {
@@ -263,7 +262,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
 
     for (auto& v : node_load_map)
     {
-        arrRow(out, vector<int>{v.first, v.second});
+        arrRow(out, vector<int> { v.first, v.second });
     }
 
     endArr(out);

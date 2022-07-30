@@ -5,7 +5,7 @@ using namespace std;
 
 // ------------------------------------------------------------
 BeamNodeLoad::BeamNodeLoad()
-    :NodeLoad()
+    : NodeLoad()
 {
     m_name = "Noname";
     m_color = 1;
@@ -29,10 +29,10 @@ const std::string BeamNodeLoad::getName()
 }
 
 // ------------------------------------------------------------
-void BeamNodeLoad::saveToStream(std::ostream &out)
+void BeamNodeLoad::saveToStream(std::ostream& out)
 {
     NodeLoad::saveToStream(out);
-    if (m_name=="")
+    if (m_name == "")
         out << "Noname" << endl;
     else
         out << m_name << endl;
@@ -40,12 +40,12 @@ void BeamNodeLoad::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void BeamNodeLoad::readFromStream(std::istream &in)
+void BeamNodeLoad::readFromStream(std::istream& in)
 {
     char buffer[255];
     NodeLoad::readFromStream(in);
-    in.getline(buffer,255);
-    in.getline(buffer,255);
+    in.getline(buffer, 255);
+    in.getline(buffer, 255);
     this->setName(buffer);
     in >> m_color;
 }

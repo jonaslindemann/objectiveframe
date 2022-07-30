@@ -3,11 +3,12 @@
 
 #include "Color.h"
 
-#include <vector>
 #include <fstream>
 #include <string>
+#include <vector>
 
-class CColorMap {
+class CColorMap
+{
 private:
     std::vector<CColor*> m_colors;
     bool m_reverseColors;
@@ -17,6 +18,7 @@ private:
     std::string m_fileName;
     std::fstream m_mapFile;
     bool m_error;
+
 public:
     CColorMap();
     virtual ~CColorMap();
@@ -29,7 +31,7 @@ public:
     void setFileName(const std::string& fileName);
     void setValue(double value);
     void setReverseColors(bool flag);
-    void getColor(double value, float &r, float &g, float &b);
+    void getColor(double value, float& r, float& g, float& b);
 };
 
 #endif

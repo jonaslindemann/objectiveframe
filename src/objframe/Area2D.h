@@ -4,10 +4,13 @@
 #include <ivf/Base.h>
 #include <ivf/GL.h>
 
-namespace std {};
+namespace std
+{
+};
 using namespace std;
 
-class Area2D : public ivf::Base {
+class Area2D : public ivf::Base
+{
 private:
     vector<int> m_xCoords;
     vector<int> m_yCoords;
@@ -15,6 +18,7 @@ private:
     vector<float> m_green;
     vector<float> m_blue;
     bool m_visible;
+
 public:
     Area2D();
     virtual ~Area2D();
@@ -24,7 +28,7 @@ public:
     int getSize();
 
     void setCoord(int idx, int x, int y);
-    void getCoord(int idx, int &x, int &y);
+    void getCoord(int idx, int& x, int& y);
     void setColor(int idx, float red, float green, float blue);
     void setVisible(bool flag);
 

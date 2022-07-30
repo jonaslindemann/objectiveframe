@@ -1,17 +1,19 @@
 #pragma once
 
-#include <ofem/material_set.h>
 #include <ofem/beam_material.h>
+#include <ofem/material_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-	class BeamMaterialSet : public MaterialSet {
-	public:
-		BeamMaterialSet();
-		virtual ~BeamMaterialSet();
+class BeamMaterialSet : public MaterialSet
+{
+public:
+    BeamMaterialSet();
+    virtual ~BeamMaterialSet();
 
-	protected:
-		virtual Material* createMaterial();
-	};
+protected:
+    virtual Material* createMaterial();
+};
 
 }

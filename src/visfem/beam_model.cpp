@@ -1,16 +1,16 @@
 #include <vfem/beam_model.h>
 
-#include <vfem/node.h>
 #include <vfem/beam.h>
 #include <vfem/beam_load.h>
-#include <vfem/node_load.h>
+#include <vfem/node.h>
 #include <vfem/node_bc.h>
+#include <vfem/node_load.h>
 
-#include <ofem/node_set.h>
-#include <ofem/beam_set.h>
 #include <ofem/beam_load.h>
+#include <ofem/beam_set.h>
 #include <ofem/element_load_set.h>
 #include <ofem/node_bc_set.h>
+#include <ofem/node_set.h>
 #include <ofem/solid_pipe_section.h>
 
 #include <ColorMap.h>
@@ -21,7 +21,7 @@ using namespace vfem;
 using namespace std;
 
 BeamModel::BeamModel()
-    :ofem::BeamModel()
+    : ofem::BeamModel()
 {
     m_nodeSize = 1.0;
     m_nodeType = ivf::Node::NT_CUBE;
@@ -61,26 +61,26 @@ BeamModel::~BeamModel()
 void BeamModel::onInitialised()
 {
     ofem::BeamMaterialPtr material = new ofem::BeamMaterial();
-    material->setProperties(2.1e9, 8.1e7, 1.0, 1.0, 1.0, 1.0 );
+    material->setProperties(2.1e9, 8.1e7, 1.0, 1.0, 1.0, 1.0);
     material->setSectionType(ofem::ST_SolidPipe);
     material->setName("default");
     material->setColor(52);
     this->materialSet()->addMaterial(material);
     this->materialSet()->setCurrentMaterial(0);
 
-	// Create default Node BCs
+    // Create default Node BCs
 
-	m_defaultNodeFixedBC = new ofem::BeamNodeBC();
-	m_defaultNodeFixedBC->setName("fixed pos/rot");
-	m_defaultNodeFixedBC->fixed();
-	m_defaultNodeFixedBC->setReadOnly();
-	this->nodeBCSet()->addBC(m_defaultNodeFixedBC);
+    m_defaultNodeFixedBC = new ofem::BeamNodeBC();
+    m_defaultNodeFixedBC->setName("fixed pos/rot");
+    m_defaultNodeFixedBC->fixed();
+    m_defaultNodeFixedBC->setReadOnly();
+    this->nodeBCSet()->addBC(m_defaultNodeFixedBC);
 
-	m_defaultNodePosBC = new ofem::BeamNodeBC();
-	m_defaultNodePosBC->setName("fixed pos");
-	m_defaultNodePosBC->fixedPosition();
-	m_defaultNodePosBC->setReadOnly();
-	this->nodeBCSet()->addBC(m_defaultNodePosBC);
+    m_defaultNodePosBC = new ofem::BeamNodeBC();
+    m_defaultNodePosBC->setName("fixed pos");
+    m_defaultNodePosBC->fixedPosition();
+    m_defaultNodePosBC->setReadOnly();
+    this->nodeBCSet()->addBC(m_defaultNodePosBC);
 }
 
 void BeamModel::generateModel()
@@ -100,36 +100,36 @@ void BeamModel::generateModel()
 
     ofem::NodeSet* nodeSet = this->getNodeSet();
 
-    for (int i=0; i<nodeSet->getSize(); i++)
+    for (int i = 0; i < nodeSet->getSize(); i++)
     {
         vfem::Node* ivfNode = new vfem::Node();
         ivfNode->setBeamModel(this);
         ivfNode->setFemNode(nodeSet->getNode(i));
         ivfNode->setMaterial(m_nodeMaterial);
         ivfNode->setDirectRefresh(true);
-        ivfNode->nodeLabel()->setSize(m_nodeSize*1.5);
+        ivfNode->nodeLabel()->setSize(m_nodeSize * 1.5);
         ivfNode->refresh();
-        //if (m_pnodeSize!=nullptr)
+        // if (m_pnodeSize!=nullptr)
         //	ivfNode->setNodeSize(*m_pnodeSize);
         m_scene->addChild(ivfNode);
         ivfNodes.push_back(ivfNode);
-        nodeSet->getNode(i)->setNumber(i+1);
+        nodeSet->getNode(i)->setNumber(i + 1);
     }
 
     // Generate elements
 
     ofem::BeamSet* beamSet = this->getElementSet();
 
-    for (int i=0; i<beamSet->getSize(); i++)
+    for (int i = 0; i < beamSet->getSize(); i++)
     {
         vfem::Beam* ivfBeam = new Beam();
-        ofem::Beam* femBeam = (ofem::Beam*) beamSet->getElement(i);
+        ofem::Beam* femBeam = (ofem::Beam*)beamSet->getElement(i);
         ivfBeam->setBeam(femBeam);
-        //ivfBeam->setMaterial(m_beamMaterial);
+        // ivfBeam->setMaterial(m_beamMaterial);
         ivfBeam->setBeamModel(this);
         ofem::Node* femNode1 = femBeam->getNode(0);
         ofem::Node* femNode2 = femBeam->getNode(1);
-        ivfBeam->setNodes(ivfNodes[femNode1->getNumber()-1],ivfNodes[femNode2->getNumber()-1]);
+        ivfBeam->setNodes(ivfNodes[femNode1->getNumber() - 1], ivfNodes[femNode2->getNumber() - 1]);
         ivfBeam->refresh();
         m_scene->addChild(ivfBeam);
     }
@@ -138,15 +138,15 @@ void BeamModel::generateModel()
 
     ofem::ElementLoadSet* elementLoadSet = this->getElementLoadSet();
 
-    for (int i=0; i<elementLoadSet->getSize(); i++)
+    for (int i = 0; i < elementLoadSet->getSize(); i++)
     {
         vfem::BeamLoad* ivfBeamLoad = new vfem::BeamLoad();
-        ofem::BeamLoad* femBeamLoad = (ofem::BeamLoad*) elementLoadSet->getLoad(i);
+        ofem::BeamLoad* femBeamLoad = (ofem::BeamLoad*)elementLoadSet->getLoad(i);
         ivfBeamLoad->setBeamModel(this);
         ivfBeamLoad->setBeamLoad(femBeamLoad);
         femBeamLoad->setUser((void*)ivfBeamLoad);
-        //ivfBeamLoad->setLoadHeight(*m_pbeamLoadSize);
-        //ivfBeamLoad->setColorTable(this->getColorTable());
+        // ivfBeamLoad->setLoadHeight(*m_pbeamLoadSize);
+        // ivfBeamLoad->setColorTable(this->getColorTable());
         ivfBeamLoad->refresh();
         m_scene->addChild(ivfBeamLoad);
     }
@@ -155,15 +155,15 @@ void BeamModel::generateModel()
 
     ofem::NodeLoadSet* nodeLoadSet = this->getNodeLoadSet();
 
-    for (int i=0; i<nodeLoadSet->getSize(); i++)
+    for (int i = 0; i < nodeLoadSet->getSize(); i++)
     {
         vfem::NodeLoad* ivfNodeLoad = new vfem::NodeLoad();
-        ofem::BeamNodeLoad* femNodeLoad = (ofem::BeamNodeLoad*) nodeLoadSet->getLoad(i);
+        ofem::BeamNodeLoad* femNodeLoad = (ofem::BeamNodeLoad*)nodeLoadSet->getLoad(i);
         ivfNodeLoad->setBeamModel(this);
         ivfNodeLoad->setNodeLoad(femNodeLoad);
         femNodeLoad->setUser((void*)ivfNodeLoad);
-        //ivfNodeLoad->setColorTable(this->getColorTable());
-        //ivfNodeLoad->setLoadHeight(*m_ploadSize);
+        // ivfNodeLoad->setColorTable(this->getColorTable());
+        // ivfNodeLoad->setLoadHeight(*m_ploadSize);
         ivfNodeLoad->refresh();
         m_scene->addChild(static_cast<ivf::Shape*>(ivfNodeLoad));
     }
@@ -172,13 +172,13 @@ void BeamModel::generateModel()
 
     ofem::NodeBCSet* nodeBCSet = this->getNodeBCSet();
 
-    for (int i=0; i<nodeBCSet->getSize(); i++)
+    for (int i = 0; i < nodeBCSet->getSize(); i++)
     {
         vfem::NodeBC* ivfNodeBC = new vfem::NodeBC();
-        ofem::BeamNodeBC* femNodeBC = (ofem::BeamNodeBC*) nodeBCSet->getBC(i);
+        ofem::BeamNodeBC* femNodeBC = (ofem::BeamNodeBC*)nodeBCSet->getBC(i);
         ivfNodeBC->setBeamModel(this);
-        //ivfNodeBC->setColorTable(this->getColorTable());
-        //ivfNodeBC->setNodeSize(*m_pnodeSize);
+        // ivfNodeBC->setColorTable(this->getColorTable());
+        // ivfNodeBC->setNodeSize(*m_pnodeSize);
         ivfNodeBC->setNodeBC(femNodeBC);
         femNodeBC->setUser((void*)ivfNodeBC);
         ivfNodeBC->refresh();
@@ -199,7 +199,7 @@ void vfem::BeamModel::enumerate()
     }
 }
 
-void BeamModel::setScene(Composite *scene)
+void BeamModel::setScene(Composite* scene)
 {
     m_scene = scene;
 }
@@ -229,12 +229,12 @@ void BeamModel::setLineSides(int sides)
     m_lineSides = sides;
 }
 
-void BeamModel::setNodeMaterial(ivf::Material *material)
+void BeamModel::setNodeMaterial(ivf::Material* material)
 {
     m_nodeMaterial = material;
 }
 
-void BeamModel::setBeamMaterial(ivf::Material *material)
+void BeamModel::setBeamMaterial(ivf::Material* material)
 {
     m_beamMaterial = material;
 }
@@ -253,7 +253,6 @@ void BeamModel::setBeamLoadSize(double size)
 {
     m_beamLoadSize = size;
 }
-
 
 double BeamModel::getNodeSize()
 {
@@ -275,14 +274,14 @@ double BeamModel::getLineRadius()
     return m_lineRadius;
 }
 
-void BeamModel::setColorMaps(CColorMap *pos, CColorMap *neg, CColorMap *std)
+void BeamModel::setColorMaps(CColorMap* pos, CColorMap* neg, CColorMap* std)
 {
     m_colorMapPos = pos;
     m_colorMapNeg = neg;
     m_colorMapStd = std;
 }
 
-void BeamModel::setResultInfo(CResultInfo *resultInfo)
+void BeamModel::setResultInfo(CResultInfo* resultInfo)
 {
     m_resultInfo = resultInfo;
 }
@@ -327,14 +326,14 @@ ivf::Camera* vfem::BeamModel::camera()
     return m_camera;
 }
 
-ofem::BeamNodeBC * BeamModel::defaultNodePosBC()
+ofem::BeamNodeBC* BeamModel::defaultNodePosBC()
 {
-	return m_defaultNodePosBC;
+    return m_defaultNodePosBC;
 }
 
-ofem::BeamNodeBC * BeamModel::defaultNodeFixedBC()
+ofem::BeamNodeBC* BeamModel::defaultNodeFixedBC()
 {
-	return m_defaultNodeFixedBC;
+    return m_defaultNodeFixedBC;
 }
 
 void BeamModel::setResultType(int type)

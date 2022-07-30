@@ -2,23 +2,25 @@
 
 #ifndef MainFrame_h
 #define MainFrame_h
+#include "FemWidget.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
-#include "FemWidget.h"
 
-class MainFrame {
-  int m_argc;
-  char** m_argv;
+class MainFrame
+{
+    int m_argc;
+    char** m_argv;
+
 public:
-  MainFrame();
-  Fl_Double_Window *wndMain;
-  FemWidget *ivfWorkspace;
-  void show();
-  void updateToggles();
-  void close();
-  void setArguments(int argc, char** argv);
-  ~MainFrame();
-  void setProgramPath(const std::string& path);
-  void show_fullscreen(int x, int y, int width, int height);
+    MainFrame();
+    Fl_Double_Window* wndMain;
+    FemWidget* ivfWorkspace;
+    void show();
+    void updateToggles();
+    void close();
+    void setArguments(int argc, char** argv);
+    ~MainFrame();
+    void setProgramPath(const std::string& path);
+    void show_fullscreen(int x, int y, int width, int height);
 };
 #endif

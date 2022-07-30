@@ -19,55 +19,53 @@
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
 #pragma once
-#include "imgui.h"      // IMGUI_IMPL_API
+#include "imgui.h" // IMGUI_IMPL_API
 
-class ImGuiFLTKImpl {
+class ImGuiFLTKImpl
+{
 private:
-	int m_button;
-	bool m_firstDraw;
-	bool m_initialised;
+    int m_button;
+    bool m_firstDraw;
+    bool m_initialised;
+
 public:
-	ImGuiFLTKImpl();
+    ImGuiFLTKImpl();
 
-	void setPixelsPerUnit(float ppu);
+    void setPixelsPerUnit(float ppu);
 
-	bool isImGuiInitialised();
-	bool isOverWindow();
+    bool isImGuiInitialised();
+    bool isOverWindow();
 
-	void doDrawImGui();
-	void doInitImGui(int w, int h);
+    void doDrawImGui();
+    void doInitImGui(int w, int h);
 
-	void doImGuiResize(int w, int h);
-	void doImGuiMove();
-	void doImGuiPush();
-	void doImGuiDrag();
-	void doImGuiRelease();
-	void doImGuiKeyboard();
-	void doImGuiKeyUp();
+    void doImGuiResize(int w, int h);
+    void doImGuiMove();
+    void doImGuiPush();
+    void doImGuiDrag();
+    void doImGuiRelease();
+    void doImGuiKeyboard();
+    void doImGuiKeyUp();
 
-	virtual void onDrawImGui();
-	virtual void onInitImGui();
+    virtual void onDrawImGui();
+    virtual void onInitImGui();
 };
 
-
-IMGUI_IMPL_API bool     ImGui_ImplFLTK_Init();
-IMGUI_IMPL_API void     ImGui_ImplFLTK_InstallFuncs();
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplFLTK_NewFrame();
-
-
+IMGUI_IMPL_API bool ImGui_ImplFLTK_Init();
+IMGUI_IMPL_API void ImGui_ImplFLTK_InstallFuncs();
+IMGUI_IMPL_API void ImGui_ImplFLTK_Shutdown();
+IMGUI_IMPL_API void ImGui_ImplFLTK_NewFrame();
 
 // You can call ImGui_ImplFLTK_InstallFuncs() to get all those functions installed automatically,
 // or call them yourself from your own GLUT handlers. We are using the same weird names as GLUT for consistency..
 //---------------------------------------- GLUT name --------------------------------------------- Decent Name ---------
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Resize(int w, int h);                           // ~ ResizeFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Move();                            // ~ MouseMoveFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Push(int& button);                            // ~ MouseMoveFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Drag();                            // ~ MouseMoveFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Release(int& button);                            // ~ MouseMoveFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_Keyboard();         // ~ CharPressedFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_KeyUp();       // ~ CharReleasedFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_Resize(int w, int h); // ~ ResizeFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_Move(); // ~ MouseMoveFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_Push(int& button); // ~ MouseMoveFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_Drag(); // ~ MouseMoveFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_Release(int& button); // ~ MouseMoveFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_Keyboard(); // ~ CharPressedFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_KeyUp(); // ~ CharReleasedFunc
 
-IMGUI_IMPL_API void     ImGui_ImplFLTK_SpecialFunc(int key, int x, int y);                  // ~ KeyPressedFunc
-IMGUI_IMPL_API void     ImGui_ImplFLTK_SpecialUpFunc(int key, int x, int y);                // ~ KeyReleasedFunc
-
+IMGUI_IMPL_API void ImGui_ImplFLTK_SpecialFunc(int key, int x, int y); // ~ KeyPressedFunc
+IMGUI_IMPL_API void ImGui_ImplFLTK_SpecialUpFunc(int key, int x, int y); // ~ KeyReleasedFunc

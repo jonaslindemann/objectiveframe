@@ -6,11 +6,13 @@
 
 #include <vfem/beam_model.h>
 
-namespace vfem {
+namespace vfem
+{
 
 IvfSmartPointer(BC);
 
-class BC : public ivf::Composite {
+class BC : public ivf::Composite
+{
 private:
     ivf::ConePtr m_dispCone;
     ivf::ConePtr m_rotCone1;
@@ -25,16 +27,17 @@ private:
     vfem::BeamModelPtr m_beamModel;
 
     void initBC();
+
 public:
     BC();
     virtual ~BC();
 
-    IvfClassInfo("vfem::BC",ivf::Composite);
+    IvfClassInfo("vfem::BC", ivf::Composite);
 
     void unprescribeAll();
     void prescribe(int dof, bool prescribed);
 
-    void refresh();
+    virtual void refresh() override;
 
     void setBeamModel(vfem::BeamModel* model);
 };

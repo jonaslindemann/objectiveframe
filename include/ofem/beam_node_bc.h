@@ -2,26 +2,29 @@
 
 #include <ofem/node_bc.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(BeamNodeBC);
+SmartPointer(BeamNodeBC);
 
-    class BeamNodeBC : public NodeBC {
-    private:
-        int m_color;
-        std::string m_name;
-    public:
-        BeamNodeBC();
-        virtual ~BeamNodeBC();
+class BeamNodeBC : public NodeBC
+{
+private:
+    int m_color;
+    std::string m_name;
 
-        ClassInfo("BeamNodeBC", NodeBC);
+public:
+    BeamNodeBC();
+    virtual ~BeamNodeBC();
 
-        int getColor();
-        void setColor(int color);
-        const std::string getName();
-        void setName(const std::string& name);
+    ClassInfo("BeamNodeBC", NodeBC);
 
-        void readFromStream(std::istream& in);
-        void saveToStream(std::ostream& out);
-    };
+    int getColor();
+    void setColor(int color);
+    const std::string getName();
+    void setName(const std::string& name);
+
+    void readFromStream(std::istream& in) override;
+    void saveToStream(std::ostream& out) override;
+};
 }

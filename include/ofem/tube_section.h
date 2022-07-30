@@ -2,15 +2,17 @@
 
 #include <ofem/section.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(TubeSection);
+SmartPointer(TubeSection);
 
-    class TubeSection : public Section {
-    public:
-        TubeSection();
-        virtual ~TubeSection();
+class TubeSection : public Section
+{
+public:
+    TubeSection();
+    virtual ~TubeSection();
 
-        ClassInfo("TubeSection", Section);
-    };
+    ClassInfo("TubeSection", Section);
+};
 }

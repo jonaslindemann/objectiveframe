@@ -20,14 +20,13 @@ ButtonGroup::ButtonGroup()
 
 ButtonGroup::~ButtonGroup()
 {
-
 }
 
 void ButtonGroup::clearChecked()
 {
     int i;
 
-    for (i=0; i<this->getSize(); i++)
+    for (i = 0; i < this->getSize(); i++)
     {
         GenericButton* button = static_cast<GenericButton*>(this->getChild(i));
         button->setButtonState(GenericButton::BS_NORMAL);
@@ -36,7 +35,7 @@ void ButtonGroup::clearChecked()
 
 void ButtonGroup::check(int idx)
 {
-    if ((idx>=0)&&(idx<this->getSize()))
+    if ((idx >= 0) && (idx < this->getSize()))
     {
         m_checkIdx = idx;
         this->clearChecked();
@@ -45,9 +44,8 @@ void ButtonGroup::check(int idx)
     }
 }
 
-
 void ButtonGroup::recheck()
 {
-    if (m_checkIdx!=-1)
+    if (m_checkIdx != -1)
         this->check(m_checkIdx);
 }

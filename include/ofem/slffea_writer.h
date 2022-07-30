@@ -1,23 +1,25 @@
 #pragma once
 
-#include <ofem/input_file_writer.h>
-#include <ofem/beam_model.h>
 #include <ofem/beam_load.h>
+#include <ofem/beam_model.h>
+#include <ofem/input_file_writer.h>
 
 #include <string>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(SLFFEAWriter);
+SmartPointer(SLFFEAWriter);
 
-    class SLFFEAWriter : public InputFileWriter {
-    private:
-    public:
-        SLFFEAWriter(const std::string filename);
-        virtual ~SLFFEAWriter();
+class SLFFEAWriter : public InputFileWriter
+{
+private:
+public:
+    SLFFEAWriter(const std::string filename);
+    virtual ~SLFFEAWriter();
 
-        ClassInfo("SLFFEAWriter", InputFileWriter);
+    ClassInfo("SLFFEAWriter", InputFileWriter);
 
-        void saveToStream(std::ostream& out);
-    };
+    virtual void saveToStream(std::ostream& out) override;
+};
 }

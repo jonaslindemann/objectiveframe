@@ -3,12 +3,14 @@
 
 #include <ofem/beam_model.h>
 
-class FrameDFEMCInterface {
+class FrameDFEMCInterface
+{
 private:
     ofem::BeamModel* m_beamModel;
     int m_argc;
     char** m_argv;
     double m_maxNodeValue;
+
 public:
     FrameDFEMCInterface();
     virtual ~FrameDFEMCInterface();

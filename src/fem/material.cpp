@@ -3,15 +3,15 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-Material::Material ()
-    :Base()
-    //TODO: check and complete member initialisation list!
+Material::Material()
+    : Base()
+// TODO: check and complete member initialisation list!
 {
     m_number = -1;
 }
 
 // ------------------------------------------------------------
-Material::~Material ()
+Material::~Material()
 {
 }
 
@@ -28,7 +28,7 @@ long Material::getNumber()
 }
 
 // ------------------------------------------------------------
-void Material::print(std::ostream &out)
+void Material::print(std::ostream& out)
 {
     using namespace std;
     Base::print(out);
@@ -36,7 +36,7 @@ void Material::print(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void Material::saveToStream(std::ostream &out)
+void Material::saveToStream(std::ostream& out)
 {
     using namespace std;
     Base::saveToStream(out);
@@ -44,9 +44,8 @@ void Material::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void Material::readFromStream(std::istream &in)
+void Material::readFromStream(std::istream& in)
 {
     Base::readFromStream(in);
     in >> m_number;
 }
-

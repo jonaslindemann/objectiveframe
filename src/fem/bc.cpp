@@ -6,13 +6,14 @@ using namespace std;
 using namespace ofem;
 
 // ------------------------------------------------------------
-BC::BC ()
-    :Base(), m_number{-1}
+BC::BC()
+    : Base()
+    , m_number { -1 }
 {
 }
 
 // ------------------------------------------------------------
-BC::~BC ()
+BC::~BC()
 {
 }
 
@@ -22,9 +23,9 @@ bool BC::isPrescribed(Dof* dof)
     std::vector<DofPtr>::iterator p = m_prescribedDofs.begin();
     std::vector<DofPtr>::iterator lastDof = m_prescribedDofs.end();
 
-    while (p!=lastDof)
+    while (p != lastDof)
     {
-        if (*p==dof)
+        if (*p == dof)
             return true;
         p++;
     }
@@ -48,9 +49,9 @@ void BC::unprescribeDof(Dof* dof)
     auto q = m_prescribedValues.begin();
     auto lastDof = m_prescribedDofs.end();
 
-    while (p!=lastDof)
+    while (p != lastDof)
     {
-        if (*p==dof)
+        if (*p == dof)
         {
             m_prescribedDofs.erase(p);
             m_prescribedValues.erase(q);
@@ -80,7 +81,7 @@ long BC::getNumber()
 }
 
 // ------------------------------------------------------------
-void BC::saveToStream(std::ostream &out)
+void BC::saveToStream(std::ostream& out)
 {
     Base::saveToStream(out);
 
@@ -91,7 +92,7 @@ void BC::saveToStream(std::ostream &out)
     Dof* dof;
 
     out << m_prescribedDofs.size() << endl;
-    while (p!=lastDof)
+    while (p != lastDof)
     {
         dof = *p;
         out << dof->getKind() << " ";
@@ -119,7 +120,7 @@ json BC::toJSON()
 }
 
 // ------------------------------------------------------------
-void BC::readFromStream(std::istream &in)
+void BC::readFromStream(std::istream& in)
 {
     Base::readFromStream(in);
 
@@ -130,7 +131,7 @@ void BC::readFromStream(std::istream &in)
     this->clearDofs();
 
     in >> nDofs;
-    for (int i=0; i<nDofs; i++)
+    for (int i = 0; i < nDofs; i++)
     {
         dof = new Dof();
         in >> kind;
@@ -144,16 +145,14 @@ void BC::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void BC::print(std::ostream &out)
+void BC::print(std::ostream& out)
 {
-
 }
-
 
 // ------------------------------------------------------------
 Dof* BC::getDof(unsigned int idx)
 {
-    if (idx<m_prescribedDofs.size())
+    if (idx < m_prescribedDofs.size())
         return m_prescribedDofs[idx];
     else
         return NULL;
@@ -162,7 +161,7 @@ Dof* BC::getDof(unsigned int idx)
 // ------------------------------------------------------------
 double BC::getValue(unsigned int idx)
 {
-    if (idx<m_prescribedDofs.size())
+    if (idx < m_prescribedDofs.size())
         return m_prescribedValues[idx];
     else
         return 0.0;

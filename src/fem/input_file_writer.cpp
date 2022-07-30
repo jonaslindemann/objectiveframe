@@ -3,25 +3,25 @@
 using namespace ofem;
 using namespace std;
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 // ------------------------------------------------------------
-InputFileWriter::InputFileWriter (const std::string filename)
+InputFileWriter::InputFileWriter(const std::string filename)
 {
     m_femModel = nullptr;
     m_filename = filename;
 }
 
-InputFileWriter::~InputFileWriter ()
+InputFileWriter::~InputFileWriter()
 {
 }
 
-void InputFileWriter::saveToStream (std::ostream &out)
+void InputFileWriter::saveToStream(std::ostream& out)
 {
 }
 
-void InputFileWriter::setFemModel(Model *model)
+void InputFileWriter::setFemModel(Model* model)
 {
     m_femModel = model;
 }
@@ -46,4 +46,3 @@ void InputFileWriter::save()
         inputFile.close();
     }
 }
-

@@ -3,9 +3,11 @@
 
 #include <ivf/Composite.h>
 
-class ButtonGroup : public ivf::Composite {
+class ButtonGroup : public ivf::Composite
+{
 private:
     int m_checkIdx;
+
 public:
     ButtonGroup();
     virtual ~ButtonGroup();

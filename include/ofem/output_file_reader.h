@@ -3,22 +3,25 @@
 #include <ofem/base.h>
 #include <ofem/model.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(OutputFileReader);
+SmartPointer(OutputFileReader);
 
-    class OutputFileReader : public Base {
-    private:
-        Model* m_femModel;
-    public:
-        OutputFileReader();
-        virtual ~OutputFileReader();
+class OutputFileReader : public Base
+{
+private:
+    Model* m_femModel;
 
-        ClassInfo("OutputFileReader", Base);
+public:
+    OutputFileReader();
+    virtual ~OutputFileReader();
 
-        Model* getFemModel();
-        void setFemModel(Model* model);
+    ClassInfo("OutputFileReader", Base);
 
-        virtual void readFromStream(std::istream& in);
-    };
+    Model* getFemModel();
+    void setFemModel(Model* model);
+
+    virtual void readFromStream(std::istream& in) override;
+};
 }

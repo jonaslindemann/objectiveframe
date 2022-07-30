@@ -1,45 +1,49 @@
 #pragma once
 
 #include <ofem/base.h>
+#include <ofem/element_set.h>
 #include <ofem/load.h>
 #include <ofem/node_set.h>
-#include <ofem/element_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(LoadSet);
+SmartPointer(LoadSet);
 
-    class LoadSet : public Base {
-    private:
-        std::vector<Load*> m_loads;
-    public:
-        bool removeLoad(Load* load);
-        void connectElements(ElementSet* elements);
-        void connectNodes(NodeSet* nodes);
-        LoadSet();
-        virtual ~LoadSet();
+class LoadSet : public Base
+{
+private:
+    std::vector<Load*> m_loads;
 
-        // Class info
+public:
+    bool removeLoad(Load* load);
+    void connectElements(ElementSet* elements);
+    void connectNodes(NodeSet* nodes);
+    LoadSet();
+    virtual ~LoadSet();
 
-        ClassInfo("LoadSet", Base);
+    // Class info
 
-        // Methods
+    ClassInfo("LoadSet", Base);
 
-        void deleteAll();
-        Load* removeLoad(long i);
-        bool deleteLoad(long i);
-        Load* getLoad(long i);
-        void addLoad(Load* element);
-        size_t getSize();
-        void clear();
-        long enumerateLoads(long count = 1);
+    // Methods
 
-        // IO methods
+    void deleteAll();
+    Load* removeLoad(long i);
+    bool deleteLoad(long i);
+    Load* getLoad(long i);
+    void addLoad(Load* element);
+    size_t getSize();
+    void clear();
+    long enumerateLoads(long count = 1);
 
-        void readFromStream(std::istream& in);
-        void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    protected:
-        virtual Load* createLoad();
-    };
+    // IO methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+
+protected:
+    virtual Load* createLoad();
+};
 }

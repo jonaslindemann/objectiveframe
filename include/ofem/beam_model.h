@@ -1,34 +1,36 @@
 #pragma once
 
-#include <ofem/model.h>
-#include <ofem/beam_material_set.h>
 #include <ofem/beam_load_set.h>
-#include <ofem/beam_set.h>
-#include <ofem/beam_node_load_set.h>
+#include <ofem/beam_material_set.h>
 #include <ofem/beam_node_bc_set.h>
+#include <ofem/beam_node_load_set.h>
+#include <ofem/beam_set.h>
+#include <ofem/model.h>
 
-namespace ofem {
+namespace ofem
+{
 
-	SmartPointer(BeamModel);
+SmartPointer(BeamModel);
 
-	class BeamModel : public Model {
-	protected:
-		virtual NodeBCSet* createBCSet();
-		virtual ElementLoadSet* createElementLoadSet();
-		virtual NodeLoadSet* createNodeLoadSet();
-		virtual MaterialSet* createMaterialSet();
-		virtual ElementSet* createElementSet();
-		void connectMaterials();
-	public:
-		BeamModel();
-		virtual ~BeamModel();
+class BeamModel : public Model
+{
+protected:
+    virtual NodeBCSet* createBCSet() override;
+    virtual ElementLoadSet* createElementLoadSet() override;
+    virtual NodeLoadSet* createNodeLoadSet() override;
+    virtual MaterialSet* createMaterialSet() override;
+    virtual ElementSet* createElementSet() override;
+    virtual void connectMaterials() override;
 
-		ClassInfo("BeamModel", Model);
+public:
+    BeamModel();
+    virtual ~BeamModel();
 
-		// Get/set methods
+    ClassInfo("BeamModel", Model);
 
-		BeamMaterialSet* getMaterialSet();
-		BeamSet* getElementSet();
+    // Get/set methods
 
-	};
+    BeamMaterialSet* getMaterialSet();
+    BeamSet* getElementSet();
+};
 }

@@ -4,41 +4,45 @@
 #include <ofem/element.h>
 #include <ofem/node_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(ElementSet);
+SmartPointer(ElementSet);
 
-    class ElementSet : public Base {
-    private:
-        std::vector<ElementPtr> m_elements;
-    public:
-        ElementSet();
-        virtual ~ElementSet();
+class ElementSet : public Base
+{
+private:
+    std::vector<ElementPtr> m_elements;
 
-        // Class info
+public:
+    ElementSet();
+    virtual ~ElementSet();
 
-        ClassInfo("ElementSet", Base);
+    // Class info
 
-        // Methods
+    ClassInfo("ElementSet", Base);
 
-        void deleteAll();
-        Element* removeElement(long i);
-        bool deleteElement(long i);
-        Element* getElement(long i);
-        void addElement(Element* element);
-        size_t getSize();
-        void clear();
-        long enumerateElements(long count = 1);
-        void connectNodes(NodeSet* nodes);
-        long enumerateDofs(long count = 1);
-        bool removeElement(Element* element);
+    // Methods
 
-        // IO methods
+    void deleteAll();
+    Element* removeElement(long i);
+    bool deleteElement(long i);
+    Element* getElement(long i);
+    void addElement(Element* element);
+    size_t getSize();
+    void clear();
+    long enumerateElements(long count = 1);
+    void connectNodes(NodeSet* nodes);
+    long enumerateDofs(long count = 1);
+    bool removeElement(Element* element);
 
-        void readFromStream(std::istream& in);
-        void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    protected:
-        virtual Element* createElement();
-    };
+    // IO methods
+
+    void readFromStream(std::istream& in) override;
+    void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+
+protected:
+    virtual Element* createElement();
+};
 }

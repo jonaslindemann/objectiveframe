@@ -1,13 +1,13 @@
 #include <vfem/node.h>
 
-//using namespace ivf;
+// using namespace ivf;
 using namespace vfem;
 
 #include <sstream>
 
 // ------------------------------------------------------------
-Node::Node ()
-    :ivf::Node()
+Node::Node()
+    : ivf::Node()
 {
     m_femNode = nullptr;
     m_directRefresh = false;
@@ -20,18 +20,18 @@ Node::Node ()
 }
 
 // ------------------------------------------------------------
-Node::~Node ()
+Node::~Node()
 {
 }
 
 // ------------------------------------------------------------
-void Node::setFemNode(ofem::Node *node)
+void Node::setFemNode(ofem::Node* node)
 {
     double x, y, z;
     m_femNode = node;
     m_femNode->getCoord(x, y, z);
     Shape::setPosition(x, y, z);
-    
+
     std::ostringstream ss;
     ss << m_femNode->getNumber();
     std::string s(ss.str());
@@ -46,17 +46,17 @@ ofem::Node* Node::getFemNode()
 }
 
 // ------------------------------------------------------------
-void Node::setPosition (const double x, const double y, const double z)
+void Node::setPosition(const double x, const double y, const double z)
 {
-    if (m_femNode!=nullptr)
+    if (m_femNode != nullptr)
         m_femNode->setCoord(x, y, z);
     ivf::Shape::setPosition(x, y, z);
 }
 
 // ------------------------------------------------------------
-void Node::setPosition (ivf::Shape* shape)
+void Node::setPosition(ivf::Shape* shape)
 {
-    if (m_femNode!=nullptr)
+    if (m_femNode != nullptr)
     {
         double x, y, z;
         shape->getPosition(x, y, z);
@@ -66,9 +66,9 @@ void Node::setPosition (ivf::Shape* shape)
 }
 
 // ------------------------------------------------------------
-void Node::setPositionVec (ivf::Vec3d* point)
+void Node::setPositionVec(ivf::Vec3d* point)
 {
-    if (m_femNode!=nullptr)
+    if (m_femNode != nullptr)
     {
         double x, y, z;
         point->getComponents(x, y, z);
@@ -84,15 +84,15 @@ void Node::refresh()
     double dx, dy, dz;
     double scalefactor;
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
         scalefactor = m_beamModel->getScaleFactor();
     else
         scalefactor = 1.0;
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
         this->setSize(m_beamModel->getNodeSize());
 
-    if (m_femNode!=nullptr)
+    if (m_femNode != nullptr)
     {
         m_femNode->getCoord(x, y, z);
         dx = m_femNode->getValue(0);
@@ -111,7 +111,7 @@ void Node::refresh()
         dx = dy = dz = 0.0;
     }
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
     {
         if (m_beamModel->getNodeType() == IVF_NODE_DISPLACEMENT)
         {
@@ -119,24 +119,25 @@ void Node::refresh()
                 this->setState(ivf::Shape::OS_OFF);
             else
                 this->setState(ivf::Shape::OS_ON);
-            
-            ivf::Shape::setPosition(x + dx*scalefactor, y + dy*scalefactor,  z + dz*scalefactor);
+
+            ivf::Shape::setPosition(x + dx * scalefactor, y + dy * scalefactor, z + dz * scalefactor);
             if (m_beamModel->showNodeNumbers())
             {
                 m_nodeLabel->setCamera(m_beamModel->camera());
-                //m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
+                // m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
                 m_nodeLabel->setBillboardType(IVF_BILLBOARD_XY);
                 m_nodeLabel->setPosition(m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0);
             }
         }
         else
         {
+            this->setState(ivf::Shape::OS_ON);
             this->setSize(m_beamModel->getNodeSize());
             ivf::Shape::setPosition(x, y, z);
             if (m_beamModel->showNodeNumbers())
             {
                 m_nodeLabel->setCamera(m_beamModel->camera());
-                //m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
+                // m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
                 m_nodeLabel->setBillboardType(IVF_BILLBOARD_XY);
                 m_nodeLabel->setPosition(m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0, m_beamModel->getNodeSize() * 2.0);
             }
@@ -158,17 +159,17 @@ void Node::setDirectRefresh(bool flag)
     m_directRefresh = flag;
 }
 
-void Node::getDisplacedPosition(double &x, double &y, double &z)
+void Node::getDisplacedPosition(double& x, double& y, double& z)
 {
     double dx, dy, dz;
     double scalefactor;
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
         scalefactor = m_beamModel->getScaleFactor();
     else
         scalefactor = 1.0;
 
-    if (m_femNode!=nullptr)
+    if (m_femNode != nullptr)
     {
         m_femNode->getCoord(x, y, z);
         dx = m_femNode->getValue(0);
@@ -181,9 +182,9 @@ void Node::getDisplacedPosition(double &x, double &y, double &z)
         dx = dy = dz = 0.0;
     }
 
-    x = x + dx*scalefactor;
-    y = y + dy*scalefactor;
-    z = z + dz*scalefactor;
+    x = x + dx * scalefactor;
+    y = y + dy * scalefactor;
+    z = z + dz * scalefactor;
 }
 
 ivf::TextLabel* vfem::Node::nodeLabel()
@@ -191,7 +192,7 @@ ivf::TextLabel* vfem::Node::nodeLabel()
     return m_nodeLabel;
 }
 
-void Node::setBeamModel(BeamModel*model)
+void Node::setBeamModel(BeamModel* model)
 {
     m_beamModel = model;
     m_nodeLabel->setCamera(m_beamModel->camera());

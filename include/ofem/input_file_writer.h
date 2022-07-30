@@ -1,29 +1,32 @@
-#pragma once 
+#pragma once
 
 #include <ofem/base.h>
 #include <ofem/model.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(InputFileWriter);
+SmartPointer(InputFileWriter);
 
-    class InputFileWriter : public Base {
-    private:
-        Model* m_femModel;
-        std::string m_filename;
-    public:
-        InputFileWriter(const std::string filename);
-        virtual ~InputFileWriter();
+class InputFileWriter : public Base
+{
+private:
+    Model* m_femModel;
+    std::string m_filename;
 
-        ClassInfo("InputFileWriter", Base);
+public:
+    InputFileWriter(const std::string filename);
+    virtual ~InputFileWriter();
 
-        void setFemModel(Model* model);
-        Model* getFemModel();
+    ClassInfo("InputFileWriter", Base);
 
-        const std::string filename();
+    void setFemModel(Model* model);
+    Model* getFemModel();
 
-        void save();
+    const std::string filename();
 
-        virtual void saveToStream(std::ostream& out);
-    };
+    void save();
+
+    virtual void saveToStream(std::ostream& out) override;
+};
 }

@@ -5,7 +5,6 @@
 using namespace ivf;
 using namespace vfem;
 
-
 BC::BC()
 {
     initBC();
@@ -13,14 +12,13 @@ BC::BC()
 
 BC::~BC()
 {
-
 }
 
 void BC::initBC()
 {
     double nodeSize;
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
         nodeSize = m_beamModel->getNodeSize();
     else
         nodeSize = 1.0;
@@ -30,9 +28,9 @@ void BC::initBC()
     m_dispZ = Transform::create();
 
     m_dispCone = Cone::create();
-    m_dispCone->setBottomRadius(nodeSize*0.5);
+    m_dispCone->setBottomRadius(nodeSize * 0.5);
     m_dispCone->setHeight(nodeSize);
-    m_dispCone->setPosition(0.0,-nodeSize,0.0);
+    m_dispCone->setPosition(0.0, -nodeSize, 0.0);
 
     m_dispX->addChild(m_dispCone);
     m_dispX->setRotationQuat(0.0, 0.0, 1.0, -90.0);
@@ -49,14 +47,14 @@ void BC::initBC()
     m_rotZ = Transform::create();
 
     m_rotCone1 = Cone::create();
-    m_rotCone1->setBottomRadius(nodeSize*0.5);
+    m_rotCone1->setBottomRadius(nodeSize * 0.5);
     m_rotCone1->setHeight(nodeSize);
-    m_rotCone1->setPosition(0.0,-nodeSize*2.2,0.0);
+    m_rotCone1->setPosition(0.0, -nodeSize * 2.2, 0.0);
 
     m_rotCone2 = Cone::create();
-    m_rotCone2->setBottomRadius(nodeSize*0.5);
+    m_rotCone2->setBottomRadius(nodeSize * 0.5);
     m_rotCone2->setHeight(nodeSize);
-    m_rotCone2->setPosition(0.0,-nodeSize*3.0,0.0);
+    m_rotCone2->setPosition(0.0, -nodeSize * 3.0, 0.0);
 
     m_rotX->addChild(m_rotCone1);
     m_rotX->addChild(m_rotCone2);
@@ -71,34 +69,35 @@ void BC::initBC()
     this->addChild(m_rotY);
     this->addChild(m_rotZ);
 
-    this->setPosition(0.0,3.0,0.0);
+    this->setPosition(0.0, 3.0, 0.0);
 }
 
 void BC::refresh()
 {
     double nodeSize;
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
         nodeSize = m_beamModel->getNodeSize();
     else
         nodeSize = 1.0;
 
-    m_dispCone->setBottomRadius(nodeSize*0.5);
+    m_dispCone->setBottomRadius(nodeSize * 0.5);
     m_dispCone->setHeight(nodeSize);
-    m_dispCone->setPosition(0.0,-nodeSize,0.0);
-    m_rotCone1->setBottomRadius(nodeSize*0.5);
+    m_dispCone->setPosition(0.0, -nodeSize, 0.0);
+    m_rotCone1->setBottomRadius(nodeSize * 0.5);
     m_rotCone1->setHeight(nodeSize);
-    m_rotCone1->setPosition(0.0,-nodeSize*2.2,0.0);
-    m_rotCone2->setBottomRadius(nodeSize*0.5);
+    m_rotCone1->setPosition(0.0, -nodeSize * 2.2, 0.0);
+    m_rotCone2->setBottomRadius(nodeSize * 0.5);
     m_rotCone2->setHeight(nodeSize);
-    m_rotCone2->setPosition(0.0,-nodeSize*3.0,0.0);
+    m_rotCone2->setPosition(0.0, -nodeSize * 3.0, 0.0);
 }
 
 void BC::prescribe(int dof, bool prescribed)
 {
-    if ((dof>=1)&&(dof<=6))
+    if ((dof >= 1) && (dof <= 6))
     {
-        switch (dof) {
+        switch (dof)
+        {
         case 1:
             if (prescribed)
                 m_dispX->setState(Shape::OS_ON);
@@ -144,11 +143,11 @@ void BC::prescribe(int dof, bool prescribed)
 void BC::unprescribeAll()
 {
     int i;
-    for (i=1; i<=6; i++)
-        prescribe(i,false);
+    for (i = 1; i <= 6; i++)
+        prescribe(i, false);
 }
 
-void BC::setBeamModel(BeamModel*model)
+void BC::setBeamModel(BeamModel* model)
 {
     m_beamModel = model;
     refresh();

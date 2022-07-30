@@ -1,22 +1,24 @@
 #pragma once
 
-#include <ofem/bc_set.h>
 #include <ofem/bc.h>
+#include <ofem/bc_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(NodeBCSet);
+SmartPointer(NodeBCSet);
 
-    class NodeBCSet : public BCSet
-    {
-    public:
-        NodeBCSet();
-        virtual ~NodeBCSet();
+class NodeBCSet : public BCSet
+{
+public:
+    NodeBCSet();
+    virtual ~NodeBCSet();
 
-        // Class info
+    // Class info
 
-        ClassInfo("NodeBCSet", BCSet);
-    protected:
-        virtual BC* createBC();
-    };
+    ClassInfo("NodeBCSet", BCSet);
+
+protected:
+    virtual BC* createBC() override;
+};
 }

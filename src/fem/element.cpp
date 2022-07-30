@@ -3,8 +3,8 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-Element::Element ()
-    :Base()
+Element::Element()
+    : Base()
 {
     m_number = -1;
     m_elementLoad[0] = 0.0;
@@ -13,24 +13,24 @@ Element::Element ()
 }
 
 // ------------------------------------------------------------
-Element::~Element ()
+Element::~Element()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void Element::print(std::ostream &out)
+void Element::print(std::ostream& out)
 {
     using namespace std;
     out << "Element " << this->getNumber() << endl;
     out << "   Nodes: ";
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
         cout << m_nodes[i]->getNumber() << " ";
     out << endl;
 }
 
 // ------------------------------------------------------------
-void Element::addNode(Node *node)
+void Element::addNode(Node* node)
 {
     m_nodes.push_back(NodePtr(node));
     InternalDofsPtr iDof = new InternalDofs();
@@ -64,29 +64,29 @@ long Element::getNumber()
 }
 
 // ------------------------------------------------------------
-void Element::saveToStream(std::ostream &out)
+void Element::saveToStream(std::ostream& out)
 {
     using namespace std;
     Base::saveToStream(out);
     unsigned int i;
     out << m_number << "  ";
     out << m_nodes.size() << " ";
-    for (i=0; i<m_nodes.size(); i++)
+    for (i = 0; i < m_nodes.size(); i++)
         out << m_nodes[i]->getNumber() << " ";
     out << endl;
     out << m_elementLoad[0] << " "
         << m_elementLoad[1] << " "
         << m_elementLoad[2] << endl;
     out << getPropertySize() << endl;
-    for (i=0; i<getPropertySize(); i++)
+    for (i = 0; i < getPropertySize(); i++)
         out << getProperty(i) << " ";
     out << endl;
-    for (i=0; i<m_nodes.size(); i++)
+    for (i = 0; i < m_nodes.size(); i++)
         m_internalDofs[i]->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void Element::readFromStream(std::istream &in)
+void Element::readFromStream(std::istream& in)
 {
     long nNodes, nProperties;
     double prop;
@@ -95,7 +95,7 @@ void Element::readFromStream(std::istream &in)
     in >> m_number;
     in >> nNodes;
     m_nodeIndex.clear();
-    for (i=0; i<nNodes; i++)
+    for (i = 0; i < nNodes; i++)
     {
         long nodeIdx;
         in >> nodeIdx;
@@ -106,14 +106,14 @@ void Element::readFromStream(std::istream &in)
     in >> m_elementLoad[2];
     in >> nProperties;
     clearProperties();
-    for (i=0; i<nProperties; i++)
+    for (i = 0; i < nProperties; i++)
     {
         in >> prop;
         m_properties.push_back(prop);
     }
     m_internalDofs.clear();
 
-    for (i=0; i<nNodes; i++)
+    for (i = 0; i < nNodes; i++)
     {
         InternalDofsPtr intDof = new InternalDofs();
         m_internalDofs.push_back(intDof);
@@ -124,8 +124,8 @@ void Element::readFromStream(std::istream &in)
 // ------------------------------------------------------------
 long Element::getElementIndex(unsigned int node)
 {
-    if (node<m_nodeIndex.size())
-        return m_nodeIndex[node]; 
+    if (node < m_nodeIndex.size())
+        return m_nodeIndex[node];
     else
         return -1;
 }
@@ -145,7 +145,7 @@ size_t Element::getIndexSize()
 // ------------------------------------------------------------
 Node* Element::getNode(unsigned int index)
 {
-    if (index<m_nodes.size())
+    if (index < m_nodes.size())
         return m_nodes[index];
     else
         return NULL;
@@ -178,7 +178,7 @@ void Element::setElementLoad(double fx, double fy, double fz)
 }
 
 // ------------------------------------------------------------
-void Element::getElementLoad(double &fx, double &fy, double &fz)
+void Element::getElementLoad(double& fx, double& fy, double& fz)
 {
     fx = m_elementLoad[0];
     fy = m_elementLoad[1];
@@ -195,21 +195,21 @@ size_t Element::getPropertySize()
 void Element::setPropertySize(unsigned int size)
 {
     m_properties.clear();
-    for (unsigned int i=0; i<size; i++)
+    for (unsigned int i = 0; i < size; i++)
         m_properties.push_back(0.0);
 }
 
 // ------------------------------------------------------------
 void Element::setProperty(unsigned int idx, double value)
 {
-    if (idx<m_properties.size())
+    if (idx < m_properties.size())
         m_properties[idx] = value;
 }
 
 // ------------------------------------------------------------
 void Element::addInternalDof(unsigned int localIdx, int localDof)
 {
-    if (localIdx<m_internalDofs.size())
+    if (localIdx < m_internalDofs.size())
     {
         m_internalDofs[localIdx]->add(localDof);
     }
@@ -218,7 +218,7 @@ void Element::addInternalDof(unsigned int localIdx, int localDof)
 // ------------------------------------------------------------
 void Element::clearInternalDof(unsigned int localIdx, int localDof)
 {
-    if (localIdx<m_internalDofs.size())
+    if (localIdx < m_internalDofs.size())
     {
         m_internalDofs[localIdx]->clear(localDof);
     }
@@ -227,7 +227,7 @@ void Element::clearInternalDof(unsigned int localIdx, int localDof)
 // ------------------------------------------------------------
 bool Element::hasInternalDof(unsigned int localIdx, int localDof)
 {
-    if (localIdx<m_internalDofs.size())
+    if (localIdx < m_internalDofs.size())
     {
         return m_internalDofs[localIdx]->isAssigned(localDof);
     }
@@ -238,7 +238,7 @@ bool Element::hasInternalDof(unsigned int localIdx, int localDof)
 // ------------------------------------------------------------
 long Element::enumerateDofs(long count)
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
         count = m_internalDofs[i]->enumerateDofs(count);
     }
@@ -248,7 +248,7 @@ long Element::enumerateDofs(long count)
 // ------------------------------------------------------------
 long Element::getInternalDof(unsigned int localIdx, int localDof)
 {
-    if (localIdx<m_internalDofs.size())
+    if (localIdx < m_internalDofs.size())
     {
         if (m_internalDofs[localIdx]->isAssigned(localDof))
             return m_internalDofs[localIdx]->getDof(localDof)->getNumber();
@@ -261,14 +261,14 @@ void Element::setValueSize(int size)
 {
     int i;
     m_values.resize(size);
-    for (i=0; i<size; i++)
+    for (i = 0; i < size; i++)
         m_values[i] = 0.0;
 }
 
 // ------------------------------------------------------------
 double Element::getValue(unsigned int idx)
 {
-    if (idx<m_values.size())
+    if (idx < m_values.size())
         return m_values[idx];
     else
         return 0.0;
@@ -277,7 +277,7 @@ double Element::getValue(unsigned int idx)
 // ------------------------------------------------------------
 void Element::setValue(unsigned int idx, double value)
 {
-    if (idx<m_values.size())
+    if (idx < m_values.size())
         m_values[idx] = value;
 }
 

@@ -1,32 +1,32 @@
+#include <ofem/element_load.h>
 #include <ofem/load_set.h>
 #include <ofem/node_load.h>
-#include <ofem/element_load.h>
 
 using namespace ofem;
 using namespace std;
 
 // ------------------------------------------------------------
-LoadSet::LoadSet ()
-    :Base()
+LoadSet::LoadSet()
+    : Base()
 {
 }
 
 // ------------------------------------------------------------
-LoadSet::~LoadSet ()
+LoadSet::~LoadSet()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void LoadSet::print(std::ostream &out)
+void LoadSet::print(std::ostream& out)
 {
-    for (unsigned int i=0; i<m_loads.size(); i++)
+    for (unsigned int i = 0; i < m_loads.size(); i++)
         out << m_loads[i];
     out << endl;
 }
 
 // ------------------------------------------------------------
-void LoadSet::addLoad(Load *load)
+void LoadSet::addLoad(Load* load)
 {
     load->addReference();
     m_loads.push_back(load);
@@ -35,7 +35,7 @@ void LoadSet::addLoad(Load *load)
 // ------------------------------------------------------------
 Load* LoadSet::getLoad(long i)
 {
-    if ( (i>=0)&&(i<(long)m_loads.size()) )
+    if ((i >= 0) && (i < (long)m_loads.size()))
         return m_loads[i];
     else
         return NULL;
@@ -46,7 +46,7 @@ bool LoadSet::deleteLoad(long i)
 {
     std::vector<Load*>::iterator p = m_loads.begin();
 
-    if ( (i>=0)&&(i<(long)m_loads.size()) )
+    if ((i >= 0) && (i < (long)m_loads.size()))
     {
         Load* load = m_loads[i];
 
@@ -68,7 +68,7 @@ Load* LoadSet::removeLoad(long i)
 {
     std::vector<Load*>::iterator p = m_loads.begin();
 
-    if ( (i>=0)&&(i<(long)m_loads.size()) )
+    if ((i >= 0) && (i < (long)m_loads.size()))
     {
         Load* load = m_loads[i];
         load->deleteReference();
@@ -83,7 +83,7 @@ Load* LoadSet::removeLoad(long i)
 // ------------------------------------------------------------
 void LoadSet::deleteAll()
 {
-    for (unsigned int i=0; i<m_loads.size(); i++)
+    for (unsigned int i = 0; i < m_loads.size(); i++)
     {
         Load* load = m_loads[i];
         load->deleteReference();
@@ -96,7 +96,7 @@ void LoadSet::deleteAll()
 // ------------------------------------------------------------
 void LoadSet::clear()
 {
-    for (unsigned int i=0; i<m_loads.size(); i++)
+    for (unsigned int i = 0; i < m_loads.size(); i++)
     {
         Load* load = m_loads[i];
         load->deleteReference();
@@ -107,7 +107,7 @@ void LoadSet::clear()
 // ------------------------------------------------------------
 long LoadSet::enumerateLoads(long count)
 {
-    for (long i=0; i<(long)m_loads.size(); i++)
+    for (long i = 0; i < (long)m_loads.size(); i++)
         m_loads[i]->setNumber(count++);
     return count;
 }
@@ -119,22 +119,22 @@ size_t LoadSet::getSize()
 }
 
 // ------------------------------------------------------------
-void LoadSet::saveToStream(std::ostream &out)
+void LoadSet::saveToStream(std::ostream& out)
 {
     Base::saveToStream(out);
     out << m_loads.size() << endl;
-    for (unsigned int i=0; i<m_loads.size(); i++)
+    for (unsigned int i = 0; i < m_loads.size(); i++)
         m_loads[i]->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void LoadSet::readFromStream(std::istream &in)
+void LoadSet::readFromStream(std::istream& in)
 {
     long nLoads;
     Base::readFromStream(in);
     in >> nLoads;
     deleteAll();
-    for (int i=0; i<nLoads; i++)
+    for (int i = 0; i < nLoads; i++)
     {
         Load* load = createLoad();
         load->addReference();
@@ -144,19 +144,18 @@ void LoadSet::readFromStream(std::istream &in)
 }
 
 // ------------------------------------------------------------
-void LoadSet::connectNodes(NodeSet *nodes)
+void LoadSet::connectNodes(NodeSet* nodes)
 {
-    for (unsigned int i=0; i<m_loads.size(); i++)
+    for (unsigned int i = 0; i < m_loads.size(); i++)
     {
         Load* load = m_loads[i];
-        if (load->isClass("FemNodeLoad"))
+        if (load->isClass("NodeLoad"))
         {
-            NodeLoad* nodeLoad = (NodeLoad*) load;
+            NodeLoad* nodeLoad = (NodeLoad*)load;
             nodeLoad->clearNodes();
-            for (unsigned int j=0; j<nodeLoad->getNodeIndexSize(); j++)
+            for (unsigned int j = 0; j < nodeLoad->getNodeIndexSize(); j++)
             {
-                Node* node =
-                    nodes->getNode(nodeLoad->getNodeIndex(j)-1);
+                Node* node = nodes->getNode(nodeLoad->getNodeIndex(j) - 1);
                 nodeLoad->addNode(node);
             }
         }
@@ -170,19 +169,18 @@ Load* LoadSet::createLoad()
 }
 
 // ------------------------------------------------------------
-void LoadSet::connectElements(ElementSet *elements)
+void LoadSet::connectElements(ElementSet* elements)
 {
-    for (unsigned int i=0; i<m_loads.size(); i++)
+    for (unsigned int i = 0; i < m_loads.size(); i++)
     {
         Load* load = m_loads[i];
-        if (load->isClass("FemElementLoad"))
+        if (load->isClass("ElementLoad"))
         {
-            ElementLoad* elementLoad = (ElementLoad*) load;
+            ElementLoad* elementLoad = (ElementLoad*)load;
             elementLoad->clearElements();
-            for (unsigned int j=0; j<elementLoad->getElementIndexSize(); j++)
+            for (unsigned int j = 0; j < elementLoad->getElementIndexSize(); j++)
             {
-                Element* element =
-                    elements->getElement(elementLoad->getElementIndex(j)-1);
+                Element* element = elements->getElement(elementLoad->getElementIndex(j) - 1);
                 elementLoad->addElement(element);
             }
         }
@@ -190,14 +188,14 @@ void LoadSet::connectElements(ElementSet *elements)
 }
 
 // ------------------------------------------------------------
-bool LoadSet::removeLoad(Load *load)
+bool LoadSet::removeLoad(Load* load)
 {
     std::vector<Load*>::iterator p = m_loads.begin();
 
-    while ( (*p!=load)&&(p!=m_loads.end()) )
+    while ((*p != load) && (p != m_loads.end()))
         p++;
 
-    if (p!=m_loads.end())
+    if (p != m_loads.end())
     {
         Load* l = *p;
         delete l;

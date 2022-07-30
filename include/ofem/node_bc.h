@@ -3,56 +3,59 @@
 #include <ofem/bc.h>
 #include <ofem/node.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(NodeBC);
+SmartPointer(NodeBC);
 
-    class NodeBC : public BC {
-    private:
-        std::vector<Node*> m_nodes;
-        std::vector<long> m_nodeIndex;
-        bool m_prescribedDof[6];
-        double m_prescribedValues[6];
-    public:
-        NodeBC();
-        virtual ~NodeBC();
+class NodeBC : public BC
+{
+private:
+    std::vector<Node*> m_nodes;
+    std::vector<long> m_nodeIndex;
+    bool m_prescribedDof[6];
+    double m_prescribedValues[6];
 
-        // Class info
+public:
+    NodeBC();
+    virtual ~NodeBC();
 
-        ClassInfo("NodeBC", BC);
+    // Class info
 
-        // Methods
+    ClassInfo("NodeBC", BC);
 
-        bool removeNode(Node* node);
-        void clearNodes();
-        void addNode(Node* node);
-        bool isPrescribed(int dof);
-        void unprescribe(int dof);
-        void prescribe(int dof, double value);
-        void prescribePos(double value);
-        void prescribeRot(double value);
+    // Methods
 
-        void fixed();
-        void fixedPosition();
-        void release();
+    bool removeNode(Node* node);
+    void clearNodes();
+    void addNode(Node* node);
+    bool isPrescribed(int dof);
+    void unprescribe(int dof);
+    void prescribe(int dof, double value);
+    void prescribePos(double value);
+    void prescribeRot(double value);
 
-        // Get/set methods
+    void fixed();
+    void fixedPosition();
+    void release();
 
-        long getNodeIndex(unsigned int idx);
-        Node* getNode(unsigned int idx);
-        size_t getNodeSize();
-        size_t getNodeIndexSize();
-        double getPrescribedValue(int dof);
+    // Get/set methods
 
-        bool* getPrescribedArr();
-        double* getPrescribedValueArr();
+    long getNodeIndex(unsigned int idx);
+    Node* getNode(unsigned int idx);
+    size_t getNodeSize();
+    size_t getNodeIndexSize();
+    double getPrescribedValue(int dof);
 
-        // IO Methods
+    bool* getPrescribedArr();
+    double* getPrescribedValueArr();
 
-        virtual void readFromStream(std::istream& in) override;
-        virtual void saveToStream(std::ostream& out) override;
-        virtual void print(std::ostream& out) override;
+    // IO Methods
 
-        virtual json toJSON() override;
-    };
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+
+    virtual json toJSON() override;
+};
 }

@@ -1,46 +1,49 @@
 #pragma once
 
-#include <ofem/load.h>
 #include <ofem/element.h>
+#include <ofem/load.h>
 
 #include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(ElementLoad);
+SmartPointer(ElementLoad);
 
-    class ElementLoad : public Load {
-    private:
-        std::vector<Element*> m_elements;
-        std::vector<long> m_elementIndex;
-        double m_localDirection[3];
-    public:
-        ElementLoad();
-        virtual ~ElementLoad();
+class ElementLoad : public Load
+{
+private:
+    std::vector<Element*> m_elements;
+    std::vector<long> m_elementIndex;
+    double m_localDirection[3];
 
-        // Class info
+public:
+    ElementLoad();
+    virtual ~ElementLoad();
 
-        ClassInfo("ElementLoad", Load);
+    // Class info
 
-        bool removeElement(Element* element);
-        void clearElements();
-        void addElement(Element* element);
+    ClassInfo("ElementLoad", Load);
 
-        // Get/set methods
+    bool removeElement(Element* element);
+    void clearElements();
+    void addElement(Element* element);
 
-        void getLocalDirection(double* v);
-        void setLocalDirection(double* v);
-        void getLocalDirection(double& ex, double& ey, double& ez);
-        void setLocalDirection(double ex, double ey, double ez);
-        unsigned int getElementIndex(unsigned int idx);
-        size_t getElementIndexSize();
-        Element* getElement(unsigned int idx);
-        size_t getElementsSize();
+    // Get/set methods
 
-        // IO Methods
+    void getLocalDirection(double* v);
+    void setLocalDirection(double* v);
+    void getLocalDirection(double& ex, double& ey, double& ez);
+    void setLocalDirection(double ex, double ey, double ez);
+    unsigned int getElementIndex(unsigned int idx);
+    size_t getElementIndexSize();
+    Element* getElement(unsigned int idx);
+    size_t getElementsSize();
 
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    };
+    // IO Methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+};
 }

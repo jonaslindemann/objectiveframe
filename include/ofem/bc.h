@@ -5,45 +5,48 @@
 
 #include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-	SmartPointer(BC);
+SmartPointer(BC);
 
-	class BC : public Base {
-	private:
-		long m_number;
-		std::vector<DofPtr> m_prescribedDofs;
-		std::vector<double>   m_prescribedValues;
-	public:
-		BC();
-		virtual ~BC();
+class BC : public Base
+{
+private:
+    long m_number;
+    std::vector<DofPtr> m_prescribedDofs;
+    std::vector<double> m_prescribedValues;
 
-		ClassInfo("BC", Base);
+public:
+    BC();
+    virtual ~BC();
 
-		// Methods
+    ClassInfo("BC", Base);
 
-		bool isPrescribed(Dof* dof);
-		void prescribeDof(Dof* dof, double value);
-		void unprescribeDof(Dof* dof);
-		void clearDofs();
+    // Methods
 
-		// Get/set methods
+    bool isPrescribed(Dof* dof);
+    void prescribeDof(Dof* dof, double value);
+    void unprescribeDof(Dof* dof);
+    void clearDofs();
 
-		void setNumber(long number);
-		long getNumber();
+    // Get/set methods
 
-		size_t getSize();
+    void setNumber(long number);
+    long getNumber();
 
-		double getValue(unsigned int idx);
+    size_t getSize();
 
-		Dof* getDof(unsigned int idx);
+    double getValue(unsigned int idx);
 
-		// IO Methods
+    Dof* getDof(unsigned int idx);
 
-		virtual void readFromStream(std::istream& in);
-		virtual void saveToStream(std::ostream& out);
-		virtual void print(std::ostream& out);
+    // IO Methods
 
-		virtual json toJSON();
-	};
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+
+    virtual json toJSON() override;
+};
 }

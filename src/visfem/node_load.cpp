@@ -7,8 +7,8 @@ using namespace ivf;
 using namespace vfem;
 
 // ------------------------------------------------------------
-NodeLoad::NodeLoad ()
-    :Shape()
+NodeLoad::NodeLoad()
+    : Shape()
 {
     m_beamModel = nullptr;
     m_nodeLoad = nullptr;
@@ -23,7 +23,7 @@ NodeLoad::NodeLoad ()
 }
 
 // ------------------------------------------------------------
-NodeLoad::~NodeLoad ()
+NodeLoad::~NodeLoad()
 {
 }
 
@@ -31,14 +31,13 @@ NodeLoad::~NodeLoad ()
 void NodeLoad::doCreateGeometry()
 {
     int i;
-    for (i=0; i<m_arrow.size(); i++)
+    for (i = 0; i < m_arrow.size(); i++)
         m_arrow[i]->render();
 }
 
 // ------------------------------------------------------------
 void NodeLoad::doCreateSelect()
 {
-
 }
 
 // ------------------------------------------------------------
@@ -48,12 +47,12 @@ void NodeLoad::initArrow()
     double loadHeight;
     double l;
 
-    if (m_nodeLoad!=nullptr)
+    if (m_nodeLoad != nullptr)
     {
 
-        for (int i=0; i<m_arrow.size(); i++)
+        for (int i = 0; i < m_arrow.size(); i++)
         {
-            if (m_beamModel!=nullptr)
+            if (m_beamModel != nullptr)
                 loadHeight = m_beamModel->getLoadSize();
             else
                 loadHeight = 1.0;
@@ -64,8 +63,8 @@ void NodeLoad::initArrow()
 
             // Define arrow
 
-            m_arrow[i]->setSize(loadHeight*0.6, loadHeight*0.6*0.20);
-            m_arrow[i]->setRadius(loadHeight*0.05, loadHeight*0.03);
+            m_arrow[i]->setSize(loadHeight * 0.6, loadHeight * 0.6 * 0.20);
+            m_arrow[i]->setRadius(loadHeight * 0.05, loadHeight * 0.03);
 
             // Calculate arrow position
 
@@ -75,22 +74,22 @@ void NodeLoad::initArrow()
 
             m_nodeLoad->getDirection(ex, ey, ez);
 
-            l = sqrt(pow(ex,2) + pow(ey,2) + pow(ez,2));
-            ex = ex/l;
-            ey = ey/l;
-            ez = ez/l;
+            l = sqrt(pow(ex, 2) + pow(ey, 2) + pow(ez, 2));
+            ex = ex / l;
+            ey = ey / l;
+            ez = ez / l;
 
             double sign = 1.0;
-            if (m_nodeLoad->getValue()<0)
+            if (m_nodeLoad->getValue() < 0)
                 sign = -1.0;
 
-            m_arrow[i]->setDirection(sign*ex, sign*ey, sign*ez);
+            m_arrow[i]->setDirection(sign * ex, sign * ey, sign * ez);
             m_arrow[i]->setPosition(
-                x - sign*0.7*loadHeight*ex,
-                y - sign*0.7*loadHeight*ey,
-                z - sign*0.7*loadHeight*ez);
+                x - sign * 0.7 * loadHeight * ex,
+                y - sign * 0.7 * loadHeight * ey,
+                z - sign * 0.7 * loadHeight * ez);
             m_arrow[i]->refresh();
-            if (m_beamModel!=nullptr)
+            if (m_beamModel != nullptr)
                 m_beamModel->getColorTable()->assignColor(m_nodeLoad->getColor(), m_arrowMaterial);
         }
     }
@@ -104,15 +103,15 @@ void NodeLoad::refresh()
 }
 
 // ------------------------------------------------------------
-void NodeLoad::setNodeLoad(ofem::BeamNodeLoad *nodeLoad)
+void NodeLoad::setNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
     m_arrow.clear();
 
     m_nodeLoad = nodeLoad;
 
-    if (m_nodeLoad!=nullptr)
+    if (m_nodeLoad != nullptr)
     {
-        for (unsigned int i=0; i<m_nodeLoad->getNodeSize(); i++)
+        for (unsigned int i = 0; i < m_nodeLoad->getNodeSize(); i++)
         {
             auto arrow = ExtrArrow::create();
             m_arrow.push_back(arrow);
@@ -121,7 +120,7 @@ void NodeLoad::setNodeLoad(ofem::BeamNodeLoad *nodeLoad)
     }
 }
 
-void NodeLoad::setBeamModel(BeamModel*model)
+void NodeLoad::setBeamModel(BeamModel* model)
 {
     m_beamModel = model;
 }

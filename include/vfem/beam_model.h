@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ivf/Scene.h>
-#include <ivf/Node.h>
 #include <ivf/BitmapFont.h>
+#include <ivf/Node.h>
+#include <ivf/Scene.h>
 
 #include <ofem/beam_model.h>
 #include <vfem/color_table.h>
@@ -17,19 +17,21 @@
 #define IVF_BEAM_NAVIER 4
 #define IVF_BEAM_NO_RESULT -1
 
-#define IVF_BEAM_LINESET    0
-#define IVF_BEAM_SOLID      1
-#define IVF_BEAM_EXTRUSION  2
-#define IVF_BEAM_RESULTS    3
+#define IVF_BEAM_LINESET 0
+#define IVF_BEAM_SOLID 1
+#define IVF_BEAM_EXTRUSION 2
+#define IVF_BEAM_RESULTS 3
 
-#define IVF_NODE_GEOMETRY      0
-#define IVF_NODE_DISPLACEMENT  1
+#define IVF_NODE_GEOMETRY 0
+#define IVF_NODE_DISPLACEMENT 1
 
-namespace vfem {
+namespace vfem
+{
 
 SmartPointer(BeamModel);
 
-class BeamModel : public ofem::BeamModel {
+class BeamModel : public ofem::BeamModel
+{
 private:
     double m_nodeSize;
     double m_lineRadius;
@@ -59,15 +61,17 @@ private:
 
     std::string m_colorMapPath;
 
-	ofem::BeamNodeBC* m_defaultNodePosBC;
-	ofem::BeamNodeBC* m_defaultNodeFixedBC;
+    ofem::BeamNodeBC* m_defaultNodePosBC;
+    ofem::BeamNodeBC* m_defaultNodeFixedBC;
+
 protected:
-    virtual void onInitialised();
+    virtual void onInitialised() override;
+
 public:
     BeamModel();
     virtual ~BeamModel();
 
-    ClassInfo("vfem::BeamModel",ofem::BeamModel);
+    ClassInfo("vfem::BeamModel", ofem::BeamModel);
 
     void generateModel();
 
@@ -127,7 +131,7 @@ public:
     void setCamera(ivf::Camera* camera);
     ivf::Camera* camera();
 
-	ofem::BeamNodeBC* defaultNodePosBC();
-	ofem::BeamNodeBC* defaultNodeFixedBC();
+    ofem::BeamNodeBC* defaultNodePosBC();
+    ofem::BeamNodeBC* defaultNodeFixedBC();
 };
 }

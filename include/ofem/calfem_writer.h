@@ -1,27 +1,30 @@
 #pragma once
 #include <ofem/input_file_writer.h>
 
-namespace ofem {
+namespace ofem
+{
 
-	SmartPointer(CalfemWriter);
+SmartPointer(CalfemWriter);
 
-	class CalfemWriter : public ofem::InputFileWriter {
-	private:
-		std::string m_filename;
-	public:
-		CalfemWriter(const std::string fname);
+class CalfemWriter : public ofem::InputFileWriter
+{
+private:
+    std::string m_filename;
 
-		ClassInfo("CalfemWriter", InputFileWriter);
+public:
+    CalfemWriter(const std::string fname);
 
-		void writeHeader(std::ostream& out);
-		void writeImports(std::ostream& out);
-		void beginArr(std::ostream& out, std::string name);
-		void arrRow(std::ostream& out, std::vector<float> v);
-		void arrRow(std::ostream& out, std::vector<int> v);
-		void arrRow(std::ostream& out, std::vector<double> v);
-		void endArr(std::ostream& out);
+    ClassInfo("CalfemWriter", InputFileWriter);
 
-		virtual void saveToStream(std::ostream& out) override;
-	};
+    void writeHeader(std::ostream& out);
+    void writeImports(std::ostream& out);
+    void beginArr(std::ostream& out, std::string name);
+    void arrRow(std::ostream& out, std::vector<float> v);
+    void arrRow(std::ostream& out, std::vector<int> v);
+    void arrRow(std::ostream& out, std::vector<double> v);
+    void endArr(std::ostream& out);
+
+    virtual void saveToStream(std::ostream& out) override;
+};
 
 }

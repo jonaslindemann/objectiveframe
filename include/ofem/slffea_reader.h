@@ -4,24 +4,26 @@
 
 #include <string>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(SLFFEAReader);
- 
-    class SLFFEAReader : public OutputFileReader {
-    private:
-        std::string m_fileName;
-        std::fstream m_outputFile;
-    public:
-        SLFFEAReader();
-        virtual ~SLFFEAReader();
+SmartPointer(SLFFEAReader);
 
-        ClassInfo("SLFFEAReader", OutputFileReader);
+class SLFFEAReader : public OutputFileReader
+{
+private:
+    std::string m_fileName;
+    std::fstream m_outputFile;
 
-        void setFileName(const char* fileName);
-        void load();
+public:
+    SLFFEAReader();
+    virtual ~SLFFEAReader();
 
+    ClassInfo("SLFFEAReader", OutputFileReader);
 
-        virtual void readFromStream(std::istream& in);
-    };
+    void setFileName(const char* fileName);
+    void load();
+
+    virtual void readFromStream(std::istream& in) override;
+};
 }

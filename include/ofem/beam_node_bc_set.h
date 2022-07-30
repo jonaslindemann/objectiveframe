@@ -3,19 +3,21 @@
 #include <ofem/beam_node_bc.h>
 #include <ofem/node_bc_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(CFemBeamNodeSetBCSet);
+SmartPointer(CFemBeamNodeSetBCSet);
 
-    class BeamNodeBCSet : public NodeBCSet {
-    private:
+class BeamNodeBCSet : public NodeBCSet
+{
+private:
+public:
+    BeamNodeBCSet();
+    virtual ~BeamNodeBCSet();
 
-    public:
-        BeamNodeBCSet();
-        virtual ~BeamNodeBCSet();
+    ClassInfo("BeamNodeBCSet", NodeBCSet);
 
-        ClassInfo("BeamNodeBCSet", NodeBCSet);
-    protected:
-        BC* createBC();
-    };
+protected:
+    virtual BC* createBC() override;
+};
 }

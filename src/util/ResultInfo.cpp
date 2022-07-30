@@ -10,12 +10,10 @@
 
 CResultInfo::CResultInfo()
 {
-
 }
 
 CResultInfo::~CResultInfo()
 {
-
 }
 
 void CResultInfo::setMaxN(double maxN)

@@ -4,13 +4,13 @@ using namespace ofem;
 using namespace std;
 
 // ------------------------------------------------------------
-Model::Model ()
-    :Base()
+Model::Model()
+    : Base()
 {
 }
 
 // ------------------------------------------------------------
-Model::~Model ()
+Model::~Model()
 {
 }
 
@@ -22,18 +22,18 @@ NodeSet* Model::getNodeSet()
 
 NodeSet* Model::nodeSet()
 {
-	return m_nodeSet;
+    return m_nodeSet;
 }
 
 // ------------------------------------------------------------
 ElementSet* Model::getElementSet()
 {
-	return m_elementSet;
+    return m_elementSet;
 }
 
 ElementSet* Model::elementSet()
 {
-	return m_elementSet;
+    return m_elementSet;
 }
 
 // ------------------------------------------------------------
@@ -44,7 +44,7 @@ MaterialSet* Model::getMaterialSet()
 
 MaterialSet* Model::materialSet()
 {
-	return m_materialSet;
+    return m_materialSet;
 }
 
 // ------------------------------------------------------------
@@ -55,7 +55,7 @@ NodeLoadSet* Model::getNodeLoadSet()
 
 NodeLoadSet* Model::nodeLoadSet()
 {
-	return m_nodeLoadSet;
+    return m_nodeLoadSet;
 }
 
 // ------------------------------------------------------------
@@ -66,7 +66,7 @@ ElementLoadSet* Model::getElementLoadSet()
 
 ElementLoadSet* Model::elementLoadSet()
 {
-	return m_elementLoadSet;
+    return m_elementLoadSet;
 }
 
 // ------------------------------------------------------------
@@ -77,7 +77,7 @@ NodeBCSet* Model::getBCSet()
 
 NodeBCSet* Model::BCSet()
 {
-	return m_bcSet;
+    return m_bcSet;
 }
 
 // ------------------------------------------------------------
@@ -117,7 +117,7 @@ NodeBCSet* Model::createBCSet()
 }
 
 // ------------------------------------------------------------
-void Model::print(ostream &out)
+void Model::print(ostream& out)
 {
     m_materialSet->print(out);
     m_nodeSet->print(out);
@@ -125,7 +125,7 @@ void Model::print(ostream &out)
 }
 
 // ------------------------------------------------------------
-void Model::saveToStream(std::ostream &out)
+void Model::saveToStream(std::ostream& out)
 {
     // Enumerate model
 
@@ -140,20 +140,25 @@ void Model::saveToStream(std::ostream &out)
     // Save to stream
 
     m_materialSet->saveToStream(out);
-    out << endl << endl;
+    out << endl
+        << endl;
     m_nodeSet->saveToStream(out);
-    out << endl << endl;
+    out << endl
+        << endl;
     m_elementSet->saveToStream(out);
-    out << endl << endl;
+    out << endl
+        << endl;
     m_nodeLoadSet->saveToStream(out);
-    out << endl << endl;
+    out << endl
+        << endl;
     m_elementLoadSet->saveToStream(out);
-    out << endl << endl;
+    out << endl
+        << endl;
     m_bcSet->saveToStream(out);
 }
 
 // ------------------------------------------------------------
-void Model::readFromStream(std::istream &in)
+void Model::readFromStream(std::istream& in)
 {
     initialize();
     deleteAll();
@@ -179,7 +184,6 @@ void Model::connectElements()
 // ------------------------------------------------------------
 void Model::connectMaterials()
 {
-
 }
 
 // ------------------------------------------------------------
@@ -226,31 +230,31 @@ const std::string Model::getFileName()
 // ------------------------------------------------------------
 bool Model::open()
 {
-	if (m_fileName != "")
-	{
-		fstream inputFile;
-		inputFile.open(m_fileName.c_str(), ios::in);
-		if (inputFile.is_open())
-		{
-			this->readFromStream(inputFile);
-		}
-		else
-			return false;
+    if (m_fileName != "")
+    {
+        fstream inputFile;
+        inputFile.open(m_fileName.c_str(), ios::in);
+        if (inputFile.is_open())
+        {
+            this->readFromStream(inputFile);
+        }
+        else
+            return false;
 
-		inputFile.close();
-		return true;
-	}
-	else
-		return false;
+        inputFile.close();
+        return true;
+    }
+    else
+        return false;
 }
 
 // ------------------------------------------------------------
 void Model::save()
 {
-    if (m_fileName!="")
+    if (m_fileName != "")
     {
         fstream outputFile;
-        outputFile.open(m_fileName.c_str(),ios::out);
+        outputFile.open(m_fileName.c_str(), ios::out);
         this->saveToStream(outputFile);
         outputFile.close();
     }
@@ -267,14 +271,13 @@ void Model::initialize()
     m_materialSet = this->createMaterialSet();
     m_nodeLoadSet = this->createNodeLoadSet();
     m_bcSet = this->createBCSet();
-    
+
     this->onInitialised();
 }
 
 // ------------------------------------------------------------
 void Model::onInitialised()
 {
-    
 }
 
 // ------------------------------------------------------------
@@ -282,7 +285,6 @@ void Model::clearNodeValues()
 {
     m_nodeSet->clearNodeValues();
 }
-
 
 // ------------------------------------------------------------
 NodeBCSet* Model::getNodeBCSet()
@@ -292,6 +294,5 @@ NodeBCSet* Model::getNodeBCSet()
 
 NodeBCSet* Model::nodeBCSet()
 {
-	return m_bcSet;
+    return m_bcSet;
 }
-

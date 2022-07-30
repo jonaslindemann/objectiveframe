@@ -1,91 +1,95 @@
 #pragma once
 
 #include <ofem/base.h>
-#include <ofem/material_set.h>
 #include <ofem/bc.h>
-#include <ofem/node_bc_set.h>
-#include <ofem/load_set.h>
-#include <ofem/element_set.h>
-#include <ofem/node_set.h>
-#include <ofem/node_load_set.h>
 #include <ofem/element_load_set.h>
+#include <ofem/element_set.h>
+#include <ofem/load_set.h>
+#include <ofem/material_set.h>
+#include <ofem/node_bc_set.h>
+#include <ofem/node_load_set.h>
+#include <ofem/node_set.h>
 
-#include <vector>
 #include <fstream>
 #include <string>
+#include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(Model);
+SmartPointer(Model);
 
-    class Model : public Base {
-    private:
-        NodeSetPtr m_nodeSet;
-        ElementSetPtr m_elementSet;
-        MaterialSetPtr m_materialSet;
-        NodeLoadSetPtr m_nodeLoadSet;
-        ElementLoadSetPtr m_elementLoadSet;
-        NodeBCSetPtr m_bcSet;
-        std::string m_fileName;
-    protected:
-        virtual NodeBCSet* createBCSet();
-        virtual ElementLoadSet* createElementLoadSet();
-        virtual NodeLoadSet* createNodeLoadSet();
-        virtual MaterialSet* createMaterialSet();
-        virtual NodeSet* createNodeSet();
-        virtual ElementSet* createElementSet();
-        virtual void connectElementLoads();
-        virtual void connectNodeLoads();
-        virtual void connectMaterials();
-        virtual void connectElements();
-        virtual void connectNodeBCs();
-        virtual void onInitialised();
-    public:
-        Model();
-        virtual ~Model();
+class Model : public Base
+{
+private:
+    NodeSetPtr m_nodeSet;
+    ElementSetPtr m_elementSet;
+    MaterialSetPtr m_materialSet;
+    NodeLoadSetPtr m_nodeLoadSet;
+    ElementLoadSetPtr m_elementLoadSet;
+    NodeBCSetPtr m_bcSet;
+    std::string m_fileName;
 
-        // Class info
+protected:
+    virtual NodeBCSet* createBCSet();
+    virtual ElementLoadSet* createElementLoadSet();
+    virtual NodeLoadSet* createNodeLoadSet();
+    virtual MaterialSet* createMaterialSet();
+    virtual NodeSet* createNodeSet();
+    virtual ElementSet* createElementSet();
+    virtual void connectElementLoads();
+    virtual void connectNodeLoads();
+    virtual void connectMaterials();
+    virtual void connectElements();
+    virtual void connectNodeBCs();
+    virtual void onInitialised();
 
-        ClassInfo("Model", Base);
+public:
+    Model();
+    virtual ~Model();
 
-        // Methods
+    // Class info
 
-        void initialize();
-        void save();
-        bool open();
-        void deleteAll();
+    ClassInfo("Model", Base);
 
-        void clearNodeValues();
+    // Methods
 
-        // Get/set methods
+    void initialize();
+    void save();
+    bool open();
+    void deleteAll();
 
-        MaterialSet* getMaterialSet();
-        MaterialSet* materialSet();
+    void clearNodeValues();
 
-        ElementSet* getElementSet();
-        ElementSet* elementSet();
+    // Get/set methods
 
-        NodeSet* getNodeSet();
-        NodeSet* nodeSet();
+    MaterialSet* getMaterialSet();
+    MaterialSet* materialSet();
 
-        NodeLoadSet* getNodeLoadSet();
-        NodeLoadSet* nodeLoadSet();
+    ElementSet* getElementSet();
+    ElementSet* elementSet();
 
-        ElementLoadSet* getElementLoadSet();
-        ElementLoadSet* elementLoadSet();
+    NodeSet* getNodeSet();
+    NodeSet* nodeSet();
 
-        NodeBCSet* getBCSet();
-        NodeBCSet* BCSet();
-        NodeBCSet* getNodeBCSet();
-        NodeBCSet* nodeBCSet();
+    NodeLoadSet* getNodeLoadSet();
+    NodeLoadSet* nodeLoadSet();
 
-        const std::string getFileName();
-        void setFileName(const std::string& fname);
+    ElementLoadSet* getElementLoadSet();
+    ElementLoadSet* elementLoadSet();
 
-        // IO Methods
+    NodeBCSet* getBCSet();
+    NodeBCSet* BCSet();
+    NodeBCSet* getNodeBCSet();
+    NodeBCSet* nodeBCSet();
 
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    };
+    const std::string getFileName();
+    void setFileName(const std::string& fname);
+
+    // IO Methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+};
 }

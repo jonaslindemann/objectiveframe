@@ -1,24 +1,27 @@
 #pragma once
 
-#include <ofem/element_set.h>
 #include <ofem/beam.h>
 #include <ofem/beam_material_set.h>
+#include <ofem/element_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(BeamSet);
+SmartPointer(BeamSet);
 
-    class BeamSet : public ElementSet {
-    protected:
-        virtual Element* createElement();
-    public:
-        BeamSet();
-        virtual ~BeamSet();
+class BeamSet : public ElementSet
+{
+protected:
+    virtual Element* createElement() override;
 
-        ClassInfo("BeamSet", ElementSet);
+public:
+    BeamSet();
+    virtual ~BeamSet();
 
-        // Methods
+    ClassInfo("BeamSet", ElementSet);
 
-        void connectMaterials(BeamMaterialSet* materialSet);
-    };
+    // Methods
+
+    void connectMaterials(BeamMaterialSet* materialSet);
+};
 }

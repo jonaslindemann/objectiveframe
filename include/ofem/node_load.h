@@ -5,44 +5,47 @@
 
 #include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(NodeLoad);
+SmartPointer(NodeLoad);
 
-    class NodeLoad : public Load {
-    private:
-        std::vector<Node*> m_nodes;
-        std::vector<long> m_nodeIndex;
-        double m_direction[3];
-    public:
-        NodeLoad();
-        virtual ~NodeLoad();
+class NodeLoad : public Load
+{
+private:
+    std::vector<Node*> m_nodes;
+    std::vector<long> m_nodeIndex;
+    double m_direction[3];
 
-        // Class info
+public:
+    NodeLoad();
+    virtual ~NodeLoad();
 
-        ClassInfo("NodeLoad", Load);
+    // Class info
 
-        // Methods
+    ClassInfo("NodeLoad", Load);
 
-        bool removeNode(Node* node);
-        void clearNodes();
-        void addNode(Node* node);
+    // Methods
 
-        // Get/set methods
+    bool removeNode(Node* node);
+    void clearNodes();
+    void addNode(Node* node);
 
-        void getDirection(double* v);
-        void setDirection(double* v);
-        void getDirection(double& ex, double& ey, double& ez);
-        void setDirection(double ex, double ey, double ez);
-        long getNodeIndex(unsigned int idx);
-        Node* getNode(unsigned int idx);
-        size_t getNodeSize();
-        size_t getNodeIndexSize();
+    // Get/set methods
 
-        // IO Methods
+    void getDirection(double* v);
+    void setDirection(double* v);
+    void getDirection(double& ex, double& ey, double& ez);
+    void setDirection(double ex, double ey, double ez);
+    long getNodeIndex(unsigned int idx);
+    Node* getNode(unsigned int idx);
+    size_t getNodeSize();
+    size_t getNodeIndexSize();
 
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    };
+    // IO Methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+};
 }

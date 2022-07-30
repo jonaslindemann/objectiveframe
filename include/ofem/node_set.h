@@ -5,44 +5,47 @@
 
 #include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(NodeSet);
+SmartPointer(NodeSet);
 
-    class NodeSet : public Base {
-    private:
-        std::vector<NodePtr> m_nodes;
-    public:
-        NodeSet();
-        virtual ~NodeSet();
+class NodeSet : public Base
+{
+private:
+    std::vector<NodePtr> m_nodes;
 
-        // Class info
+public:
+    NodeSet();
+    virtual ~NodeSet();
 
-        ClassInfo("NodeSet", Base);
+    // Class info
 
-        // Methods
+    ClassInfo("NodeSet", Base);
 
-        void deleteAll();
-        Node* removeNode(long i);
-        bool removeNode(Node* node);
-        bool deleteNode(long i);
-        Node* getNode(long i);
-        void addNode(Node* node);
-        void clear();
+    // Methods
 
-        void clearNodeValues();
+    void deleteAll();
+    Node* removeNode(long i);
+    bool removeNode(Node* node);
+    bool deleteNode(long i);
+    Node* getNode(long i);
+    void addNode(Node* node);
+    void clear();
 
-        long enumerateNodes(long count = 1);
-        long enumerateDofs(long count = 1);
+    void clearNodeValues();
 
-        // Get/set methods
+    long enumerateNodes(long count = 1);
+    long enumerateDofs(long count = 1);
 
-        size_t getSize();
+    // Get/set methods
 
-        virtual void print(std::ostream& out);
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
+    size_t getSize();
 
-        virtual json toJSON() override;
-    };
+    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+
+    virtual json toJSON() override;
+};
 }

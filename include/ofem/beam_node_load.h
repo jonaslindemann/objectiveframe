@@ -2,27 +2,30 @@
 
 #include <ofem/node_load.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(BeamNodeLoad);
+SmartPointer(BeamNodeLoad);
 
-    class BeamNodeLoad : public NodeLoad {
-    private:
-        int m_color;
-        std::string m_name;
-    public:
-        BeamNodeLoad();
-        virtual ~BeamNodeLoad();
+class BeamNodeLoad : public NodeLoad
+{
+private:
+    int m_color;
+    std::string m_name;
 
-        ClassInfo("BeamNodeLoad", NodeLoad);
+public:
+    BeamNodeLoad();
+    virtual ~BeamNodeLoad();
 
-        void setColor(int color);
-        int getColor();
+    ClassInfo("BeamNodeLoad", NodeLoad);
 
-        void setName(const std::string& name);
-        const std::string getName();
+    void setColor(int color);
+    int getColor();
 
-        void readFromStream(std::istream& in);
-        void saveToStream(std::ostream& out);
-    };
+    void setName(const std::string& name);
+    const std::string getName();
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+};
 }

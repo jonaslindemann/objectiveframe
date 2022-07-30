@@ -1,6 +1,6 @@
-#include <vfem/beam_load.h>
-#include <ivfmath/Vec3d.h>
 #include <ivf/Extrusion.h>
+#include <ivfmath/Vec3d.h>
+#include <vfem/beam_load.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -17,8 +17,8 @@ using namespace ivf;
 using namespace vfem;
 
 // ------------------------------------------------------------
-BeamLoad::BeamLoad ()
-    :Shape()
+BeamLoad::BeamLoad()
+    : Shape()
 {
     m_beamModel = nullptr;
     m_extrMaterial = ivf::Material::create();
@@ -37,7 +37,7 @@ BeamLoad::BeamLoad ()
 }
 
 // ------------------------------------------------------------
-BeamLoad::~BeamLoad ()
+BeamLoad::~BeamLoad()
 {
     m_q.clear();
     m_arrow.clear();
@@ -48,19 +48,19 @@ void BeamLoad::refresh()
 {
     ColorTable* colorTable;
 
-    if (m_beamModel!=nullptr)
+    if (m_beamModel != nullptr)
         colorTable = m_beamModel->getColorTable();
     else
         colorTable = nullptr;
 
-    if (m_colorTable==nullptr)
+    if (m_colorTable == nullptr)
     {
         m_extrMaterial->setAmbientColor(0.3f, 0.0f, 0.0f, 1.0f);
         m_extrMaterial->setDiffuseColor(0.7f, 0.0f, 0.0f, 1.0f);
     }
     else
     {
-        if (colorTable!=nullptr)
+        if (colorTable != nullptr)
         {
             colorTable->assignColor(m_beamLoad->getColor(), m_extrMaterial);
             colorTable->assignColor(m_beamLoad->getColor(), m_arrowMaterial);
@@ -81,10 +81,10 @@ void BeamLoad::initExtrusion()
     double ax, ay, az;
     double bx, by, bz;
 
-    if (m_beamLoad!=nullptr)
+    if (m_beamLoad != nullptr)
     {
 
-        for (int i=0; i<m_q.size(); i++)
+        for (int i = 0; i < m_q.size(); i++)
         {
 
             // Get beam
@@ -95,16 +95,16 @@ void BeamLoad::initExtrusion()
 
             // Create section
 
-            //m_q[i]->setUseTwist(true);
+            // m_q[i]->setUseTwist(true);
 
             m_beamLoad->getLocalDirection(lex, ley, lez);
 
-            if (ley>0)
+            if (ley > 0)
                 femBeam->getOrientationY(ex, ey, ez);
             else
                 femBeam->getOrientationZ(ex, ey, ez);
 
-            if (m_beamModel!=nullptr)
+            if (m_beamModel != nullptr)
                 loadHeight = m_beamModel->getBeamLoadSize();
             else
                 loadHeight = 1.0;
@@ -113,29 +113,29 @@ void BeamLoad::initExtrusion()
 
             node1->getCoord(ax, ay, az);
             m_q[i]->setCoord(0, ax, ay, az);
-            m_q[i]->setCoord(1, ax - ex*loadHeight, ay - ey*loadHeight, az - ez*loadHeight);
+            m_q[i]->setCoord(1, ax - ex * loadHeight, ay - ey * loadHeight, az - ez * loadHeight);
             node2->getCoord(bx, by, bz);
-            m_q[i]->setCoord(2, bx - ex*loadHeight, by - ey*loadHeight, bz - ez*loadHeight);
+            m_q[i]->setCoord(2, bx - ex * loadHeight, by - ey * loadHeight, bz - ez * loadHeight);
             m_q[i]->setCoord(3, bx, by, bz);
             m_q[i]->refresh();
 
             // Define arrow
 
-            m_arrow[i]->setSize(loadHeight, loadHeight*0.20);
-            m_arrow[i]->setRadius(loadHeight*0.05, loadHeight*0.03);
-            if (m_beamLoad->getValue()<0)
+            m_arrow[i]->setSize(loadHeight, loadHeight * 0.20);
+            m_arrow[i]->setRadius(loadHeight * 0.05, loadHeight * 0.03);
+            if (m_beamLoad->getValue() < 0)
             {
-                x = (ax+bx)/2.0 - ex*loadHeight;
-                y = (ay+by)/2.0 - ey*loadHeight;
-                z = (az+bz)/2.0 - ez*loadHeight;
+                x = (ax + bx) / 2.0 - ex * loadHeight;
+                y = (ay + by) / 2.0 - ey * loadHeight;
+                z = (az + bz) / 2.0 - ez * loadHeight;
                 m_arrow[i]->setPosition(x, y, z);
                 m_arrow[i]->setDirection(ex, ey, ez);
             }
             else
             {
-                x = (ax+bx)/2.0;
-                y = (ay+by)/2.0;
-                z = (az+bz)/2.0;
+                x = (ax + bx) / 2.0;
+                y = (ay + by) / 2.0;
+                z = (az + bz) / 2.0;
                 m_arrow[i]->setPosition(x, y, z);
                 m_arrow[i]->setDirection(-ex, -ey, -ez);
             }
@@ -151,7 +151,7 @@ void BeamLoad::setBeamLoad(ofem::BeamLoad* load)
     m_arrow.clear();
 
     m_beamLoad = load;
-    for (i=0; i<m_beamLoad->getElementsSize(); i++)
+    for (i = 0; i < m_beamLoad->getElementsSize(); i++)
     {
         QuadSetPtr q = QuadSet::create();
         m_q.push_back(q);
@@ -175,11 +175,11 @@ void BeamLoad::doCreateGeometry()
 {
     int old_style = ivfGetGLEJoinStyle();
     int i;
-    //gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);
-    for (i=0; i<m_q.size(); i++)
+    // gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);
+    for (i = 0; i < m_q.size(); i++)
         m_q[i]->render();
-    ivfSetGLEJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_EDGE|TUBE_JN_ANGLE);
-    for (i=0; i<m_arrow.size(); i++)
+    ivfSetGLEJoinStyle(TUBE_JN_ANGLE | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+    for (i = 0; i < m_arrow.size(); i++)
         m_arrow[i]->render();
     ivfSetGLEJoinStyle(old_style);
 }
@@ -189,15 +189,15 @@ void BeamLoad::doCreateSelect()
 {
     int old_style = ivfGetGLEJoinStyle();
     int i;
-    //gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);
-    for (i=0; i<m_q.size(); i++)
+    // gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);
+    for (i = 0; i < m_q.size(); i++)
     {
         m_q[i]->setSelect(Shape::SS_ON);
         m_q[i]->render();
         m_q[i]->setSelect(Shape::SS_OFF);
     }
-    ivfSetGLEJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_EDGE|TUBE_JN_ANGLE);
-    for (i=0; i<m_arrow.size(); i++)
+    ivfSetGLEJoinStyle(TUBE_JN_ANGLE | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+    for (i = 0; i < m_arrow.size(); i++)
     {
         m_arrow[i]->setSelect(Shape::SS_ON);
         m_arrow[i]->render();
@@ -206,7 +206,7 @@ void BeamLoad::doCreateSelect()
     ivfSetGLEJoinStyle(old_style);
 }
 
-void BeamLoad::setBeamModel(BeamModel*model)
+void BeamLoad::setBeamModel(BeamModel* model)
 {
     m_beamModel = model;
 }

@@ -2,19 +2,21 @@
 
 #include <ofem/beam_load.h>
 
-#include <ivf/Shape.h>
-#include <ivf/QuadSet.h>
 #include <ivf/ExtrArrow.h>
 #include <ivf/Material.h>
+#include <ivf/QuadSet.h>
+#include <ivf/Shape.h>
 
-#include <vfem/color_table.h>
 #include <vfem/beam_model.h>
+#include <vfem/color_table.h>
 
-namespace vfem {
+namespace vfem
+{
 
 IvfSmartPointer(VisBeamLoad);
 
-class BeamLoad : public ivf::Shape {
+class BeamLoad : public ivf::Shape
+{
 private:
     std::vector<ivf::QuadSetPtr> m_q;
     ofem::BeamLoad* m_beamLoad;
@@ -26,21 +28,22 @@ private:
     vfem::BeamModel* m_beamModel;
 
     void initExtrusion();
-public:
-    BeamLoad ();
-    virtual ~BeamLoad ();
 
-    IvfClassInfo("vfem::BeamLoad",ivf::Shape);
+public:
+    BeamLoad();
+    virtual ~BeamLoad();
+
+    IvfClassInfo("vfem::BeamLoad", ivf::Shape);
 
     void setColorTable(vfem::ColorTable* colorTable);
     void setBeamModel(vfem::BeamModel* model);
 
-
     void setBeamLoad(ofem::BeamLoad* load);
 
-    virtual void refresh();
+    virtual void refresh() override;
+
 protected:
-    virtual void doCreateSelect();
-    virtual void doCreateGeometry();
+    virtual void doCreateSelect() override;
+    virtual void doCreateGeometry() override;
 };
 }

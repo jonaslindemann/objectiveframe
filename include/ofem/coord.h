@@ -2,23 +2,26 @@
 
 #include <ofem/base.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(Coord);
+SmartPointer(Coord);
 
-    class Coord : public Base {
-    private:
-        double m_coord[3];
-    public:
-        Coord();
-        virtual ~Coord();
+class Coord : public Base
+{
+private:
+    double m_coord[3];
 
-        ClassInfo("Coord", Base);
+public:
+    Coord();
+    virtual ~Coord();
 
-        void setCoord(double x, double y, double z);
-        void getCoord(double& x, double& y, double& z);
+    ClassInfo("Coord", Base);
 
-        void readFromStream(std::istream& in);
-        void saveToStream(std::ostream& out);
-    };
+    void setCoord(double x, double y, double z);
+    void getCoord(double& x, double& y, double& z);
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+};
 }

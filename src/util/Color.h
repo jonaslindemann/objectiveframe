@@ -4,9 +4,11 @@
 /**
  * Color class
  */
-class CColor {
+class CColor
+{
 private:
     float m_color[4];
+
 public:
     /** Color class constructor. */
     CColor();
@@ -18,7 +20,7 @@ public:
 
     /** Sets color value. */
     void setColor(float red, float green, float blue, float alpha);
-    void getColor(float &r, float &g, float &b, float &a);
+    void getColor(float& r, float& g, float& b, float& a);
 
     /** Set color alpha value. */
     void setAlpha(float alpha);
@@ -28,4 +30,3 @@ public:
 };
 
 #endif
-

@@ -4,15 +4,13 @@ using namespace ofem;
 
 // ------------------------------------------------------------
 BeamMaterialSet::BeamMaterialSet()
-    :MaterialSet()
+    : MaterialSet()
 {
-
 }
 
 // ------------------------------------------------------------
 BeamMaterialSet::~BeamMaterialSet()
 {
-
 }
 
 // ------------------------------------------------------------

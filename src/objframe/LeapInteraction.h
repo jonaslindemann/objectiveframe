@@ -13,48 +13,48 @@
 
 #ifdef USE_LEAP
 
-#include <iostream>
-#include "Leap.h"
 #include "IvfFemWidget.h"
+#include "Leap.h"
 #include "LeapFinger.h"
+#include <iostream>
 
-#define SMALL_NUM   0.00000001 // anything that avoids division overflow
+#define SMALL_NUM 0.00000001 // anything that avoids division overflow
 #define SNAP_DIST 8
 
 using namespace Leap;
 
-class LeapInteraction {
+class LeapInteraction
+{
 private:
-    double              m_alpha, m_beta;
-    
-    Frame               m_leapFrame;
-    CIvfFemWidget       *m_widget;
-    
-    LeapFinger          *m_finger1;
-    LeapFinger          *m_finger2;
-    
-    CIvfVec3d           *m_forceVector;
-    
-    double              m_lastFingerCount;
-    double              m_lastDistance;
-    bool                m_interact;
-    
-    Vector              m_graspPoint;
-    CIvfFemNode         *m_interactionNode;
-    
-    
+    double m_alpha, m_beta;
+
+    Frame m_leapFrame;
+    CIvfFemWidget* m_widget;
+
+    LeapFinger* m_finger1;
+    LeapFinger* m_finger2;
+
+    CIvfVec3d* m_forceVector;
+
+    double m_lastFingerCount;
+    double m_lastDistance;
+    bool m_interact;
+
+    Vector m_graspPoint;
+    CIvfFemNode* m_interactionNode;
+
 public:
     LeapInteraction();
-    LeapInteraction(CIvfFemWidget *widget);
+    LeapInteraction(CIvfFemWidget* widget);
     virtual ~LeapInteraction();
-    
+
     void updateLeapFrame(Frame leapFrame);
     void refresh();
     void viewInteraction();
-    void findNode(double v[3], double &distance, CIvfFemNode* &closestNode);
+    void findNode(double v[3], double& distance, CIvfFemNode*& closestNode);
     void graspGesture();
     double vectorsIntersect(Vector p1, Vector p2, Vector dir1, Vector dir2);
-    
+
     void startGrasp();
     void interactNode();
     void endGrasp();

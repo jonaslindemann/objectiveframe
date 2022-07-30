@@ -1,28 +1,31 @@
 #pragma once
 
-#include <ofem/element_load.h>
 #include <ofem/beam.h>
+#include <ofem/element_load.h>
 
-namespace ofem {
+namespace ofem
+{
 
-	SmartPointer(BeamLoad);
+SmartPointer(BeamLoad);
 
-	class BeamLoad : public ElementLoad {
-	private:
-		std::string m_name;
-		int m_color;
-	public:
-		BeamLoad();
-		virtual ~BeamLoad();
+class BeamLoad : public ElementLoad
+{
+private:
+    std::string m_name;
+    int m_color;
 
-		ClassInfo("BeamLoad", ElementLoad);
+public:
+    BeamLoad();
+    virtual ~BeamLoad();
 
-		const std::string getName();
-		void setName(const std::string& name);
-		void setColor(int color);
-		int getColor();
+    ClassInfo("BeamLoad", ElementLoad);
 
-		virtual void readFromStream(std::istream& in);
-		virtual void saveToStream(std::ostream& out);
-	};
+    const std::string getName();
+    void setName(const std::string& name);
+    void setColor(int color);
+    int getColor();
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+};
 }

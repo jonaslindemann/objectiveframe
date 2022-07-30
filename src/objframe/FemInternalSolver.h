@@ -1,19 +1,17 @@
 #ifndef _CFemInternalSolver_h_
 #define _CFemInternalSolver_h_
 
-
 #include <ofem/beam_model.h>
 
-#include <iostream>
-#include <iomanip>
 #include <cmath>
-
+#include <iomanip>
+#include <iostream>
 
 #include <include.h>
 
 #include <newmat.h>
-#include <newmatio.h>
 #include <newmatap.h>
+#include <newmatio.h>
 
 #include <ResultInfo.h>
 
@@ -21,17 +19,18 @@
 using namespace NEWMAT;
 #endif
 
-#define BS_NO_ERROR			0
-#define BS_NO_NODES			1
-#define BS_NO_ELEMENTS		2
-#define BS_NO_BC			3
-#define BS_NO_LOADS			4
-#define BS_UNSTABLE			5
-#define BS_INVALID_MODEL	6
-#define BS_SINGULAR			7
+#define BS_NO_ERROR 0
+#define BS_NO_NODES 1
+#define BS_NO_ELEMENTS 2
+#define BS_NO_BC 3
+#define BS_NO_LOADS 4
+#define BS_UNSTABLE 5
+#define BS_INVALID_MODEL 6
+#define BS_SINGULAR 7
 #define BS_UNDEFINED_MATERIAL 8
 
-class FrameSolver {
+class FrameSolver
+{
 private:
     ofem::BeamModel* m_beamModel;
     double m_maxNodeValue;
@@ -47,7 +46,6 @@ private:
     ColumnVector m_GlobalA;
     ColumnVector m_a;
     int m_errorStatus;
-
 
     double m_maxN;
     double m_minN;

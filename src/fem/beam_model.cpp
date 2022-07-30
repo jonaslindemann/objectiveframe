@@ -4,14 +4,14 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-BeamModel::BeamModel ()
-    :Model()
-    //TODO: check and complete member initialisation list!
+BeamModel::BeamModel()
+    : Model()
+// TODO: check and complete member initialisation list!
 {
 }
 
 // ------------------------------------------------------------
-BeamModel::~BeamModel ()
+BeamModel::~BeamModel()
 {
 }
 

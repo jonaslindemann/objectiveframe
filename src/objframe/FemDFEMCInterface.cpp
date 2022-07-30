@@ -6,16 +6,16 @@
 #include <dfemc.h>
 #endif
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
+#include <ofem/beam_load.h>
+#include <ofem/element_load_set.h>
 #include <ofem/element_set.h>
-#include <ofem/node_set.h>
 #include <ofem/material_set.h>
 #include <ofem/node_bc_set.h>
 #include <ofem/node_load_set.h>
-#include <ofem/element_load_set.h>
-#include <ofem/beam_load.h>
+#include <ofem/node_set.h>
 
 using namespace ofem;
 
@@ -31,10 +31,9 @@ FrameDFEMCInterface::FrameDFEMCInterface()
 
 FrameDFEMCInterface::~FrameDFEMCInterface()
 {
-
 }
 
-void FrameDFEMCInterface::setBeamModel(BeamModel *model)
+void FrameDFEMCInterface::setBeamModel(BeamModel* model)
 {
     m_beamModel = model;
 }
@@ -42,7 +41,7 @@ void FrameDFEMCInterface::setBeamModel(BeamModel *model)
 void FrameDFEMCInterface::execute()
 {
 #ifdef HAVE_CORBA
-    if (m_beamModel!=NULL)
+    if (m_beamModel != NULL)
     {
         try
         {
@@ -56,7 +55,7 @@ void FrameDFEMCInterface::execute()
             // Initialize ORB
             //
 
-            CORBA::ORB_var orb = CORBA::ORB_init(m_argc,m_argv);
+            CORBA::ORB_var orb = CORBA::ORB_init(m_argc, m_argv);
 
             //
             // Get initial naming context
@@ -65,9 +64,9 @@ void FrameDFEMCInterface::execute()
             CORBA::Object_var nameRef;
             try
             {
-                nameRef = orb -> resolve_initial_references("NameService");
+                nameRef = orb->resolve_initial_references("NameService");
             }
-            catch(const CORBA::ORB::InvalidName&)
+            catch (const CORBA::ORB::InvalidName&)
             {
                 cerr << m_argv[0] << ": can't resolve `NameService'" << endl;
                 return;
@@ -88,12 +87,17 @@ void FrameDFEMCInterface::execute()
             name[1].id = CORBA::string_dup("factories");
             name[2].id = CORBA::string_dup("FemSystemFactory");
 
-            try {
+            try
+            {
                 systemFactoryRef = inc->resolve(name);
-            } catch (const CosNaming::NamingContext::NotFound &) {
+            }
+            catch (const CosNaming::NamingContext::NotFound&)
+            {
                 cerr << "No name for model factory." << endl;
                 throw 0;
-            } catch (const CORBA::Exception &e) {
+            }
+            catch (const CORBA::Exception& e)
+            {
                 cerr << "Resolve failed: " << e << endl;
                 throw 0;
             }
@@ -216,13 +220,13 @@ void FrameDFEMCInterface::execute()
             // Define model in terms of DFEMC
             //
 
-            double E,G,A,Iy,Iz,Kv;
+            double E, G, A, Iy, Iz, Kv;
             double x, y, z;
             double ex, ey, ez;
 
             CFemBeamModel* femModel = m_beamModel;
 
-            if (femModel==NULL)
+            if (femModel == NULL)
                 return;
 
             CFemElementSet* elementSet = femModel->getElementSet();
@@ -255,10 +259,10 @@ void FrameDFEMCInterface::execute()
 
             dfemcMaterialSet->first();
 
-            for (i=0; i<materialSet->getSize(); i++)
+            for (i = 0; i < materialSet->getSize(); i++)
             {
-                CFemBeamMaterial* material = (CFemBeamMaterial*) materialSet->getMaterial(i);
-                material->getProperties(E,G,A,Iy,Iz,Kv);
+                CFemBeamMaterial* material = (CFemBeamMaterial*)materialSet->getMaterial(i);
+                material->getProperties(E, G, A, Iy, Iz, Kv);
 
                 dfemcMaterial->setProperty(1, E);
                 dfemcMaterial->setProperty(2, G);
@@ -277,7 +281,7 @@ void FrameDFEMCInterface::execute()
 
             dfemcNodeSet->first();
 
-            for (i=0; i<nodeSet->getSize(); i++)
+            for (i = 0; i < nodeSet->getSize(); i++)
             {
                 CFemNode* node = nodeSet->getNode(i);
                 node->getCoord(x, y, z);
@@ -293,9 +297,9 @@ void FrameDFEMCInterface::execute()
 
             dfemcElementSet->first();
 
-            for (i=0; i<elementSet->getSize(); i++)
+            for (i = 0; i < elementSet->getSize(); i++)
             {
-                CFemBeam* element = (CFemBeam*) elementSet->getElement(i);
+                CFemBeam* element = (CFemBeam*)elementSet->getElement(i);
                 dfemcElement->addNode(element->getNode(0)->getNumber());
                 dfemcElement->addNode(element->getNode(1)->getNumber());
                 dfemcElement->setMaterial(element->getMaterial()->getNumber());
@@ -310,17 +314,17 @@ void FrameDFEMCInterface::execute()
 
             dfemcNodeBCSet->first();
 
-            for (i=0; i<bcSet->getSize(); i++)
+            for (i = 0; i < bcSet->getSize(); i++)
             {
                 CFemNodeBC* nodeBC = (CFemNodeBC*)bcSet->getBC(i);
 
-                for (j=1; j<=6; j++)
+                for (j = 1; j <= 6; j++)
                 {
-                    if  (nodeBC->isPrescribed(j))
+                    if (nodeBC->isPrescribed(j))
                         dfemcNodeBC->prescribe(j, nodeBC->getPrescribedValue(j));
                 }
 
-                for (j=0; j<nodeBC->getNodeSize(); j++)
+                for (j = 0; j < nodeBC->getNodeSize(); j++)
                 {
                     CFemNode* node = nodeBC->getNode(j);
                     dfemcNodeBC->addNode(node->getNumber());
@@ -337,7 +341,7 @@ void FrameDFEMCInterface::execute()
 
             dfemcNodeLoadSet->first();
 
-            for (i=0; i<nodeLoadSet->getSize(); i++)
+            for (i = 0; i < nodeLoadSet->getSize(); i++)
             {
                 CFemNodeLoad* nodeLoad = (CFemNodeLoad*)nodeLoadSet->getLoad(i);
 
@@ -345,7 +349,7 @@ void FrameDFEMCInterface::execute()
                 nodeLoad->getDirection(ex, ey, ez);
                 dfemcNodeLoad->setDirection(ex, ey, ez);
 
-                for (j=0; j<nodeLoad->getNodeSize(); j++)
+                for (j = 0; j < nodeLoad->getNodeSize(); j++)
                 {
                     CFemNode* node = nodeLoad->getNode(j);
                     dfemcNodeLoad->addNode(node->getNumber());
@@ -362,7 +366,7 @@ void FrameDFEMCInterface::execute()
 
             dfemcElementLoadSet->first();
 
-            for (i=0; i<elementLoadSet->getSize(); i++)
+            for (i = 0; i < elementLoadSet->getSize(); i++)
             {
                 CFemBeamLoad* elementLoad = (CFemBeamLoad*)elementLoadSet->getLoad(i);
 
@@ -370,7 +374,7 @@ void FrameDFEMCInterface::execute()
                 elementLoad->getLocalDirection(ex, ey, ez);
                 dfemcElementLoad->setDirection(ex, ey, ez);
 
-                for (j=0; j<elementLoad->getElementsSize(); j++)
+                for (j = 0; j < elementLoad->getElementsSize(); j++)
                 {
                     CFemElement* element = elementLoad->getElement(j);
                     dfemcElementLoad->addElement(element->getNumber());
@@ -398,16 +402,16 @@ void FrameDFEMCInterface::execute()
             m_maxNodeValue = -1.0e300;
             double nodeValue;
 
-            for (i=0; i<nodeSet->getSize(); i++)
+            for (i = 0; i < nodeSet->getSize(); i++)
             {
                 CFemNode* node = nodeSet->getNode(i);
                 node->setValueSize(valueSize);
-                for (j=1; j<=valueSize; j++)
+                for (j = 1; j <= valueSize; j++)
                 {
                     nodeValue = dfemcNode->getValue(j);
-                    if (fabs(nodeValue)>m_maxNodeValue)
+                    if (fabs(nodeValue) > m_maxNodeValue)
                         m_maxNodeValue = nodeValue;
-                    node->setValue(j-1, nodeValue);
+                    node->setValue(j - 1, nodeValue);
                 }
                 dfemcNodeSet->next();
             }
@@ -419,12 +423,12 @@ void FrameDFEMCInterface::execute()
             dfemcElementSet->first();
             valueSize = dfemcElement->getValueSize();
 
-            for (i=0; i<elementSet->getSize(); i++)
+            for (i = 0; i < elementSet->getSize(); i++)
             {
-                CFemBeam* element = (CFemBeam*) elementSet->getElement(i);
+                CFemBeam* element = (CFemBeam*)elementSet->getElement(i);
                 element->setValueSize(valueSize);
-                for (j=1; j<=valueSize; j++)
-                    element->setValue(j-1, dfemcElement->getValue(j));
+                for (j = 1; j <= valueSize; j++)
+                    element->setValue(j - 1, dfemcElement->getValue(j));
                 dfemcElementSet->next();
             }
 
@@ -438,7 +442,8 @@ void FrameDFEMCInterface::execute()
             // Destroy orb
             //
 
-            try {
+            try
+            {
                 if (!CORBA::is_nil(orb))
                     orb->destroy();
             }
@@ -447,7 +452,6 @@ void FrameDFEMCInterface::execute()
                 cerr << "Uncaught CORBA exception: "
                      << e << endl;
             }
-
         }
         catch (const CORBA::Exception& e)
         {
@@ -458,7 +462,7 @@ void FrameDFEMCInterface::execute()
 #endif
 }
 
-void FrameDFEMCInterface::setArguments(int argc, char **argv)
+void FrameDFEMCInterface::setArguments(int argc, char** argv)
 {
     m_argc = argc;
     m_argv = argv;

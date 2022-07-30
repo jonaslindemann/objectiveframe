@@ -10,61 +10,64 @@ using json = nlohmann::json;
 #include <ofem/def.h>
 #include <ofem/pointer.h>
 
-namespace ofem {
+namespace ofem
+{
 
-	SmartPointer(Base);
+SmartPointer(Base);
 
-	class Base {
-	private:
-		int m_ref;
-		void* m_user;
-		bool m_readOnly;
-	public:
-		Base();
-		virtual ~Base();
+class Base
+{
+private:
+    int m_ref;
+    void* m_user;
+    bool m_readOnly;
 
-		// Class info
+public:
+    Base();
+    virtual ~Base();
 
-		/**
-		 * Class name query.
-		 *
-		 * Returns true if name is equal to the name of the class.
-		 * @param name Class name to be queried.
-		 */
-		virtual bool isClass(const std::string& name);
+    // Class info
 
-		/**
-		 * Returns the name of the class.
-		 *
-		 * The name buffer must be large enough to hold the
-		 * name of the class.
-		 * @param name Reference to a string buffer.
-		 */
-		const std::string getClassNameThis();
-		virtual const std::string getClassName();
-		// Reference counting
+    /**
+     * Class name query.
+     *
+     * Returns true if name is equal to the name of the class.
+     * @param name Class name to be queried.
+     */
+    virtual bool isClass(const std::string& name);
 
-		void addReference();
-		void deleteReference();
-		bool isReferenced();
-		int getRefCount();
+    /**
+     * Returns the name of the class.
+     *
+     * The name buffer must be large enough to hold the
+     * name of the class.
+     * @param name Reference to a string buffer.
+     */
+    const std::string getClassNameThis();
+    virtual const std::string getClassName();
+    // Reference counting
 
-		// Methods
+    void addReference();
+    void deleteReference();
+    bool isReferenced();
+    int getRefCount();
 
-		bool isReadOnly();
-		void setReadOnly(bool flag = true);
+    // Methods
 
-		virtual void saveToStream(std::ostream& out);
-		virtual void readFromStream(std::istream& in);
-		virtual void print(std::ostream& out);
+    bool isReadOnly();
+    void setReadOnly(bool flag = true);
 
-		virtual json toJSON();
-		virtual void fromJSON(json& j);
+    virtual void saveToStream(std::ostream& out);
+    virtual void readFromStream(std::istream& in);
+    virtual void print(std::ostream& out);
 
-		// Get/set methods
+    virtual json toJSON();
+    virtual void fromJSON(json& j);
 
-		void setUser(void* user);
-		void* getUser();
-	};
+    // Get/set methods
+
+    void setUser(void* user);
+    void* getUser();
+};
 
 }

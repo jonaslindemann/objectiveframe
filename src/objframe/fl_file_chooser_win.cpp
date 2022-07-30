@@ -19,11 +19,11 @@
 #include <FL/Fl.H>
 #include <FL/x.H>
 
-char *fl_file_chooser(const char *message,const char *pat,const char *fname)
+char* fl_file_chooser(const char* message, const char* pat, const char* fname)
 {
 #ifdef WIN32
 
-    OPENFILENAME ofn;       // common dialog box structure
+    OPENFILENAME ofn; // common dialog box structure
     char szTitle[260];
     char szFilter[260];
     char szDefExt[3];
@@ -32,18 +32,17 @@ char *fl_file_chooser(const char *message,const char *pat,const char *fname)
 
     strcpy(g_szFile, fname);
     strcpy(szTitle, message);
-    strncpy(szDefExt, pat+1, 3);
+    strncpy(szDefExt, pat + 1, 3);
     // *.fpd files
     // 012345678901
     ZeroMemory(szFilter, sizeof(szFilter));
     sprintf(szFilter, "%s files %s\0\0", pat, pat);
     szFilter[11] = 0;
 
-
     // Initialize OPENFILENAME
     ZeroMemory(&ofn, sizeof(OPENFILENAME));
     ofn.lStructSize = sizeof(OPENFILENAME);
-    ofn.hwndOwner = fl_xid(topWindow) ;
+    ofn.hwndOwner = fl_xid(topWindow);
     ofn.lpstrFile = g_szFile;
     ofn.nMaxFile = sizeof(g_szFile);
     ofn.lpstrFilter = szFilter;
@@ -53,13 +52,13 @@ char *fl_file_chooser(const char *message,const char *pat,const char *fname)
     ofn.lpstrTitle = szTitle;
     ofn.lpstrInitialDir = NULL;
     ofn.lpstrDefExt = szDefExt;
-    ofn.Flags = OFN_PATHMUSTEXIST|OFN_OVERWRITEPROMPT;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 
     // Display the Open/save dialog box.
 
-    if (strlen(fname)==0)
+    if (strlen(fname) == 0)
     {
-        if (GetOpenFileName(&ofn)==TRUE)
+        if (GetOpenFileName(&ofn) == TRUE)
         {
             return g_szFile;
         }
@@ -70,7 +69,7 @@ char *fl_file_chooser(const char *message,const char *pat,const char *fname)
     }
     else
     {
-        if (GetSaveFileName(&ofn)==TRUE)
+        if (GetSaveFileName(&ofn) == TRUE)
         {
             return g_szFile;
         }

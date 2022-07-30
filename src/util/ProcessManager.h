@@ -5,9 +5,9 @@
 #include <config.h>
 #endif
 
-class CProcessManager {
+class CProcessManager
+{
 private:
-
 public:
     CProcessManager();
     virtual ~CProcessManager();

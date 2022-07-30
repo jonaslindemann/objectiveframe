@@ -3,10 +3,10 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-NodeBC::NodeBC ()
+NodeBC::NodeBC()
 {
     int i;
-    for (i=0; i<6; i++)
+    for (i = 0; i < 6; i++)
     {
         m_prescribedDof[i] = true;
         m_prescribedValues[i] = 0.0;
@@ -14,15 +14,14 @@ NodeBC::NodeBC ()
 }
 
 // ------------------------------------------------------------
-NodeBC::~NodeBC ()
+NodeBC::~NodeBC()
 {
     this->clearNodes();
 }
 
 // ------------------------------------------------------------
-void NodeBC::print(std::ostream &out)
+void NodeBC::print(std::ostream& out)
 {
-
 }
 
 // ------------------------------------------------------------
@@ -43,16 +42,16 @@ json NodeBC::toJSON()
 }
 
 // ------------------------------------------------------------
-void NodeBC::saveToStream(std::ostream &out)
+void NodeBC::saveToStream(std::ostream& out)
 {
     using namespace std;
     unsigned int i;
-    //CFemBC::saveToStream(out);
+    // CFemBC::saveToStream(out);
     out << m_nodes.size() << endl;
-    for (i=0; i<m_nodes.size(); i++)
+    for (i = 0; i < m_nodes.size(); i++)
         out << m_nodes[i]->getNumber() << endl;
     out << endl;
-    for (i=0; i<6; i++)
+    for (i = 0; i < 6; i++)
     {
         if (m_prescribedDof[i])
             out << 1 << " " << m_prescribedValues[i] << endl;
@@ -62,31 +61,31 @@ void NodeBC::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void NodeBC::readFromStream(std::istream &in)
+void NodeBC::readFromStream(std::istream& in)
 {
     int nNodes, i;
     long idx;
     int flag;
     double value;
-    //CFemBC::readFromStream(in);
+    // CFemBC::readFromStream(in);
     in >> nNodes;
-    for (i=0; i<nNodes; i++)
+    for (i = 0; i < nNodes; i++)
     {
         in >> idx;
         m_nodeIndex.push_back(idx);
     }
-    for (i=0; i<6; i++)
+    for (i = 0; i < 6; i++)
     {
         in >> flag >> value;
-        if (flag==1)
-            prescribe(i+1,value);
+        if (flag == 1)
+            prescribe(i + 1, value);
         else
-            unprescribe(i+1);
+            unprescribe(i + 1);
     }
 }
 
 // ------------------------------------------------------------
-void NodeBC::addNode(Node *node)
+void NodeBC::addNode(Node* node)
 {
     node->addReference();
     m_nodes.push_back(node);
@@ -97,39 +96,39 @@ void NodeBC::clearNodes()
 {
     unsigned int i;
 
-    for (i=0; i<m_nodes.size(); i++)
+    for (i = 0; i < m_nodes.size(); i++)
         m_nodes[i]->deleteReference();
 
     m_nodes.clear();
 }
 
 // ------------------------------------------------------------
-bool NodeBC::removeNode(Node *node)
+bool NodeBC::removeNode(Node* node)
 {
     std::vector<Node*>::iterator p = m_nodes.begin();
 
-    while ( (p!=m_nodes.end())&&(*p!=node) )
+    while ((p != m_nodes.end()) && (*p != node))
         p++;
 
-	if (p != m_nodes.end())
-	{
-		if (*p == node)
-		{
-			node->deleteReference();
-			m_nodes.erase(p);
-			return true;
-		}
-		else
-			return false;
-	}
-	else
-		return false;
+    if (p != m_nodes.end())
+    {
+        if (*p == node)
+        {
+            node->deleteReference();
+            m_nodes.erase(p);
+            return true;
+        }
+        else
+            return false;
+    }
+    else
+        return false;
 }
 
 // ------------------------------------------------------------
 Node* NodeBC::getNode(unsigned int idx)
 {
-    if (idx<m_nodes.size())
+    if (idx < m_nodes.size())
         return m_nodes[idx];
     else
         return NULL;
@@ -138,7 +137,7 @@ Node* NodeBC::getNode(unsigned int idx)
 // ------------------------------------------------------------
 long NodeBC::getNodeIndex(unsigned int idx)
 {
-    if (idx<m_nodeIndex.size())
+    if (idx < m_nodeIndex.size())
         return m_nodeIndex[idx];
     else
         return -1;
@@ -159,59 +158,59 @@ size_t NodeBC::getNodeSize()
 // ------------------------------------------------------------
 void NodeBC::prescribe(int dof, double value)
 {
-    if ((dof>=1)&&(dof<=6))
+    if ((dof >= 1) && (dof <= 6))
     {
-        m_prescribedDof[dof-1] = true;
-        m_prescribedValues[dof-1] = value;
+        m_prescribedDof[dof - 1] = true;
+        m_prescribedValues[dof - 1] = value;
     }
 }
 
 void NodeBC::prescribePos(double value)
 {
-	for (int i = 1; i <= 3; i++)
-		this->prescribe(i, value);
+    for (int i = 1; i <= 3; i++)
+        this->prescribe(i, value);
 }
 
 void NodeBC::prescribeRot(double value)
 {
-	for (int i = 4; i <= 6; i++)
-		this->prescribe(i, value);
+    for (int i = 4; i <= 6; i++)
+        this->prescribe(i, value);
 }
 
 void NodeBC::fixed()
 {
-	this->release();
-	this->prescribePos(0.0);
-	this->prescribeRot(0.0);
+    this->release();
+    this->prescribePos(0.0);
+    this->prescribeRot(0.0);
 }
 
 void NodeBC::fixedPosition()
 {
-	this->release();
-	this->prescribePos(0.0);
+    this->release();
+    this->prescribePos(0.0);
 }
 
 void NodeBC::release()
 {
-	for (int i = 1; i <= 6; i++)
-		this->unprescribe(i);
+    for (int i = 1; i <= 6; i++)
+        this->unprescribe(i);
 }
 
 // ------------------------------------------------------------
 void NodeBC::unprescribe(int dof)
 {
-    if ((dof>=1)&&(dof<=6))
+    if ((dof >= 1) && (dof <= 6))
     {
-        m_prescribedDof[dof-1] = false;
-        m_prescribedValues[dof-1] = 0.0;
+        m_prescribedDof[dof - 1] = false;
+        m_prescribedValues[dof - 1] = 0.0;
     }
 }
 
 // ------------------------------------------------------------
 bool NodeBC::isPrescribed(int dof)
 {
-    if ((dof>=1)&&(dof<=6))
-        return m_prescribedDof[dof-1];
+    if ((dof >= 1) && (dof <= 6))
+        return m_prescribedDof[dof - 1];
     else
         return false;
 }
@@ -219,8 +218,8 @@ bool NodeBC::isPrescribed(int dof)
 // ------------------------------------------------------------
 double NodeBC::getPrescribedValue(int dof)
 {
-    if ((dof>=1)&&(dof<=6))
-        return m_prescribedValues[dof-1];
+    if ((dof >= 1) && (dof <= 6))
+        return m_prescribedValues[dof - 1];
     else
         return 0.0;
 }

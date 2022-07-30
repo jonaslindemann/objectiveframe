@@ -3,18 +3,21 @@
 #include <ofem/element_load_set.h>
 #include <ofem/load.h>
 
-namespace ofem {
+namespace ofem
+{
 
-	SmartPointer(BeamLoadSet);
+SmartPointer(BeamLoadSet);
 
-	class BeamLoadSet : public ElementLoadSet {
-	public:
-		BeamLoadSet();
-		virtual ~BeamLoadSet();
+class BeamLoadSet : public ElementLoadSet
+{
+public:
+    BeamLoadSet();
+    virtual ~BeamLoadSet();
 
-		ClassInfo("BeamLoadSet", ElementLoadSet);
-	protected:
-		Load* createLoad();
-	};
+    ClassInfo("BeamLoadSet", ElementLoadSet);
+
+protected:
+    virtual Load* createLoad() override;
+};
 
 }

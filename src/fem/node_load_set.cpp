@@ -1,19 +1,17 @@
-#include <ofem/node_load_set.h>
 #include <ofem/node_load.h>
+#include <ofem/node_load_set.h>
 
 using namespace ofem;
 
 // ------------------------------------------------------------
 NodeLoadSet::NodeLoadSet()
-    :LoadSet()
+    : LoadSet()
 {
-
 }
 
 // ------------------------------------------------------------
 NodeLoadSet::~NodeLoadSet()
 {
-
 }
 
 // ------------------------------------------------------------

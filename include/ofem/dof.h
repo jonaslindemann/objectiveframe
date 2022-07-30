@@ -2,44 +2,47 @@
 
 #include <ofem/base.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    enum DofKind {
-        DisplX,
-        DisplY,
-        DisplZ,
-        RotX,
-        RotY,
-        RotZ
-    };
+enum DofKind
+{
+    DisplX,
+    DisplY,
+    DisplZ,
+    RotX,
+    RotY,
+    RotZ
+};
 
-    SmartPointer(Dof);
+SmartPointer(Dof);
 
-    class Dof : public Base {
-    private:
-        DofKind m_kind;
-        long m_number;
-    public:
-        Dof();
-        Dof(DofKind kind, int number = -1);
-        virtual ~Dof();
+class Dof : public Base
+{
+private:
+    DofKind m_kind;
+    long m_number;
 
-        // Class info
+public:
+    Dof();
+    Dof(DofKind kind, int number = -1);
+    virtual ~Dof();
 
-        ClassInfo("Dof", Base);
+    // Class info
 
-        // Methods
+    ClassInfo("Dof", Base);
 
-        virtual void print(std::ostream& out);
-        virtual json toJSON();
-        virtual void fromJSON(json& j);
+    // Methods
 
-        // Get/Set methods
+    virtual void print(std::ostream& out) override;
+    virtual json toJSON() override;
+    virtual void fromJSON(json& j) override;
 
-        void setKind(DofKind kind);
-        DofKind getKind();
-        void setNumber(long number);
-        long getNumber();
-    };
+    // Get/Set methods
+
+    void setKind(DofKind kind);
+    DofKind getKind();
+    void setNumber(long number);
+    long getNumber();
+};
 }
-

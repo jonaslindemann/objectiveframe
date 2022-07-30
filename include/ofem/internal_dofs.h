@@ -5,38 +5,40 @@
 
 #include <vector>
 
-#define FEM_DISPL_DOFS      0
-#define FEM_DISPL_ROT_DOFS  1
+#define FEM_DISPL_DOFS 0
+#define FEM_DISPL_ROT_DOFS 1
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(InternalDofs);
+SmartPointer(InternalDofs);
 
-    class InternalDofs : public Base {
-    private:
-        std::vector<Dof*> m_dofs;
-        int m_kind;
-    public:
-        InternalDofs();
-        virtual ~InternalDofs();
+class InternalDofs : public Base
+{
+private:
+    std::vector<Dof*> m_dofs;
+    int m_kind;
 
-        ClassInfo("InternalDofs", Base);
+public:
+    InternalDofs();
+    virtual ~InternalDofs();
 
-        // Get/set methods
+    ClassInfo("InternalDofs", Base);
 
-        int getKind();
-        void setKind(int kind);
-        Dof* getDof(unsigned int localDof);
+    // Get/set methods
 
-        // Methods
+    int getKind();
+    void setKind(int kind);
+    Dof* getDof(unsigned int localDof);
 
-        long enumerateDofs(long count);
-        void clear(unsigned int localDof);
-        void add(unsigned int localDof);
-        bool isAssigned(unsigned int localDof);
+    // Methods
 
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
+    long enumerateDofs(long count);
+    void clear(unsigned int localDof);
+    void add(unsigned int localDof);
+    bool isAssigned(unsigned int localDof);
 
-    };
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+};
 }

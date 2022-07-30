@@ -4,8 +4,8 @@ using namespace ofem;
 using namespace std;
 
 // ------------------------------------------------------------
-ElementLoad::ElementLoad ()
-    :Load()
+ElementLoad::ElementLoad()
+    : Load()
 {
     m_localDirection[0] = 0.0;
     m_localDirection[1] = 0.0;
@@ -13,19 +13,18 @@ ElementLoad::ElementLoad ()
 }
 
 // ------------------------------------------------------------
-ElementLoad::~ElementLoad ()
+ElementLoad::~ElementLoad()
 {
     this->clearElements();
 }
 
 // ------------------------------------------------------------
-void ElementLoad::print(ostream &out)
+void ElementLoad::print(ostream& out)
 {
-
 }
 
 // ------------------------------------------------------------
-void ElementLoad::saveToStream(std::ostream &out)
+void ElementLoad::saveToStream(std::ostream& out)
 {
     Load::saveToStream(out);
     out << m_localDirection[0] << " ";
@@ -33,13 +32,13 @@ void ElementLoad::saveToStream(std::ostream &out)
     out << m_localDirection[2] << " ";
     out << endl;
     out << m_elements.size() << " ";
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
         out << m_elements[i]->getNumber() << " ";
     out << endl;
 }
 
 // ------------------------------------------------------------
-void ElementLoad::readFromStream(std::istream &in)
+void ElementLoad::readFromStream(std::istream& in)
 {
     int nElements;
     long elementIndex;
@@ -49,7 +48,7 @@ void ElementLoad::readFromStream(std::istream &in)
     in >> m_localDirection[2];
     in >> nElements;
     m_elementIndex.clear();
-    for (int i=0; i<nElements; i++)
+    for (int i = 0; i < nElements; i++)
     {
         in >> elementIndex;
         m_elementIndex.push_back(elementIndex);
@@ -65,7 +64,7 @@ void ElementLoad::setLocalDirection(double ex, double ey, double ez)
 }
 
 // ------------------------------------------------------------
-void ElementLoad::getLocalDirection(double &ex, double &ey, double &ez)
+void ElementLoad::getLocalDirection(double& ex, double& ey, double& ez)
 {
     ex = m_localDirection[0];
     ey = m_localDirection[1];
@@ -73,7 +72,7 @@ void ElementLoad::getLocalDirection(double &ex, double &ey, double &ez)
 }
 
 // ------------------------------------------------------------
-void ElementLoad::setLocalDirection(double *v)
+void ElementLoad::setLocalDirection(double* v)
 {
     m_localDirection[0] = v[0];
     m_localDirection[1] = v[1];
@@ -81,7 +80,7 @@ void ElementLoad::setLocalDirection(double *v)
 }
 
 // ------------------------------------------------------------
-void ElementLoad::getLocalDirection(double *v)
+void ElementLoad::getLocalDirection(double* v)
 {
     v[0] = m_localDirection[0];
     v[1] = m_localDirection[1];
@@ -89,17 +88,17 @@ void ElementLoad::getLocalDirection(double *v)
 }
 
 // ------------------------------------------------------------
-void ElementLoad::addElement(Element *element)
+void ElementLoad::addElement(Element* element)
 {
     // We do not allow duplicates in the
     // element load.
 
     // This must be optimized!!
 
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
     {
         Element* e = m_elements[i];
-        if (e==element)
+        if (e == element)
         {
             return;
         }
@@ -112,7 +111,7 @@ void ElementLoad::addElement(Element *element)
 // ------------------------------------------------------------
 void ElementLoad::clearElements()
 {
-    for (unsigned int i=0; i<m_elements.size(); i++)
+    for (unsigned int i = 0; i < m_elements.size(); i++)
     {
         Element* e = m_elements[i];
         e->deleteReference();
@@ -121,14 +120,14 @@ void ElementLoad::clearElements()
 }
 
 // ------------------------------------------------------------
-bool ElementLoad::removeElement(Element *element)
+bool ElementLoad::removeElement(Element* element)
 {
     std::vector<Element*>::iterator p = m_elements.begin();
 
-    while ( (p!=m_elements.end())&&(*p!=element) )
+    while ((p != m_elements.end()) && (*p != element))
         p++;
 
-    if (*p==element)
+    if (*p == element)
     {
         element->deleteReference();
         m_elements.erase(p);
@@ -146,7 +145,7 @@ size_t ElementLoad::getElementsSize()
 // ------------------------------------------------------------
 Element* ElementLoad::getElement(unsigned int idx)
 {
-    if (idx<m_elements.size())
+    if (idx < m_elements.size())
         return m_elements[idx];
     else
         return NULL;
@@ -161,7 +160,7 @@ size_t ElementLoad::getElementIndexSize()
 // ------------------------------------------------------------
 unsigned int ElementLoad::getElementIndex(unsigned int idx)
 {
-    if (idx<m_elementIndex.size())
+    if (idx < m_elementIndex.size())
         return m_elementIndex[idx];
     else
         return -1;

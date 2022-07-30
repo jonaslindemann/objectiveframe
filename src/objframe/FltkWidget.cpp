@@ -17,13 +17,13 @@
 // USA.
 //
 // Please report all bugs and problems to "ivf@byggmek.lth.se".
-//   
+//
 
 #include "FltkWidget.h"
 
-#include <FL/x.H>
-#include <FL/gl.h>
 #include <FL/fl_draw.H>
+#include <FL/gl.h>
+#include <FL/x.H>
 
 #include <glad/glad.h>
 
@@ -50,16 +50,17 @@ void redrawCallback(void* view)
 // Constructor/desctructor
 // ------------------------------------------------------------
 
-FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
-    Fl_Gl_Window(X, Y, W, H, L), ImGuiFLTKImpl()
+FltkWidget::FltkWidget(int X, int Y, int W, int H, const char* L)
+    : Fl_Gl_Window(X, Y, W, H, L)
+    , ImGuiFLTKImpl()
 {
     // State variables
 
-    m_offScreenRendering = true;
+    m_offScreenRendering = false;
 
-    int oldMode = this->mode();
+    // int oldMode = this->mode();
     this->mode(FL_RGB8 | FL_DOUBLE | FL_STENCIL | FL_MULTISAMPLE);
-    int newMode = this->mode();
+    // int newMode = this->mode();
 
     m_currentButton = ButtonState::NoButton;
     m_currentModifier = ButtonState::NoButton;
@@ -78,6 +79,7 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     m_nNodes = 0;
     m_nLines = 0;
     m_doOverlay = false;
+    m_doUnderlay = false;
     m_editEnabled = true;
     m_selectEnabled = true;
     m_lastShape = NULL;
@@ -91,7 +93,7 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     // Create default camera
 
     m_camera = Camera::create();
-    m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize/2.0);
+    m_camera->setPosition(0.0, m_workspaceSize / 8.0, -m_workspaceSize / 2.0);
     m_camera->setPerspective(45.0, 0.1, 100.0);
 
     // Create scene
@@ -99,7 +101,6 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char *L) :
     m_scene = Workspace::create();
     m_scene->setView(m_camera);
     m_scene->disableCursor();
-	//m_scene->getCurrentPlane()->getCursor()->setCursorType(CIvfCursor::CT_LINE_CURSOR);
 
     // Create selected shapes list.
 
@@ -141,13 +142,13 @@ void FltkWidget::deleteSelected()
     // Before anything is deleted we remove all
     // manipulators.
 
-    for (i = 0; i<m_selectedShapes->getSize(); i++ )
+    for (i = 0; i < m_selectedShapes->getSize(); i++)
     {
         auto shape = m_selectedShapes->getChild(i);
 
         bool doit = false;
         if (m_editEnabled)
-            onDeleteShape(shape,doit);
+            onDeleteShape(shape, doit);
 
         if (doit == true)
             m_scene->getComposite()->removeShape(shape);
@@ -169,13 +170,13 @@ void FltkWidget::deleteSelectedKeep()
 
     vector<ShapePtr> remainingShapes;
 
-    for (i = 0; i<m_selectedShapes->getSize(); i++ )
+    for (i = 0; i < m_selectedShapes->getSize(); i++)
     {
         auto shape = m_selectedShapes->getChild(i);
 
         bool doit = false;
         if (m_editEnabled)
-            onDeleteShape(shape,doit);
+            onDeleteShape(shape, doit);
 
         if (doit == true)
             m_scene->getComposite()->removeShape(shape);
@@ -185,7 +186,7 @@ void FltkWidget::deleteSelectedKeep()
 
     m_selectedShapes->clear();
 
-    for (i=0; i<remainingShapes.size(); i++)
+    for (i = 0; i < remainingShapes.size(); i++)
         m_selectedShapes->addChild(remainingShapes[i]);
 
     redraw();
@@ -194,16 +195,16 @@ void FltkWidget::deleteSelectedKeep()
 // ------------------------------------------------------------
 void FltkWidget::createLine()
 {
-    if (m_selectedShapes->getSize()==2)
+    if (m_selectedShapes->getSize() == 2)
     {
         Node* node1 = static_cast<Node*>(m_selectedShapes->getChild(0));
         Node* node2 = static_cast<Node*>(m_selectedShapes->getChild(1));
 
-        if ( (node1->isClass("Node") )&&( node2->isClass("Node") ))
+        if ((node1->isClass("Node")) && (node2->isClass("Node")))
         {
             Shape* solidLine = nullptr;
-            onCreateLine(node1,node2,solidLine);
-            if (solidLine!=nullptr)
+            onCreateLine(node1, node2, solidLine);
+            if (solidLine != nullptr)
             {
                 addToScene(solidLine);
             }
@@ -220,7 +221,7 @@ void FltkWidget::addToScene(Shape* shape)
 // ------------------------------------------------------------
 void FltkWidget::centerSelected()
 {
-    if (m_selectedShapes->getSize()==1)
+    if (m_selectedShapes->getSize() == 1)
     {
         Shape* shape = static_cast<Shape*>(m_selectedShapes->getChild(0));
         double x, y, z;
@@ -233,7 +234,7 @@ void FltkWidget::centerSelected()
 // ------------------------------------------------------------
 void FltkWidget::resetView()
 {
-    m_camera->setPosition(0.0, m_workspaceSize/8.0, m_workspaceSize);
+    m_camera->setPosition(0.0, m_workspaceSize / 8.0, m_workspaceSize);
     m_camera->setTarget(0.0, 0.0, 0.0);
     redraw();
 }
@@ -247,7 +248,7 @@ void FltkWidget::clearSelection()
 
     // Should onDeSelect be called ???
 
-    //onDeSelect();
+    // onDeSelect();
     redraw();
 }
 
@@ -264,7 +265,7 @@ void FltkWidget::selectAll()
     auto scene = this->getScene()->getComposite();
     bool select;
 
-    for (i=0; i<scene->getSize(); i++)
+    for (i = 0; i < scene->getSize(); i++)
     {
         shape = scene->getChild(i);
         select = true;
@@ -294,13 +295,13 @@ void FltkWidget::setEditMode(WidgetMode mode)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    if ( getEditMode() == WidgetMode::Select )
+    if (getEditMode() == WidgetMode::Select)
     {
         m_selectedShape = NULL;
         m_scene->disableCursor();
     };
 
-    if ( getEditMode() == WidgetMode::CreateLine )
+    if (getEditMode() == WidgetMode::CreateLine)
     {
         clearSelection();
         m_scene->disableCursor();
@@ -308,7 +309,7 @@ void FltkWidget::setEditMode(WidgetMode mode)
         m_selectedShapes->clear();
     }
 
-    if ( getEditMode() == WidgetMode::CreateNode )
+    if (getEditMode() == WidgetMode::CreateNode)
     {
         clearSelection();
         m_scene->enableCursor();
@@ -317,19 +318,19 @@ void FltkWidget::setEditMode(WidgetMode mode)
         m_scene->unlockCursor();
     }
 
-    if ( getEditMode() == WidgetMode::Move )
+    if (getEditMode() == WidgetMode::Move)
     {
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_scene->unlockCursor();
     }
 
-    if ( getEditMode() == WidgetMode::ViewPan)
+    if (getEditMode() == WidgetMode::ViewPan)
     {
         m_scene->disableCursor();
     }
 
-    if ( getEditMode() == WidgetMode::ViewZoom)
+    if (getEditMode() == WidgetMode::ViewZoom)
     {
         m_scene->disableCursor();
     }
@@ -368,9 +369,9 @@ void FltkWidget::setWorkspace(double size, bool resetCamera)
     m_scene->setSize(size);
 
     if (resetCamera)
-        m_camera->setPosition(0.0, m_workspaceSize/8.0,-m_workspaceSize/2.0);
+        m_camera->setPosition(0.0, m_workspaceSize / 8.0, -m_workspaceSize / 2.0);
 
-    m_controlSize = m_workspaceSize/50.0;
+    m_controlSize = m_workspaceSize / 50.0;
 }
 
 // ------------------------------------------------------------
@@ -390,6 +391,16 @@ void FltkWidget::setUseOverlay(bool flag)
 {
     m_doOverlay = flag;
     this->redraw();
+}
+
+void FltkWidget::setUseUnderlay(bool flag)
+{
+    m_doUnderlay = flag;
+}
+
+bool FltkWidget::useUnderlay()
+{
+    return m_doUnderlay;
 }
 
 // ------------------------------------------------------------
@@ -414,7 +425,7 @@ void FltkWidget::setSelectEnable(bool flag)
 void FltkWidget::setSnapToGrid(bool flag)
 {
     m_snapToGrid = flag;
-    //m_scene->setSnapToGrid(m_snapToGrid);
+    // m_scene->setSnapToGrid(m_snapToGrid);
 }
 
 // ------------------------------------------------------------
@@ -460,55 +471,53 @@ ButtonState FltkWidget::getCurrentModifier()
 // Implemented FLTK methods
 // ------------------------------------------------------------
 
-
 void FltkWidget::initOffscreenBuffers()
 {
-	glGenFramebuffers(1, &m_multiFbo);
-	glGenTextures(1, &m_screenTexture);
-	glGenRenderbuffers(1, &m_colorBuffer);
-	glGenRenderbuffers(1, &m_depthBuffer);
+    glGenFramebuffers(1, &m_multiFbo);
+    glGenTextures(1, &m_screenTexture);
+    glGenRenderbuffers(1, &m_colorBuffer);
+    glGenRenderbuffers(1, &m_depthBuffer);
 }
 
 void FltkWidget::updateOffscreenBuffers()
 {
-	// Create multisample texture
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, pixel_w(), pixel_h(), GL_TRUE);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    // Create multisample texture
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, pixel_w(), pixel_h(), GL_TRUE);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, pixel_w(), pixel_h());
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_colorBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, pixel_w(), pixel_h());
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_colorBuffer);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, pixel_w(), pixel_h());
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, pixel_w(), pixel_h());
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
 
-	// Bind Texture assuming we have created a texture
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_screenTexture, 0);
-
+    // Bind Texture assuming we have created a texture
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_screenTexture, 0);
 }
 
 void FltkWidget::bindOffscreenBuffers()
 {
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_screenTexture);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_multiFbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_colorBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
 
-	// Enable multisampling
-	glEnable(GL_MULTISAMPLE);
+    // Enable multisampling
+    glEnable(GL_MULTISAMPLE);
 }
 
 void FltkWidget::blitOffscreenBuffers()
 {
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_multiFbo);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, pixel_w(), pixel_h(), 0, 0, pixel_w(), pixel_h(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_multiFbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(0, 0, pixel_w(), pixel_h(), 0, 0, pixel_w(), pixel_h(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
 void FltkWidget::draw()
@@ -536,25 +545,24 @@ void FltkWidget::draw()
             light->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
             light->enable();
 
-			// Create and bind the FBO
+            // Create and bind the FBO
 
             if (m_offScreenRendering)
             {
                 initOffscreenBuffers();
                 updateOffscreenBuffers();
             }
-			
+
             onInit();
             m_initDone = true;
-			m_prevWindowSize[0] = pixel_w();
-			m_prevWindowSize[1] = pixel_h();
-		}
+            m_prevWindowSize[0] = pixel_w();
+            m_prevWindowSize[1] = pixel_h();
+        }
 
         // Set up camera
 
         m_camera->setViewPort(pixel_w(), pixel_h());
         m_camera->initialize();
-
     }
 
     if (m_offScreenRendering)
@@ -576,20 +584,45 @@ void FltkWidget::draw()
 
     glPushMatrix();
 
-    //m_camera->rotateAbsolute(m_angleX / 100.0, m_ang)
-    m_camera->rotatePositionY(m_angleX/100.0);
-    m_camera->rotatePositionX(m_angleY/100.0);
+    // m_camera->rotateAbsolute(m_angleX / 100.0, m_ang)
+    m_camera->rotatePositionY(m_angleX / 100.0);
+    m_camera->rotatePositionX(m_angleY / 100.0);
 
-
-    m_camera->moveSideways(m_moveX*m_workspaceSize/1000.0);
-    m_camera->moveVertical(m_moveY*m_workspaceSize/1000.0);
-    m_camera->moveDepth(m_zoomY*m_workspaceSize/500.0);
+    m_camera->moveSideways(m_moveX * m_workspaceSize / 1000.0);
+    m_camera->moveVertical(m_moveY * m_workspaceSize / 1000.0);
+    m_camera->moveDepth(m_zoomY * m_workspaceSize / 500.0);
 
     m_angleX = 0.0;
     m_angleY = 0.0;
     m_moveX = 0.0;
     m_moveY = 0.0;
     m_zoomY = 0.0;
+
+    glPopMatrix();
+
+    glPushMatrix();
+
+    if (m_doUnderlay)
+    {
+        glPushAttrib(GL_ENABLE_BIT);
+
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_LIGHTING);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0.0, (double)pixel_w(), (double)pixel_h(), 0.0, 0.0, 1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        onUnderlay();
+
+        glPopAttrib();
+
+        m_camera->setViewPort(pixel_w(), pixel_h());
+        m_camera->initialize();
+    }
 
     glPopMatrix();
 
@@ -621,7 +654,6 @@ void FltkWidget::draw()
 
     glPopMatrix();
 
-
     if (m_offScreenRendering)
     {
         blitOffscreenBuffers();
@@ -634,27 +666,28 @@ void FltkWidget::draw()
 int FltkWidget::handle(int event)
 {
 #ifndef __APPLE__
-	static int first = 1;
-	if (first && event == FL_SHOW && shown()) {
-		first = 0;
-		make_current();
+    static int first = 1;
+    if (first && event == FL_SHOW && shown())
+    {
+        first = 0;
+        make_current();
 
         gladLoadGL();
 
         this->doInitImGui(pixel_w(), pixel_h());
 
         this->focus(this);
-	}
+    }
 #endif
 
     if (m_quit)
         Fl::first_window()->hide();
 
-	switch(event)
+    switch (event)
     {
     case FL_ENTER:
         Fl::belowmouse(this);
-        //cout << "FL_ENTER" << endl;
+        // cout << "FL_ENTER" << endl;
         return 1;
     case FL_LEAVE:
         m_angleX = 0.0f;
@@ -665,8 +698,8 @@ int FltkWidget::handle(int event)
         m_zoomY = 0.0f;
         return 1;
     case FL_MOVE:
-        m_beginX = int(float(Fl::event_x())*pixels_per_unit());
-        m_beginY = int(float(Fl::event_y())*pixels_per_unit());
+        m_beginX = int(float(Fl::event_x()) * pixels_per_unit());
+        m_beginY = int(float(Fl::event_y()) * pixels_per_unit());
         if (!Fl::get_key(FL_Shift_L))
             m_scene->unlockCursor();
         this->doPassiveMotion(m_beginX, m_beginY);
@@ -722,7 +755,6 @@ int FltkWidget::handle(int event)
             if (Fl::event_button() == FL_RIGHT_MOUSE)
                 cout << "RIGHT_MOUSE" << endl;
 
-
             this->doMouseDown(m_beginX, m_beginY);
             this->doMouse(m_beginX, m_beginY);
         }
@@ -733,13 +765,13 @@ int FltkWidget::handle(int event)
         return 1;
     case FL_DRAG:
         if (m_editMode != WidgetMode::Manipulate)
-            if (Fl::get_key(FL_Shift_L)==FALSE)
+            if (Fl::get_key(FL_Shift_L) == FALSE)
                 m_scene->unlockCursor();
-        if (Fl::event_state()==FL_BUTTON1)
+        if (Fl::event_state() == FL_BUTTON1)
             m_currentButton = ButtonState::Button1;
-        if (Fl::event_state()==FL_BUTTON2)
+        if (Fl::event_state() == FL_BUTTON2)
             m_currentButton = ButtonState::Button2;
-        if (Fl::event_state()==FL_BUTTON3)
+        if (Fl::event_state() == FL_BUTTON3)
             m_currentButton = ButtonState::Button3;
         this->doMotion(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
         this->doImGuiDrag();
@@ -757,7 +789,7 @@ int FltkWidget::handle(int event)
 
         return 1;
     case FL_KEYBOARD:
-        if (Fl::event_key()==FL_Shift_L)
+        if (Fl::event_key() == FL_Shift_L)
         {
             if (!m_scene->isCursorLocked())
                 m_scene->lockCursor();
@@ -776,29 +808,23 @@ int FltkWidget::handle(int event)
 
     case FL_SHORTCUT:
 
-        cout << "Shortcut!" << endl;
-        //if (Fl::event_key() == FL_Control_L)
-        //    cout << "Ctrl" << endl;
-
         if (Fl::get_key(FL_Control_L))
             doShortcut(ModifierKey::Ctrl, Fl::event_key());
         else if (Fl::get_key(FL_Control_L))
             doShortcut(ModifierKey::Ctrl, Fl::event_key());
+        else if (Fl::get_key(FL_Alt_L))
+            doShortcut(ModifierKey::Alt, Fl::event_key());
         else
             doShortcut(ModifierKey::None, Fl::event_key());
-        
-
         return 1;
     default:
         return 0;
     }
-
-
 }
 
 void FltkWidget::resize(int x, int y, int w, int h)
 {
-    Fl_Gl_Window::resize(x, y, w, h); 
+    Fl_Gl_Window::resize(x, y, w, h);
     if (this->isImGuiInitialised())
         this->doImGuiResize(pixel_w(), pixel_h());
 }
@@ -806,7 +832,6 @@ void FltkWidget::resize(int x, int y, int w, int h)
 // ------------------------------------------------------------
 // ImGui events
 // ------------------------------------------------------------
-
 
 // ------------------------------------------------------------
 // Event methods
@@ -819,11 +844,11 @@ void FltkWidget::doMouse(int x, int y)
     Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
-    if ((m_editMode == WidgetMode::Select)&&(m_selectEnabled))
+    if ((m_editMode == WidgetMode::Select) && (m_selectEnabled))
     {
-        if (m_selectedShape!=NULL)
+        if (m_selectedShape != NULL)
         {
-            if (m_selectedShape->getSelect()!=GLBase::SS_ON)
+            if (m_selectedShape->getSelect() != GLBase::SS_ON)
             {
                 bool select = true;
                 onSelectFilter(m_selectedShape, select);
@@ -847,7 +872,7 @@ void FltkWidget::doMouse(int x, int y)
 
     // Handle node creation
 
-    if ((m_editMode == WidgetMode::CreateNode)&&(Fl::event_state(FL_BUTTON1)>0))
+    if ((m_editMode == WidgetMode::CreateNode) && (Fl::event_state(FL_BUTTON1) > 0))
     {
         double vx, vy, vz;
         Node* node = NULL;
@@ -865,14 +890,13 @@ void FltkWidget::doMouse(int x, int y)
             m_scene->addChild(node);
             redraw();
         }
-
     }
 
     if (m_editMode == WidgetMode::CreateLine)
     {
-        if (m_selectedShapes->getSize()<2)
+        if (m_selectedShapes->getSize() < 2)
         {
-            if (m_selectedShape!=NULL)
+            if (m_selectedShape != NULL)
             {
                 if (m_selectedShape->isClass("Node"))
                 {
@@ -889,7 +913,7 @@ void FltkWidget::doMouse(int x, int y)
             }
         }
 
-        if (m_selectedShapes->getSize()==2)
+        if (m_selectedShapes->getSize() == 2)
         {
             this->createLine();
             m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
@@ -905,7 +929,6 @@ void FltkWidget::doMouse(int x, int y)
 
 void FltkWidget::onMouse(int x, int y)
 {
-
 }
 
 // ------------------------------------------------------------
@@ -919,18 +942,19 @@ void FltkWidget::doMotion(int x, int y)
     m_zoomY = 0.0f;
 
     this->getScene()->showCursor();
-    //if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
+    // if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
     {
-        if (Fl::event_state(FL_BUTTON3)>0) {
-            //if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
+        if (Fl::event_state(FL_BUTTON3) > 0)
         {
+            // if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
+            {
                 this->getScene()->hideCursor();
-                if (getCurrentModifier()==ButtonState::Alt)
+                if (getCurrentModifier() == ButtonState::Alt)
                 {
                     m_zoomX = ((float)x - m_beginX);
                     m_zoomY = ((float)y - m_beginY);
                 }
-                else if (getCurrentModifier()==ButtonState::Shift)
+                else if (getCurrentModifier() == ButtonState::Shift)
                 {
                     m_moveX = ((float)x - m_beginX);
                     m_moveY = ((float)y - m_beginY);
@@ -948,9 +972,9 @@ void FltkWidget::doMotion(int x, int y)
             redraw();
         }
 
-
 #ifdef OLD_VIEW_HANDLING
-        if (Fl::event_state(FL_BUTTON1)>0) {
+        if (Fl::event_state(FL_BUTTON1) > 0)
+        {
             m_angleX = (x - m_beginX);
             m_angleY = (y - m_beginY);
             m_beginX = x;
@@ -960,15 +984,16 @@ void FltkWidget::doMotion(int x, int y)
 
             redraw();
         }
-        if (Fl::event_state(FL_BUTTON3)>0) {
-            if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
+        if (Fl::event_state(FL_BUTTON3) > 0)
+        {
+            if ((getEditMode() == IVF_VIEW_ZOOM) || (getEditMode() == IVF_VIEW_PAN))
             {
-                if (getCurrentModifier()==IVF_NO_BUTTON)
+                if (getCurrentModifier() == IVF_NO_BUTTON)
                 {
                     m_zoomX = (x - m_beginX);
                     m_zoomY = (y - m_beginY);
                 }
-                else if (getCurrentModifier()==IVF_SHIFT)
+                else if (getCurrentModifier() == IVF_SHIFT)
                 {
                     m_moveX = (x - m_beginX);
                     m_moveY = (y - m_beginY);
@@ -983,7 +1008,7 @@ void FltkWidget::doMotion(int x, int y)
 #endif
     }
 
-    if (getEditMode()==WidgetMode::Move&&(Fl::event_state(FL_BUTTON1)>0))
+    if (getEditMode() == WidgetMode::Move && (Fl::event_state(FL_BUTTON1) > 0))
     {
         m_scene->updateCursor(x, y);
         double x, y, z;
@@ -1003,11 +1028,14 @@ void FltkWidget::doMotion(int x, int y)
 
         if (doit)
         {
-            for (int i=0; i<m_selectedShapes->getSize(); i++)
+            for (int i = 0; i < m_selectedShapes->getSize(); i++)
             {
                 auto shape = m_selectedShapes->getChild(i);
-                shape->getPosition(x, y, z);
-                shape->setPosition(x + dx, y + dy, z + dz);
+                if (shape->isClass("vfem::Node"))
+                {
+                    shape->getPosition(x, y, z);
+                    shape->setPosition(x + dx, y + dy, z + dz);
+                }
             }
             m_scene->getComposite()->refresh();
             redraw();
@@ -1016,13 +1044,12 @@ void FltkWidget::doMotion(int x, int y)
 
     // Call onMotion event method
 
-    onMotion(x, y); 
+    onMotion(x, y);
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onMotion(int x, int y)
 {
-
 }
 
 // ------------------------------------------------------------
@@ -1037,11 +1064,11 @@ void FltkWidget::doPassiveMotion(int x, int y)
 
     m_scene->updateCursor(x, y);
 
-    if ((getEditMode() == WidgetMode::Select)&&(m_selectEnabled))
+    if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled))
     {
         bool needInvalidate = false;
 
-        if (m_selectedShape!=nullptr)
+        if (m_selectedShape != nullptr)
         {
             m_selectedShape->setHighlight(Shape::HS_OFF);
             needInvalidate = true;
@@ -1053,7 +1080,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
 
         m_selectedShape = m_scene->getSelectedShape();
 
-        if (m_selectedShape!=NULL)
+        if (m_selectedShape != NULL)
         {
             bool highlight = true;
             onHighlightFilter(m_selectedShape, highlight);
@@ -1069,8 +1096,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
             redraw();
     }
 
-
-    if (getEditMode()==WidgetMode::CreateNode)
+    if (getEditMode() == WidgetMode::CreateNode)
     {
         double wx, wy, wz;
         Vec3d pos;
@@ -1081,7 +1107,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if (getEditMode()==WidgetMode::Move)
+    if (getEditMode() == WidgetMode::Move)
     {
         double wx, wy, wz;
         m_scene->updateCursor(x, y);
@@ -1091,11 +1117,11 @@ void FltkWidget::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if ((getEditMode() == WidgetMode::CreateLine)&&(m_selectEnabled))
+    if ((getEditMode() == WidgetMode::CreateLine) && (m_selectEnabled))
     {
         bool needInvalidate = false;
 
-        if (m_selectedShape!=nullptr)
+        if (m_selectedShape != nullptr)
         {
             m_selectedShape->setHighlight(Shape::HS_OFF);
             needInvalidate = true;
@@ -1105,7 +1131,7 @@ void FltkWidget::doPassiveMotion(int x, int y)
 
         m_selectedShape = m_scene->getSelectedShape();
 
-        if (m_selectedShape!=nullptr)
+        if (m_selectedShape != nullptr)
         {
             bool highlight = true;
             onHighlightFilter(m_selectedShape, highlight);
@@ -1141,7 +1167,6 @@ void FltkWidget::doMouseDown(int x, int y)
 // ------------------------------------------------------------
 void FltkWidget::onMouseDown(int x, int y)
 {
-
 }
 
 // ------------------------------------------------------------
@@ -1166,7 +1191,6 @@ void FltkWidget::doShortcut(ModifierKey modifier, int key)
     onShortcut(modifier, key);
 }
 
-
 // ------------------------------------------------------------
 void FltkWidget::onMouseUp(int x, int y)
 {
@@ -1175,7 +1199,6 @@ void FltkWidget::onMouseUp(int x, int y)
 // ------------------------------------------------------------
 void FltkWidget::onCoordinate(double x, double y, double z)
 {
-
 }
 
 // ------------------------------------------------------------
@@ -1184,13 +1207,13 @@ void FltkWidget::onInitContext()
     glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_MULTISAMPLE);
-    //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-    //GLint  iMultiSample = 0;
-    //GLint  iNumSamples = 0;
-    //glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
-    //glGetIntegerv(GL_SAMPLES, &iNumSamples);
+    // glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    // GLint  iMultiSample = 0;
+    // GLint  iNumSamples = 0;
+    // glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
+    // glGetIntegerv(GL_SAMPLES, &iNumSamples);
 
-    //cout << "mode after context init = " << this->mode() << endl;
+    // cout << "mode after context init = " << this->mode() << endl;
 
     m_lighting->enable();
 }
@@ -1198,71 +1221,67 @@ void FltkWidget::onInitContext()
 // ------------------------------------------------------------
 void FltkWidget::onOverlay()
 {
+}
 
+void FltkWidget::onUnderlay()
+{
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onSelect(Composite* selectedShapes)
 {
-
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onDeleteShape(Shape *shape, bool &doit)
+void FltkWidget::onDeleteShape(Shape* shape, bool& doit)
 {
     doit = true;
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onCreateNode(double x, double y, double z, Node* &newNode)
+void FltkWidget::onCreateNode(double x, double y, double z, Node*& newNode)
 {
-
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onCreateLine(Node* node1, Node* node2, Shape* &newLine)
+void FltkWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
 {
-
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onInit()
 {
-
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onDestroy()
 {
-
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onHighlightShape(Shape *shape)
+void FltkWidget::onHighlightShape(Shape* shape)
 {
-
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onDeSelect()
 {
-
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onMove(Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
+void FltkWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
 {
     doit = true;
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onSelectFilter(Shape *shape, bool &select)
+void FltkWidget::onSelectFilter(Shape* shape, bool& select)
 {
     select = true;
 }
 
 // ------------------------------------------------------------
-void FltkWidget::onHighlightFilter(Shape *, bool &highlight)
+void FltkWidget::onHighlightFilter(Shape*, bool& highlight)
 {
     highlight = true;
 }
@@ -1270,24 +1289,20 @@ void FltkWidget::onHighlightFilter(Shape *, bool &highlight)
 // ------------------------------------------------------------
 void FltkWidget::onKeyboard(int key)
 {
-    
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onPostRender()
 {
-
 }
 
 // ------------------------------------------------------------
 void FltkWidget::onPreRender()
 {
-
 }
 
 void FltkWidget::onShortcut(ModifierKey modifier, int key)
 {
-    
 }
 
 bool FltkWidget::isInitialized()
@@ -1310,7 +1325,23 @@ bool FltkWidget::isRedrawTimerEnabled()
     return !m_disableRedrawTimer;
 }
 
+void FltkWidget::setOffscreenRendering(bool flag)
+{
+    m_offScreenRendering = flag;
 
+    if (m_offScreenRendering)
+    {
+        initOffscreenBuffers();
+        updateOffscreenBuffers();
+    }
+
+    this->redraw();
+}
+
+bool FltkWidget::offscreenRendering()
+{
+    return m_offScreenRendering;
+}
 
 void FltkWidget::addSelection(ivf::Shape* shape)
 {

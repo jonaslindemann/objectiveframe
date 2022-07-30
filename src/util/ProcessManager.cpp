@@ -5,9 +5,9 @@
 #include "ProcessManager.h"
 
 #if defined(WIN32) && !defined(CYGNUS)
-#  include <windows.h>
+#include <windows.h>
 #else
-#  include <unistd.h>
+#include <unistd.h>
 #endif
 
 #ifdef HAVE_CSTRING
@@ -28,32 +28,29 @@
 
 CProcessManager::CProcessManager()
 {
-
 }
 
 CProcessManager::~CProcessManager()
 {
-
 }
 
-void CProcessManager::executeWait(char *commandLine)
+void CProcessManager::executeWait(char* commandLine)
 {
 
     // Code ripped from FLTK demo, demo.cxx
 
 #ifdef WIN32
-    STARTUPINFO		suInfo;		// Process startup information
-    PROCESS_INFORMATION	prInfo;		// Process information
-    DWORD       exitCode;
-
+    STARTUPINFO suInfo; // Process startup information
+    PROCESS_INFORMATION prInfo; // Process information
+    DWORD exitCode;
 
     memset(&suInfo, 0, sizeof(suInfo));
     suInfo.cb = sizeof(suInfo);
 
     auto icommand_length = strlen(commandLine);
 
-    char* copy_of_icommand = new char[icommand_length+1];
-    strcpy(copy_of_icommand,commandLine); 
+    char* copy_of_icommand = new char[icommand_length + 1];
+    strcpy(copy_of_icommand, commandLine);
 
     // On WIN32 the .exe suffix needs to be appended to the command
     // whilst leaving any additional parameters unchanged - this
@@ -62,16 +59,20 @@ void CProcessManager::executeWait(char *commandLine)
 
     // skip leading spaces.
     char* start_command = copy_of_icommand;
-    while(*start_command == ' ') ++start_command;
+    while (*start_command == ' ')
+        ++start_command;
 
     // find the space between the command and parameters if one exists.
-    char* start_parameters = strchr(start_command,' ');
+    char* start_parameters = strchr(start_command, ' ');
 
-    char* command = new char[icommand_length+6]; // 6 for extra 'd.exe\0'
+    char* command = new char[icommand_length + 6]; // 6 for extra 'd.exe\0'
 
-    if (start_parameters==NULL) { // no parameters required.
+    if (start_parameters == NULL)
+    { // no parameters required.
         sprintf(command, "%s.exe", start_command);
-    } else { // parameters required.
+    }
+    else
+    { // parameters required.
         // break the start_command at the intermediate space between
         // start_command and start_parameters.
         *start_parameters = 0;
@@ -82,18 +83,18 @@ void CProcessManager::executeWait(char *commandLine)
     sprintf(command, "%s.exe %s", start_command, start_parameters);
 
     CreateProcess(NULL, command, NULL, NULL, FALSE,
-                  NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
+        NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
 
     // Wait for program to finish....
 
     exitCode = STILL_ACTIVE;
-    while ( exitCode == STILL_ACTIVE )
+    while (exitCode == STILL_ACTIVE)
     {
         Sleep(250);
-        if ( !GetExitCodeProcess(prInfo.hProcess, &exitCode) )
+        if (!GetExitCodeProcess(prInfo.hProcess, &exitCode))
         {
             sprintf(commandLine, "Decompress: GetExitCodeProcess failed: %i",
-                    GetLastError());
+                GetLastError());
         }
     }
 
@@ -105,7 +106,7 @@ void CProcessManager::executeWait(char *commandLine)
 
 #else
     int icommand_length = strlen(commandLine);
-    char* command = new char[icommand_length+5]; // 5 for extra './' and ' &\0'
+    char* command = new char[icommand_length + 5]; // 5 for extra './' and ' &\0'
 
     sprintf(command, "./%s", commandLine);
     system(command);
@@ -113,26 +114,24 @@ void CProcessManager::executeWait(char *commandLine)
     delete command;
 #endif
 #endif // WIN32
-
 }
 
-void CProcessManager::execute(char *commandLine)
+void CProcessManager::execute(char* commandLine)
 {
 
     // Code ripped from FLTK demo, demo.cxx
 
 #ifdef WIN32
-    STARTUPINFO		suInfo;		// Process startup information
-    PROCESS_INFORMATION	prInfo;		// Process information
-
+    STARTUPINFO suInfo; // Process startup information
+    PROCESS_INFORMATION prInfo; // Process information
 
     memset(&suInfo, 0, sizeof(suInfo));
     suInfo.cb = sizeof(suInfo);
 
     int icommand_length = strlen(commandLine);
 
-    char* copy_of_icommand = new char[icommand_length+1];
-    strcpy(copy_of_icommand,commandLine);
+    char* copy_of_icommand = new char[icommand_length + 1];
+    strcpy(copy_of_icommand, commandLine);
 
     // On WIN32 the .exe suffix needs to be appended to the command
     // whilst leaving any additional parameters unchanged - this
@@ -141,16 +140,20 @@ void CProcessManager::execute(char *commandLine)
 
     // skip leading spaces.
     char* start_command = copy_of_icommand;
-    while(*start_command == ' ') ++start_command;
+    while (*start_command == ' ')
+        ++start_command;
 
     // find the space between the command and parameters if one exists.
-    char* start_parameters = strchr(start_command,' ');
+    char* start_parameters = strchr(start_command, ' ');
 
-    char* command = new char[icommand_length+6]; // 6 for extra 'd.exe\0'
+    char* command = new char[icommand_length + 6]; // 6 for extra 'd.exe\0'
 
-    if (start_parameters==NULL) { // no parameters required.
+    if (start_parameters == NULL)
+    { // no parameters required.
         sprintf(command, "%s.exe", start_command);
-    } else { // parameters required.
+    }
+    else
+    { // parameters required.
         // break the start_command at the intermediate space between
         // start_command and start_parameters.
         *start_parameters = 0;
@@ -161,7 +164,7 @@ void CProcessManager::execute(char *commandLine)
     sprintf(command, "%s.exe %s", start_command, start_parameters);
 
     CreateProcess(NULL, command, NULL, NULL, FALSE,
-                  NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
+        NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
 
     delete command;
     delete copy_of_icommand;
@@ -171,7 +174,7 @@ void CProcessManager::execute(char *commandLine)
 
 #else
     int icommand_length = strlen(commandLine);
-    char* command = new char[icommand_length+5]; // 5 for extra './' and ' &\0'
+    char* command = new char[icommand_length + 5]; // 5 for extra './' and ' &\0'
 
     sprintf(command, "./%s &", commandLine);
     system(command);
@@ -179,6 +182,4 @@ void CProcessManager::execute(char *commandLine)
     delete command;
 #endif
 #endif // WIN32
-
 }
-

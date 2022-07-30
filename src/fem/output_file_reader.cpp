@@ -9,10 +9,9 @@ OutputFileReader::OutputFileReader()
 
 OutputFileReader::~OutputFileReader()
 {
-
 }
 
-void OutputFileReader::setFemModel(Model *model)
+void OutputFileReader::setFemModel(Model* model)
 {
     m_femModel = model;
 }
@@ -22,7 +21,6 @@ Model* OutputFileReader::getFemModel()
     return m_femModel;
 }
 
-void OutputFileReader::readFromStream(std::istream &in)
+void OutputFileReader::readFromStream(std::istream& in)
 {
-
 }

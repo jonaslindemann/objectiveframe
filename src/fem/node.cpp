@@ -3,8 +3,8 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-Node::Node ()
-    :Base()
+Node::Node()
+    : Base()
 {
     m_number = -1;
     m_coord[0] = 0.0;
@@ -14,8 +14,8 @@ Node::Node ()
 }
 
 // ------------------------------------------------------------
-Node::Node (double x, double y, double z)
-    :Base()
+Node::Node(double x, double y, double z)
+    : Base()
 {
     m_number = -1;
     this->setCoord(x, y, z);
@@ -23,9 +23,8 @@ Node::Node (double x, double y, double z)
 }
 
 // ------------------------------------------------------------
-Node::~Node ()
+Node::~Node()
 {
-
 }
 
 // ------------------------------------------------------------
@@ -37,7 +36,7 @@ void Node::setCoord(double x, double y, double z)
 }
 
 // ------------------------------------------------------------
-void Node::getCoord(double &x, double &y, double &z)
+void Node::getCoord(double& x, double& y, double& z)
 {
     x = m_coord[0];
     y = m_coord[1];
@@ -57,20 +56,21 @@ long Node::getNumber()
 }
 
 // ------------------------------------------------------------
-void Node::print(std::ostream &out)
+void Node::print(std::ostream& out)
 {
     using namespace std;
-    out << "Node " << m_number << endl;;
+    out << "Node " << m_number << endl;
+    ;
     out << "   Location (" << m_coord[0] << ", ";
     out << m_coord[1] << ", ";
     out << m_coord[2] << ")" << endl;
     out << "   Local dofs:  ";
     unsigned int i;
-    for (i=0; i<m_dofs.size(); i++)
+    for (i = 0; i < m_dofs.size(); i++)
         out << m_dofs[i];
     out << endl;
     out << "   Global dofs: ";
-    for (i=0; i<m_dofs.size(); i++)
+    for (i = 0; i < m_dofs.size(); i++)
         out << m_dofs[i]->getNumber() << " ";
     out << endl;
 }
@@ -122,21 +122,21 @@ void Node::setKind(int kind)
     switch (m_kind)
     {
     case FEM_DISPL_NODE:
-        for (i=0; i<3; i++)
+        for (i = 0; i < 3; i++)
         {
             DofPtr dof = new Dof(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
     case FEM_DISPL_ROT_NODE:
-        for (i=0; i<6; i++)
+        for (i = 0; i < 6; i++)
         {
             DofPtr dof = new Dof(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
     default:
-        for (i=0; i<3; i++)
+        for (i = 0; i < 3; i++)
         {
             DofPtr dof = new Dof(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
@@ -154,7 +154,7 @@ int Node::getKind()
 // ------------------------------------------------------------
 Dof* Node::getDof(unsigned int dof)
 {
-    if (dof<m_dofs.size())
+    if (dof < m_dofs.size())
         return m_dofs[dof];
     else
         return NULL;
@@ -163,47 +163,47 @@ Dof* Node::getDof(unsigned int dof)
 // ------------------------------------------------------------
 long Node::enumerateDofs(long count)
 {
-    for (unsigned int i=0; i<m_dofs.size(); i++)
+    for (unsigned int i = 0; i < m_dofs.size(); i++)
         m_dofs[i]->setNumber(count++);
     return count;
 }
 
 // ------------------------------------------------------------
-void Node::saveToStream(std::ostream &out)
+void Node::saveToStream(std::ostream& out)
 {
     using namespace std;
     Base::saveToStream(out);
-    out << m_kind << " " ;
+    out << m_kind << " ";
     out << m_number << " ";
-    for (int i=0; i<3; i++)
+    for (int i = 0; i < 3; i++)
         out << m_coord[i] << " ";
     /*
     switch (m_kind)
     {
     case FEM_DISPL_ROT_NODE:
-    	for (i=0; i<6; i++)
-    		out << m_dofs[i]->getNumber() << " ";
-    	break;
+        for (i=0; i<6; i++)
+            out << m_dofs[i]->getNumber() << " ";
+        break;
     case FEM_DISPL_NODE:
-    	for (i=0; i<3; i++)
-    		out << m_dofs[i]->getNumber() << " ";
-    	break;
+        for (i=0; i<3; i++)
+            out << m_dofs[i]->getNumber() << " ";
+        break;
     default:
-    	for (i=0; i<6; i++)
-    		out << m_dofs[i]->getNumber() << " ";
-    	break;
+        for (i=0; i<6; i++)
+            out << m_dofs[i]->getNumber() << " ";
+        break;
     }
     */
     out << endl;
 }
 
 // ------------------------------------------------------------
-void Node::readFromStream(std::istream &in)
+void Node::readFromStream(std::istream& in)
 {
     Base::readFromStream(in);
     in >> m_kind;
     in >> m_number;
-    for (int i=0; i<3; i++)
+    for (int i = 0; i < 3; i++)
         in >> m_coord[i];
     this->setKind(m_kind);
 }
@@ -213,14 +213,14 @@ void Node::setValueSize(int size)
 {
     int i;
     m_values.resize(size);
-    for (i=0; i<size; i++)
+    for (i = 0; i < size; i++)
         m_values[i] = 0.0;
 }
 
 // ------------------------------------------------------------
 double Node::getValue(unsigned int idx)
 {
-    if (idx<m_values.size())
+    if (idx < m_values.size())
         return m_values[idx];
     else
         return 0.0;
@@ -229,7 +229,7 @@ double Node::getValue(unsigned int idx)
 // ------------------------------------------------------------
 void Node::setValue(unsigned int idx, double value)
 {
-    if (idx<m_values.size())
+    if (idx < m_values.size())
         m_values[idx] = value;
 }
 
@@ -244,4 +244,3 @@ void Node::clearValues()
 {
     m_values.clear();
 }
-

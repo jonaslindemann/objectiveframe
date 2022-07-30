@@ -1,17 +1,15 @@
-#include <ofem/element_load_set.h>
 #include <ofem/element_load.h>
+#include <ofem/element_load_set.h>
 
 using namespace ofem;
 
 ElementLoadSet::ElementLoadSet()
-    :LoadSet()
+    : LoadSet()
 {
-
 }
 
 ElementLoadSet::~ElementLoadSet()
 {
-
 }
 
 Load* ElementLoadSet::createLoad()

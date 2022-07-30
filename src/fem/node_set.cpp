@@ -3,37 +3,37 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-NodeSet::NodeSet ()
-    :Base()
+NodeSet::NodeSet()
+    : Base()
 {
 }
 
 // ------------------------------------------------------------
-NodeSet::~NodeSet ()
+NodeSet::~NodeSet()
 {
     deleteAll();
 }
 
 // ------------------------------------------------------------
-void NodeSet::print(std::ostream &out)
+void NodeSet::print(std::ostream& out)
 {
     using namespace std;
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
         out << m_nodes[i];
     out << endl;
 }
 
 // ------------------------------------------------------------
-void NodeSet::addNode(Node *node)
+void NodeSet::addNode(Node* node)
 {
-    //node->addReference();
+    // node->addReference();
     m_nodes.push_back(node);
 }
 
 // ------------------------------------------------------------
 Node* NodeSet::getNode(long i)
 {
-    if ( (i>=0)&&(i<(long)m_nodes.size()) )
+    if ((i >= 0) && (i < (long)m_nodes.size()))
         return m_nodes[i];
     else
         return NULL;
@@ -42,11 +42,11 @@ Node* NodeSet::getNode(long i)
 // ------------------------------------------------------------
 bool NodeSet::deleteNode(long i)
 {
-    if ( (i>=0)&&(i<(long)m_nodes.size()) )
+    if ((i >= 0) && (i < (long)m_nodes.size()))
     {
-        if (m_nodes[i]->getRefCount()==1)
+        if (m_nodes[i]->getRefCount() == 1)
         {
-            m_nodes.erase(m_nodes.begin()+i);
+            m_nodes.erase(m_nodes.begin() + i);
             return true;
         }
         else
@@ -58,13 +58,13 @@ bool NodeSet::deleteNode(long i)
 // ------------------------------------------------------------
 Node* NodeSet::removeNode(long i)
 {
-    if ( (i>=0)&&(i<(long)m_nodes.size()) )
+    if ((i >= 0) && (i < (long)m_nodes.size()))
     {
-        if (m_nodes[i]->getRefCount()==1)
+        if (m_nodes[i]->getRefCount() == 1)
         {
             Node* node = m_nodes[i];
             node->addReference();
-            m_nodes.erase(m_nodes.begin()+i);
+            m_nodes.erase(m_nodes.begin() + i);
             node->deleteReference();
             return node;
         }
@@ -78,9 +78,9 @@ Node* NodeSet::removeNode(long i)
 // ------------------------------------------------------------
 bool NodeSet::removeNode(Node* node)
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
-        if (node==m_nodes[i])
+        if (node == m_nodes[i])
             return this->deleteNode(i);
     }
     return false;
@@ -100,7 +100,7 @@ void NodeSet::clear()
 // ------------------------------------------------------------
 void NodeSet::clearNodeValues()
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
         Node* node = m_nodes[i];
         node->clearValues();
@@ -116,7 +116,7 @@ size_t NodeSet::getSize()
 // ------------------------------------------------------------
 long NodeSet::enumerateNodes(long count)
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
         m_nodes[i]->setNumber(count++);
     return count;
 }
@@ -124,18 +124,18 @@ long NodeSet::enumerateNodes(long count)
 // ------------------------------------------------------------
 long NodeSet::enumerateDofs(long count)
 {
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
         count = m_nodes[i]->enumerateDofs(count);
     return count;
 }
 
 // ------------------------------------------------------------
-void NodeSet::saveToStream(std::ostream &out)
+void NodeSet::saveToStream(std::ostream& out)
 {
     using namespace std;
     Base::saveToStream(out);
     out << m_nodes.size() << endl;
-    for (unsigned int i=0; i<m_nodes.size(); i++)
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
         Node* node = m_nodes[i];
         node->saveToStream(out);
@@ -158,18 +158,17 @@ json NodeSet::toJSON()
 }
 
 // ------------------------------------------------------------
-void NodeSet::readFromStream(std::istream &in)
+void NodeSet::readFromStream(std::istream& in)
 {
     long nNodes;
 
     Base::readFromStream(in);
     deleteAll();
     in >> nNodes;
-    for (int i=0; i<nNodes; i++)
+    for (int i = 0; i < nNodes; i++)
     {
         NodePtr node = new Node();
         node->readFromStream(in);
         m_nodes.push_back(node);
     }
 }
-

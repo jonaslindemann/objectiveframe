@@ -18,7 +18,6 @@ CColor::CColor()
 
 CColor::~CColor()
 {
-
 }
 
 void CColor::setColor(float red, float green, float blue, float alpha)
@@ -34,14 +33,14 @@ void CColor::setAlpha(float alpha)
     m_color[3] = alpha;
 }
 
-void CColor::getColor(float *array)
+void CColor::getColor(float* array)
 {
     array[0] = m_color[0];
     array[1] = m_color[1];
     array[2] = m_color[2];
 }
 
-void CColor::getColor(float &r, float &g, float &b, float &a)
+void CColor::getColor(float& r, float& g, float& b, float& a)
 {
     r = m_color[0];
     g = m_color[1];

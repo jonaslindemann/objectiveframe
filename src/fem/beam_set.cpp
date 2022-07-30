@@ -3,13 +3,13 @@
 using namespace ofem;
 
 // ------------------------------------------------------------
-BeamSet::BeamSet ()
-    :ElementSet()
+BeamSet::BeamSet()
+    : ElementSet()
 {
 }
 
 // ------------------------------------------------------------
-BeamSet::~BeamSet ()
+BeamSet::~BeamSet()
 {
 }
 
@@ -20,16 +20,15 @@ Element* BeamSet::createElement()
 }
 
 // ------------------------------------------------------------
-void BeamSet::connectMaterials(BeamMaterialSet *materialSet)
+void BeamSet::connectMaterials(BeamMaterialSet* materialSet)
 {
-    for (int i=0; i<this->getSize(); i++)
+    for (int i = 0; i < this->getSize(); i++)
     {
-        Beam* element = (Beam*) this->getElement(i);
-        if (element->getMaterialIndex()!=-1)
+        Beam* element = (Beam*)this->getElement(i);
+        if (element->getMaterialIndex() != -1)
         {
             element->setMaterial((BeamMaterial*)
-                                 materialSet->getMaterial(element->getMaterialIndex()-1));
+                                     materialSet->getMaterial(element->getMaterialIndex() - 1));
         }
     }
 }
-

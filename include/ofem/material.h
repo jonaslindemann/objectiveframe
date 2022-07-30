@@ -2,28 +2,31 @@
 
 #include <ofem/base.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(Material);
+SmartPointer(Material);
 
-    class Material : public Base {
-    private:
-        long m_number;
-    public:
-        Material();
-        virtual ~Material();
+class Material : public Base
+{
+private:
+    long m_number;
 
-        ClassInfo("Material", Base);
+public:
+    Material();
+    virtual ~Material();
 
-        // Get/set methods
+    ClassInfo("Material", Base);
 
-        long getNumber();
-        void setNumber(long number);
+    // Get/set methods
 
-        // IO Methods
+    long getNumber();
+    void setNumber(long number);
 
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    };
+    // IO Methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+};
 }

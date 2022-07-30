@@ -20,55 +20,58 @@ typedef int BOOL;
 #ifdef __cplusplus
 #define NULL 0
 #else
-#define NULL ((void*) 0)
+#define NULL ((void*)0)
 #endif
 #endif
 
 #define StdPointer(classname) \
-	class classname; \
-	typedef classname* classname##Ptr
+    class classname;          \
+    typedef classname* classname##Ptr
 
-#define SmartPointer(classname) \
-	class classname; \
-	typedef ofem::Pointer<classname> classname##Ptr; \
-	typedef classname* classname##StdPtr;
+#define SmartPointer(classname)                      \
+    class classname;                                 \
+    typedef ofem::Pointer<classname> classname##Ptr; \
+    typedef classname* classname##StdPtr;
 
-#define SmartPointerRefBase(classname,refbase) \
-	class classname; \
-	typedef ofem::PointerRefBase<classname,refbase> classname##Ptr; \
-	typedef classname* classname##StdPtr;
+#define SmartPointerRefBase(classname, refbase)                      \
+    class classname;                                                 \
+    typedef ofem::PointerRefBase<classname, refbase> classname##Ptr; \
+    typedef classname* classname##StdPtr;
 
-#define ClassInfo(femclassname,femparent) \
-	const std::string getClassNameThis() { return femclassname; } \
-	virtual const std::string getClassName() { return femclassname; } \
-	virtual bool isClass(const std::string& name) { \
-		std::string className; \
-		className = getClassNameThis(); \
-		if (!className.empty()) { \
-			if (className == name) \
-				return true; \
-			else \
-				return femparent::isClass(name); \
-		}\
-		else \
-			return false; \
-	}
+#define ClassInfo(femclassname, femparent)                                     \
+    const std::string getClassNameThis() { return femclassname; }              \
+    virtual const std::string getClassName() override { return femclassname; } \
+    virtual bool isClass(const std::string& name) override                     \
+    {                                                                          \
+        std::string className;                                                 \
+        className = getClassNameThis();                                        \
+        if (!className.empty())                                                \
+        {                                                                      \
+            if (className == name)                                             \
+                return true;                                                   \
+            else                                                               \
+                return femparent::isClass(name);                               \
+        }                                                                      \
+        else                                                                   \
+            return false;                                                      \
+    }
 
-#define ClassInfoTop(femclassname) \
-	void getClassNameThis(std::string& name) { name = femclassname; } \
-	const std::string getClassNameThis() { return femclassname; } \
-	virtual void getClassName(std::string& name) { name = femclassname; } \
-	virtual const std::string getClassName() { return femclassname; } \
-	virtual bool isClass(const std::string& name) { \
-	    std::string className = ""; \
-		className = getClassNameThis(); \
-		if (!className.empty()) { \
-			if (className == name) \
-				return true; \
-			else \
-				return false; \
-		}\
-		else \
-			return false; \
-	}
-
+#define ClassInfoTop(femclassname)                                        \
+    void getClassNameThis(std::string& name) { name = femclassname; }     \
+    const std::string getClassNameThis() { return femclassname; }         \
+    virtual void getClassName(std::string& name) { name = femclassname; } \
+    virtual const std::string getClassName() { return femclassname; }     \
+    virtual bool isClass(const std::string& name)                         \
+    {                                                                     \
+        std::string className = "";                                       \
+        className = getClassNameThis();                                   \
+        if (!className.empty())                                           \
+        {                                                                 \
+            if (className == name)                                        \
+                return true;                                              \
+            else                                                          \
+                return false;                                             \
+        }                                                                 \
+        else                                                              \
+            return false;                                                 \
+    }

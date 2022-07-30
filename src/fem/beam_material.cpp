@@ -1,21 +1,21 @@
 // Implementation of: public class CFemBeamMaterial
 
-#include <ofem/beam_material.h>
-#include <ofem/rect_section.h>
 #include <ofem/I_section.h>
 #include <ofem/L_section.h>
 #include <ofem/T_section.h>
 #include <ofem/U_section.h>
+#include <ofem/beam_material.h>
 #include <ofem/pipe_section.h>
-#include <ofem/solid_pipe_section.h>
+#include <ofem/rect_section.h>
 #include <ofem/rhs_section.h>
+#include <ofem/solid_pipe_section.h>
 
 using namespace ofem;
 using namespace std;
 
 // ------------------------------------------------------------
-BeamMaterial::BeamMaterial ()
-    :Material()
+BeamMaterial::BeamMaterial()
+    : Material()
 {
     m_width = 0.0;
     m_height = 0.0;
@@ -31,14 +31,14 @@ BeamMaterial::BeamMaterial ()
 }
 
 // ------------------------------------------------------------
-BeamMaterial::~BeamMaterial ()
+BeamMaterial::~BeamMaterial()
 {
 }
 
 // ------------------------------------------------------------
 void BeamMaterial::setProperties(double E, double G,
-                                     double A, double Iy,
-                                     double Iz, double Kv)
+    double A, double Iy,
+    double Iz, double Kv)
 {
     m_E = E;
     m_G = G;
@@ -49,8 +49,8 @@ void BeamMaterial::setProperties(double E, double G,
 }
 
 // ------------------------------------------------------------
-void BeamMaterial::getProperties(double &E, double &G, double &A,
-                                     double &Iy, double &Iz, double &Kv)
+void BeamMaterial::getProperties(double& E, double& G, double& A,
+    double& Iy, double& Iz, double& Kv)
 {
     E = m_E;
     G = m_G;
@@ -61,7 +61,7 @@ void BeamMaterial::getProperties(double &E, double &G, double &A,
 }
 
 // ------------------------------------------------------------
-void BeamMaterial::print(ostream &out)
+void BeamMaterial::print(ostream& out)
 {
     out << "Material : " << this->getName() << endl;
     out << "   E  = " << m_E << endl;
@@ -73,10 +73,10 @@ void BeamMaterial::print(ostream &out)
 }
 
 // ------------------------------------------------------------
-void BeamMaterial::saveToStream(std::ostream &out)
+void BeamMaterial::saveToStream(std::ostream& out)
 {
-	Material::saveToStream(out);
-	out << this->getName() << endl;
+    Material::saveToStream(out);
+    out << this->getName() << endl;
     out << m_color << endl;
     out << m_width << " ";
     out << m_height << " ";
@@ -88,7 +88,7 @@ void BeamMaterial::saveToStream(std::ostream &out)
     out << m_Iz << " ";
     out << m_Kv << " " << endl;
 
-    if (m_section!=nullptr)
+    if (m_section != nullptr)
     {
         out << m_section->getSectionType() << endl;
         m_section->saveToStream(out);
@@ -100,16 +100,16 @@ void BeamMaterial::saveToStream(std::ostream &out)
 }
 
 // ------------------------------------------------------------
-void BeamMaterial::readFromStream(std::istream &in)
+void BeamMaterial::readFromStream(std::istream& in)
 {
     int sectionType;
     string matName;
     Material::readFromStream(in);
-    in.ignore(1000,'\n');
+    in.ignore(1000, '\n');
     getline(in, matName);
-    //in.getline(matName, 255, '\n');
-    //in.getline(matName, 255, '\n');
-    //in >> matName;
+    // in.getline(matName, 255, '\n');
+    // in.getline(matName, 255, '\n');
+    // in >> matName;
     this->setName(matName);
     in >> m_color;
     in >> m_width;
@@ -123,9 +123,10 @@ void BeamMaterial::readFromStream(std::istream &in)
     in >> m_Kv;
     in >> sectionType;
 
-    if (sectionType>-1)
+    if (sectionType > -1)
     {
-        switch (sectionType) {
+        switch (sectionType)
+        {
         case FEM_I_SECTION:
             m_section = new ISection();
             break;
@@ -155,14 +156,13 @@ void BeamMaterial::readFromStream(std::istream &in)
     }
     else
     {
-
     }
 }
 
 // ------------------------------------------------------------
-void BeamMaterial::setSection(Section *section)
+void BeamMaterial::setSection(Section* section)
 {
-    if (m_section!=NULL)
+    if (m_section != NULL)
     {
         m_section->deleteReference();
         if (!m_section->isReferenced())
@@ -182,14 +182,14 @@ void BeamMaterial::assignPropFromSection()
             m_section->data(2),
             m_section->data(3),
             m_section->data(4),
-            m_section->data(5)
-        );
+            m_section->data(5));
     }
 }
 
 void BeamMaterial::setSectionType(SectionType sectionType)
 {
-    switch (sectionType) {
+    switch (sectionType)
+    {
     case ST_I:
         m_section = new ISection();
         break;
@@ -246,4 +246,3 @@ int BeamMaterial::getColor()
 {
     return m_color;
 }
-

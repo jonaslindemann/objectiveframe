@@ -5,46 +5,49 @@
 
 #include <vector>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(MaterialSet);
+SmartPointer(MaterialSet);
 
-    class MaterialSet : public Base {
-    private:
-        std::vector<MaterialPtr> m_materials;
-        long m_currentMaterialIdx;
-    protected:
+class MaterialSet : public Base
+{
+private:
+    std::vector<MaterialPtr> m_materials;
+    long m_currentMaterialIdx;
 
-        // Allocators
+protected:
+    // Allocators
 
-        virtual Material* createMaterial();
-    public:
-        MaterialSet();
-        virtual ~MaterialSet();
+    virtual Material* createMaterial();
 
-        // Class info
+public:
+    MaterialSet();
+    virtual ~MaterialSet();
 
-        ClassInfo("MaterialSet", Base);
+    // Class info
 
-        // Methods
+    ClassInfo("MaterialSet", Base);
 
-        void deleteAll();
-        Material* removeMaterial(long i);
-        bool deleteMaterial(long i);
-        Material* getMaterial(long i);
-        void addMaterial(Material* material);
-        size_t getSize();
-        void clear();
-        long enumerateMaterials(long count = 1);
-        bool removeMaterial(Material* material);
+    // Methods
 
-        void setCurrentMaterial(long i);
-        Material* currentMaterial();
+    void deleteAll();
+    Material* removeMaterial(long i);
+    bool deleteMaterial(long i);
+    Material* getMaterial(long i);
+    void addMaterial(Material* material);
+    size_t getSize();
+    void clear();
+    long enumerateMaterials(long count = 1);
+    bool removeMaterial(Material* material);
 
-        // IO methods
+    void setCurrentMaterial(long i);
+    Material* currentMaterial();
 
-        void readFromStream(std::istream& in);
-        void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    };
+    // IO methods
+
+    void readFromStream(std::istream& in) override;
+    void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+};
 }

@@ -1,21 +1,23 @@
 #pragma once
 
-#include <ofem/node_load_set.h>
 #include <ofem/beam_node_load.h>
+#include <ofem/node_load_set.h>
 
-namespace ofem {
+namespace ofem
+{
 
 SmartPointer(CFEmBeamNodeLoadSet);
 
-class BeamNodeLoadSet : public NodeLoadSet {
+class BeamNodeLoadSet : public NodeLoadSet
+{
 private:
-
 public:
     BeamNodeLoadSet();
     virtual ~BeamNodeLoadSet();
 
-    ClassInfo("BeamNodeLoadSet",NodeLoadSet);
+    ClassInfo("BeamNodeLoadSet", NodeLoadSet);
+
 protected:
-    Load* createLoad();
+    virtual Load* createLoad() override;
 };
 }

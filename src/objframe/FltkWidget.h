@@ -28,33 +28,56 @@
 
 // OpenGL and FLTK includes
 
-
 #include <FL/Fl_Gl_Window.H>
 
 #include "imgui_impl_fltk.h"
 
 // Widget modes
 
-enum class WidgetMode { Select, SimpleSelect, View, ViewZoom, ViewPan, CameraTarget, Move, Create, CreateNode, CreateLine, CreateObject, Manipulate, User };
+enum class WidgetMode
+{
+    Select,
+    SimpleSelect,
+    View,
+    ViewZoom,
+    ViewPan,
+    CameraTarget,
+    Move,
+    Create,
+    CreateNode,
+    CreateLine,
+    CreateObject,
+    Manipulate,
+    User
+};
 
 // Mouse modes
 
-enum class ButtonState { Button1, Button2, Button3, NoButton, Shift, Ctrl, Alt };
+enum class ButtonState
+{
+    Button1,
+    Button2,
+    Button3,
+    NoButton,
+    Shift,
+    Ctrl,
+    Alt
+};
 
 #include <ivf/Base.h>
-#include <ivf/Composite.h>
+#include <ivf/Brick.h>
 #include <ivf/Camera.h>
+#include <ivf/Composite.h>
 #include <ivf/CulledScene.h>
 #include <ivf/Extrusion.h>
 #include <ivf/Node.h>
 #include <ivf/Shape.h>
-#include <ivf/Brick.h>
 #include <ivf/SolidLine.h>
 #include <ivf/Workspace.h>
 
 /* Later perhaps
-#include <ivfmanip/IvfTranslateManipulator.h>
 #include <ivfmanip/IvfRotateManipulator.h>
+#include <ivfmanip/IvfTranslateManipulator.h>
 */
 
 #include <ivfmath/Plane.h>
@@ -62,7 +85,12 @@ enum class ButtonState { Button1, Button2, Button3, NoButton, Shift, Ctrl, Alt }
 
 IvfSmartPointer(FltkWidget);
 
-enum ModifierKey { Ctrl, Alt, None };
+enum ModifierKey
+{
+    Ctrl,
+    Alt,
+    None
+};
 
 /**
  * Ivf FLTK Widget
@@ -76,9 +104,11 @@ enum ModifierKey { Ctrl, Alt, None };
  *
  * \author Jonas Lindemann
  */
-class FltkWidget : public Fl_Gl_Window, ivf::Base, ImGuiFLTKImpl {
+class FltkWidget : public Fl_Gl_Window
+    , ivf::Base
+    , ImGuiFLTKImpl
+{
 private:
-
     // State variables
 
     int m_moving, m_beginX, m_beginY;
@@ -87,7 +117,7 @@ private:
     ButtonState m_currentModifier;
 
     WidgetMode m_editMode;
-    int	m_clickNumber;
+    int m_clickNumber;
     bool m_snapToGrid;
 
     int m_manipulatorMode;
@@ -117,6 +147,7 @@ private:
     long m_nLines;
 
     bool m_doOverlay;
+    bool m_doUnderlay;
     bool m_editEnabled;
     bool m_selectEnabled;
     bool m_initDone;
@@ -129,42 +160,41 @@ private:
 
     bool m_offScreenRendering;
 
-	GLuint m_screenTexture;
-	GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
+    GLuint m_screenTexture;
+    GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
 
-	int m_prevWindowSize[2];
+    int m_prevWindowSize[2];
 
     // Interaction objects
 
-    ivf::WorkspacePtr			m_scene;
-    ivf::ShapePtr				m_selectedShape;
-    ivf::CameraPtr				m_camera;
-    ivf::CompositePtr			m_selectedShapes;
-    ivf::LightingPtr			m_lighting;
-    ivf::ShapePtr               m_lastShape;
+    ivf::WorkspacePtr m_scene;
+    ivf::ShapePtr m_selectedShape;
+    ivf::CameraPtr m_camera;
+    ivf::CompositePtr m_selectedShapes;
+    ivf::LightingPtr m_lighting;
+    ivf::ShapePtr m_lastShape;
 
-	void initOffscreenBuffers();
-	void updateOffscreenBuffers();
-	void bindOffscreenBuffers();
-	void blitOffscreenBuffers();
+    void initOffscreenBuffers();
+    void updateOffscreenBuffers();
+    void bindOffscreenBuffers();
+    void blitOffscreenBuffers();
 
 protected:
-
     /**
      * Implements the FL_Gl_Window draw method
      *
      * This method is called when the widget is to be drawn.
      */
-    void draw();
+    virtual void draw() override;
 
     /**
      * Implements the FL_Gl_Window handle method
      *
      * This method is called in response to GUI events.
      */
-    int handle(int event);
+    virtual int handle(int event) override;
 
-    void resize(int x, int y, int w, int h);
+    virtual void resize(int x, int y, int w, int h) override;
 
 public:
     /**
@@ -177,7 +207,7 @@ public:
      * @param H Widget height.
      * @param L Widget title (optional)
      */
-    FltkWidget(int X, int Y, int W, int H, const char *L=0);
+    FltkWidget(int X, int Y, int W, int H, const char* L = 0);
 
     /** FltkWidget destructor */
     virtual ~FltkWidget();
@@ -272,7 +302,7 @@ public:
      * of the grid. Workspace is centered around the origin (0,0)
      * The visual grid spans (-size/2,-size/2)-(size/2,size/2)
      */
-    void setWorkspace(double size, bool resetCamera=true);
+    void setWorkspace(double size, bool resetCamera = true);
 
     /** Returns workspace size */
     double getWorkspace();
@@ -285,6 +315,10 @@ public:
 
     /** Enables the use of a overlay layer (see onOverlay) */
     void setUseOverlay(bool flag);
+
+    void setUseUnderlay(bool flag);
+
+    bool useUnderlay();
 
     /** Enables/disables selection */
     void setSelectEnable(bool flag);
@@ -310,15 +344,17 @@ public:
     void enableRedrawTimer();
     bool isRedrawTimerEnabled();
 
-protected:
+    void setOffscreenRendering(bool flag);
+    bool offscreenRendering();
 
+protected:
     // Internal event handlers
 
-    virtual void doMouseUp(int x, int y);       // Calls onMouseUp
-    virtual void doMouseDown(int x, int y);     // Calls onMouseDown
+    virtual void doMouseUp(int x, int y); // Calls onMouseUp
+    virtual void doMouseDown(int x, int y); // Calls onMouseDown
     virtual void doPassiveMotion(int x, int y); // Calls onPassiveMotion
-    virtual void doMotion(int x, int y);        // Calls onMotion
-    virtual void doMouse(int x, int y);         // Calls onMouse
+    virtual void doMotion(int x, int y); // Calls onMotion
+    virtual void doMouse(int x, int y); // Calls onMouse
     virtual void doKeyboard(int key);
     virtual void doShortcut(ModifierKey modifier, int key);
 
@@ -360,7 +396,7 @@ protected:
      * @param newNode This parameter shoud be assigned if a new node has been created.
      *
      */
-    virtual void onCreateNode(double x, double y, double z, ivf::Node* &newNode);
+    virtual void onCreateNode(double x, double y, double z, ivf::Node*& newNode);
 
     /**
      * onCreateLine event
@@ -383,7 +419,7 @@ protected:
      * @param node2 Second selected node
      * @param newLine This parameter should be assigned if a new line has been created.
      */
-    virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape* &newLine);
+    virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine);
 
     /**
      * onSelect event
@@ -416,7 +452,7 @@ protected:
      * variable determines if the object can be deleted. If
      * \em doit is \em true the object will be deleted.
      */
-    virtual void onDeleteShape(ivf::Shape* shape, bool &doit);
+    virtual void onDeleteShape(ivf::Shape* shape, bool& doit);
 
     /**
      * onInitContext event
@@ -436,6 +472,8 @@ protected:
      */
     virtual void onOverlay();
 
+    virtual void onUnderlay();
+
     /**
      * onHighlightShape event
      *
@@ -453,10 +491,10 @@ protected:
      * must be set to true if the move operation should be performed or
      * not.
      */
-    virtual void onMove(ivf::Composite* selectedShapes, double &dx, double &dy, double &dz, bool &doit);
+    virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit);
 
-    virtual void onSelectFilter(ivf::Shape* shape, bool &select);
-    virtual void onHighlightFilter(ivf::Shape*, bool &highlight);
+    virtual void onSelectFilter(ivf::Shape* shape, bool& select);
+    virtual void onHighlightFilter(ivf::Shape*, bool& highlight);
     virtual void onMotion(int x, int y);
     virtual void onPassiveMotion(int x, int y);
     virtual void onMouse(int x, int y);
@@ -469,10 +507,8 @@ protected:
 
     virtual void onShortcut(ModifierKey modifier, int key);
 
-
 public:
     void addSelection(ivf::Shape* shape);
 };
 
 #endif
-

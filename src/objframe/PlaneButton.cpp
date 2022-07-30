@@ -5,8 +5,8 @@
 #include "PlaneButton.h"
 
 #include <ivf/LineSet.h>
-#include <ivfimage/SgiImage.h>
 #include <ivfimage/PngImage.h>
+#include <ivfimage/SgiImage.h>
 
 #include <cstring>
 
@@ -23,7 +23,7 @@ PlaneButton::PlaneButton(int id)
 
     MaterialPtr material;
     m_normalShape = QuadPlane::create();
-    m_normalShape->setSize(50.0,50.0);
+    m_normalShape->setSize(50.0, 50.0);
     material = Material::create();
     material->setDiffuseColor(1.0f, 1.0f, 0.8f, 0.5f);
     m_normalShape->setMaterial(material);
@@ -34,8 +34,8 @@ PlaneButton::PlaneButton(int id)
     this->addChild(m_normalShape);
 
     m_pressedShape = QuadPlane::create();
-    //m_pressedShape->flipVert();
-    m_pressedShape->setSize(45.0,45.0);
+    // m_pressedShape->flipVert();
+    m_pressedShape->setSize(45.0, 45.0);
     material = Material::create();
     material->setDiffuseColor(0.8f, 0.8f, 0.8f, 0.5f);
     m_pressedShape->setMaterial(material);
@@ -44,8 +44,8 @@ PlaneButton::PlaneButton(int id)
     this->addChild(m_pressedShape);
 
     m_disabledShape = QuadPlane::create();
-    //m_disabledShape->flipVert();
-    m_disabledShape->setSize(50.0,50.0);
+    // m_disabledShape->flipVert();
+    m_disabledShape->setSize(50.0, 50.0);
     material = Material::create();
     material->setDiffuseColor(0.5f, 0.5f, 0.5f, 0.5f);
     m_disabledShape->setMaterial(material);
@@ -56,22 +56,22 @@ PlaneButton::PlaneButton(int id)
     m_checkedShape = Composite::create();
 
     m_checkedFrame = LineSet::create();
-    m_checkedFrame->addCoord(-25.0,  25.0, 0.0);
-    m_checkedFrame->addCoord( 25.0,  25.0, 0.0);
-    m_checkedFrame->addCoord( 25.0, -25.0, 0.0);
+    m_checkedFrame->addCoord(-25.0, 25.0, 0.0);
+    m_checkedFrame->addCoord(25.0, 25.0, 0.0);
+    m_checkedFrame->addCoord(25.0, -25.0, 0.0);
     m_checkedFrame->addCoord(-25.0, -25.0, 0.0);
     Index* idx = Index::create();
-    idx->add((long)0,(long)1);
-    idx->add((long)1,(long)2);
-    idx->add((long)2,(long)3);
-    idx->add((long)3,(long)0);
+    idx->add((long)0, (long)1);
+    idx->add((long)1, (long)2);
+    idx->add((long)2, (long)3);
+    idx->add((long)3, (long)0);
     m_checkedFrame->addCoordIndex(idx);
     m_checkedFrame->setUseName(false);
     m_checkedShape->addChild(m_checkedFrame);
 
     m_checkedPlane = QuadPlane::create();
-    //m_checkedPlane->flipVert();
-    m_checkedPlane->setSize(50.0,50.0);
+    // m_checkedPlane->flipVert();
+    m_checkedPlane->setSize(50.0, 50.0);
     material = Material::create();
     material->setDiffuseColor(0.7f, 0.0f, 0.0f, 0.5f);
     m_checkedPlane->setMaterial(material);
@@ -103,7 +103,7 @@ PlaneButton::PlaneButton(int id, const std::string& name)
 
     MaterialPtr material;
     m_normalShape = QuadPlane::create();
-    m_normalShape->setSize(50.0,50.0);
+    m_normalShape->setSize(50.0, 50.0);
     material = Material::create();
     material->setDiffuseColor(0.0f, 0.0f, 0.0f, 0.5f);
     m_normalShape->setMaterial(material);
@@ -115,7 +115,7 @@ PlaneButton::PlaneButton(int id, const std::string& name)
     this->addChild(m_normalShape);
 
     m_pressedShape = QuadPlane::create();
-    m_pressedShape->setSize(45.0,45.0);
+    m_pressedShape->setSize(45.0, 45.0);
     material = Material::create();
     material->setDiffuseColor(0.0f, 0.0f, 0.0f, 0.5f);
     m_pressedShape->setMaterial(material);
@@ -125,7 +125,7 @@ PlaneButton::PlaneButton(int id, const std::string& name)
     this->addChild(m_pressedShape);
 
     m_disabledShape = QuadPlane::create();
-    m_disabledShape->setSize(50.0,50.0);
+    m_disabledShape->setSize(50.0, 50.0);
     material = Material::create();
     material->setDiffuseColor(0.5f, 0.5f, 0.5f, 0.5f);
     m_disabledShape->setMaterial(material);
@@ -137,9 +137,9 @@ PlaneButton::PlaneButton(int id, const std::string& name)
     m_checkedShape = Composite::create();
 
     m_checkedFrame = LineSet::create();
-    m_checkedFrame->addCoord(-25.0,  25.0, 0.0);
-    m_checkedFrame->addCoord( 25.0,  25.0, 0.0);
-    m_checkedFrame->addCoord( 25.0, -25.0, 0.0);
+    m_checkedFrame->addCoord(-25.0, 25.0, 0.0);
+    m_checkedFrame->addCoord(25.0, 25.0, 0.0);
+    m_checkedFrame->addCoord(25.0, -25.0, 0.0);
     m_checkedFrame->addCoord(-25.0, -25.0, 0.0);
     m_checkedFrame->addColor(0.3f, 0.3f, 0.0f, 0.2f);
     m_checkedFrame->addColor(0.3f, 0.3f, 0.0f, 0.2f);
@@ -147,10 +147,10 @@ PlaneButton::PlaneButton(int id, const std::string& name)
     m_checkedFrame->addColor(0.3f, 0.3f, 0.0f, 0.2f);
 
     IndexPtr idx = Index::create();
-    idx->add((long)0,(long)1);
-    idx->add((long)1,(long)2);
-    idx->add((long)2,(long)3);
-    idx->add((long)3,(long)0);
+    idx->add((long)0, (long)1);
+    idx->add((long)1, (long)2);
+    idx->add((long)2, (long)3);
+    idx->add((long)3, (long)0);
     m_checkedFrame->addCoordIndex(idx);
 
     IndexPtr colorIdx = Index::create();
@@ -163,7 +163,7 @@ PlaneButton::PlaneButton(int id, const std::string& name)
     m_checkedShape->addChild(m_checkedFrame);
 
     m_checkedPlane = QuadPlane::create();
-    m_checkedPlane->setSize(50.0,50.0);
+    m_checkedPlane->setSize(50.0, 50.0);
     material = Material::create();
     material->setDiffuseColor(0.7f, 0.0f, 0.0f, 0.5f);
     m_checkedPlane->setMaterial(material);
@@ -180,10 +180,9 @@ PlaneButton::PlaneButton(int id, const std::string& name)
 
 PlaneButton::~PlaneButton()
 {
-
 }
 
-void PlaneButton::setTexture(Texture *texture)
+void PlaneButton::setTexture(Texture* texture)
 {
     m_normalShape->setTexture(texture);
     m_pressedShape->setTexture(texture);
@@ -192,20 +191,19 @@ void PlaneButton::setTexture(Texture *texture)
 
 void PlaneButton::setSize(double width, double height)
 {
-    m_normalShape->setSize(width,height);
+    m_normalShape->setSize(width, height);
     m_normalShape->flipVert();
-    m_pressedShape->setSize(width*0.95,height*0.95);
+    m_pressedShape->setSize(width * 0.95, height * 0.95);
     m_pressedShape->flipVert();
-    m_disabledShape->setSize(width,height);
+    m_disabledShape->setSize(width, height);
     m_disabledShape->flipVert();
-    m_checkedPlane->setSize(width,height);
+    m_checkedPlane->setSize(width, height);
     m_checkedPlane->flipVert();
-    m_checkedFrame->setCoord(0, -width/2.0,  height/2.0, 0.0);
-    m_checkedFrame->setCoord(1,  width/2.0,  height/2.0, 0.0);
-    m_checkedFrame->setCoord(2,  width/2.0, -height/2.0, 0.0);
-    m_checkedFrame->setCoord(3, -width/2.0, -height/2.0, 0.0);
+    m_checkedFrame->setCoord(0, -width / 2.0, height / 2.0, 0.0);
+    m_checkedFrame->setCoord(1, width / 2.0, height / 2.0, 0.0);
+    m_checkedFrame->setCoord(2, width / 2.0, -height / 2.0, 0.0);
+    m_checkedFrame->setCoord(3, -width / 2.0, -height / 2.0, 0.0);
 }
-
 
 void PlaneButton::setHint(const std::string& hintText)
 {

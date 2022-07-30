@@ -2,31 +2,34 @@
 
 #include <ofem/base.h>
 
-namespace ofem {
+namespace ofem
+{
 
-    SmartPointer(Load);
+SmartPointer(Load);
 
-    class Load : public Base {
-    private:
-        long m_number;
-        double m_value;
-    public:
-        Load();
-        virtual ~Load();
+class Load : public Base
+{
+private:
+    long m_number;
+    double m_value;
 
-        ClassInfo("Load", Base);
+public:
+    Load();
+    virtual ~Load();
 
-        // Get/set methods
+    ClassInfo("Load", Base);
 
-        long getNumber();
-        void setNumber(long number);
-        double getValue();
-        void setValue(double value);
+    // Get/set methods
 
-        // IO Methods
+    long getNumber();
+    void setNumber(long number);
+    double getValue();
+    void setValue(double value);
 
-        virtual void readFromStream(std::istream& in);
-        virtual void saveToStream(std::ostream& out);
-        virtual void print(std::ostream& out);
-    };
+    // IO Methods
+
+    virtual void readFromStream(std::istream& in) override;
+    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream& out) override;
+};
 }

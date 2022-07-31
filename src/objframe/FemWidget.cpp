@@ -581,9 +581,6 @@ void FemWidget::save()
     }
     m_beamModel->setFileName(m_fileName);
     m_beamModel->save();
-
-    // cout << m_beamModel->nodeSet()->toJSON().dump(4) << endl;
-    // cout << m_beamModel->nodeBCSet()->toJSON().dump(4) << endl;
 }
 
 void FemWidget::saveAs()
@@ -1942,9 +1939,11 @@ void FemWidget::onInit()
     m_showMetricsWindow = false;
     m_showNewFileDlg = false;
     m_coordWindow = CoordWindow::create("Coord window");
+
     m_nodePropWindow = NodePropWindow::create("Node properties");
     m_nodePropWindow->setWidget(this);
     m_nodePropWindow->setVisible(false);
+
     m_newModelPopup = NewModelPopup::create("Workspace", true);
     m_messagePopup = MessagePopup::create("Message", true);
 

@@ -65,6 +65,7 @@ void NodePropWindow::doDraw()
     else if (m_selectedShapes != nullptr)
     {
         ImGui::InputFloat3("Offset", m_nodeMove, "%.3f");
+
         ImGui::Separator();
 
         if (ImGui::Button("Move", ImVec2(120, 0)))
@@ -118,6 +119,46 @@ void NodePropWindow::doDraw()
             m_nodeMove[1] = 0.0;
             m_nodeMove[2] = 0.0;
         }
+
+        ImGui::Separator();
+
+        ImGui::TextUnformatted("Shortcuts");
+
+        if (ImGui::Button("Up(Y)"))
+        {
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Down(Z)"))
+        {
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Left(X)"))
+        {
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Right(X)"))
+        {
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Forward(Z)"))
+        {
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Back(Z)"))
+        {
+        }
+
+
     }
     else
     {

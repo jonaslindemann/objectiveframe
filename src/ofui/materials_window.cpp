@@ -58,7 +58,6 @@ void MaterialsWindow::doDraw()
                 if (ImGui::Selectable(material->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = i;
-                    std::cout << ">" << m_currentItemIdx << std::endl;
                     m_widget->setCurrentMaterial(material);
                     m_propPopup->update();
                 }
@@ -132,7 +131,6 @@ void MaterialsWindow::doDraw()
         }
         else if (m_propPopup->modalResult() == PopupResult::CANCEL)
         {
-            cout << "Cancel pressed" << endl;
         }
     }
 }

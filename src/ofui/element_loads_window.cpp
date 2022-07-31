@@ -58,7 +58,6 @@ void ElementLoadsWindow::doDraw()
                 if (ImGui::Selectable(beamLoad->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = i;
-                    std::cout << ">" << m_currentItemIdx << std::endl;
                     m_widget->setCurrentBeamLoad(beamLoad);
                     m_propPopup->update();
                 }
@@ -125,7 +124,6 @@ void ElementLoadsWindow::doDraw()
         }
         else if (m_propPopup->modalResult() == PopupResult::CANCEL)
         {
-            cout << "Cancel pressed" << endl;
         }
     }
 }

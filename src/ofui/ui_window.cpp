@@ -89,6 +89,11 @@ void UiWindow::align(int corner)
     m_updatePos = true;
 }
 
+void ofui::UiWindow::setPosition(int x, int y)
+{
+
+}
+
 void UiWindow::doPreDraw()
 {
 }

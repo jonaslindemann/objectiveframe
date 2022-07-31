@@ -687,7 +687,6 @@ int FltkWidget::handle(int event)
     {
     case FL_ENTER:
         Fl::belowmouse(this);
-        // cout << "FL_ENTER" << endl;
         return 1;
     case FL_LEAVE:
         m_angleX = 0.0f;
@@ -735,6 +734,7 @@ int FltkWidget::handle(int event)
             if (Fl::event_button() == FL_RIGHT_MOUSE)
                 m_currentButton = ButtonState::Button3;
 
+            /*
             if (Fl::get_key(FL_Shift_L))
                 cout << "SHIFT_LEFT" << endl;
             if (Fl::get_key(FL_Shift_R))
@@ -754,6 +754,7 @@ int FltkWidget::handle(int event)
                 cout << "MIDDLE_MOUSE" << endl;
             if (Fl::event_button() == FL_RIGHT_MOUSE)
                 cout << "RIGHT_MOUSE" << endl;
+            */
 
             this->doMouseDown(m_beginX, m_beginY);
             this->doMouse(m_beginX, m_beginY);
@@ -1205,16 +1206,7 @@ void FltkWidget::onCoordinate(double x, double y, double z)
 void FltkWidget::onInitContext()
 {
     glEnable(GL_DEPTH_TEST);
-
     glEnable(GL_MULTISAMPLE);
-    // glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-    // GLint  iMultiSample = 0;
-    // GLint  iNumSamples = 0;
-    // glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
-    // glGetIntegerv(GL_SAMPLES, &iNumSamples);
-
-    // cout << "mode after context init = " << this->mode() << endl;
-
     m_lighting->enable();
 }
 

@@ -58,7 +58,6 @@ void NodeLoadsWindow::doDraw()
                 if (ImGui::Selectable(nodeLoad->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = i;
-                    std::cout << ">" << m_currentItemIdx << std::endl;
                     m_widget->setCurrentNodeLoad(nodeLoad);
                     m_propPopup->update();
                 }
@@ -125,7 +124,6 @@ void NodeLoadsWindow::doDraw()
         }
         else if (m_propPopup->modalResult() == PopupResult::CANCEL)
         {
-            cout << "Cancel pressed" << endl;
         }
     }
 }

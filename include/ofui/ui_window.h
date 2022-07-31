@@ -34,6 +34,7 @@ public:
     void hide();
     void setSize(int w, int h);
     void align(int corner);
+    void setPosition(int x, int y);
 
 protected:
     virtual void doPreDraw();

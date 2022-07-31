@@ -58,7 +58,6 @@ void NodeBCsWindow::doDraw()
                 if (ImGui::Selectable(nodeBC->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = static_cast<int>(i);
-                    std::cout << ">" << m_currentItemIdx << std::endl;
                     m_widget->setCurrentNodeBC(nodeBC);
                     m_propPopup->update();
                 }
@@ -124,7 +123,6 @@ void NodeBCsWindow::doDraw()
         }
         else if (m_propPopup->modalResult() == PopupResult::CANCEL)
         {
-            cout << "Cancel pressed" << endl;
         }
     }
 }

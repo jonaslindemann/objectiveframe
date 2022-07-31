@@ -54,6 +54,8 @@ void SettingsWindow::doDraw()
 {
     ImGui::Dummy(ImVec2(150.0, 0.0));
 
+    this->update();
+
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
     ImGui::SliderFloat("Size (units)", &m_size, 1.0f, 100.0f, "%.0f");
@@ -63,8 +65,11 @@ void SettingsWindow::doDraw()
 
     ImGui::Separator();
 
-    ImGui::SliderFloat("Scale factor", &m_scaleFactor, 1.0f, 1000.0f);
+    ImGui::DragFloat("Scale factor", &m_scaleFactor, 1.0f, 1000.0f);
     ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
+
+    ImGui::Separator();
+
     ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
     ImGui::Checkbox("Offscreen rendering", &m_offscreenRendering);
 

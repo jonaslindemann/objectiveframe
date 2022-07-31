@@ -15,6 +15,7 @@ DefaultDirName={autopf}\Structural Mechanics\ObjectiveFrame
 DefaultGroupName=ObjectiveFrame
 SignedUninstaller=yes
 OutputBaseFilename=objframe_setup
+OutputDir=..\packages\windows
 ArchitecturesInstallIn64BitMode=x64
 
 ;LicenseFile=license.txt

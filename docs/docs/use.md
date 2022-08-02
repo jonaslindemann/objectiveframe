@@ -1,1 +1,7 @@
+---
+hide:
+  - navigation
+---
+
+
 # Using ObjectiveFrame

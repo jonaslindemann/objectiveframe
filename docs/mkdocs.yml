@@ -5,6 +5,8 @@ nav:
 - About: about.md
 - Download: download.md
 - Use: use.md
+- Develop: develop.md
+- Links: links.md
 
 theme: 
   name: material
@@ -18,6 +20,7 @@ theme:
   features:
     - navigation.instant    
     - navigation.tracking
+    - navigation.section
     - navigation.tabs
     - navigation.top
     - header.autohide

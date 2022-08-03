@@ -7,6 +7,8 @@ hide:
 The application was orginially developed at Structural Mechanics by Jonas Lindemann for his PhD thesis work. See:
 
  * [Objective Frame - An educational tool for understanding the behavior of structures](https://portal.research.lu.se/en/publications/objective-frame-an-educational-tool-for-understanding-the-behavio)
+ * [Designing a new user interface for ObjectiveFrame](
+https://www.byggmek.lth.se/fileadmin/byggnadsmekanik/publications/tvsm7000/web7137.pdf)
  * [Techniques for distributed access and visualisation computational mechanics](https://www.lth.se/fileadmin/byggnadsmekanik/publications/tvsm1000/web1016.pdf)
 
 ObjectiveFrame has also been used to develop distributed techniques for finite element applications using the CORBA framework.

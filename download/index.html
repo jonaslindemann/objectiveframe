@@ -225,6 +225,18 @@
   </li>
 
       
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contact/" class="md-tabs__link">
+      Contact
+    </a>
+  </li>
+
+      
     </ul>
   </div>
 </nav>
@@ -306,9 +318,40 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Download
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Download
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#known-compatibility-issues" class="md-nav__link">
+    Known compatibility issues
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -359,6 +402,21 @@
   
 
     
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contact/" class="md-nav__link">
+        Contact
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -381,6 +439,21 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#known-compatibility-issues" class="md-nav__link">
+    Known compatibility issues
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -394,10 +467,18 @@
 
 
 <h1 id="downloading-objectiveframe">Downloading ObjectiveFrame</h1>
+<p>Latest release: <a href="https://github.com/jonaslindemann/objectiveframe/releases/download/2.0.0-b1/objframe_setup.exe">ObjectiveFrame-2.0.0-b1</a></p>
 <p>All releases of ObjectiveFrame can be downloaded from Github here:</p>
 <p><a href="https://github.com/jonaslindemann/objectiveframe/releases">https://github.com/jonaslindemann/objectiveframe/releases</a></p>
 <p>As this is a beta version we need to know what issues and enhancements to fix in upcoming releases. Please report any bugs or feature enhancements using the issue tracker in github here:</p>
 <p><a href="https://github.com/jonaslindemann/objectiveframe/issues">https://github.com/jonaslindemann/objectiveframe/issues</a></p>
+<h2 id="known-compatibility-issues">Known compatibility issues</h2>
+<ul>
+<li>ObjectiveFrame works best with a modern NVIDIA based graphics card (GTX 10xx, 20xx, 30xx). </li>
+<li>Offscreen rendering for antialiasing doesn't work correctly under Intel-based graphics cards.</li>
+<li>ObjectiveFrame requires a graphics driver with an available compatibility profile available as the code uses the fixed function pipeline in OpenGL.</li>
+<li>As ObjectiveFrame uses a immediate mode user interface toolkit the Window will be redrawn continously, leading to a more responsive application, but also uses more resources.</li>
+</ul>
 
               
             </article>

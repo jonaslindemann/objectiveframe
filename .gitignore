@@ -2,6 +2,7 @@ bin/Debug/
 bin/Release/
 build-debug/
 build-release/
+docs/site/
 *.pdb
 *.exe
 lib/

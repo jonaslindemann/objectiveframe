@@ -7,8 +7,6 @@ hide:
 
 Latest release: [ObjectiveFrame-2.0.0-b2](https://github.com/jonaslindemann/objectiveframe/releases/download/2.0.0-b2/objframe_setup.exe)
 
-Latest release: [ObjectiveFrame-2.0.0-b1](https://github.com/jonaslindemann/objectiveframe/releases/download/2.0.0-b1/objframe_setup.exe)
-
 All releases of ObjectiveFrame can be downloaded from Github here:
 
 [https://github.com/jonaslindemann/objectiveframe/releases](https://github.com/jonaslindemann/objectiveframe/releases)

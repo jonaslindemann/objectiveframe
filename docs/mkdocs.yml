@@ -1,4 +1,5 @@
 site_name: ObjectiveFrame - An interactive beam analysis tool
+repo_url: https://github.com/jonaslindemann/objectiveframe
 
 nav:
 - Home: index.md
@@ -7,6 +8,11 @@ nav:
 - Use: use.md
 - Develop: develop.md
 - Links: links.md
+- Blog: 
+  - blog/index.md
+  - 2022:
+    - blog/2022/version_b2_released.md
+
 - Contact: contact.md
 
 theme: 
@@ -25,6 +31,8 @@ theme:
     - navigation.tabs
     - navigation.top
     - header.autohide
+  custom_dir: overrides    
+
 extra_css:
   - stylesheets/extra.css   
 
@@ -43,5 +51,15 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
   - meta
+
+extra:
+  blog:
+    dir: blog
+    author: Jonas Lindemann
+    author_image: https://avatars.githubusercontent.com/u/9675453
+    words_read_per_minute: 300
+    list_length: 25
+    extended_preview: true
+
 
 

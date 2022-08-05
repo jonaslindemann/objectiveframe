@@ -1,0 +1,31 @@
+<aside class="mdx-author">
+  {% if config.extra.blog.author_image is defined %}
+    <p>
+      <img alt={{ config.extra.blog.author }} src={{ config.extra.blog.author_image }}>
+    </p>
+  {% endif %}
+  <p>
+    <span>
+      {% if config.extra.blog.author %}
+        <strong>{{ config.extra.blog.author }}</strong>
+         ·
+      {% endif %}
+      {% include "partials/blog_social.html" %}
+    </span>
+    <span>
+      <span class="twemoji">
+        {% include ".icons/octicons/calendar-24.svg" %}
+      </span>
+      {{ page.meta.date.strftime("%B %d, %Y") }} ·
+      <span class="twemoji">
+        {% include ".icons/octicons/clock-24.svg" %}
+      </span>
+      <!--Min reading time is 1 minute-->
+      {% set read_time = page.content | wordcount // config.extra.blog.words_read_per_minute|default(300, true) %}
+      {% if read_time == 0 %}
+        {% set read_time = 1 %}
+      {% endif %}
+      {{ read_time }} min read
+    </span>
+  </p>
+</aside>

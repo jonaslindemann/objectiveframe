@@ -33,6 +33,7 @@ This version of the application has been given a large overhaul both with regard
  * User interface improvements. There is a still a lot of non-standard ways of interacting with the application, but these are also some things that will be worked out in upcoming versions.
  * Interactions with the CALFEM for Python library. I would like to see the application as a pre-processor for generating CALFEM code that can be used by students in Structural Mechanics.
  * An improved solver - Currently the newmat-based solver works OK, but lacks scalability as it is not very actively maintained. The eigen-library would be a candidate to replace newmat.
+ * Scripting interface (ChaiScript) for adding geometry creation plugins. 
 
 Jonas Lindemann
 

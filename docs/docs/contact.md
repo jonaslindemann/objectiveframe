@@ -7,6 +7,8 @@ hide:
 
 For information on ObjectiveFrame please contact:
 
-[Dr Jonas Lindemann](https://portal.research.lu.se/sv/persons/jonas-lindemann)
+[:fontawesome-solid-address-card: Dr Jonas Lindemann](https://portal.research.lu.se/sv/persons/jonas-lindemann)
+
+[:fontawesome-brands-twitter:{ .twitter } Follow @jonas_lindemann on Twitter](https://twitter.com/jonas_lindemann)
 
 

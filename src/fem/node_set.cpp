@@ -36,7 +36,7 @@ Node* NodeSet::getNode(long i)
     if ((i >= 0) && (i < (long)m_nodes.size()))
         return m_nodes[i];
     else
-        return NULL;
+        return nullptr;
 }
 
 // ------------------------------------------------------------
@@ -143,14 +143,14 @@ void NodeSet::saveToStream(std::ostream& out)
 }
 
 // ------------------------------------------------------------
-json NodeSet::toJSON()
+json_nl NodeSet::toJson()
 {
-    json j = Base::toJSON();
+    json_nl j = Base::toJson();
 
-    json nodeList;
+    json_nl nodeList;
 
     for (auto& node : m_nodes)
-        nodeList.push_back(node->toJSON());
+        nodeList.push_back(node->toJson());
 
     j["nodeset"] = nodeList;
 

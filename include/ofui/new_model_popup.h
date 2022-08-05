@@ -29,6 +29,11 @@ public:
     float lineRadius();
     float loadSize();
 
+    void modelSize(float value);
+    void nodeSize(float value);
+    void lineRadius(float value);
+    void loadSize(float value);
+
 protected:
     virtual void doPopup();
 };

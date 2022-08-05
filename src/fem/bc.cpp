@@ -104,15 +104,15 @@ void BC::saveToStream(std::ostream& out)
 }
 
 // ------------------------------------------------------------
-json BC::toJSON()
+json_nl BC::toJson()
 {
-    json j;
+    json_nl j;
     j["number"] = m_number;
 
-    json dofList;
+    json_nl dofList;
 
     for (auto& pdof : m_prescribedDofs)
-        dofList.push_back(pdof->toJSON());
+        dofList.push_back(pdof->toJson());
 
     j["prescribed_dofs"] = dofList;
     j["prescribed_values"] = m_prescribedValues;

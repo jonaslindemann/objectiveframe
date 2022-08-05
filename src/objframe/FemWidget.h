@@ -9,7 +9,7 @@
 #define ADVANCED_GL
 #define USE_IMGUI
 
-#include "ObjframeConfig.h"
+#include <chaiscript/chaiscript.hpp>
 
 #include <sstream>
 #include <string>
@@ -195,9 +195,7 @@ private:
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_lineMaterial;
     ivf::ShapePtr m_selectedShape;
-#ifdef ADVANCED_GL
     PlaneButton* m_selectedButton;
-#endif
     ivf::CompositePtr m_beamLoads;
     vfem::BeamModelPtr m_beamModel;
     ivf::QuadPlanePtr m_plane;
@@ -220,27 +218,15 @@ private:
     vector<PlaneButton*> m_buttons;
     ivf::SelectOrthoPtr m_overlayScene;
     ButtonGroup* m_editButtons;
-    // ButtonGroup* m_viewButtons;
     ButtonGroup* m_objectButtons;
     Area2D* m_editArea;
     Area2D* m_objectArea;
-    // Area2D* m_viewArea;
 
     PlaneButton* m_prevButton;
 
-    // float m_hintColor[3];
     bool m_hintFinished;
 
-    // Result visualisation
-
-    // Private methods
-
-    void doMouse(int x, int y);
-    void setupOverlay();
-
     // Dialogs
-
-    // bool m_showDemoWindow;
 
     ofui::CoordWindowPtr m_coordWindow;
     ofui::NodePropWindowPtr m_nodePropWindow;
@@ -261,15 +247,27 @@ private:
     bool m_showNewFileDlg;
     bool m_showNodeBCsWindow;
     bool m_showBCPropPopup;
-    // bool m_showNodeLoadssWindow;
-    // bool m_showLoadPropPopup;
+
+    // Scripting
+
+    chaiscript::ChaiScript m_chai;
+
+    // Handle mouse updates
+
+    void doMouse(int x, int y);
 
     std::string float2str(double value);
 
+    // Logging methods
+
     void log(std::string message);
     void onMessage(std::string message);
-
     void console(std::string message);
+
+    // Setup functions
+
+    void setupScripting();
+    void setupOverlay();
 
 public:
     FemWidget(int X, int Y, int W, int H, const char* L = 0);
@@ -310,8 +308,11 @@ public:
     void setHighlightFilter(HighlightMode filter);
     void setDeleteFilter(DeleteMode filter);
     void setRepresentation(RepresentationMode repr);
-
     ofem::BeamModel* getModel();
+    ivf::ExtrArrowPtr getTactileForce();
+    void setTactileForce(ivf::ExtrArrowPtr force);
+    void setInteractionNode(vfem::Node* interactionNode);
+    vfem::NodePtr getInteractionNode();
 
     // Methods
 
@@ -326,8 +327,7 @@ public:
     void deleteSelected();
     void unlockScaleFactor();
     void lockScaleFactor();
-
-    virtual void setWorkspace(double size, bool resetCamera = true);
+    virtual void setWorkspace(double size, bool resetCamera = true) override;
     void open();
     void save();
     void saveAs();
@@ -355,43 +355,49 @@ public:
     void assignNodeLoadSelected();
     void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
     void doFeedback();
-    vfem::Node* addNode(double x, double y, double z);
-
     void showMessage(std::string message);
-
-    ivf::ExtrArrowPtr getTactileForce();
-    void setTactileForce(ivf::ExtrArrowPtr force);
-    vfem::NodePtr getInteractionNode();
-    void setInteractionNode(vfem::Node* interactionNode);
     void updateAxisLabels();
 
-    // Implemented widget events
+    void runScript(const std::string filename);
+    void openScript();
 
-    void onCreateNode(double x, double y, double z, ivf::Node*& newNode);
-    void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine);
-    void onSelect(ivf::Composite* selectedShapes);
-    void onCoordinate(double x, double y, double z);
-    void onDeleteShape(ivf::Shape* shape, bool& doit);
-    void onHighlightShape(ivf::Shape* shape);
-    void onMouse(int x, int y);
-    void onMouseDown(int x, int y);
-    void onMouseUp(int x, int y);
-    void onPassiveMotion(int x, int y);
-    void onSelectFilter(ivf::Shape* shape, bool& select);
-    void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit);
-    void onMotion(int x, int y);
-    void onDeSelect();
-    void onKeyboard(int key);
-    void onButton(int objectName, PlaneButton* button);
-    void onOverButton(int objectName, PlaneButton* button);
-    void onShortcut(ModifierKey modifier, int key);
+    // Specific scripting interface methods
+
+    vfem::Node* addNode(double x, double y, double z);
+    vfem::Beam* addBeam(int i0, int i1);
+
+    // Implemented FltkWidget events
+
+    virtual void onInit() override;
+    virtual void onInitContext() override;
+    virtual void onOverlay() override;
+    virtual void onUnderlay() override;
+    virtual void onPostRender() override;
+
+    virtual void onCreateNode(double x, double y, double z, ivf::Node*& newNode) override;
+    virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine) override;
+    virtual void onSelect(ivf::Composite* selectedShapes) override;
+    virtual void onCoordinate(double x, double y, double z) override;
+    virtual void onDeleteShape(ivf::Shape* shape, bool& doit) override;
+    virtual void onHighlightShape(ivf::Shape* shape) override;
+    virtual void onMouse(int x, int y) override;
+    virtual void onMouseDown(int x, int y) override;
+    virtual void onMouseUp(int x, int y) override;
+    virtual void onPassiveMotion(int x, int y) override;
+    virtual void onSelectFilter(ivf::Shape* shape, bool& select) override;
+    virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit) override;
+    virtual void onMotion(int x, int y) override;
+    virtual void onDeSelect() override;
+    virtual void onKeyboard(int key) override;
+
+    // ImGui events
 
     virtual void onDrawImGui();
     virtual void onInitImGui();
 
-    virtual void onInit();
-    virtual void onInitContext();
-    virtual void onOverlay();
-    virtual void onUnderlay();
-    virtual void onPostRender();
+    // FemWidget events
+
+    virtual void onButton(int objectName, PlaneButton* button);
+    virtual void onOverButton(int objectName, PlaneButton* button);
+    virtual void onShortcut(ModifierKey modifier, int key);
 };

@@ -5,7 +5,7 @@
 
 #include <json.hpp>
 
-using json = nlohmann::json;
+using json_nl = nlohmann::json;
 
 #include <ofem/def.h>
 #include <ofem/pointer.h>
@@ -61,8 +61,8 @@ public:
     virtual void readFromStream(std::istream& in);
     virtual void print(std::ostream& out);
 
-    virtual json toJSON();
-    virtual void fromJSON(json& j);
+    virtual json_nl toJson();
+    virtual void fromJson(json_nl& j);
 
     // Get/set methods
 

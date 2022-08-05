@@ -56,6 +56,6 @@ public:
     virtual void saveToStream(std::ostream& out) override;
     virtual void print(std::ostream& out) override;
 
-    virtual json toJSON() override;
+    virtual json_nl toJson() override;
 };
 }

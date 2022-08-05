@@ -43,6 +43,26 @@ float NewModelPopup::loadSize()
     return m_loadSize;
 }
 
+void NewModelPopup::modelSize(float value)
+{
+    m_modelSize = value;
+}
+
+void NewModelPopup::nodeSize(float value)
+{
+    m_nodeSize = value;
+}
+
+void NewModelPopup::lineRadius(float value)
+{
+    m_lineRadius = value;
+}
+
+void NewModelPopup::loadSize(float value)
+{
+    m_loadSize = value;
+}
+
 void NewModelPopup::doPopup()
 {
     ImGui::DragFloat("Size (units)", &m_modelSize, 1.0f, 5.0f, 100.0f, "%.3f");

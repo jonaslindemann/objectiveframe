@@ -87,13 +87,13 @@ void Base::print(std::ostream& out)
 {
 }
 
-json Base::toJSON()
+json_nl Base::toJson()
 {
     nlohmann::json j;
     return j;
 }
 
-void Base::fromJSON(json& j)
+void Base::fromJson(json_nl& j)
 {
 }
 

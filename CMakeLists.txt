@@ -43,6 +43,7 @@ if (WIN32)
                 set(GLU_LIBRARY "glu32")
                 set(GLFW3_INCLUDE_DIR "D:/Libraries/glfw/include")
                 set(GLFW3_LIBRARY "D:/Libraries/glfw/build-debug/src/Debug/glfw3.lib")
+                set(CHAISCRIPT_EXTRAS_INCLUDE "E:/Users/Jonas/Development/ChaiScript_Extras/include")
                 message(${FREETYPE_INCLUDE_DIR})
                 message(${FREETYPE_LIBRARY})
         else()
@@ -71,6 +72,7 @@ if (WIN32)
                 set(GLU_LIBRARY "glu32")
                 set(GLFW3_INCLUDE_DIR "D:/Libraries/glfw/include")
                 set(GLFW3_LIBRARY "D:/Libraries/glfw/build-debug/src/Release/glfw3.lib")
+                set(CHAISCRIPT_EXTRAS_INCLUDE "E:/Users/Jonas/Development/ChaiScript_Extras/include")
         endif()
 endif()
 
@@ -100,7 +102,7 @@ configure_file (
 
 set( OBJFRAME_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/vc ${PROJECT_SOURCE_DIR}/src/fem ${PROJECT_SOURCE_DIR}/src/visfem ${PROJECT_SOURCE_DIR}/src/newmat ${PROJECT_SOURCE_DIR}/src/util ${PROJECT_SOURCE_DIR}/src/imgui ${PROJECT_SOURCE_DIR}/src/imgui_fltk ${PROJECT_SOURCE_DIR}/src/objframe)
 
-include_directories( ${OBJFRAME_INCLUDE_DIR} ${FLTK_INCLUDE_DIR} ${FLTK_ABI_INCLUDE_DIR} ${JPEG_INCLUDE_DIR} ${PNG_PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${IVF_INCLUDE_DIR} ${OBJFRAME_INCLUDE} ${LEAP_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} )
+include_directories( ${OBJFRAME_INCLUDE_DIR} ${FLTK_INCLUDE_DIR} ${FLTK_ABI_INCLUDE_DIR} ${JPEG_INCLUDE_DIR} ${PNG_PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${IVF_INCLUDE_DIR} ${OBJFRAME_INCLUDE} ${LEAP_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} ${CHAISCRIPT_EXTRAS_INCLUDE})
 
 link_directories( ${PROJECT_SOURCE_DIR}/lib ${IVF_LIBS} ${LEAP_LIBS})
 

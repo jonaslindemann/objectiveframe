@@ -25,11 +25,11 @@ void NodeBC::print(std::ostream& out)
 }
 
 // ------------------------------------------------------------
-json NodeBC::toJSON()
+json_nl NodeBC::toJson()
 {
-    json j;
+    json_nl j;
 
-    json nodeNumbers;
+    json_nl nodeNumbers;
 
     for (auto& node : m_nodes)
         nodeNumbers.push_back(node->getNumber());

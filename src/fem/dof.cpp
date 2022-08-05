@@ -29,15 +29,15 @@ void Dof::print(std::ostream& out)
     out << m_kind + 1 << " ";
 }
 
-json Dof::toJSON()
+json_nl Dof::toJson()
 {
-    json j;
+    json_nl j;
     j["kind"] = m_kind;
     j["number"] = m_number;
     return j;
 }
 
-void Dof::fromJSON(json& j)
+void Dof::fromJson(json_nl& j)
 {
     // m_kind = j.at("kind").get<int>();
     // m_number = j.at("number").get<long>();

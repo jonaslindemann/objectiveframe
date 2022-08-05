@@ -36,8 +36,8 @@ public:
     virtual void saveToStream(std::ostream& out) override;
     virtual void print(std::ostream& out) override;
 
-    virtual json toJSON() override;
-    virtual void fromJSON(json& j) override;
+    virtual json_nl toJson() override;
+    virtual void fromJson(json_nl& j) override;
 
     long enumerateDofs(long count);
 

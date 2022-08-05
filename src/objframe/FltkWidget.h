@@ -302,7 +302,7 @@ public:
      * of the grid. Workspace is centered around the origin (0,0)
      * The visual grid spans (-size/2,-size/2)-(size/2,size/2)
      */
-    void setWorkspace(double size, bool resetCamera = true);
+    virtual void setWorkspace(double size, bool resetCamera = true);
 
     /** Returns workspace size */
     double getWorkspace();

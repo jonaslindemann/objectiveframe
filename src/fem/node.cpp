@@ -75,7 +75,7 @@ void Node::print(std::ostream& out)
     out << endl;
 }
 
-json Node::toJSON()
+json_nl Node::toJson()
 {
     /*
     long m_number;
@@ -84,7 +84,7 @@ json Node::toJSON()
     std::vector<double> m_values;
     std::vector<DofPtr> m_dofs;
     */
-    json j;
+    json_nl j;
     j["number"] = m_number;
     j["kind"] = m_kind;
     j["x"] = m_coord[0];
@@ -92,17 +92,17 @@ json Node::toJSON()
     j["z"] = m_coord[2];
     j["values"] = m_values;
 
-    json jdofs;
+    json_nl jdofs;
 
     for (auto& dof : m_dofs)
-        jdofs.push_back(dof->toJSON());
+        jdofs.push_back(dof->toJson());
 
     j["dofs"] = jdofs;
 
     return j;
 }
 
-void Node::fromJSON(nlohmann::json& j)
+void Node::fromJson(nlohmann::json& j)
 {
 }
 

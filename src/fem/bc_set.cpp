@@ -27,14 +27,14 @@ void BCSet::print(std::ostream& out)
 }
 
 // ------------------------------------------------------------
-json BCSet::toJSON()
+json_nl BCSet::toJson()
 {
-    json j = Base::toJSON();
+    json_nl j = Base::toJson();
 
-    json bcList;
+    json_nl bcList;
 
     for (auto& bc : m_bcs)
-        bcList.push_back(bc->toJSON());
+        bcList.push_back(bc->toJson());
 
     j["bcset"] = bcList;
 

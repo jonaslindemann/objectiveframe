@@ -3,6 +3,9 @@
 #include <functional>
 #include <sstream>
 
+#include <chaiscript/chaiscript_stdlib.hpp>
+#include <chaiscript/extras/math.hpp>
+
 #include <FL/fl_draw.H>
 #include <FL/gl.h>
 #include <FL/x.H>
@@ -83,6 +86,8 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L)
     m_nodeSelection = false;
     m_elementSelection = false;
     m_mixedSelection = false;
+
+    this->setupScripting();
 }
 
 FemWidget::~FemWidget()
@@ -93,6 +98,19 @@ FemWidget::~FemWidget()
 
     log("Deleting internal solver.");
     delete m_internalSolver;
+}
+
+void FemWidget::runScript(const std::string filename)
+{
+
+    try
+    {
+        m_chai.eval_file(filename);
+    }
+    catch (const chaiscript::exception::eval_error& e)
+    {
+        log(e.pretty_print());
+    }
 }
 
 // ------------------------------------------------------------
@@ -687,6 +705,33 @@ void FemWidget::open()
     }
 }
 
+void FemWidget::openScript()
+{
+    // Open model
+
+    this->hideAllDialogs();
+
+    // Prompt for a filename
+
+    Fl_Native_File_Chooser fnfc;
+    fnfc.title("Open file");
+    fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+    fnfc.filter("ObjectiveFrame\t*.chai\n");
+    fnfc.directory(""); // default directory to use
+
+    int result = fnfc.show();
+
+    // If we have a filename we try to open.
+
+    if (result == 0)
+    {
+        // Change filename and erase previous model/scene
+
+        std::string filename = fnfc.filename();
+        this->runScript(filename);
+    }
+}
+
 void FemWidget::showProperties()
 {
     // Properties for selected shape
@@ -756,6 +801,11 @@ void FemWidget::newModel()
     m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
     m_beamModel->setNodeMaterial(m_nodeMaterial);
     m_beamModel->setBeamMaterial(m_lineMaterial);
+
+    m_beamModel->setTextFont(m_labelFont);
+    m_beamModel->setCamera(this->getCamera());
+    m_beamModel->setShowNodeNumbers(true);
+
     m_beamModel->generateModel();
 
     m_currentMaterial = nullptr;
@@ -1202,6 +1252,20 @@ void FemWidget::setupOverlay()
 #endif
 }
 
+void FemWidget::setupScripting()
+{
+    // Add math library to script environment
+
+    auto mathlib = chaiscript::extras::math::bootstrap();
+    m_chai.add(mathlib);
+
+    // Bind ObjectiveFrame specific functions
+
+    m_chai.add(chaiscript::fun(&FemWidget::addNode, this), "addNode");
+    m_chai.add(chaiscript::fun(&FemWidget::newModel, this), "newModel");
+    m_chai.add(chaiscript::fun(&FemWidget::addBeam, this), "addBeam");
+}
+
 void FemWidget::assignNodeBCSelected()
 {
     // Assign a node load to selected nodes
@@ -1511,8 +1575,52 @@ vfem::Node* FemWidget::addNode(double x, double y, double z)
     ivfNode->setDirectRefresh(true);
     ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize() * 1.5);
 
+    femNode->setUser(static_cast<void*>(ivfNode));
+
     this->getScene()->addChild(ivfNode);
     return ivfNode;
+}
+
+vfem::Beam* FemWidget::addBeam(int i0, int i1)
+{
+    auto nodeSet = m_beamModel->getNodeSet();
+    auto beamSet = m_beamModel->getElementSet();
+
+    auto n0 = nodeSet->getNode(i0);
+    auto n1 = nodeSet->getNode(i1);
+
+    if ((n0 != nullptr) && (n1 != nullptr) && (n0 != n1))
+    {
+        ofem::Beam* beam = new ofem::Beam();
+        beam->addNode(n0);
+        beam->addNode(n1);
+        beam->setMaterial((ofem::BeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
+
+        beamSet->addElement(beam);
+
+        auto vNode0 = static_cast<vfem::Node*>(n0->getUser());
+        auto vNode1 = static_cast<vfem::Node*>(n1->getUser());
+
+        vfem::Beam* vBeam = new vfem::Beam();
+        vBeam->setBeamModel(m_beamModel);
+        vBeam->setBeam(beam);
+        beam->setUser(static_cast<void*>(vBeam));
+
+        // Initialize the representation
+
+        vBeam->setNodes(vNode0, vNode1);
+        vBeam->refresh();
+
+        // We need a recalc
+
+        m_needRecalc = true;
+
+        this->addToScene(vBeam);
+
+        return vBeam;
+    }
+    else
+        return nullptr;
 }
 
 void FemWidget::showMessage(std::string message)
@@ -1904,7 +2012,7 @@ void FemWidget::onInit()
     // Create tactile Force icon
 
     log("Setting material for tactile force.");
-    material = ivf::Material::create();     
+    material = ivf::Material::create();
     material->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
     material->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
     material->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -2765,6 +2873,7 @@ void FemWidget::onDrawImGui()
     bool executeCalc = false;
     bool quitApplication = false;
     bool exportAsCalfem = false;
+    bool runScriptDialog = false;
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -2773,6 +2882,10 @@ void FemWidget::onDrawImGui()
             if (ImGui::MenuItem("New", "CTRL+N"))
             {
                 m_showNewFileDlg = true;
+                m_newModelPopup->nodeSize(m_relNodeSize * 100.0);
+                m_newModelPopup->loadSize(m_relLoadSize * 100.0);
+                m_newModelPopup->lineRadius(m_relLineRadius * 100.0);
+                m_newModelPopup->modelSize(this->getWorkspace());
                 m_newModelPopup->show();
             }
 
@@ -2785,8 +2898,15 @@ void FemWidget::onDrawImGui()
             if (ImGui::MenuItem("Save as", "Ctrl+Shift+S"))
                 saveAsDialog = true;
 
-            if (ImGui::MenuItem("Save as CALFEM", ""))
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Save as CALFEM...", ""))
                 exportAsCalfem = true;
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Execute chai-script...", ""))
+                runScriptDialog = true;
 
             ImGui::Separator();
 
@@ -2965,6 +3085,9 @@ void FemWidget::onDrawImGui()
 
     if (exportAsCalfem)
         this->exportAsCalfem();
+
+    if (runScriptDialog)
+        this->openScript();
 
     if (quitApplication)
     {

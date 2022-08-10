@@ -492,6 +492,7 @@ protected:
      * not.
      */
     virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit);
+    virtual void onMoveCompleted();
 
     virtual void onSelectFilter(ivf::Shape* shape, bool& select);
     virtual void onHighlightFilter(ivf::Shape*, bool& highlight);

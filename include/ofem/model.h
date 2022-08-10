@@ -13,6 +13,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <string>
 
 namespace ofem
 {
@@ -29,6 +30,9 @@ private:
     ElementLoadSetPtr m_elementLoadSet;
     NodeBCSetPtr m_bcSet;
     std::string m_fileName;
+
+    std::vector<std::string> m_snapShots;
+    std::vector<std::string> m_restoredSnapShots;
 
 protected:
     virtual NodeBCSet* createBCSet();
@@ -58,6 +62,12 @@ public:
     void save();
     bool open();
     void deleteAll();
+
+    void snapShot();
+    void restoreLastSnapShot();
+    void revertLastSnapShot();
+
+    size_t snapShotCount();
 
     void clearNodeValues();
 

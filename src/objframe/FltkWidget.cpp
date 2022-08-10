@@ -1175,6 +1175,10 @@ void FltkWidget::doMouseUp(int x, int y)
 {
     // Call onMouseUp event method
 
+    if (getEditMode() == WidgetMode::Move)
+        onMoveCompleted();
+
+
     this->getScene()->showCursor();
     onMouseUp(x, y);
 }
@@ -1264,6 +1268,11 @@ void FltkWidget::onDeSelect()
 void FltkWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
 {
     doit = true;
+}
+
+void FltkWidget::onMoveCompleted()
+{
+
 }
 
 // ------------------------------------------------------------

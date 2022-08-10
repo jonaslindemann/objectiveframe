@@ -1,0 +1,67 @@
+
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Regular frame,string%%";
+var floors = %%floors,4,int%%;
+var rows = %%rows,4,int%%;
+var cols = %%cols,4,int%%;
+
+var dx = %%dx,1.0,float%%;
+var dy = %%dy,1.0,float%%;
+var dz = %%dz,1.0,float%%;
+
+// Nodes
+
+var startNodeIdx = nodeCount();
+
+for (var k=0; k<floors; ++k)
+{
+	for (var j=0; j<rows; ++j)
+	{
+		for (var i=0; i<cols; ++i)
+		{
+			addNode(i*dx, k*dy, j*dz);
+		}
+	}
+}
+
+// Risers
+
+for (var k=0; k<floors-1; ++k)
+{
+	for (var j=0; j<rows; ++j)
+	{
+		for (var i=0; i<cols; ++i)
+		{
+			addBeam(startNodeIdx + i + j*cols + k*rows*cols, startNodeIdx + i + j*cols + (k+1)*rows*cols);
+		}
+	}
+}
+
+// Vert 
+
+for (var k=1; k<floors; ++k)
+{
+	for (var j=0; j<rows; ++j)
+	{
+		for (var i=0; i<cols-1; ++i)
+		{
+			addBeam(startNodeIdx + i + j*cols + k*rows*cols, startNodeIdx + (i+1) + j*cols + k*rows*cols);
+		}
+	}
+}
+
+for (var k=1; k<floors; ++k)
+{
+	for (var j=0; j<rows-1; ++j)
+	{
+		for (var i=0; i<cols; ++i)
+		{
+			addBeam(startNodeIdx + i + j*cols + k*rows*cols, startNodeIdx + i + (j+1)*cols + k*rows*cols);
+		}
+	}
+}
+
+}

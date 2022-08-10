@@ -1,5 +1,6 @@
 #include "FemWidget.h"
 
+#include <filesystem>
 #include <functional>
 #include <sstream>
 
@@ -27,7 +28,7 @@
 
 #include <logger.h>
 
-#include "StructureFactory.h"
+#include "script_plugin.h"
 
 using namespace ivf;
 using namespace std;
@@ -88,6 +89,7 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L)
     m_mixedSelection = false;
 
     this->setupScripting();
+    this->setupPlugins();
 }
 
 FemWidget::~FemWidget()
@@ -103,6 +105,18 @@ FemWidget::~FemWidget()
 void FemWidget::runScript(const std::string filename)
 {
 
+    ScriptPlugin plugin("plugins/frame.chai");
+
+    plugin.param("floors", "4");
+    plugin.param("rows", "4");
+    plugin.param("cols", "4");
+    plugin.param("dx", "1.0");
+    plugin.param("dy", "1.0");
+    plugin.param("dz", "1.0");
+
+    cout << plugin.source();
+
+    chaiscript::ChaiScript::State s = m_chai.get_state(); // get initial state
     try
     {
         m_chai.eval_file(filename);
@@ -111,6 +125,25 @@ void FemWidget::runScript(const std::string filename)
     {
         log(e.pretty_print());
     }
+
+    m_chai.set_state(s);
+}
+
+void FemWidget::runPlugin(ScriptPlugin* plugin)
+{
+    this->snapShot();
+
+    chaiscript::ChaiScript::State s = m_chai.get_state(); // get initial state
+    try
+    {
+        m_chai.eval(plugin->source());
+    }
+    catch (const chaiscript::exception::eval_error& e)
+    {
+        log(e.pretty_print());
+    }
+
+    m_chai.set_state(s);
 }
 
 // ------------------------------------------------------------
@@ -369,6 +402,7 @@ void FemWidget::setEditMode(WidgetMode mode)
     switch (mode)
     {
     case WidgetMode::Select:
+        log("WidgetMode::Select");
         m_consoleWindow->clear();
         console("Select: Click on objects to select. Click outside to deselect.");
         setHighlightFilter(HighlightMode::All);
@@ -376,6 +410,7 @@ void FemWidget::setEditMode(WidgetMode mode)
         setRepresentation(RepresentationMode::Fem);
         break;
     case WidgetMode::CreateNode:
+        log("WidgetMode::CreateNode");
         m_consoleWindow->clear();
         console("Create nodes: Use the cursor to create nodes. [Shift] moves up/down.");
         setHighlightFilter(HighlightMode::Nodes);
@@ -383,6 +418,7 @@ void FemWidget::setEditMode(WidgetMode mode)
         setRepresentation(RepresentationMode::Fem);
         break;
     case WidgetMode::CreateLine:
+        log("WidgetMode::CreateLine");
         m_consoleWindow->clear();
         console("Create beams: Select 2 nodes to create a beam element.");
         setHighlightFilter(HighlightMode::Nodes);
@@ -390,6 +426,7 @@ void FemWidget::setEditMode(WidgetMode mode)
         setRepresentation(RepresentationMode::Fem);
         break;
     case WidgetMode::Move:
+        log("WidgetMode::Move");
         m_consoleWindow->clear();
         console("Move: Move selected nodes with cursor. Click and hold mouse to move. [Shift] moves up/down.");
         break;
@@ -627,6 +664,116 @@ void FemWidget::exportAsCalfem()
     auto writer = new ofem::CalfemWriter("cfexport.py");
     writer->setFemModel(m_beamModel);
     writer->save();
+}
+
+void FemWidget::snapShot()
+{
+    m_beamModel->snapShot();
+    log("Current undo level: " + ofutil::to_string(m_beamModel->snapShotCount()));
+}
+
+void FemWidget::restoreLastSnapShot()
+{
+    auto prevEditMode = this->getEditMode();
+
+    m_beamModel->restoreLastSnapShot();
+    log("Current undo level: " + ofutil::to_string(m_beamModel->snapShotCount()));
+
+    this->hideAllDialogs();
+    this->deleteAll();
+
+    log("Setting color map path.");
+    std::string colorPath = "";
+
+    colorPath = colorPath + m_progPath;
+    colorPath = colorPath + "maps/";
+
+    // Initialize and open beam model
+
+    m_beamModel->setTextFont(m_labelFont);
+    m_beamModel->setCamera(this->getCamera());
+    m_beamModel->setShowNodeNumbers(true);
+
+    // Generate a Ivf++ representation
+
+    m_beamModel->generateModel();
+
+    // Update dialogs
+
+    m_nodePropWindow->setNode(nullptr);
+    m_elementPropWindow->setBeam(nullptr);
+
+    // Add tactile force
+
+    this->getScene()->addChild(m_tactileForce);
+
+    double loadSize = m_beamModel->getLoadSize();
+
+    m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
+    m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
+    m_tactileForce->setDirection(0.0, -1.0, 0.0);
+    m_tactileForce->setOffset(-loadSize * 0.7);
+
+    m_needRecalc = true;
+
+    if (m_internalSolver != nullptr)
+        delete m_internalSolver;
+
+    m_internalSolver = nullptr;
+
+    this->setEditMode(prevEditMode);
+}
+
+void FemWidget::revertLastSnapShot()
+{
+    auto prevEditMode = this->getEditMode();
+
+    m_beamModel->revertLastSnapShot();
+    log("Current undo level: " + ofutil::to_string(m_beamModel->snapShotCount()));
+
+    this->hideAllDialogs();
+    this->deleteAll();
+
+    log("Setting color map path.");
+    std::string colorPath = "";
+
+    colorPath = colorPath + m_progPath;
+    colorPath = colorPath + "maps/";
+
+    // Initialize and open beam model
+
+    m_beamModel->setTextFont(m_labelFont);
+    m_beamModel->setCamera(this->getCamera());
+    m_beamModel->setShowNodeNumbers(true);
+
+    // Generate a Ivf++ representation
+
+    m_beamModel->generateModel();
+
+    // Update dialogs
+
+    m_nodePropWindow->setNode(nullptr);
+    m_elementPropWindow->setBeam(nullptr);
+
+    // Add tactile force
+
+    this->getScene()->addChild(m_tactileForce);
+
+    double loadSize = m_beamModel->getLoadSize();
+
+    m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
+    m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
+    m_tactileForce->setDirection(0.0, -1.0, 0.0);
+    m_tactileForce->setOffset(-loadSize * 0.7);
+
+    m_needRecalc = true;
+
+    if (m_internalSolver != nullptr)
+        delete m_internalSolver;
+
+    m_internalSolver = nullptr;
+
+    this->setEditMode(prevEditMode);
 }
 
 void FemWidget::open()
@@ -934,6 +1081,8 @@ void FemWidget::deleteSelected()
 {
     // Delete things in an orderly fashion
 
+    this->snapShot();
+
     setDeleteFilter(DeleteMode::Elements);
     deleteSelectedKeep();
     setDeleteFilter(DeleteMode::Nodes);
@@ -1061,6 +1210,8 @@ void FemWidget::assignNodeLoadSelected()
 
     if (m_currentNodeLoad != nullptr)
     {
+        this->snapShot();
+
         auto selected = this->getSelectedShapes();
         for (int i = 0; i < selected->getSize(); i++)
         {
@@ -1264,6 +1415,19 @@ void FemWidget::setupScripting()
     m_chai.add(chaiscript::fun(&FemWidget::addNode, this), "addNode");
     m_chai.add(chaiscript::fun(&FemWidget::newModel, this), "newModel");
     m_chai.add(chaiscript::fun(&FemWidget::addBeam, this), "addBeam");
+    m_chai.add(chaiscript::fun(&FemWidget::nodeCount, this), "nodeCount");
+}
+
+void FemWidget::setupPlugins()
+{
+    std::string path = "plugins";
+    for (const auto& entry : std::filesystem::directory_iterator(path))
+    {
+        auto filename = entry.path();
+        auto plugin = ScriptPlugin::create(filename.string());
+        m_plugins.push_back(plugin);
+        log("Loading plugin - " + filename.string() + " - " + plugin->name());
+    }
 }
 
 void FemWidget::assignNodeBCSelected()
@@ -1294,6 +1458,7 @@ void FemWidget::assignNodeBCSelected()
 
 void FemWidget::assignNodeFixedBCSelected()
 {
+    this->snapShot();
     this->setCurrentNodeBC(m_beamModel->defaultNodeFixedBC());
     this->assignNodeBCSelected();
     this->setCurrentNodeBC(nullptr);
@@ -1301,6 +1466,7 @@ void FemWidget::assignNodeFixedBCSelected()
 
 void FemWidget::assignNodePosBCSelected()
 {
+    this->snapShot();
     this->setCurrentNodeBC(m_beamModel->defaultNodePosBC());
     this->assignNodeBCSelected();
     this->setCurrentNodeBC(nullptr);
@@ -1308,6 +1474,7 @@ void FemWidget::assignNodePosBCSelected()
 
 void FemWidget::assignNodeFixedBCGround()
 {
+    this->snapShot();
     this->setSelectFilter(SelectMode::GroundNodes);
     this->selectAll();
     this->assignNodeFixedBCSelected();
@@ -1315,6 +1482,7 @@ void FemWidget::assignNodeFixedBCGround()
 
 void FemWidget::assignNodePosBCGround()
 {
+    this->snapShot();
     this->setSelectFilter(SelectMode::GroundNodes);
     this->selectAll();
     this->assignNodePosBCSelected();
@@ -1623,6 +1791,11 @@ vfem::Beam* FemWidget::addBeam(int i0, int i1)
         return nullptr;
 }
 
+size_t FemWidget::nodeCount()
+{
+    return m_beamModel->getNodeSet()->getSize();
+}
+
 void FemWidget::showMessage(std::string message)
 {
     m_messagePopup->setMessage(message);
@@ -1870,6 +2043,8 @@ void FemWidget::onInit()
     LoggerMessageFunc f = std::bind(&FemWidget::onMessage, this, _1);
     Logger::instance()->assignOnMessageShort(f);
 
+    // Display version information.
+
     log(OBJFRAME_VERSION_STRING);
     log(OBJFRAME_RELEASE);
     log(OBJFRAME_COPYRIGHT_STRING);
@@ -2082,6 +2257,10 @@ void FemWidget::onInit()
     m_elementPropWindow = ElementPropWindow::create("Element properties");
     m_elementPropWindow->setWidget(this);
     m_elementPropWindow->setVisible(false);
+
+    m_pluginWindow = PluginPropWindow::create("Plugin properties");
+    m_pluginWindow->setWidget(this);
+    m_pluginWindow->setVisible(false);
 }
 
 void FemWidget::doMouse(int x, int y)
@@ -2094,6 +2273,8 @@ void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 {
     // Create a node
 
+    this->snapShot();
+
     // First we create a FemNode
 
     ofem::Node* femNode = new ofem::Node();
@@ -2101,7 +2282,7 @@ void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
     // Add it to the Fem model
 
     m_beamModel->getNodeSet()->addNode(femNode);
-    femNode->setNumber(static_cast<long>(m_beamModel->getNodeSet()->getSize()) - 1);
+    femNode->setNumber(static_cast<long>(m_beamModel->getNodeSet()->getSize()));
 
     // Create Ivf representation
 
@@ -2124,6 +2305,8 @@ void FemWidget::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine
 {
     if (node1 == node2)
         return;
+
+    this->snapShot();
 
     // Create visual representation
 
@@ -2299,7 +2482,10 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
             vfem::Node* visNode = static_cast<vfem::Node*>(shape);
 
             if (m_beamModel->getNodeSet()->removeNode(visNode->getFemNode()))
+            {
                 doit = true;
+                this->snapShot();
+            }
             else
                 doit = false;
         }
@@ -2314,7 +2500,10 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
             ofem::BeamSet* beamSet = m_beamModel->getElementSet();
 
             if (beamSet->removeElement(femBeam))
+            {
                 doit = true;
+                this->snapShot();
+            }
             else
                 doit = false;
         }
@@ -2327,6 +2516,11 @@ void FemWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double
 {
     doit = true;
     m_needRecalc = true;
+}
+
+void FemWidget::onMoveCompleted()
+{
+    this->snapShot();
 }
 
 void FemWidget::onUnderlay()
@@ -2770,6 +2964,12 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
     if ((modifier == ModifierKey::Ctrl) && (key == 'a'))
         this->selectAll();
 
+    if ((modifier == ModifierKey::Ctrl) && (key == 'z'))
+        this->restoreLastSnapShot();
+
+    if ((modifier == ModifierKey::Ctrl) && (key == 'y'))
+        this->revertLastSnapShot();
+
     if ((modifier == ModifierKey::Alt) && (key == 's'))
     {
         m_editButtons->clearChecked();
@@ -2834,8 +3034,8 @@ void FemWidget::onHighlightFilter(Shape* shape, bool& highlight)
 
 void FemWidget::onKeyboard(int key)
 {
-    if (key == 122)
-        this->setEditMode(WidgetMode::ViewPan);
+    //if (key == 122)
+    //    this->setEditMode(WidgetMode::ViewPan);
 
     if (key == ImGuiKey_Delete)
         this->deleteSelected();
@@ -2874,6 +3074,8 @@ void FemWidget::onDrawImGui()
     bool quitApplication = false;
     bool exportAsCalfem = false;
     bool runScriptDialog = false;
+    bool snapShot = false;
+    bool restoreLastSnapShot = false;
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -2919,6 +3121,14 @@ void FemWidget::onDrawImGui()
         }
         if (ImGui::BeginMenu("Edit"))
         {
+            if (ImGui::MenuItem("Undo", "Ctrl-Z"))
+                this->restoreLastSnapShot();
+
+            if (ImGui::MenuItem("Redo", "Ctrl-Y"))
+                this->restoreLastSnapShot();
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Select all nodes", ""))
                 this->selectAllNodes();
             if (ImGui::MenuItem("Select all elements", ""))
@@ -2988,10 +3198,15 @@ void FemWidget::onDrawImGui()
                 this->setCustomMode(CustomMode::Feedback);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Tools"))
+        if (ImGui::BeginMenu("Structure"))
         {
-            if (ImGui::MenuItem("Create structure", ""))
+            for (auto& p : m_plugins)
             {
+                if (ImGui::MenuItem(p->name().c_str(), ""))
+                {
+                    m_pluginWindow->setPlugin(p.get());
+                    m_pluginWindow->show();
+                }
             }
             ImGui::EndMenu();
         }
@@ -3068,6 +3283,7 @@ void FemWidget::onDrawImGui()
     m_elementPropWindow->draw();
     m_logWindow->draw();
     m_consoleWindow->draw();
+    m_pluginWindow->draw();
 
     ImGui::Render();
 

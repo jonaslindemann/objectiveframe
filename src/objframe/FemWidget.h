@@ -54,12 +54,15 @@
 #include <ofui/node_loads_window.h>
 #include <ofui/node_prop_window.h>
 #include <ofui/settings_window.h>
+#include <ofui/plugin_prop_window.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
 #include "PlaneButton.h"
 
 #include "FemInternalSolver.h"
+
+#include "script_plugin.h"
 
 enum class RepresentationMode
 {
@@ -241,6 +244,7 @@ private:
     ofui::ElementPropWindowPtr m_elementPropWindow;
     ofui::LogWindowPtr m_logWindow;
     ofui::ConsoleWindowPtr m_consoleWindow;
+    ofui::PluginPropWindowPtr m_pluginWindow;
 
     bool m_showStyleEditor;
     bool m_showMetricsWindow;
@@ -251,6 +255,10 @@ private:
     // Scripting
 
     chaiscript::ChaiScript m_chai;
+
+    // Plugins
+
+    std::vector<ScriptPluginPtr> m_plugins;
 
     // Handle mouse updates
 
@@ -268,6 +276,7 @@ private:
 
     void setupScripting();
     void setupOverlay();
+    void setupPlugins();
 
 public:
     FemWidget(int X, int Y, int W, int H, const char* L = 0);
@@ -328,10 +337,15 @@ public:
     void unlockScaleFactor();
     void lockScaleFactor();
     virtual void setWorkspace(double size, bool resetCamera = true) override;
+
     void open();
     void save();
     void saveAs();
     void exportAsCalfem();
+    void snapShot();
+    void restoreLastSnapShot();
+    void revertLastSnapShot();
+
     void removeMaterialFromSelected();
     void assignMaterialToSelected();
     void newModel();
@@ -365,6 +379,7 @@ public:
 
     vfem::Node* addNode(double x, double y, double z);
     vfem::Beam* addBeam(int i0, int i1);
+    size_t nodeCount();
 
     // Implemented FltkWidget events
 
@@ -386,6 +401,7 @@ public:
     virtual void onPassiveMotion(int x, int y) override;
     virtual void onSelectFilter(ivf::Shape* shape, bool& select) override;
     virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit) override;
+    virtual void onMoveCompleted() override;
     virtual void onMotion(int x, int y) override;
     virtual void onDeSelect() override;
     virtual void onKeyboard(int key) override;
@@ -400,4 +416,5 @@ public:
     virtual void onButton(int objectName, PlaneButton* button);
     virtual void onOverButton(int objectName, PlaneButton* button);
     virtual void onShortcut(ModifierKey modifier, int key);
+    void runPlugin(ScriptPlugin* plugin);
 };

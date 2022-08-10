@@ -1,5 +1,7 @@
 #include <ofem/model.h>
 
+#include <sstream>
+
 using namespace ofem;
 using namespace std;
 
@@ -258,6 +260,58 @@ void Model::save()
         this->saveToStream(outputFile);
         outputFile.close();
     }
+}
+
+void Model::snapShot()
+{
+    std::stringstream ss;
+    this->saveToStream(ss);
+    m_snapShots.push_back(ss.str());
+    m_restoredSnapShots.clear();
+}
+
+void Model::restoreLastSnapShot()
+{
+    if (m_snapShots.size()>0)
+    {
+        // Snapshot current model
+
+        std::stringstream cs;
+        this->saveToStream(cs);
+        m_restoredSnapShots.push_back(cs.str());
+
+        // Revert to last snapshot
+
+        auto snapShot = m_snapShots.back();
+        m_snapShots.pop_back();
+
+        std::stringstream ss(snapShot);
+        this->readFromStream(ss);
+    }
+}
+
+void Model::revertLastSnapShot()
+{
+    if (m_restoredSnapShots.size()>0)
+    {
+        // Current model to snapshot
+
+        std::stringstream ss;
+        this->saveToStream(ss);
+        m_snapShots.push_back(ss.str());
+
+        // Go forward
+
+        auto snapShot = m_restoredSnapShots.back();
+        m_restoredSnapShots.pop_back();
+        std::stringstream cs(snapShot);
+        this->readFromStream(cs);
+    }
+}
+
+size_t Model::snapShotCount()
+{
+    return m_snapShots.size();
 }
 
 // ------------------------------------------------------------

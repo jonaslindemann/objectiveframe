@@ -43,7 +43,7 @@ void redrawCallback(void* view)
     imguiView = (FltkWidget*)view;
     if (imguiView->isRedrawTimerEnabled())
         imguiView->redraw();
-    Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)view);
+    Fl::repeat_timeout(1.0 / 120.0, redrawCallback, (void*)view);
 }
 
 // ------------------------------------------------------------
@@ -106,6 +106,13 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char* L)
 
     m_selectedShapes = Composite::create();
     m_selectedShapes->setUseReference(false);
+
+    // Create volume selection box;
+
+    m_volumeSelection = WireBrick::create();
+    m_volumeSelection->setState(Shape::OS_OFF);
+
+    m_scene->addChild(m_volumeSelection);
 
     m_quit = false;
 
@@ -280,6 +287,86 @@ void FltkWidget::selectAll()
     redraw();
 }
 
+void FltkWidget::selectAllBox()
+{
+    m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+    m_selectedShapes->clear();
+    m_selectedShape = NULL;
+
+    int i;
+
+    Shape* shape;
+    auto scene = this->getScene()->getComposite();
+    bool select;
+
+    for (i = 0; i < scene->getSize(); i++)
+    {
+        shape = scene->getChild(i);
+        select = true;
+        onSelectFilter(shape, select);
+        if ((select)&&(isInsideVolume(shape)))
+            m_selectedShapes->addChild(shape);
+    }
+
+    m_selectedShapes->setSelectChildren(GLBase::SS_ON);
+    onSelect(m_selectedShapes);
+
+    redraw();
+}
+
+bool FltkWidget::isInsideVolume(ivf::Shape* shape)
+{
+    double x_min, y_min, z_min;
+    double x_max, y_max, z_max;
+
+    if (shape->isClass("Node"))
+    {
+        if (m_volumeStart[0] < m_volumeEnd[0])
+        {
+            x_min = m_volumeStart[0];
+            x_max = m_volumeEnd[0];
+        }
+        else
+        {
+            x_min = m_volumeEnd[0];
+            x_max = m_volumeStart[0];
+        }
+
+        if (m_volumeStart[1] < m_volumeEnd[1])
+        {
+            y_min = m_volumeStart[1];
+            y_max = m_volumeEnd[1];
+        }
+        else
+        {
+            y_min = m_volumeEnd[1];
+            y_max = m_volumeStart[1];
+        }
+
+        if (m_volumeStart[2] < m_volumeEnd[2])
+        {
+            z_min = m_volumeStart[2];
+            z_max = m_volumeEnd[2];
+        }
+        else
+        {
+            z_min = m_volumeEnd[2];
+            z_max = m_volumeStart[2];
+        }
+
+        double x, y, z;
+
+        shape->getPosition(x, y, z);
+
+        return (x >= x_min) && (x <= x_max) && (y >= y_min) && (y <= y_max) && (z >= z_min) && (z <= z_max);
+    }
+    else
+    {
+        return this->onInsideVolume(shape);
+    }
+
+}
+
 // ------------------------------------------------------------
 // Get/set methods
 // ------------------------------------------------------------
@@ -310,6 +397,24 @@ void FltkWidget::setEditMode(WidgetMode mode)
     }
 
     if (getEditMode() == WidgetMode::CreateNode)
+    {
+        clearSelection();
+        m_scene->enableCursor();
+        m_clickNumber = 0;
+        m_selectedShapes->clear();
+        m_scene->unlockCursor();
+    }
+
+    if (getEditMode() == WidgetMode::SelectPosition)
+    {
+        clearSelection();
+        m_scene->enableCursor();
+        m_clickNumber = 0;
+        m_selectedShapes->clear();
+        m_scene->unlockCursor();
+    }
+
+    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
     {
         clearSelection();
         m_scene->enableCursor();
@@ -893,6 +998,67 @@ void FltkWidget::doMouse(int x, int y)
         }
     }
 
+    // Handle selection
+
+    if ((m_editMode == WidgetMode::SelectPosition) && (Fl::event_state(FL_BUTTON1) > 0))
+    {
+        double vx, vy, vz;
+        Node* node = NULL;
+        Vec3d pos;
+
+        m_scene->updateCursor(x, y);
+        pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(vx, vy, vz);
+
+        onSelectPosition(vx, vy, vz);
+    }
+
+    if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) && (Fl::event_state(FL_BUTTON1) > 0))
+    {
+        double vx, vy, vz;
+        Node* node = NULL;
+        Vec3d pos;
+
+        m_scene->updateCursor(x, y);
+        pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(vx, vy, vz);
+
+        if (m_clickNumber == 0)
+        {
+            m_volumeStart[0] = vx;
+            m_volumeStart[1] = vy;
+            m_volumeStart[2] = vz;
+
+            m_volumeEnd[0] = vx;
+            m_volumeEnd[1] = vy;
+            m_volumeEnd[2] = vz;
+
+            ivf::Point3d p0, p1;
+            p0.setComponents(m_volumeStart);
+            p1.setComponents(m_volumeEnd);
+            m_volumeSelection->setSize(&p0, &p1);
+
+            m_volumeSelection->setState(Shape::OS_ON);
+            m_clickNumber++;
+        }
+        else if (m_clickNumber == 1)
+        {
+            m_volumeEnd[0] = vx;
+            m_volumeEnd[1] = vy;
+            m_volumeEnd[2] = vz;
+
+            if (m_editMode == WidgetMode::SelectVolume)
+                onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1], m_volumeEnd[2]);
+            else
+                this->selectAllBox();
+
+            m_volumeSelection->setState(Shape::OS_OFF);
+            m_clickNumber = 0;
+        }
+
+        // onSelectPosition(vx, vy, vz);
+    }
+
     if (m_editMode == WidgetMode::CreateLine)
     {
         if (m_selectedShapes->getSize() < 2)
@@ -1025,6 +1191,12 @@ void FltkWidget::doMotion(int x, int y)
         m_startPos[1] = m_startPos[1] + dy;
         m_startPos[2] = m_startPos[2] + dz;
 
+        if (m_moveStart)
+        {
+            onMoveStart();
+            m_moveStart = false;
+        }
+
         onMove(m_selectedShapes, dx, dy, dz, doit);
 
         if (doit)
@@ -1147,6 +1319,26 @@ void FltkWidget::doPassiveMotion(int x, int y)
             redraw();
     }
 
+    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
+    {
+        m_scene->updateCursor(x, y);
+        double vx, vy, vz;
+        auto pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(vx, vy, vz);
+
+        if (m_clickNumber == 1)
+        {
+            m_volumeEnd[0] = vx;
+            m_volumeEnd[1] = vy;
+            m_volumeEnd[2] = vz;
+
+            ivf::Point3d p0, p1;
+            p0.setComponents(m_volumeStart);
+            p1.setComponents(m_volumeEnd);
+            m_volumeSelection->setSize(&p0, &p1);
+        }
+    }
+
     // Call onPassiveMotion event method
 
     onPassiveMotion(x, y);
@@ -1162,6 +1354,7 @@ void FltkWidget::doMouseDown(int x, int y)
 {
     // Call onMouseDown event method
 
+    m_moveStart = true;
     onMouseDown(x, y);
 }
 
@@ -1177,7 +1370,6 @@ void FltkWidget::doMouseUp(int x, int y)
 
     if (getEditMode() == WidgetMode::Move)
         onMoveCompleted();
-
 
     this->getScene()->showCursor();
     onMouseUp(x, y);
@@ -1228,6 +1420,11 @@ void FltkWidget::onSelect(Composite* selectedShapes)
 {
 }
 
+bool FltkWidget::onInsideVolume(ivf::Shape* shape)
+{
+    return false;
+}
+
 // ------------------------------------------------------------
 void FltkWidget::onDeleteShape(Shape* shape, bool& doit)
 {
@@ -1236,6 +1433,14 @@ void FltkWidget::onDeleteShape(Shape* shape, bool& doit)
 
 // ------------------------------------------------------------
 void FltkWidget::onCreateNode(double x, double y, double z, Node*& newNode)
+{
+}
+
+void FltkWidget::onSelectPosition(double x, double y, double z)
+{
+}
+
+void FltkWidget::onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz)
 {
 }
 
@@ -1264,6 +1469,10 @@ void FltkWidget::onDeSelect()
 {
 }
 
+void FltkWidget::onMoveStart()
+{
+}
+
 // ------------------------------------------------------------
 void FltkWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
 {
@@ -1272,7 +1481,6 @@ void FltkWidget::onMove(Composite* selectedShapes, double& dx, double& dy, doubl
 
 void FltkWidget::onMoveCompleted()
 {
-
 }
 
 // ------------------------------------------------------------

@@ -70,6 +70,8 @@ void NodePropWindow::doDraw()
 
         if (ImGui::Button("Move", ImVec2(120, 0)))
         {
+            m_widget->snapShot();
+
             for (auto i = 0; i < m_selectedShapes->getSize(); i++)
             {
                 if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
@@ -90,6 +92,9 @@ void NodePropWindow::doDraw()
         if (ImGui::Button("Copy", ImVec2(120, 0)))
         {
             std::vector<ivf::Shape*> newSelected;
+
+            m_widget->snapShot();
+
             for (auto i = 0; i < m_selectedShapes->getSize(); i++)
             {
                 if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
@@ -122,6 +127,7 @@ void NodePropWindow::doDraw()
 
         ImGui::Separator();
 
+        /*
         ImGui::TextUnformatted("Shortcuts");
 
         if (ImGui::Button("Up(Y)"))
@@ -158,7 +164,7 @@ void NodePropWindow::doDraw()
         {
         }
 
-
+        */
     }
     else
     {

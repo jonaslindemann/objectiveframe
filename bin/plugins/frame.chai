@@ -14,7 +14,12 @@ var dz = %%dz,1.0,float%%;
 
 // Nodes
 
+// o ---- o ---- o ---- o
+
 var startNodeIdx = nodeCount();
+
+var offsetX = (cols-1) * dx / 2.0;
+var offsetZ = (rows-1) * dz / 2.0;
 
 for (var k=0; k<floors; ++k)
 {
@@ -22,7 +27,7 @@ for (var k=0; k<floors; ++k)
 	{
 		for (var i=0; i<cols; ++i)
 		{
-			addNode(i*dx, k*dy, j*dz);
+			addNode(i*dx - offsetX, k*dy, j*dz - offsetZ);
 		}
 	}
 }

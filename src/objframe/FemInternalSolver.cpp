@@ -271,10 +271,14 @@ void assem(
 
     for (i = 1; i <= Ke.Nrows(); i++)
         for (j = i; j <= Ke.Ncols(); j++)
-            K((int)Topo(i), (int)Topo(j)) = K((int)Topo(i), (int)Topo(j)) + Ke(i, j);
+        {
+            if ((Topo(i)>=0.0)&&(Topo(j)>=0.0))
+                K((int)Topo(i), (int)Topo(j)) = K((int)Topo(i), (int)Topo(j)) + Ke(i, j);
+        }
 
     for (i = 1; i <= fe.Nrows(); i++)
-        f((int)Topo(i)) = f((int)Topo(i)) + fe(i);
+        if (Topo(i)>=0.0)
+            f((int)Topo(i)) = f((int)Topo(i)) + fe(i);
 }
 
 double max(RowVector& rowVector)
@@ -460,7 +464,7 @@ void FrameSolver::execute()
 
     for (i = 1; i <= elementSet->getSize(); i++)
     {
-        Beam* beam = (Beam*)elementSet->getElement(i - 1);
+        auto beam = static_cast<ofem::Beam*>(elementSet->getElement(i - 1));
 
         for (j = 0; j < 6; j++)
             DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();

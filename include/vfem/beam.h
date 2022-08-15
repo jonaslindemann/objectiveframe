@@ -59,6 +59,8 @@ public:
     ofem::Beam* getBeam();
     void setNodes(vfem::Node* node1, vfem::Node* node2);
 
+    vfem::Node* getNode(int idx);
+
     void setBeamModel(vfem::BeamModel* beamModel);
 
 protected:

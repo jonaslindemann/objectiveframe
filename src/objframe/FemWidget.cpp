@@ -71,6 +71,9 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L)
     m_hintFinished = true;
     m_lockScaleFactor = false;
     m_saneModel = false;
+    m_selectedPos[0] = 0.0;
+    m_selectedPos[1] = 0.0;
+    m_selectedPos[2] = 0.0;
 
     m_tactileForceValue = 1000.0;
 
@@ -133,16 +136,18 @@ void FemWidget::runPlugin(ScriptPlugin* plugin)
 {
     this->snapShot();
 
+
     chaiscript::ChaiScript::State s = m_chai.get_state(); // get initial state
     try
     {
+        m_pluginRunning = true;
         m_chai.eval(plugin->source());
+        m_pluginRunning = false;
     }
     catch (const chaiscript::exception::eval_error& e)
     {
         log(e.pretty_print());
     }
-
     m_chai.set_state(s);
 }
 
@@ -398,11 +403,20 @@ void FemWidget::setEditMode(WidgetMode mode)
     this->getScene()->disableCursor();
     this->getScene()->disableCursorShape();
     this->setUseOverlay(true);
+    m_pluginWindow->hide();
 
     switch (mode)
     {
     case WidgetMode::Select:
         log("WidgetMode::Select");
+        m_consoleWindow->clear();
+        console("Select: Click on objects to select. Click outside to deselect.");
+        setHighlightFilter(HighlightMode::All);
+        setSelectFilter(SelectMode::All);
+        setRepresentation(RepresentationMode::Fem);
+        break;
+    case WidgetMode::BoxSelection:
+        log("WidgetMode::BoxSelect");
         m_consoleWindow->clear();
         console("Select: Click on objects to select. Click outside to deselect.");
         setHighlightFilter(HighlightMode::All);
@@ -522,11 +536,13 @@ void FemWidget::setCustomMode(CustomMode mode)
     {
         m_interactionNode = nullptr;
     }
+
     m_customMode = mode;
     m_customModeSet = true;
     m_haveScaleFactor = false;
     this->setBeamRefreshMode(IVF_REFRESH_NODES);
-    if (m_customMode != CustomMode::Normal)
+
+    if (m_customMode == CustomMode::Feedback)
     {
         m_tactileForce->setState(Shape::OS_OFF);
         m_interactionNode = nullptr;
@@ -535,6 +551,15 @@ void FemWidget::setCustomMode(CustomMode mode)
         m_beamModel->clearNodeValues();
         this->setResultType(IVF_BEAM_NO_RESULT);
         this->setEditMode(WidgetMode::Select);
+    }
+
+    if (m_customMode == CustomMode::Structure)
+    {
+        this->setEditMode(WidgetMode::SelectPosition);
+    }
+    else
+    {
+        m_pluginWindow->hide();
     }
 }
 
@@ -692,7 +717,7 @@ void FemWidget::restoreLastSnapShot()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(true);
+    m_beamModel->setShowNodeNumbers(false);
 
     // Generate a Ivf++ representation
 
@@ -1295,14 +1320,13 @@ void FemWidget::setRotationSelected(double rotation)
 
 void FemWidget::setupOverlay()
 {
-#ifdef ADVANCED_GL
     PlaneButton* button;
 
     m_editArea = new Area2D();
     m_editArea->add(0, 0);
     m_editArea->add(65, 0);
-    m_editArea->add(65, 400);
-    m_editArea->add(0, 400);
+    m_editArea->add(65, 520);
+    m_editArea->add(0, 520);
     m_editArea->setColor(0, 0.0f, 0.0f, 0.0f);
     m_editArea->setColor(1, 0.0f, 0.0f, 0.0f);
     m_editArea->setColor(2, 0.0f, 0.0f, 0.0f);
@@ -1330,27 +1354,33 @@ void FemWidget::setupOverlay()
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
+    button = new PlaneButton(ToolbarButton::SelectBox, "images/tlselectbox.png");
+    button->setSize(40.0, 40.0);
+    button->setPosition(30.0, 120.0, 0.0);
+    button->setHint("Select nodes or elements");
+    m_editButtons->addChild(button);
+
     button = new PlaneButton(ToolbarButton::Move, "images/tlmove.png");
     button->setSize(40.0, 40.0);
-    button->setPosition(30.0, 140.0, 0.0);
+    button->setPosition(30.0, 200.0, 0.0);
     button->setHint("Move nodes or elements");
     m_editButtons->addChild(button);
 
     button = new PlaneButton(ToolbarButton::Inspect, "images/tlinspect.png");
     button->setSize(40.0, 40.0);
-    button->setPosition(30.0, 200, 0.0);
+    button->setPosition(30.0, 270, 0.0);
     button->setHint("Node or element info");
     m_editButtons->addChild(button);
 
     button = new PlaneButton(ToolbarButton::Delete, "images/tldelete.png");
     button->setSize(40.0, 40.0);
-    button->setPosition(30.0, 270.0, 0.0);
+    button->setPosition(30.0, 360.0, 0.0);
     button->setHint("Delete node or element");
     m_editButtons->addChild(button);
 
     button = new PlaneButton(ToolbarButton::Feedback, "images/tlfeedback.png");
     button->setSize(40.0, 40.0);
-    button->setPosition(30.0, 360.0, 0.0);
+    button->setPosition(30.0, 440.0, 0.0);
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
@@ -1400,7 +1430,6 @@ void FemWidget::setupOverlay()
 
     m_overlayScene->addChild(m_objectButtons);
 
-#endif
 }
 
 void FemWidget::setupScripting()
@@ -1475,6 +1504,7 @@ void FemWidget::assignNodePosBCSelected()
 void FemWidget::assignNodeFixedBCGround()
 {
     this->snapShot();
+    this->clearSelection();
     this->setSelectFilter(SelectMode::GroundNodes);
     this->selectAll();
     this->assignNodeFixedBCSelected();
@@ -1483,6 +1513,7 @@ void FemWidget::assignNodeFixedBCGround()
 void FemWidget::assignNodePosBCGround()
 {
     this->snapShot();
+    this->clearSelection();
     this->setSelectFilter(SelectMode::GroundNodes);
     this->selectAll();
     this->assignNodePosBCSelected();
@@ -1738,7 +1769,7 @@ vfem::Node* FemWidget::addNode(double x, double y, double z)
     vfem::Node* ivfNode = new vfem::Node();
     ivfNode->setBeamModel(m_beamModel);
     ivfNode->setFemNode(femNode);
-    ivfNode->setPosition(x, y, z);
+    ivfNode->setPosition(x + m_selectedPos[0], y + m_selectedPos[1], z + m_selectedPos[2]);
     ivfNode->setMaterial(m_nodeMaterial);
     ivfNode->setDirectRefresh(true);
     ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize() * 1.5);
@@ -2142,7 +2173,7 @@ void FemWidget::onInit()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(true);
+    m_beamModel->setShowNodeNumbers(false);
 
     m_beamModel->generateModel();
 
@@ -2211,10 +2242,6 @@ void FemWidget::onInit()
     m_nodeCursor->setRadius(m_beamModel->getNodeSize());
     this->getScene()->setCursorShape(m_nodeCursor);
 
-    // Set initial edit mode
-
-    log("Setting initial edit mode.");
-    this->setEditMode(WidgetMode::ViewZoom);
 
     // Create ImGui interface
 
@@ -2261,6 +2288,12 @@ void FemWidget::onInit()
     m_pluginWindow = PluginPropWindow::create("Plugin properties");
     m_pluginWindow->setWidget(this);
     m_pluginWindow->setVisible(false);
+
+    // Set initial edit mode
+
+    log("Setting initial edit mode.");
+    this->setEditMode(WidgetMode::Select);
+    //this->setEditMode(WidgetMode::SelectVolume);
 }
 
 void FemWidget::doMouse(int x, int y)
@@ -2430,6 +2463,20 @@ void FemWidget::onSelect(Composite* selectedShapes)
     }
 }
 
+bool FemWidget::onInsideVolume(ivf::Shape* shape)
+{
+    if (shape->isClass("vfem::Beam"))
+    {
+        auto beam = static_cast<vfem::Beam*>(shape);
+        auto n0 = beam->getNode(0);
+        auto n1 = beam->getNode(1);
+
+        return (this->isInsideVolume(n0)) && (this->isInsideVolume(n1));
+    }
+    else
+        return false;
+}
+
 std::string FemWidget::float2str(double value)
 {
     std::stringstream coordStream;
@@ -2520,7 +2567,6 @@ void FemWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double
 
 void FemWidget::onMoveCompleted()
 {
-    this->snapShot();
 }
 
 void FemWidget::onUnderlay()
@@ -2825,6 +2871,25 @@ void FemWidget::onSelectFilter(Shape* shape, bool& select)
     }
 }
 
+void FemWidget::onSelectPosition(double x, double y, double z)
+{
+    if (m_customMode == CustomMode::Structure)
+    {
+        log(ofutil::to_coord_string(x, y, z));
+        
+        m_selectedPos[0] = x;
+        m_selectedPos[1] = y;
+        m_selectedPos[2] = z;
+
+        this->runPlugin(m_pluginWindow->plugin());
+    }
+}
+
+void FemWidget::onMoveStart()
+{
+    this->snapShot();
+}
+
 #ifdef ADVANCED_GL
 void FemWidget::onButton(int objectName, PlaneButton* button)
 {
@@ -2837,8 +2902,12 @@ void FemWidget::onButton(int objectName, PlaneButton* button)
         m_editButtons->check(0);
         this->setEditMode(WidgetMode::Select);
         break;
-    case ToolbarButton::Move:
+    case ToolbarButton::SelectBox:
         m_editButtons->check(1);
+        this->setEditMode(WidgetMode::BoxSelection);
+        break;
+    case ToolbarButton::Move:
+        m_editButtons->check(2);
         this->setEditMode(WidgetMode::Move);
         break;
     case ToolbarButton::CreateNode:
@@ -2850,7 +2919,7 @@ void FemWidget::onButton(int objectName, PlaneButton* button)
         this->setEditMode(WidgetMode::CreateLine);
         break;
     case ToolbarButton::Feedback:
-        m_editButtons->check(4);
+        m_editButtons->check(5);
         this->setCustomMode(CustomMode::Feedback);
         break;
     case ToolbarButton::ViewZoom:
@@ -2969,6 +3038,9 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
 
     if ((modifier == ModifierKey::Ctrl) && (key == 'y'))
         this->revertLastSnapShot();
+
+    if ((modifier == ModifierKey::Ctrl) && (key == 'd'))
+        m_showMetricsWindow = !m_showMetricsWindow;
 
     if ((modifier == ModifierKey::Alt) && (key == 's'))
     {
@@ -3204,6 +3276,7 @@ void FemWidget::onDrawImGui()
             {
                 if (ImGui::MenuItem(p->name().c_str(), ""))
                 {
+                    this->setCustomMode(CustomMode::Structure);
                     m_pluginWindow->setPlugin(p.get());
                     m_pluginWindow->show();
                 }
@@ -3212,7 +3285,7 @@ void FemWidget::onDrawImGui()
         }
         if (ImGui::BeginMenu("Calculation"))
         {
-            if (ImGui::MenuItem("Exectute", ""))
+            if (ImGui::MenuItem("Execute", ""))
                 executeCalc = true;
 
             ImGui::EndMenu();
@@ -3339,3 +3412,4 @@ void FemWidget::onInitImGui()
 void FemWidget::onPostRender()
 {
 }
+

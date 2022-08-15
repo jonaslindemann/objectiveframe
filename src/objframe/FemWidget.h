@@ -75,7 +75,8 @@ enum class RepresentationMode
 enum class CustomMode
 {
     Normal,
-    Feedback
+    Feedback,
+    Structure
 };
 
 enum class SelectMode
@@ -103,6 +104,7 @@ enum class HighlightMode
 enum ToolbarButton
 {
     Select,
+    SelectBox,
     Move,
     CreateNode,
     CreateBeam,
@@ -161,6 +163,8 @@ private:
     double m_beta;
     double m_startAlfa;
     double m_startBeta;
+
+    double m_selectedPos[3];
 
     int m_mouseDownPos[2];
 
@@ -254,6 +258,7 @@ private:
 
     // Scripting
 
+    bool m_pluginRunning;
     chaiscript::ChaiScript m_chai;
 
     // Plugins
@@ -392,6 +397,7 @@ public:
     virtual void onCreateNode(double x, double y, double z, ivf::Node*& newNode) override;
     virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine) override;
     virtual void onSelect(ivf::Composite* selectedShapes) override;
+    virtual bool onInsideVolume(ivf::Shape* shape) override;
     virtual void onCoordinate(double x, double y, double z) override;
     virtual void onDeleteShape(ivf::Shape* shape, bool& doit) override;
     virtual void onHighlightShape(ivf::Shape* shape) override;
@@ -400,6 +406,8 @@ public:
     virtual void onMouseUp(int x, int y) override;
     virtual void onPassiveMotion(int x, int y) override;
     virtual void onSelectFilter(ivf::Shape* shape, bool& select) override;
+    virtual void onSelectPosition(double x, double y, double z) override;
+    virtual void onMoveStart() override;
     virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit) override;
     virtual void onMoveCompleted() override;
     virtual void onMotion(int x, int y) override;

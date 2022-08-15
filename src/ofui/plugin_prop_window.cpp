@@ -54,13 +54,6 @@ void PluginPropWindow::doDraw()
                     ImGui::TextUnformatted(name.c_str());
             }
         }
-        if (m_widget!=nullptr)
-        {
-            if (ImGui::Button("Create"))
-            {
-                m_widget->runPlugin(m_plugin);
-            }
-        }
     }
     else
         ImGui::TextUnformatted("No plugin assigned");

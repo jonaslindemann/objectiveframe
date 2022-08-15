@@ -265,6 +265,14 @@ void Beam::setNodes(vfem::Node* node1, vfem::Node* node2)
     m_beamTexture->setTextureModifier(1.0, 1.0 / m_solidLine->getLength(), 0.0);
 }
 
+vfem::Node* vfem::Beam::getNode(int idx)
+{
+    if ((idx >= 0) && (idx < 2))
+        return m_nodes[idx];
+    else
+        return nullptr;
+}
+
 // ------------------------------------------------------------
 void Beam::doCreateSelect()
 {

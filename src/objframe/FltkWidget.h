@@ -1,5 +1,5 @@
 //
-// Copyright 1999-2006 by Structural Mechanics, Lund University.
+// Copyright 1999-2022 by Structural Mechanics, Lund University.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "ivf@byggmek.lth.se".
+// Please report all bugs and problems to "jonas.lindemann@lunarc.lu.se".
 //
 
 #ifndef _CIvfFltkWidget_h_
@@ -47,6 +47,9 @@ enum class WidgetMode
     CreateNode,
     CreateLine,
     CreateObject,
+    SelectPosition,
+    SelectVolume,
+    BoxSelection,
     Manipulate,
     User
 };
@@ -134,6 +137,9 @@ private:
     double m_startPos[3];
     double m_endPos[3];
 
+    double m_volumeStart[3];
+    double m_volumeEnd[3];
+
     double m_manipStartPos[3];
     double m_manipEndPos[3];
     double m_snapUnit;
@@ -153,6 +159,7 @@ private:
     bool m_initDone;
     bool m_disableRedrawTimer;
     bool m_quit;
+    bool m_moveStart;
 
     bool m_mouseUpdate;
 
@@ -173,6 +180,7 @@ private:
     ivf::CompositePtr m_selectedShapes;
     ivf::LightingPtr m_lighting;
     ivf::ShapePtr m_lastShape;
+    ivf::WireBrickPtr m_volumeSelection;
 
     void initOffscreenBuffers();
     void updateOffscreenBuffers();
@@ -275,6 +283,8 @@ public:
 
     void clearSelection();
     void selectAll();
+    void selectAllBox();
+    bool isInsideVolume(ivf::Shape* shape);
 
     /**
      * Set widget edit mode.
@@ -398,6 +408,9 @@ protected:
      */
     virtual void onCreateNode(double x, double y, double z, ivf::Node*& newNode);
 
+    virtual void onSelectPosition(double x, double y, double z);
+    virtual void onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz);
+
     /**
      * onCreateLine event
      *
@@ -428,6 +441,8 @@ protected:
      * @param selectedShapes Currently selected shapes.
      */
     virtual void onSelect(ivf::Composite* selectedShapes);
+
+    virtual bool onInsideVolume(ivf::Shape* shape);
 
     /**
      * onDeSelect event
@@ -491,6 +506,7 @@ protected:
      * must be set to true if the move operation should be performed or
      * not.
      */
+    virtual void onMoveStart();
     virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit);
     virtual void onMoveCompleted();
 

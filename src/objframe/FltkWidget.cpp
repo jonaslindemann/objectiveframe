@@ -62,8 +62,8 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char* L)
     this->mode(FL_RGB8 | FL_DOUBLE | FL_STENCIL | FL_MULTISAMPLE);
     // int newMode = this->mode();
 
-    m_currentButton = ButtonState::NoButton;
-    m_currentModifier = ButtonState::NoButton;
+    m_currentButton = ButtonState::bsNoButton;
+    m_currentModifier = ButtonState::bsNoButton;
 
     m_angleX = 0.0f;
     m_angleY = 0.0f;
@@ -554,20 +554,20 @@ ButtonState FltkWidget::getCurrentMouseButton()
 // ------------------------------------------------------------
 ButtonState FltkWidget::getCurrentModifier()
 {
-    m_currentModifier = ButtonState::NoButton;
+    m_currentModifier = ButtonState::bsNoButton;
 
     if (Fl::get_key(FL_Shift_L))
-        m_currentModifier = ButtonState::Shift;
+        m_currentModifier = ButtonState::bsShift;
     if (Fl::get_key(FL_Shift_R))
-        m_currentModifier = ButtonState::Shift;
+        m_currentModifier = ButtonState::bsShift;
     if (Fl::get_key(FL_Control_L))
-        m_currentModifier = ButtonState::Ctrl;
+        m_currentModifier = ButtonState::bsCtrl;
     if (Fl::get_key(FL_Control_R))
-        m_currentModifier = ButtonState::Ctrl;
+        m_currentModifier = ButtonState::bsCtrl;
     if (Fl::get_key(FL_Alt_R))
-        m_currentModifier = ButtonState::Alt;
+        m_currentModifier = ButtonState::bsAlt;
     if (Fl::get_key(FL_Alt_L))
-        m_currentModifier = ButtonState::Alt;
+        m_currentModifier = ButtonState::bsAlt;
 
     return m_currentModifier;
 }
@@ -815,29 +815,29 @@ int FltkWidget::handle(int event)
 
         if (!isOverWindow())
         {
-            m_currentModifier = ButtonState::NoButton;
+            m_currentModifier = ButtonState::bsNoButton;
 
             if (Fl::get_key(FL_Shift_L))
-                m_currentModifier = ButtonState::Shift;
+                m_currentModifier = ButtonState::bsShift;
             if (Fl::get_key(FL_Shift_R))
-                m_currentModifier = ButtonState::Shift;
+                m_currentModifier = ButtonState::bsShift;
             if (Fl::get_key(FL_Control_L))
-                m_currentModifier = ButtonState::Ctrl;
+                m_currentModifier = ButtonState::bsCtrl;
             if (Fl::get_key(FL_Control_R))
-                m_currentModifier = ButtonState::Ctrl;
+                m_currentModifier = ButtonState::bsCtrl;
             if (Fl::get_key(FL_Alt_L))
-                m_currentModifier = ButtonState::Alt;
+                m_currentModifier = ButtonState::bsAlt;
             if (Fl::get_key(FL_Alt_R))
-                m_currentModifier = ButtonState::Alt;
+                m_currentModifier = ButtonState::bsAlt;
 
             if (!Fl::get_key(FL_Shift_L))
                 m_scene->unlockCursor();
             if (Fl::event_button() == FL_LEFT_MOUSE)
-                m_currentButton = ButtonState::Button1;
+                m_currentButton = ButtonState::bsButton1;
             if (Fl::event_button() == FL_MIDDLE_MOUSE)
-                m_currentButton = ButtonState::Button2;
+                m_currentButton = ButtonState::bsButton2;
             if (Fl::event_button() == FL_RIGHT_MOUSE)
-                m_currentButton = ButtonState::Button3;
+                m_currentButton = ButtonState::bsButton3;
 
             /*
             if (Fl::get_key(FL_Shift_L))
@@ -874,17 +874,17 @@ int FltkWidget::handle(int event)
             if (Fl::get_key(FL_Shift_L) == FALSE)
                 m_scene->unlockCursor();
         if (Fl::event_state() == FL_BUTTON1)
-            m_currentButton = ButtonState::Button1;
+            m_currentButton = ButtonState::bsButton1;
         if (Fl::event_state() == FL_BUTTON2)
-            m_currentButton = ButtonState::Button2;
+            m_currentButton = ButtonState::bsButton2;
         if (Fl::event_state() == FL_BUTTON3)
-            m_currentButton = ButtonState::Button3;
+            m_currentButton = ButtonState::bsButton3;
         this->doMotion(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
         this->doImGuiDrag();
         return 1;
     case FL_RELEASE:
         this->doMouseUp(int(float(Fl::event_x()) * pixels_per_unit()), int(float(Fl::event_y()) * pixels_per_unit()));
-        m_currentButton = ButtonState::NoButton;
+        m_currentButton = ButtonState::bsNoButton;
         if (isOverWindow())
             this->doImGuiRelease();
         return 1;
@@ -915,13 +915,13 @@ int FltkWidget::handle(int event)
     case FL_SHORTCUT:
 
         if (Fl::get_key(FL_Control_L))
-            doShortcut(ModifierKey::Ctrl, Fl::event_key());
+            doShortcut(ModifierKey::mkCtrl, Fl::event_key());
         else if (Fl::get_key(FL_Control_L))
-            doShortcut(ModifierKey::Ctrl, Fl::event_key());
+            doShortcut(ModifierKey::mkCtrl, Fl::event_key());
         else if (Fl::get_key(FL_Alt_L))
-            doShortcut(ModifierKey::Alt, Fl::event_key());
+            doShortcut(ModifierKey::mkAlt, Fl::event_key());
         else
-            doShortcut(ModifierKey::None, Fl::event_key());
+            doShortcut(ModifierKey::mkNone, Fl::event_key());
         return 1;
     default:
         return 0;
@@ -1116,12 +1116,12 @@ void FltkWidget::doMotion(int x, int y)
             // if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
             {
                 this->getScene()->hideCursor();
-                if (getCurrentModifier() == ButtonState::Alt)
+                if (getCurrentModifier() == ButtonState::bsAlt)
                 {
                     m_zoomX = ((float)x - m_beginX);
                     m_zoomY = ((float)y - m_beginY);
                 }
-                else if (getCurrentModifier() == ButtonState::Shift)
+                else if (getCurrentModifier() == ButtonState::bsShift)
                 {
                     m_moveX = ((float)x - m_beginX);
                     m_moveY = ((float)y - m_beginY);

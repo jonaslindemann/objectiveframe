@@ -8,6 +8,7 @@
 #include <windows.h>
 #else
 #include <unistd.h>
+#include <cstdlib>
 #endif
 
 #ifdef HAVE_CSTRING

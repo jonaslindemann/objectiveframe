@@ -58,13 +58,13 @@ enum class WidgetMode
 
 enum class ButtonState
 {
-    Button1,
-    Button2,
-    Button3,
-    NoButton,
-    Shift,
-    Ctrl,
-    Alt
+    bsButton1,
+    bsButton2,
+    bsButton3,
+    bsNoButton,
+    bsShift,
+    bsCtrl,
+    bsAlt
 };
 
 #include <ivf/Base.h>
@@ -90,9 +90,9 @@ IvfSmartPointer(FltkWidget);
 
 enum ModifierKey
 {
-    Ctrl,
-    Alt,
-    None
+    mkCtrl,
+    mkAlt,
+    mkNone
 };
 
 /**

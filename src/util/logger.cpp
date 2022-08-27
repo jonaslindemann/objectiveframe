@@ -16,7 +16,11 @@ const std::string currentDateTime()
     time_t now = time(NULL);
     struct tm tstruct;
     char buf[80];
+#ifdef WIN32
     localtime_s(&tstruct, &now);
+#else
+    localtime_r(&now, &tstruct);
+#endif
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     return buf;
 }
@@ -58,6 +62,18 @@ void Logger::log(LogLevel level, const std::string& message)
     }
 }
 
+#ifndef WIN32
+int _vscprintf(const char *format,va_list argptr)
+{
+   return(vsnprintf(0, 0, format, argptr));
+}
+
+int _vscwprintf(const wchar_t *format,va_list argptr)
+{
+   return(vswprintf(0, 0, format, argptr));
+}
+#endif
+
 void Logger::log(LogLevel level, const char* format, ...)
 {
     char* message = nullptr;
@@ -66,7 +82,7 @@ void Logger::log(LogLevel level, const char* format, ...)
     va_start(args, format);
     length = _vscprintf(format, args) + 1;
     message = new char[length];
-    vsprintf_s(message, length, format, args);
+    vsnprintf(message, length, format, args);
     if (m_logDest == LogDestination::File)
     {
         m_logFile << currentDateTime() << ": " << logLevelText(level) << ": ";

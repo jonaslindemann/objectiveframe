@@ -2719,7 +2719,7 @@ void FemWidget::onMouseDown(int x, int y)
     if ((getEditMode() == WidgetMode::User) && (!m_overlaySelected))
     {
         log("onMouseDown USER_MODE.");
-        if (getCurrentMouseButton() == ButtonState::Button1)
+        if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
             if (m_saneModel)
                 if (m_internalSolver != nullptr)
@@ -2746,7 +2746,7 @@ void FemWidget::onMouseUp(int x, int y)
         // if (getCurrentMouseButton() == IVF_BUTTON3)
         //	setCustomMode(OF_FEEDBACK);
 
-        if (getCurrentMouseButton() == ButtonState::Button1)
+        if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
             if (m_saneModel)
                 if (m_internalSolver != nullptr)
@@ -2760,16 +2760,16 @@ void FemWidget::onMouseUp(int x, int y)
 
 void FemWidget::onMotion(int x, int y)
 {
-    if ((m_customMode == CustomMode::Feedback) && (getCurrentMouseButton() == ButtonState::Button1))
+    if ((m_customMode == CustomMode::Feedback) && (getCurrentMouseButton() == ButtonState::bsButton1))
     {
         double v[3];
 
         switch (this->getCurrentModifier())
         {
-        case ButtonState::Shift:
+        case ButtonState::bsShift:
             m_alfa = m_startAlfa + (x - m_mouseDownPos[0]) * M_PI / 500.0;
             break;
-        case ButtonState::Ctrl:
+        case ButtonState::bsCtrl:
             m_beta = m_startBeta + (y - m_mouseDownPos[1]) * M_PI / 500.0;
             break;
             /*
@@ -3021,28 +3021,28 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
     if (key == FL_Delete)
         this->deleteSelected();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 'o'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'o'))
         this->open();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 'n'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'n'))
         this->newModel();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 's'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 's'))
         this->save();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 'a'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'a'))
         this->selectAll();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 'z'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'z'))
         this->restoreLastSnapShot();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 'y'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'y'))
         this->revertLastSnapShot();
 
-    if ((modifier == ModifierKey::Ctrl) && (key == 'd'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'd'))
         m_showMetricsWindow = !m_showMetricsWindow;
 
-    if ((modifier == ModifierKey::Alt) && (key == 's'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 's'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
@@ -3051,7 +3051,7 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
-    if ((modifier == ModifierKey::Alt) && (key == 'm'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'm'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
@@ -3060,7 +3060,7 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
-    if ((modifier == ModifierKey::Alt) && (key == 'n'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'n'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
@@ -3069,7 +3069,7 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
-    if ((modifier == ModifierKey::Alt) && (key == 'l'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'l'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();

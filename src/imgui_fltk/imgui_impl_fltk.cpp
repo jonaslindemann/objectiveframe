@@ -32,9 +32,17 @@
 #include "imgui.h"
 #include "imgui_impl_opengl2.h"
 
+#ifdef WIN32
 #include <Windows.h>
+#endif 
 
 #include <iostream>
+#include <chrono>
+
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::seconds;
+using std::chrono::system_clock;
 
 #include <glad/glad.h>
 
@@ -52,7 +60,12 @@ using namespace std;
 #pragma warning(disable : 4505) // unreferenced local function has been removed (stb stuff)
 #endif
 
+#ifdef WIN32
 static ULONGLONG g_Time = 0; // Current time, in milliseconds
+#else
+static unsigned long long g_Time = 0;
+#endif
+
 static float g_pixelsPerUnit;
 
 // Glut has 1 function for characters and one for "special keys". We map the characters in the 0..255 range and the keys above.
@@ -294,13 +307,19 @@ void ImGui_ImplFLTK_NewFrame()
 {
     // Setup time step
     ImGuiIO& io = ImGui::GetIO();
+#ifdef WIN32
     ULONGLONG current_time = GetTickCount64();
     ULONGLONG delta_time = (current_time - g_Time);
     if (delta_time <= 0)
         delta_time = 1;
     io.DeltaTime = delta_time / 1000.0f;
     g_Time = current_time;
-
+#else
+    auto current_time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    auto delta_time = (current_time - g_Time);
+    io.DeltaTime = delta_time / 1000.0f;
+    g_Time = current_time;
+#endif
     // Start the frame
     ImGui::NewFrame();
 }

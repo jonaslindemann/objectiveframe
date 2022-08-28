@@ -11,3 +11,7 @@ lib/
 *.json
 *.sqlite
 src/fmt/
+
+bin/objframe
+
+build/

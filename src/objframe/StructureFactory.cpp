@@ -1,7 +1,5 @@
 #include "StructureFactory.h"
 
-#include <ivf/ivfconfig.h>
-
 using namespace std;
 using namespace ofem;
 

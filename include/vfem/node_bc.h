@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ivf/ivfconfig.h>
-
 #include <ofem/beam_node_bc.h>
 
 #include <ivf/Cone.h>

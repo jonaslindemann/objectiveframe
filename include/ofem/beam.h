@@ -10,6 +10,12 @@
 namespace ofem
 {
 
+enum BeamType
+{
+    btBeam,
+    btBar
+};
+
 SmartPointer(Beam);
 
 class Beam : public Element
@@ -20,6 +26,7 @@ private:
     long m_materialIndex;
     double m_beamRotation;
     int m_evaluationPoints;
+    BeamType m_beamType;
 
 public:
     Beam();
@@ -28,6 +35,8 @@ public:
     ClassInfo("Beam", Element);
 
     // Methods
+
+    virtual void addNode(Node* node) override;
 
     // Get/set methods
 
@@ -40,6 +49,9 @@ public:
     void setBeamRotation(double angle);
     void setEvaluationPoints(int n);
     int getEvaluationPoints();
+
+    void setBeamType(BeamType type);
+    BeamType beamType();
 
     // IO Methods
 

@@ -13,6 +13,7 @@ Beam::Beam()
     , m_materialIndex { -1 }
     , m_beamRotation { 0.0 }
     , m_evaluationPoints { 8 }
+    , m_beamType { btBeam }
 {
 }
 
@@ -74,6 +75,27 @@ void Beam::setBeamRotation(double angle)
 double Beam::getBeamRotation()
 {
     return m_beamRotation;
+}
+
+void ofem::Beam::addNode(Node* node)
+{
+    ofem::Element::addNode(node);
+    
+    switch (m_beamType)
+    {
+    case btBeam:
+        if (node->getKind() == ofem::nkNotConnected)
+            node->setKind(ofem::nk6Dof);
+        if (node->getKind() == ofem::nk3Dof)
+            node->setKind(ofem::nk6Dof);
+        break;
+    case btBar:
+        if (node->getKind() == ofem::nkNotConnected)
+            node->setKind(ofem::nk3Dof);
+        break;
+    default:
+        break;
+    }
 }
 
 // ------------------------------------------------------------
@@ -210,4 +232,14 @@ void Beam::setEvaluationPoints(int n)
 int Beam::getEvaluationPoints()
 {
     return m_evaluationPoints;
+}
+
+void ofem::Beam::setBeamType(BeamType type)
+{
+    m_beamType = type;
+}
+
+BeamType ofem::Beam::beamType()
+{
+    return m_beamType;
 }

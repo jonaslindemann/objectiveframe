@@ -10,7 +10,7 @@ Node::Node()
     m_coord[0] = 0.0;
     m_coord[1] = 0.0;
     m_coord[2] = 0.0;
-    this->setKind(FEM_DISPL_ROT_NODE);
+    this->setKind(nkNotConnected);
 }
 
 // ------------------------------------------------------------
@@ -19,7 +19,7 @@ Node::Node(double x, double y, double z)
 {
     m_number = -1;
     this->setCoord(x, y, z);
-    this->setKind(FEM_DISPL_ROT_NODE);
+    this->setKind(nkNotConnected);
 }
 
 // ------------------------------------------------------------
@@ -107,7 +107,7 @@ void Node::fromJson(nlohmann::json& j)
 }
 
 // ------------------------------------------------------------
-void Node::setKind(int kind)
+void Node::setKind(NodeKind kind)
 {
     m_kind = kind;
 
@@ -121,14 +121,14 @@ void Node::setKind(int kind)
 
     switch (m_kind)
     {
-    case FEM_DISPL_NODE:
+    case nk3Dof:
         for (i = 0; i < 3; i++)
         {
             DofPtr dof = new Dof(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
-    case FEM_DISPL_ROT_NODE:
+    case nk6Dof:
         for (i = 0; i < 6; i++)
         {
             DofPtr dof = new Dof(static_cast<DofKind>(i));
@@ -136,17 +136,12 @@ void Node::setKind(int kind)
         }
         break;
     default:
-        for (i = 0; i < 3; i++)
-        {
-            DofPtr dof = new Dof(static_cast<DofKind>(i));
-            m_dofs.push_back(dof);
-        }
         break;
     }
 }
 
 // ------------------------------------------------------------
-int Node::getKind()
+NodeKind Node::getKind()
 {
     return m_kind;
 }
@@ -173,7 +168,25 @@ void Node::saveToStream(std::ostream& out)
 {
     using namespace std;
     Base::saveToStream(out);
-    out << m_kind << " ";
+
+    int kind;
+
+    switch (m_kind)
+    {
+    case nk3Dof:
+        kind = 0;
+        break;
+    case nk6Dof:
+        kind = 1;
+        break;
+    case nkNotConnected:
+        kind = 2;
+        break;
+    default:
+        kind = 0;
+    }
+
+    out << kind << " ";
     out << m_number << " ";
     for (int i = 0; i < 3; i++)
         out << m_coord[i] << " ";
@@ -201,7 +214,27 @@ void Node::saveToStream(std::ostream& out)
 void Node::readFromStream(std::istream& in)
 {
     Base::readFromStream(in);
-    in >> m_kind;
+
+    int kind;
+
+    in >> kind;
+
+    switch (kind)
+    {
+        case 0: 
+            m_kind = nk3Dof;    
+            break;
+        case 1:
+            m_kind = nk6Dof;
+            break;
+        case 2:
+            m_kind = nkNotConnected;
+            break;
+        default:
+            m_kind = nk3Dof;
+            break;
+    }
+        
     in >> m_number;
     for (int i = 0; i < 3; i++)
         in >> m_coord[i];

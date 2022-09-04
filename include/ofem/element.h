@@ -32,7 +32,7 @@ public:
 
     // Methods
 
-    void addNode(Node* node);
+    virtual void addNode(Node* node);
     void addProperty(double value);
     void clearProperties();
     void deleteAll();

@@ -5,11 +5,15 @@
 
 #include <vector>
 
-#define FEM_DISPL_NODE 0
-#define FEM_DISPL_ROT_NODE 1
-
 namespace ofem
 {
+
+enum NodeKind
+{
+    nk3Dof,
+    nk6Dof,
+    nkNotConnected
+};
 
 SmartPointer(Node);
 
@@ -17,7 +21,7 @@ class Node : public Base
 {
 private:
     long m_number;
-    int m_kind;
+    NodeKind m_kind;
     double m_coord[3];
     std::vector<double> m_values;
     std::vector<DofPtr> m_dofs;
@@ -53,8 +57,8 @@ public:
     void getCoord(double& x, double& y, double& z);
     void setNumber(long number);
     long getNumber();
-    int getKind();
-    void setKind(int kind);
+    NodeKind getKind();
+    void setKind(NodeKind kind);
     Dof* getDof(unsigned int dof);
 
     // IO methods

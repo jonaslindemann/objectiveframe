@@ -271,13 +271,9 @@ void assem(
 
     for (i = 1; i <= Ke.Nrows(); i++)
         for (j = i; j <= Ke.Ncols(); j++)
-        {
-            if ((Topo(i)>=0.0)&&(Topo(j)>=0.0))
                 K((int)Topo(i), (int)Topo(j)) = K((int)Topo(i), (int)Topo(j)) + Ke(i, j);
-        }
 
     for (i = 1; i <= fe.Nrows(); i++)
-        if (Topo(i)>=0.0)
             f((int)Topo(i)) = f((int)Topo(i)) + fe(i);
 }
 

@@ -8,6 +8,7 @@ using namespace std;
 // ------------------------------------------------------------
 Model::Model()
     : Base()
+    , m_version { "1" }
 {
 }
 
@@ -229,15 +230,49 @@ const std::string Model::getFileName()
     return m_fileName;
 }
 
-// ------------------------------------------------------------
+std::string ofem::Model::queryFileVersion(std::string filename)
+{
+    std::fstream f;
+    f.open(filename.c_str(), ios::in);
+
+    std::string line;
+    if (f.is_open())
+    {
+        std::getline(f, line);
+
+        f.close();
+
+        if (line.find("#OF_VERSION") != -1)
+        {
+            auto equalPos = line.find("=");
+            auto versionStr = line.substr(equalPos + 1, line.length() - equalPos);
+            return versionStr;
+        }
+        else
+            return "0";
+    }
+    else
+        return "";
+}
+
 bool Model::open()
 {
     if (m_fileName != "")
     {
+        m_version = queryFileVersion(m_fileName);
+
         fstream inputFile;
+
         inputFile.open(m_fileName.c_str(), ios::in);
         if (inputFile.is_open())
         {
+            // Skip version line
+            if (m_version != "0")
+            {
+                std::string line;
+                std::getline(inputFile, line);
+            }
+
             this->readFromStream(inputFile);
         }
         else
@@ -257,6 +292,7 @@ void Model::save()
     {
         fstream outputFile;
         outputFile.open(m_fileName.c_str(), ios::out);
+        outputFile << "#OF_VERSION=" << m_version << "\n";
         this->saveToStream(outputFile);
         outputFile.close();
     }
@@ -272,7 +308,7 @@ void Model::snapShot()
 
 void Model::restoreLastSnapShot()
 {
-    if (m_snapShots.size()>0)
+    if (m_snapShots.size() > 0)
     {
         // Snapshot current model
 
@@ -292,7 +328,7 @@ void Model::restoreLastSnapShot()
 
 void Model::revertLastSnapShot()
 {
-    if (m_restoredSnapShots.size()>0)
+    if (m_restoredSnapShots.size() > 0)
     {
         // Current model to snapshot
 
@@ -338,6 +374,11 @@ void Model::onInitialised()
 void Model::clearNodeValues()
 {
     m_nodeSet->clearNodeValues();
+}
+
+std::string ofem::Model::version()
+{
+    return m_version;
 }
 
 // ------------------------------------------------------------

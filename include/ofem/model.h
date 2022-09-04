@@ -30,6 +30,7 @@ private:
     ElementLoadSetPtr m_elementLoadSet;
     NodeBCSetPtr m_bcSet;
     std::string m_fileName;
+    std::string m_version;
 
     std::vector<std::string> m_snapShots;
     std::vector<std::string> m_restoredSnapShots;
@@ -63,6 +64,8 @@ public:
     bool open();
     void deleteAll();
 
+    std::string queryFileVersion(std::string filename);
+
     void snapShot();
     void restoreLastSnapShot();
     void revertLastSnapShot();
@@ -70,6 +73,8 @@ public:
     size_t snapShotCount();
 
     void clearNodeValues();
+
+    std::string version();
 
     // Get/set methods
 

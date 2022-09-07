@@ -12,6 +12,7 @@ ElementPropWindow::ElementPropWindow(const std::string name)
     , m_beamRotation { 0.0f }
     , m_oldBeamRotation { 0.0f }
     , m_widget { nullptr }
+    , m_beamType { 0 }
 {
 }
 
@@ -26,6 +27,11 @@ void ElementPropWindow::setBeam(vfem::Beam* beam)
     {
         m_beamRotation = float(m_beam->getBeam()->getBeamRotation()) * 2.0f * PI / 360.0f;
         m_oldBeamRotation = m_beamRotation;
+
+        if (m_beam->getBeam()->beamType() == ofem::btBeam)
+            m_beamType = 0;
+        else
+            m_beamType = 1;
     }
 }
 
@@ -46,6 +52,15 @@ void ElementPropWindow::doDraw()
     if (m_beam != nullptr)
     {
         ImGui::SliderAngle("Rotation", &m_beamRotation, -180.0f, 180.0f);
+
+        ImGui::RadioButton("Beam", &m_beamType, 0);
+        ImGui::SameLine();
+        ImGui::RadioButton("Bar", &m_beamType, 1);
+
+        if (m_beamType == 0)
+            m_beam->getBeam()->setBeamType(ofem::btBeam);
+        else
+            m_beam->getBeam()->setBeamType(ofem::btBar);
 
         if (m_beam->getBeam()->getValueSize() > 0)
         {

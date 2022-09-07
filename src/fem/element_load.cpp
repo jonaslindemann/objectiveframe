@@ -3,7 +3,7 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
+
 ElementLoad::ElementLoad()
     : Load()
 {
@@ -12,18 +12,18 @@ ElementLoad::ElementLoad()
     m_localDirection[2] = 1.0;
 }
 
-// ------------------------------------------------------------
+
 ElementLoad::~ElementLoad()
 {
     this->clearElements();
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::print(ostream& out)
 {
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::saveToStream(std::ostream& out)
 {
     Load::saveToStream(out);
@@ -37,7 +37,7 @@ void ElementLoad::saveToStream(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::readFromStream(std::istream& in)
 {
     int nElements;
@@ -55,7 +55,7 @@ void ElementLoad::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::setLocalDirection(double ex, double ey, double ez)
 {
     m_localDirection[0] = ex;
@@ -63,7 +63,7 @@ void ElementLoad::setLocalDirection(double ex, double ey, double ez)
     m_localDirection[2] = ez;
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::getLocalDirection(double& ex, double& ey, double& ez)
 {
     ex = m_localDirection[0];
@@ -71,7 +71,7 @@ void ElementLoad::getLocalDirection(double& ex, double& ey, double& ez)
     ez = m_localDirection[2];
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::setLocalDirection(double* v)
 {
     m_localDirection[0] = v[0];
@@ -79,7 +79,7 @@ void ElementLoad::setLocalDirection(double* v)
     m_localDirection[2] = v[2];
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::getLocalDirection(double* v)
 {
     v[0] = m_localDirection[0];
@@ -87,7 +87,7 @@ void ElementLoad::getLocalDirection(double* v)
     v[2] = m_localDirection[2];
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::addElement(Element* element)
 {
     // We do not allow duplicates in the
@@ -108,7 +108,7 @@ void ElementLoad::addElement(Element* element)
     m_elements.push_back(element);
 }
 
-// ------------------------------------------------------------
+
 void ElementLoad::clearElements()
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)
@@ -119,7 +119,7 @@ void ElementLoad::clearElements()
     m_elements.clear();
 }
 
-// ------------------------------------------------------------
+
 bool ElementLoad::removeElement(Element* element)
 {
     std::vector<Element*>::iterator p = m_elements.begin();
@@ -136,13 +136,13 @@ bool ElementLoad::removeElement(Element* element)
     return false;
 }
 
-// ------------------------------------------------------------
+
 size_t ElementLoad::getElementsSize()
 {
     return m_elements.size();
 }
 
-// ------------------------------------------------------------
+
 Element* ElementLoad::getElement(unsigned int idx)
 {
     if (idx < m_elements.size())
@@ -151,13 +151,13 @@ Element* ElementLoad::getElement(unsigned int idx)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 size_t ElementLoad::getElementIndexSize()
 {
     return m_elementIndex.size();
 }
 
-// ------------------------------------------------------------
+
 unsigned int ElementLoad::getElementIndex(unsigned int idx)
 {
     if (idx < m_elementIndex.size())

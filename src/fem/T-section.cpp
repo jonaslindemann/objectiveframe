@@ -4,7 +4,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 TSection::TSection(double width, double height, double WT, double UFT, double ULFW)
     : Section()
 {
@@ -12,14 +12,14 @@ TSection::TSection(double width, double height, double WT, double UFT, double UL
     this->setSectionSize(width, height, WT, UFT, ULFW);
 }
 
-// ------------------------------------------------------------
+
 TSection::~TSection()
 {
     this->setSectionType(FEM_T_SECTION);
     this->setSectionSize(0.1, 0.1, 0.01, 0.01, 0.1);
 }
 
-// ------------------------------------------------------------
+
 void TSection::setSectionSize(double width, double height, double WT, double UFT, double ULFW)
 {
     double X[9], Y[9];
@@ -63,7 +63,7 @@ void TSection::setSectionSize(double width, double height, double WT, double UFT
     this->setData();
 }
 
-// ------------------------------------------------------------
+
 void TSection::getSectionSize(double& width, double& height, double& WT, double& UFT, double& ULFW)
 {
     width = m_prop[1];
@@ -73,7 +73,7 @@ void TSection::getSectionSize(double& width, double& height, double& WT, double&
     ULFW = m_prop[7];
 }
 
-// ------------------------------------------------------------
+
 void TSection::setData()
 {
     double width = m_prop[1];
@@ -91,7 +91,7 @@ void TSection::setData()
     m_data[5] = 1.1 / 3.0 * (pow(WT, 3) * height + pow(UFT, 3) * width); // Kv
 }
 
-// ------------------------------------------------------------
+
 void TSection::getExcY(double& emax, double& emin)
 {
     emax = m_prop[1] / 2.0;
@@ -115,7 +115,7 @@ void TSection::getSectionProps(double& width, double& height, double& UFW, doubl
     this->getSectionSize(width, height, WT, UFT, ULFW);
 }
 
-// ------------------------------------------------------------
+
 void TSection::getExcZ(double& emax, double& emin)
 {
     double e1 = m_prop[0] - m_Ytp;

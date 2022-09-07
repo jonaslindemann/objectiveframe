@@ -5,7 +5,7 @@ using namespace vfem;
 
 #include <sstream>
 
-// ------------------------------------------------------------
+
 Node::Node()
     : ivf::Node()
 {
@@ -19,12 +19,12 @@ Node::Node()
     this->setType(Node::NT_SPHERE);
 }
 
-// ------------------------------------------------------------
+
 Node::~Node()
 {
 }
 
-// ------------------------------------------------------------
+
 void Node::setFemNode(ofem::Node* node)
 {
     double x, y, z;
@@ -39,13 +39,13 @@ void Node::setFemNode(ofem::Node* node)
     m_nodeLabel->setText(s);
 }
 
-// ------------------------------------------------------------
+
 ofem::Node* Node::getFemNode()
 {
     return m_femNode;
 }
 
-// ------------------------------------------------------------
+
 void Node::setPosition(const double x, const double y, const double z)
 {
     if (m_femNode != nullptr)
@@ -53,7 +53,7 @@ void Node::setPosition(const double x, const double y, const double z)
     ivf::Shape::setPosition(x, y, z);
 }
 
-// ------------------------------------------------------------
+
 void Node::setPosition(ivf::Shape* shape)
 {
     if (m_femNode != nullptr)
@@ -65,7 +65,7 @@ void Node::setPosition(ivf::Shape* shape)
     ivf::Shape::setPosition(shape);
 }
 
-// ------------------------------------------------------------
+
 void Node::setPositionVec(ivf::Vec3d* point)
 {
     if (m_femNode != nullptr)
@@ -77,7 +77,7 @@ void Node::setPositionVec(ivf::Vec3d* point)
     ivf::Shape::setPosition(*point);
 }
 
-// ------------------------------------------------------------
+
 void Node::refresh()
 {
     double x, y, z;

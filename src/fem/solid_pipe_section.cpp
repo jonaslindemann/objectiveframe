@@ -4,7 +4,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 SolidPipeSection::SolidPipeSection(double outerRadius)
     : Section()
 {
@@ -12,19 +12,19 @@ SolidPipeSection::SolidPipeSection(double outerRadius)
     this->setSectionSize(outerRadius);
 }
 
-// ------------------------------------------------------------
+
 SolidPipeSection::SolidPipeSection()
 {
     this->setSectionType(FEM_SOLIDPIPE_SECTION);
     this->setSectionSize(0.1);
 }
 
-// ------------------------------------------------------------
+
 SolidPipeSection::~SolidPipeSection()
 {
 }
 
-// ------------------------------------------------------------
+
 void SolidPipeSection::setSectionSize(double outerRadius)
 {
     double X[13], Y[13];
@@ -67,7 +67,7 @@ void SolidPipeSection::setSectionSize(double outerRadius)
     this->setData();
 }
 
-// ------------------------------------------------------------
+
 void SolidPipeSection::setData()
 {
     double d = 2.0 * m_prop[9];
@@ -82,13 +82,13 @@ void SolidPipeSection::setData()
     m_data[5] = pi * pow(d, 4) / 32.0; // Kv
 }
 
-// ------------------------------------------------------------
+
 void SolidPipeSection::getSectionSize(double& outerRadius)
 {
     outerRadius = m_prop[9];
 }
 
-// ------------------------------------------------------------
+
 void SolidPipeSection::getExcY(double& emax, double& emin)
 {
     emax = m_prop[9] / 2.0;
@@ -112,7 +112,7 @@ void SolidPipeSection::getSectionProps(double& width, double& height, double& UF
     this->getSectionSize(outerRadius);
 }
 
-// ------------------------------------------------------------
+
 void SolidPipeSection::getExcZ(double& emax, double& emin)
 {
     emax = m_prop[9] / 2.0;

@@ -46,9 +46,9 @@ void redrawCallback(void* view)
     Fl::repeat_timeout(1.0 / 120.0, redrawCallback, (void*)view);
 }
 
-// ------------------------------------------------------------
+
 // Constructor/desctructor
-// ------------------------------------------------------------
+
 
 FltkWidget::FltkWidget(int X, int Y, int W, int H, const char* L)
     : Fl_Gl_Window(X, Y, W, H, L)
@@ -124,15 +124,15 @@ FltkWidget::FltkWidget(int X, int Y, int W, int H, const char* L)
     Fl::repeat_timeout(1.0 / 60.0, redrawCallback, (void*)this);
 }
 
-// ------------------------------------------------------------
+
 FltkWidget::~FltkWidget()
 {
     onDestroy();
 }
 
-// ------------------------------------------------------------
+
 // Methods
-// ------------------------------------------------------------
+
 
 void FltkWidget::deleteAll()
 {
@@ -141,7 +141,7 @@ void FltkWidget::deleteAll()
     m_selectedShapes->clear();
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::deleteSelected()
 {
     int i;
@@ -167,7 +167,7 @@ void FltkWidget::deleteSelected()
     redraw();
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::deleteSelectedKeep()
 {
     int i;
@@ -199,7 +199,7 @@ void FltkWidget::deleteSelectedKeep()
     redraw();
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::createLine()
 {
     if (m_selectedShapes->getSize() == 2)
@@ -219,13 +219,13 @@ void FltkWidget::createLine()
     }
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::addToScene(Shape* shape)
 {
     m_scene->addChild(shape);
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::centerSelected()
 {
     if (m_selectedShapes->getSize() == 1)
@@ -238,7 +238,7 @@ void FltkWidget::centerSelected()
     }
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::resetView()
 {
     m_camera->setPosition(0.0, m_workspaceSize / 8.0, m_workspaceSize);
@@ -246,7 +246,7 @@ void FltkWidget::resetView()
     redraw();
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::clearSelection()
 {
     m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
@@ -259,7 +259,7 @@ void FltkWidget::clearSelection()
     redraw();
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::selectAll()
 {
     m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
@@ -367,9 +367,9 @@ bool FltkWidget::isInsideVolume(ivf::Shape* shape)
 
 }
 
-// ------------------------------------------------------------
+
 // Get/set methods
-// ------------------------------------------------------------
+
 
 void FltkWidget::setEditMode(WidgetMode mode)
 {
@@ -443,13 +443,13 @@ void FltkWidget::setEditMode(WidgetMode mode)
     redraw();
 }
 
-// ------------------------------------------------------------
+
 WidgetMode FltkWidget::getEditMode()
 {
     return m_editMode;
 }
 
-// ------------------------------------------------------------
+
 Workspace* FltkWidget::getScene()
 {
     return m_scene;
@@ -460,13 +460,13 @@ void FltkWidget::quit()
     m_quit = true;
 }
 
-// ------------------------------------------------------------
+
 Camera* FltkWidget::getCamera()
 {
     return m_camera;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::setWorkspace(double size, bool resetCamera)
 {
     m_workspaceSize = size;
@@ -479,19 +479,19 @@ void FltkWidget::setWorkspace(double size, bool resetCamera)
     m_controlSize = m_workspaceSize / 50.0;
 }
 
-// ------------------------------------------------------------
+
 double FltkWidget::getWorkspace()
 {
     return m_scene->getSize();
 }
 
-// ------------------------------------------------------------
+
 Composite* FltkWidget::getSelectedShapes()
 {
     return m_selectedShapes;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::setUseOverlay(bool flag)
 {
     m_doOverlay = flag;
@@ -508,50 +508,50 @@ bool FltkWidget::useUnderlay()
     return m_doUnderlay;
 }
 
-// ------------------------------------------------------------
+
 bool FltkWidget::getUseOverlay()
 {
     return m_doOverlay;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::setEditEnabled(bool flag)
 {
     m_editEnabled = flag;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::setSelectEnable(bool flag)
 {
     m_selectEnabled = flag;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::setSnapToGrid(bool flag)
 {
     m_snapToGrid = flag;
     // m_scene->setSnapToGrid(m_snapToGrid);
 }
 
-// ------------------------------------------------------------
+
 bool FltkWidget::getSnapToGrid()
 {
     return m_snapToGrid;
 }
 
-// ------------------------------------------------------------
+
 int FltkWidget::getManipulatorMode()
 {
     return m_manipulatorMode;
 }
 
-// ------------------------------------------------------------
+
 ButtonState FltkWidget::getCurrentMouseButton()
 {
     return m_currentButton;
 }
 
-// ------------------------------------------------------------
+
 ButtonState FltkWidget::getCurrentModifier()
 {
     m_currentModifier = ButtonState::bsNoButton;
@@ -572,9 +572,9 @@ ButtonState FltkWidget::getCurrentModifier()
     return m_currentModifier;
 }
 
-// ------------------------------------------------------------
+
 // Implemented FLTK methods
-// ------------------------------------------------------------
+
 
 void FltkWidget::initOffscreenBuffers()
 {
@@ -767,7 +767,7 @@ void FltkWidget::draw()
     this->doDrawImGui();
 }
 
-// ------------------------------------------------------------
+
 int FltkWidget::handle(int event)
 {
 #ifndef __APPLE__
@@ -935,13 +935,13 @@ void FltkWidget::resize(int x, int y, int w, int h)
         this->doImGuiResize(pixel_w(), pixel_h());
 }
 
-// ------------------------------------------------------------
-// ImGui events
-// ------------------------------------------------------------
 
-// ------------------------------------------------------------
+// ImGui events
+
+
+
 // Event methods
-// ------------------------------------------------------------
+
 
 void FltkWidget::doMouse(int x, int y)
 {
@@ -1098,7 +1098,7 @@ void FltkWidget::onMouse(int x, int y)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::doMotion(int x, int y)
 {
     m_angleX = 0.0f;
@@ -1220,12 +1220,12 @@ void FltkWidget::doMotion(int x, int y)
     onMotion(x, y);
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onMotion(int x, int y)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::doPassiveMotion(int x, int y)
 {
     m_angleX = 0.0f;
@@ -1344,12 +1344,12 @@ void FltkWidget::doPassiveMotion(int x, int y)
     onPassiveMotion(x, y);
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onPassiveMotion(int x, int y)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::doMouseDown(int x, int y)
 {
     // Call onMouseDown event method
@@ -1358,12 +1358,12 @@ void FltkWidget::doMouseDown(int x, int y)
     onMouseDown(x, y);
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onMouseDown(int x, int y)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::doMouseUp(int x, int y)
 {
     // Call onMouseUp event method
@@ -1375,7 +1375,7 @@ void FltkWidget::doMouseUp(int x, int y)
     onMouseUp(x, y);
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::doKeyboard(int key)
 {
     // Call onMouseUp event method
@@ -1388,17 +1388,17 @@ void FltkWidget::doShortcut(ModifierKey modifier, int key)
     onShortcut(modifier, key);
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onMouseUp(int x, int y)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onCoordinate(double x, double y, double z)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onInitContext()
 {
     glEnable(GL_DEPTH_TEST);
@@ -1406,7 +1406,7 @@ void FltkWidget::onInitContext()
     m_lighting->enable();
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onOverlay()
 {
 }
@@ -1415,7 +1415,7 @@ void FltkWidget::onUnderlay()
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onSelect(Composite* selectedShapes)
 {
 }
@@ -1425,13 +1425,13 @@ bool FltkWidget::onInsideVolume(ivf::Shape* shape)
     return false;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onDeleteShape(Shape* shape, bool& doit)
 {
     doit = true;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onCreateNode(double x, double y, double z, Node*& newNode)
 {
 }
@@ -1444,27 +1444,27 @@ void FltkWidget::onSelectVolume(double x0, double y0, double z0, double x1, doub
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onCreateLine(Node* node1, Node* node2, Shape*& newLine)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onInit()
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onDestroy()
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onHighlightShape(Shape* shape)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onDeSelect()
 {
 }
@@ -1473,7 +1473,7 @@ void FltkWidget::onMoveStart()
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
 {
     doit = true;
@@ -1483,29 +1483,29 @@ void FltkWidget::onMoveCompleted()
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onSelectFilter(Shape* shape, bool& select)
 {
     select = true;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onHighlightFilter(Shape*, bool& highlight)
 {
     highlight = true;
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onKeyboard(int key)
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onPostRender()
 {
 }
 
-// ------------------------------------------------------------
+
 void FltkWidget::onPreRender()
 {
 }

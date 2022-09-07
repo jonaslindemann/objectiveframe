@@ -2,19 +2,19 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 NodeSet::NodeSet()
     : Base()
 {
 }
 
-// ------------------------------------------------------------
+
 NodeSet::~NodeSet()
 {
     deleteAll();
 }
 
-// ------------------------------------------------------------
+
 void NodeSet::print(std::ostream& out)
 {
     using namespace std;
@@ -23,14 +23,14 @@ void NodeSet::print(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
+
 void NodeSet::addNode(Node* node)
 {
     // node->addReference();
     m_nodes.push_back(node);
 }
 
-// ------------------------------------------------------------
+
 Node* NodeSet::getNode(long i)
 {
     if ((i >= 0) && (i < (long)m_nodes.size()))
@@ -39,7 +39,7 @@ Node* NodeSet::getNode(long i)
         return nullptr;
 }
 
-// ------------------------------------------------------------
+
 bool NodeSet::deleteNode(long i)
 {
     if ((i >= 0) && (i < (long)m_nodes.size()))
@@ -55,7 +55,7 @@ bool NodeSet::deleteNode(long i)
     return false;
 }
 
-// ------------------------------------------------------------
+
 Node* NodeSet::removeNode(long i)
 {
     if ((i >= 0) && (i < (long)m_nodes.size()))
@@ -75,7 +75,7 @@ Node* NodeSet::removeNode(long i)
         return 0;
 }
 
-// ------------------------------------------------------------
+
 bool NodeSet::removeNode(Node* node)
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
@@ -85,19 +85,19 @@ bool NodeSet::removeNode(Node* node)
     }
     return false;
 }
-// ------------------------------------------------------------
+
 void NodeSet::deleteAll()
 {
     m_nodes.clear();
 }
 
-// ------------------------------------------------------------
+
 void NodeSet::clear()
 {
     m_nodes.clear();
 }
 
-// ------------------------------------------------------------
+
 void NodeSet::clearNodeValues()
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
@@ -107,13 +107,13 @@ void NodeSet::clearNodeValues()
     }
 }
 
-// ------------------------------------------------------------
+
 size_t NodeSet::getSize()
 {
     return m_nodes.size();
 }
 
-// ------------------------------------------------------------
+
 long NodeSet::enumerateNodes(long count)
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
@@ -121,7 +121,7 @@ long NodeSet::enumerateNodes(long count)
     return count;
 }
 
-// ------------------------------------------------------------
+
 long NodeSet::enumerateDofs(long count)
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
@@ -129,7 +129,13 @@ long NodeSet::enumerateDofs(long count)
     return count;
 }
 
-// ------------------------------------------------------------
+void ofem::NodeSet::resetNodeKind(NodeKind newKind)
+{
+    for (auto& node : m_nodes)
+        node->setKind(newKind);
+}
+
+
 void NodeSet::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -142,7 +148,7 @@ void NodeSet::saveToStream(std::ostream& out)
     }
 }
 
-// ------------------------------------------------------------
+
 json_nl NodeSet::toJson()
 {
     json_nl j = Base::toJson();
@@ -157,7 +163,7 @@ json_nl NodeSet::toJson()
     return j;
 }
 
-// ------------------------------------------------------------
+
 void NodeSet::readFromStream(std::istream& in)
 {
     long nNodes;

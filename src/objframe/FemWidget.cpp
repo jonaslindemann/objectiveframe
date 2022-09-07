@@ -41,9 +41,9 @@ void feedbackCallback(void* pointer)
     Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
 
-// ------------------------------------------------------------
+
 // Constructor/Destructor
-// ------------------------------------------------------------
+
 
 FemWidget::FemWidget(int X, int Y, int W, int H, const char* L)
     : FltkWidget(X, Y, W, H, L)
@@ -151,9 +151,9 @@ void FemWidget::runPlugin(ScriptPlugin* plugin)
     m_chai.set_state(s);
 }
 
-// ------------------------------------------------------------
+
 // Get/set methods
-// ------------------------------------------------------------
+
 
 void FemWidget::setCoordWidget(Fl_Widget* widget)
 {
@@ -635,9 +635,9 @@ const std::string FemWidget::getProgPath()
     return m_progPath;
 }
 
-// ------------------------------------------------------------
+
 // Widget methods
-// ------------------------------------------------------------
+
 
 void FemWidget::save()
 {
@@ -1865,7 +1865,7 @@ void FemWidget::setInteractionNode(vfem::Node* interactionNode)
     m_interactionNode = interactionNode;
 }
 
-//// ------------------------------------------------------------
+//
 // void FemWidget::showStructureDlg()
 //{
 //	int size[3];
@@ -2056,9 +2056,9 @@ void FemWidget::hideAllDialogs()
     m_materialsWindow->hide();
 }
 
-// ------------------------------------------------------------
+
 // Widget events
-// ------------------------------------------------------------
+
 
 void FemWidget::onInit()
 {

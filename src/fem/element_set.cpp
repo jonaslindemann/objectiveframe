@@ -2,19 +2,16 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
 ElementSet::ElementSet()
     : Base()
 {
 }
 
-// ------------------------------------------------------------
 ElementSet::~ElementSet()
 {
     deleteAll();
 }
 
-// ------------------------------------------------------------
 void ElementSet::print(std::ostream& out)
 {
     using namespace std;
@@ -23,13 +20,11 @@ void ElementSet::print(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
 void ElementSet::addElement(Element* element)
 {
     m_elements.push_back(ElementPtr(element));
 }
 
-// ------------------------------------------------------------
 Element* ElementSet::getElement(long i)
 {
     if ((i >= 0) && (i < (long)m_elements.size()))
@@ -38,7 +33,6 @@ Element* ElementSet::getElement(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
 bool ElementSet::deleteElement(long i)
 {
     if ((i >= 0) && (i < (long)m_elements.size()))
@@ -54,7 +48,6 @@ bool ElementSet::deleteElement(long i)
     return false;
 }
 
-// ------------------------------------------------------------
 Element* ElementSet::removeElement(long i)
 {
     if ((i >= 0) && (i < (long)m_elements.size()))
@@ -74,19 +67,16 @@ Element* ElementSet::removeElement(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
 void ElementSet::deleteAll()
 {
     m_elements.clear();
 }
 
-// ------------------------------------------------------------
 void ElementSet::clear()
 {
     m_elements.clear();
 }
 
-// ------------------------------------------------------------
 long ElementSet::enumerateElements(long count)
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)
@@ -94,13 +84,11 @@ long ElementSet::enumerateElements(long count)
     return count;
 }
 
-// ------------------------------------------------------------
 size_t ElementSet::getSize()
 {
     return m_elements.size();
 }
 
-// ------------------------------------------------------------
 void ElementSet::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -110,7 +98,6 @@ void ElementSet::saveToStream(std::ostream& out)
         m_elements[i]->saveToStream(out);
 }
 
-// ------------------------------------------------------------
 void ElementSet::readFromStream(std::istream& in)
 {
     long nElements;
@@ -125,7 +112,6 @@ void ElementSet::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
 void ElementSet::connectNodes(NodeSet* nodes)
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)
@@ -136,13 +122,11 @@ void ElementSet::connectNodes(NodeSet* nodes)
     }
 }
 
-// ------------------------------------------------------------
 Element* ElementSet::createElement()
 {
     return new Element();
 }
 
-// ------------------------------------------------------------
 bool ElementSet::removeElement(Element* element)
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)
@@ -153,7 +137,6 @@ bool ElementSet::removeElement(Element* element)
     return false;
 }
 
-// ------------------------------------------------------------
 long ElementSet::enumerateDofs(long count)
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)

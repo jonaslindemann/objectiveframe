@@ -5,19 +5,19 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
+
 Model::Model()
     : Base()
     , m_version { "1" }
 {
 }
 
-// ------------------------------------------------------------
+
 Model::~Model()
 {
 }
 
-// ------------------------------------------------------------
+
 NodeSet* Model::getNodeSet()
 {
     return m_nodeSet;
@@ -28,7 +28,7 @@ NodeSet* Model::nodeSet()
     return m_nodeSet;
 }
 
-// ------------------------------------------------------------
+
 ElementSet* Model::getElementSet()
 {
     return m_elementSet;
@@ -39,7 +39,7 @@ ElementSet* Model::elementSet()
     return m_elementSet;
 }
 
-// ------------------------------------------------------------
+
 MaterialSet* Model::getMaterialSet()
 {
     return m_materialSet;
@@ -50,7 +50,7 @@ MaterialSet* Model::materialSet()
     return m_materialSet;
 }
 
-// ------------------------------------------------------------
+
 NodeLoadSet* Model::getNodeLoadSet()
 {
     return m_nodeLoadSet;
@@ -61,7 +61,7 @@ NodeLoadSet* Model::nodeLoadSet()
     return m_nodeLoadSet;
 }
 
-// ------------------------------------------------------------
+
 ElementLoadSet* Model::getElementLoadSet()
 {
     return m_elementLoadSet;
@@ -72,7 +72,7 @@ ElementLoadSet* Model::elementLoadSet()
     return m_elementLoadSet;
 }
 
-// ------------------------------------------------------------
+
 NodeBCSet* Model::getBCSet()
 {
     return m_bcSet;
@@ -83,43 +83,43 @@ NodeBCSet* Model::BCSet()
     return m_bcSet;
 }
 
-// ------------------------------------------------------------
+
 NodeSet* Model::createNodeSet()
 {
     return new NodeSet();
 }
 
-// ------------------------------------------------------------
+
 ElementSet* Model::createElementSet()
 {
     return new ElementSet();
 }
 
-// ------------------------------------------------------------
+
 MaterialSet* Model::createMaterialSet()
 {
     return new MaterialSet();
 }
 
-// ------------------------------------------------------------
+
 NodeLoadSet* Model::createNodeLoadSet()
 {
     return new NodeLoadSet();
 }
 
-// ------------------------------------------------------------
+
 ElementLoadSet* Model::createElementLoadSet()
 {
     return new ElementLoadSet();
 }
 
-// ------------------------------------------------------------
+
 NodeBCSet* Model::createBCSet()
 {
     return new NodeBCSet();
 }
 
-// ------------------------------------------------------------
+
 void Model::print(ostream& out)
 {
     m_materialSet->print(out);
@@ -127,7 +127,7 @@ void Model::print(ostream& out)
     m_elementSet->print(out);
 }
 
-// ------------------------------------------------------------
+
 void Model::saveToStream(std::ostream& out)
 {
     // Enumerate model
@@ -160,7 +160,7 @@ void Model::saveToStream(std::ostream& out)
     m_bcSet->saveToStream(out);
 }
 
-// ------------------------------------------------------------
+
 void Model::readFromStream(std::istream& in)
 {
     initialize();
@@ -178,36 +178,33 @@ void Model::readFromStream(std::istream& in)
     this->connectNodeBCs();
 }
 
-// ------------------------------------------------------------
+
 void Model::connectElements()
 {
     m_elementSet->connectNodes(m_nodeSet);
 }
 
-// ------------------------------------------------------------
+
 void Model::connectMaterials()
 {
 }
 
-// ------------------------------------------------------------
+
 void Model::connectNodeLoads()
 {
     m_nodeLoadSet->connectNodes(m_nodeSet);
 }
 
-// ------------------------------------------------------------
 void Model::connectElementLoads()
 {
     m_elementLoadSet->connectElements(m_elementSet);
 }
 
-// ------------------------------------------------------------
 void Model::connectNodeBCs()
 {
     m_bcSet->connectNodes(m_nodeSet);
 }
 
-// ------------------------------------------------------------
 void Model::deleteAll()
 {
     m_materialSet->deleteAll();
@@ -218,13 +215,11 @@ void Model::deleteAll()
     m_bcSet->deleteAll();
 }
 
-// ------------------------------------------------------------
 void Model::setFileName(const std::string& fname)
 {
     m_fileName = fname;
 }
 
-// ------------------------------------------------------------
 const std::string Model::getFileName()
 {
     return m_fileName;
@@ -285,7 +280,7 @@ bool Model::open()
         return false;
 }
 
-// ------------------------------------------------------------
+
 void Model::save()
 {
     if (m_fileName != "")
@@ -350,7 +345,7 @@ size_t Model::snapShotCount()
     return m_snapShots.size();
 }
 
-// ------------------------------------------------------------
+
 void Model::initialize()
 {
     // Create new sets
@@ -365,12 +360,12 @@ void Model::initialize()
     this->onInitialised();
 }
 
-// ------------------------------------------------------------
+
 void Model::onInitialised()
 {
 }
 
-// ------------------------------------------------------------
+
 void Model::clearNodeValues()
 {
     m_nodeSet->clearNodeValues();
@@ -381,7 +376,7 @@ std::string ofem::Model::version()
     return m_version;
 }
 
-// ------------------------------------------------------------
+
 NodeBCSet* Model::getNodeBCSet()
 {
     return m_bcSet;

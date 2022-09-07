@@ -6,7 +6,7 @@ using namespace std;
 using namespace ivf;
 using namespace vfem;
 
-// ------------------------------------------------------------
+
 NodeLoad::NodeLoad()
     : Shape()
 {
@@ -22,12 +22,12 @@ NodeLoad::NodeLoad()
     this->setUseSelectShape(false);
 }
 
-// ------------------------------------------------------------
+
 NodeLoad::~NodeLoad()
 {
 }
 
-// ------------------------------------------------------------
+
 void NodeLoad::doCreateGeometry()
 {
     int i;
@@ -35,12 +35,12 @@ void NodeLoad::doCreateGeometry()
         m_arrow[i]->render();
 }
 
-// ------------------------------------------------------------
+
 void NodeLoad::doCreateSelect()
 {
 }
 
-// ------------------------------------------------------------
+
 void NodeLoad::initArrow()
 {
     double x, y, z, ex, ey, ez;
@@ -95,14 +95,14 @@ void NodeLoad::initArrow()
     }
 }
 
-// ------------------------------------------------------------
+
 void NodeLoad::refresh()
 {
     setNodeLoad(m_nodeLoad);
     initArrow();
 }
 
-// ------------------------------------------------------------
+
 void NodeLoad::setNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
     m_arrow.clear();

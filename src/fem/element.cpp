@@ -2,7 +2,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 Element::Element()
     : Base()
 {
@@ -12,13 +12,13 @@ Element::Element()
     m_elementLoad[2] = 0.0;
 }
 
-// ------------------------------------------------------------
+
 Element::~Element()
 {
     deleteAll();
 }
 
-// ------------------------------------------------------------
+
 void Element::print(std::ostream& out)
 {
     using namespace std;
@@ -29,7 +29,7 @@ void Element::print(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
+
 void Element::addNode(Node* node)
 {
     m_nodes.push_back(NodePtr(node));
@@ -37,33 +37,33 @@ void Element::addNode(Node* node)
     m_internalDofs.push_back(iDof);
 }
 
-// ------------------------------------------------------------
+
 void Element::clear()
 {
     m_nodes.clear();
     m_internalDofs.clear();
 }
 
-// ------------------------------------------------------------
+
 void Element::deleteAll()
 {
     m_nodes.clear();
     m_internalDofs.clear();
 }
 
-// ------------------------------------------------------------
+
 void Element::setNumber(long number)
 {
     m_number = number;
 }
 
-// ------------------------------------------------------------
+
 long Element::getNumber()
 {
     return m_number;
 }
 
-// ------------------------------------------------------------
+
 void Element::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -85,7 +85,7 @@ void Element::saveToStream(std::ostream& out)
         m_internalDofs[i]->saveToStream(out);
 }
 
-// ------------------------------------------------------------
+
 void Element::readFromStream(std::istream& in)
 {
     long nNodes, nProperties;
@@ -121,7 +121,7 @@ void Element::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
+
 long Element::getElementIndex(unsigned int node)
 {
     if (node < m_nodeIndex.size())
@@ -130,19 +130,19 @@ long Element::getElementIndex(unsigned int node)
         return -1;
 }
 
-// ------------------------------------------------------------
+
 size_t Element::getSize()
 {
     return m_nodes.size();
 }
 
-// ------------------------------------------------------------
+
 size_t Element::getIndexSize()
 {
     return m_nodeIndex.size();
 }
 
-// ------------------------------------------------------------
+
 Node* Element::getNode(unsigned int index)
 {
     if (index < m_nodes.size())
@@ -151,25 +151,25 @@ Node* Element::getNode(unsigned int index)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 void Element::addProperty(double value)
 {
     m_properties.push_back(value);
 }
 
-// ------------------------------------------------------------
+
 double Element::getProperty(unsigned int idx)
 {
     return m_properties[idx];
 }
 
-// ------------------------------------------------------------
+
 void Element::clearProperties()
 {
     m_properties.clear();
 }
 
-// ------------------------------------------------------------
+
 void Element::setElementLoad(double fx, double fy, double fz)
 {
     m_elementLoad[0] = fx;
@@ -177,7 +177,7 @@ void Element::setElementLoad(double fx, double fy, double fz)
     m_elementLoad[2] = fz;
 }
 
-// ------------------------------------------------------------
+
 void Element::getElementLoad(double& fx, double& fy, double& fz)
 {
     fx = m_elementLoad[0];
@@ -185,13 +185,13 @@ void Element::getElementLoad(double& fx, double& fy, double& fz)
     fz = m_elementLoad[2];
 }
 
-// ------------------------------------------------------------
+
 size_t Element::getPropertySize()
 {
     return m_properties.size();
 }
 
-// ------------------------------------------------------------
+
 void Element::setPropertySize(unsigned int size)
 {
     m_properties.clear();
@@ -199,14 +199,14 @@ void Element::setPropertySize(unsigned int size)
         m_properties.push_back(0.0);
 }
 
-// ------------------------------------------------------------
+
 void Element::setProperty(unsigned int idx, double value)
 {
     if (idx < m_properties.size())
         m_properties[idx] = value;
 }
 
-// ------------------------------------------------------------
+
 void Element::addInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx < m_internalDofs.size())
@@ -215,7 +215,7 @@ void Element::addInternalDof(unsigned int localIdx, int localDof)
     }
 }
 
-// ------------------------------------------------------------
+
 void Element::clearInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx < m_internalDofs.size())
@@ -224,7 +224,7 @@ void Element::clearInternalDof(unsigned int localIdx, int localDof)
     }
 }
 
-// ------------------------------------------------------------
+
 bool Element::hasInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx < m_internalDofs.size())
@@ -235,7 +235,7 @@ bool Element::hasInternalDof(unsigned int localIdx, int localDof)
         return false;
 }
 
-// ------------------------------------------------------------
+
 long Element::enumerateDofs(long count)
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
@@ -245,7 +245,7 @@ long Element::enumerateDofs(long count)
     return count;
 }
 
-// ------------------------------------------------------------
+
 long Element::getInternalDof(unsigned int localIdx, int localDof)
 {
     if (localIdx < m_internalDofs.size())
@@ -256,7 +256,7 @@ long Element::getInternalDof(unsigned int localIdx, int localDof)
     return -1;
 }
 
-// ------------------------------------------------------------
+
 void Element::setValueSize(int size)
 {
     int i;
@@ -265,7 +265,7 @@ void Element::setValueSize(int size)
         m_values[i] = 0.0;
 }
 
-// ------------------------------------------------------------
+
 double Element::getValue(unsigned int idx)
 {
     if (idx < m_values.size())
@@ -274,14 +274,14 @@ double Element::getValue(unsigned int idx)
         return 0.0;
 }
 
-// ------------------------------------------------------------
+
 void Element::setValue(unsigned int idx, double value)
 {
     if (idx < m_values.size())
         m_values[idx] = value;
 }
 
-// ------------------------------------------------------------
+
 size_t Element::getValueSize()
 {
     return m_values.size();

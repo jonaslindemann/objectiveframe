@@ -4,7 +4,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 USection::USection(double height, double UFW, double LFW, double WT, double UFT, double LFT)
     : Section()
 // TODO: check and complete member initialisation list!
@@ -13,19 +13,19 @@ USection::USection(double height, double UFW, double LFW, double WT, double UFT,
     this->setSectionSize(height, UFW, LFW, WT, UFT, LFT);
 }
 
-// ------------------------------------------------------------
+
 USection::USection()
 {
     this->setSectionType(FEM_U_SECTION);
     this->setSectionSize(0.1, 0.1, 0.1, 0.01, 0.01, 0.01);
 }
 
-// ------------------------------------------------------------
+
 USection::~USection()
 {
 }
 
-// ------------------------------------------------------------
+
 void USection::setSectionSize(double height, double UFW, double LFW, double WT, double UFT, double LFT)
 {
     double X[9], Y[9];
@@ -70,7 +70,7 @@ void USection::setSectionSize(double height, double UFW, double LFW, double WT, 
     this->setData();
 }
 
-// ------------------------------------------------------------
+
 void USection::getSectionSize(double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT)
 {
     height = m_prop[0];
@@ -81,7 +81,7 @@ void USection::getSectionSize(double& height, double& UFW, double& LFW, double& 
     LFT = m_prop[6];
 }
 
-// ------------------------------------------------------------
+
 void USection::setData()
 {
     double height = m_prop[0];
@@ -100,7 +100,7 @@ void USection::setData()
     m_data[5] = 1.1 / 3.0 * (pow(UFT, 3) * UFW + pow(LFT, 3) * LFW + pow(WT, 3) * height); // Kv
 }
 
-// ------------------------------------------------------------
+
 void USection::getExcY(double& emax, double& emin)
 {
     double e1 = m_prop[1] - m_Xtp;
@@ -135,7 +135,7 @@ void USection::getSectionProps(double& width, double& height, double& UFW, doubl
     this->getSectionSize(height, UFW, LFW, WT, UFT, LFT);
 }
 
-// ------------------------------------------------------------
+
 void USection::getExcZ(double& emax, double& emin)
 {
     emax = m_prop[0] / 2.0;

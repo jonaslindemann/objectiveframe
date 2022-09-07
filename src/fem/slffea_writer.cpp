@@ -3,18 +3,18 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
+
 SLFFEAWriter::SLFFEAWriter(const std::string filename)
     : InputFileWriter(filename)
 {
 }
 
-// ------------------------------------------------------------
+
 SLFFEAWriter::~SLFFEAWriter()
 {
 }
 
-// ------------------------------------------------------------
+
 void SLFFEAWriter::saveToStream(std::ostream& out)
 {
     long i, j;

@@ -4,7 +4,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 RectSection::RectSection(double width, double height)
     : Section()
 {
@@ -12,19 +12,19 @@ RectSection::RectSection(double width, double height)
     this->setSectionSize(width, height);
 }
 
-// ------------------------------------------------------------
+
 RectSection::RectSection()
 {
     this->setSectionType(FEM_RECT_SECTION);
     this->setSectionSize(0.1, 0.1);
 }
 
-// ------------------------------------------------------------
+
 RectSection::~RectSection()
 {
 }
 
-// ------------------------------------------------------------
+
 void RectSection::setSectionSize(double width, double height)
 {
     double X[5], Y[5];
@@ -52,14 +52,14 @@ void RectSection::setSectionSize(double width, double height)
     this->setData();
 }
 
-// ------------------------------------------------------------
+
 void RectSection::getSectionSize(double& width, double& height)
 {
     height = m_prop[0];
     width = m_prop[1];
 }
 
-// ------------------------------------------------------------
+
 void RectSection::setData()
 {
     double h, w, temp, c1;
@@ -86,7 +86,7 @@ void RectSection::setData()
     m_data[5] = c1 * h * pow(w, 3); // Kv
 }
 
-// ------------------------------------------------------------
+
 void RectSection::getExcY(double& emax, double& emin)
 {
     emax = m_prop[1] / 2.0;
@@ -110,7 +110,7 @@ void RectSection::getSectionProps(double& width, double& height, double& UFW, do
     this->getSectionSize(width, height);
 }
 
-// ------------------------------------------------------------
+
 void RectSection::getExcZ(double& emax, double& emin)
 {
     emax = m_prop[0] / 2.0;

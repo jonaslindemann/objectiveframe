@@ -2,7 +2,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 Node::Node()
     : Base()
 {
@@ -13,7 +13,7 @@ Node::Node()
     this->setKind(nkNotConnected);
 }
 
-// ------------------------------------------------------------
+
 Node::Node(double x, double y, double z)
     : Base()
 {
@@ -22,12 +22,12 @@ Node::Node(double x, double y, double z)
     this->setKind(nkNotConnected);
 }
 
-// ------------------------------------------------------------
+
 Node::~Node()
 {
 }
 
-// ------------------------------------------------------------
+
 void Node::setCoord(double x, double y, double z)
 {
     m_coord[0] = x;
@@ -35,7 +35,7 @@ void Node::setCoord(double x, double y, double z)
     m_coord[2] = z;
 }
 
-// ------------------------------------------------------------
+
 void Node::getCoord(double& x, double& y, double& z)
 {
     x = m_coord[0];
@@ -43,19 +43,19 @@ void Node::getCoord(double& x, double& y, double& z)
     z = m_coord[2];
 }
 
-// ------------------------------------------------------------
+
 void Node::setNumber(long number)
 {
     m_number = number;
 }
 
-// ------------------------------------------------------------
+
 long Node::getNumber()
 {
     return m_number;
 }
 
-// ------------------------------------------------------------
+
 void Node::print(std::ostream& out)
 {
     using namespace std;
@@ -106,7 +106,7 @@ void Node::fromJson(nlohmann::json& j)
 {
 }
 
-// ------------------------------------------------------------
+
 void Node::setKind(NodeKind kind)
 {
     m_kind = kind;
@@ -140,13 +140,13 @@ void Node::setKind(NodeKind kind)
     }
 }
 
-// ------------------------------------------------------------
+
 NodeKind Node::getKind()
 {
     return m_kind;
 }
 
-// ------------------------------------------------------------
+
 Dof* Node::getDof(unsigned int dof)
 {
     if (dof < m_dofs.size())
@@ -155,7 +155,7 @@ Dof* Node::getDof(unsigned int dof)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 long Node::enumerateDofs(long count)
 {
     for (unsigned int i = 0; i < m_dofs.size(); i++)
@@ -163,7 +163,7 @@ long Node::enumerateDofs(long count)
     return count;
 }
 
-// ------------------------------------------------------------
+
 void Node::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -210,7 +210,7 @@ void Node::saveToStream(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
+
 void Node::readFromStream(std::istream& in)
 {
     Base::readFromStream(in);
@@ -241,7 +241,7 @@ void Node::readFromStream(std::istream& in)
     this->setKind(m_kind);
 }
 
-// ------------------------------------------------------------
+
 void Node::setValueSize(int size)
 {
     int i;
@@ -250,7 +250,7 @@ void Node::setValueSize(int size)
         m_values[i] = 0.0;
 }
 
-// ------------------------------------------------------------
+
 double Node::getValue(unsigned int idx)
 {
     if (idx < m_values.size())
@@ -259,20 +259,20 @@ double Node::getValue(unsigned int idx)
         return 0.0;
 }
 
-// ------------------------------------------------------------
+
 void Node::setValue(unsigned int idx, double value)
 {
     if (idx < m_values.size())
         m_values[idx] = value;
 }
 
-// ------------------------------------------------------------
+
 size_t Node::getValueSize()
 {
     return m_values.size();
 }
 
-// ------------------------------------------------------------
+
 void Node::clearValues()
 {
     m_values.clear();

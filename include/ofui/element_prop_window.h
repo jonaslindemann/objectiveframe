@@ -17,6 +17,7 @@ private:
     FemWidget* m_widget;
     float m_beamRotation;
     float m_oldBeamRotation;
+    int m_beamType;
 
 public:
     ElementPropWindow(const std::string name);

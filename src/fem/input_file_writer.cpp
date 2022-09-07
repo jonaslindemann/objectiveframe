@@ -6,7 +6,7 @@ using namespace std;
 #include <fstream>
 #include <iostream>
 
-// ------------------------------------------------------------
+
 InputFileWriter::InputFileWriter(const std::string filename)
 {
     m_femModel = nullptr;

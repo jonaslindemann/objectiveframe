@@ -6,7 +6,7 @@
 using namespace ivf;
 using namespace vfem;
 
-// ------------------------------------------------------------
+
 NodeBC::NodeBC()
 {
     this->setUseSelectShape(false);
@@ -20,12 +20,12 @@ NodeBC::NodeBC()
     m_beamModel = nullptr;
 }
 
-// ------------------------------------------------------------
+
 NodeBC::~NodeBC()
 {
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::setNodeBC(ofem::BeamNodeBC* bc)
 {
     int i, j;
@@ -62,7 +62,7 @@ void NodeBC::setNodeBC(ofem::BeamNodeBC* bc)
     }
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::doCreateGeometry()
 {
     int i;
@@ -71,7 +71,7 @@ void NodeBC::doCreateGeometry()
         m_bc[i]->render();
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::refresh()
 {
     setNodeBC(m_nodeBC);

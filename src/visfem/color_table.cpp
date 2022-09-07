@@ -3,7 +3,7 @@
 using namespace ivf;
 using namespace vfem;
 
-// ------------------------------------------------------------
+
 ColorTable::ColorTable()
     : Base()
 {
@@ -17,12 +17,12 @@ ColorTable::ColorTable()
     }
 }
 
-// ------------------------------------------------------------
+
 ColorTable::~ColorTable()
 {
 }
 
-// ------------------------------------------------------------
+
 void ColorTable::getColor(int idx, float& r, float& g, float& b)
 {
     if ((idx >= 0) && (idx < 256))
@@ -33,7 +33,7 @@ void ColorTable::getColor(int idx, float& r, float& g, float& b)
     }
 }
 
-// ------------------------------------------------------------
+
 void ColorTable::assignColor(int idx, Material* material)
 {
     if ((idx >= 0) && (idx < 256))
@@ -49,7 +49,7 @@ void ColorTable::assignColor(int idx, Material* material)
     }
 }
 
-// ------------------------------------------------------------
+
 void ColorTable::setColor(int idx, float r, float g, float b)
 {
     if ((idx >= 0) && (idx < 256))

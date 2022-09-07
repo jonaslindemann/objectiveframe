@@ -5,19 +5,19 @@
 using namespace std;
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 BC::BC()
     : Base()
     , m_number { -1 }
 {
 }
 
-// ------------------------------------------------------------
+
 BC::~BC()
 {
 }
 
-// ------------------------------------------------------------
+
 bool BC::isPrescribed(Dof* dof)
 {
     std::vector<DofPtr>::iterator p = m_prescribedDofs.begin();
@@ -32,7 +32,7 @@ bool BC::isPrescribed(Dof* dof)
     return false;
 }
 
-// ------------------------------------------------------------
+
 void BC::prescribeDof(Dof* dof, double value)
 {
     if (!isPrescribed(dof))
@@ -42,7 +42,7 @@ void BC::prescribeDof(Dof* dof, double value)
     }
 }
 
-// ------------------------------------------------------------
+
 void BC::unprescribeDof(Dof* dof)
 {
     auto p = m_prescribedDofs.begin();
@@ -61,26 +61,26 @@ void BC::unprescribeDof(Dof* dof)
     }
 }
 
-// ------------------------------------------------------------
+
 void BC::clearDofs()
 {
     m_prescribedDofs.clear();
     m_prescribedValues.clear();
 }
 
-// ------------------------------------------------------------
+
 void BC::setNumber(long number)
 {
     m_number = number;
 }
 
-// ------------------------------------------------------------
+
 long BC::getNumber()
 {
     return m_number;
 }
 
-// ------------------------------------------------------------
+
 void BC::saveToStream(std::ostream& out)
 {
     Base::saveToStream(out);
@@ -103,7 +103,7 @@ void BC::saveToStream(std::ostream& out)
     }
 }
 
-// ------------------------------------------------------------
+
 json_nl BC::toJson()
 {
     json_nl j;
@@ -119,7 +119,7 @@ json_nl BC::toJson()
     return j;
 }
 
-// ------------------------------------------------------------
+
 void BC::readFromStream(std::istream& in)
 {
     Base::readFromStream(in);
@@ -144,12 +144,12 @@ void BC::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
+
 void BC::print(std::ostream& out)
 {
 }
 
-// ------------------------------------------------------------
+
 Dof* BC::getDof(unsigned int idx)
 {
     if (idx < m_prescribedDofs.size())
@@ -158,7 +158,7 @@ Dof* BC::getDof(unsigned int idx)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 double BC::getValue(unsigned int idx)
 {
     if (idx < m_prescribedDofs.size())
@@ -167,7 +167,7 @@ double BC::getValue(unsigned int idx)
         return 0.0;
 }
 
-// ------------------------------------------------------------
+
 size_t BC::getSize()
 {
     return m_prescribedDofs.size();

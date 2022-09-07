@@ -4,7 +4,6 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
 ISection::ISection(double height, double UFW, double LFW, double WT,
     double UFT, double LFT, double ULFW, double LLFW)
     : Section()
@@ -14,19 +13,16 @@ ISection::ISection(double height, double UFW, double LFW, double WT,
     this->setSectionSize(height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW);
 }
 
-// ------------------------------------------------------------
 ISection::ISection()
 {
     this->setSectionType(FEM_I_SECTION);
     this->setSectionSize(0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.1, 0.1);
 }
 
-// ------------------------------------------------------------
 ISection::~ISection()
 {
 }
 
-// ------------------------------------------------------------
 void ISection::setSectionSize(double height, double UFW, double LFW, double WT,
     double UFT, double LFT, double ULFW, double LLFW)
 {
@@ -82,7 +78,6 @@ void ISection::setSectionSize(double height, double UFW, double LFW, double WT,
     this->setData();
 }
 
-// ------------------------------------------------------------
 void ISection::getSectionSize(double& height, double& UFW, double& LFW, double& WT,
     double& UFT, double& LFT, double& ULFW, double& LLFW)
 {
@@ -96,7 +91,6 @@ void ISection::getSectionSize(double& height, double& UFW, double& LFW, double& 
     LLFW = m_prop[8];
 }
 
-// ------------------------------------------------------------
 void ISection::setData()
 {
     double height = m_prop[0];
@@ -117,7 +111,6 @@ void ISection::setData()
     m_data[5] = 1.15 / 3.0 * (pow(UFT, 3) * UFW + pow(LFT, 3) * LFW + pow(WT, 3) * height); // Kv
 }
 
-// ------------------------------------------------------------
 void ISection::getExcY(double& emax, double& emin)
 {
     emax = m_prop[1] / 2.0;
@@ -141,7 +134,6 @@ void ISection::getSectionProps(double& width, double& height, double& UFW, doubl
     this->getSectionSize(height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW);
 }
 
-// ------------------------------------------------------------
 void ISection::getExcZ(double& emax, double& emin)
 {
     double e1 = m_prop[0] - m_Ytp;

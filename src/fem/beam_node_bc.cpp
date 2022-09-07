@@ -2,7 +2,6 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
 BeamNodeBC::BeamNodeBC()
     : NodeBC()
 {
@@ -10,24 +9,20 @@ BeamNodeBC::BeamNodeBC()
     m_color = 1;
 }
 
-// ------------------------------------------------------------
 BeamNodeBC::~BeamNodeBC()
 {
 }
 
-// ------------------------------------------------------------
 void BeamNodeBC::setName(const std::string& name)
 {
     m_name = name;
 }
 
-// ------------------------------------------------------------
 const std::string BeamNodeBC::getName()
 {
     return m_name;
 }
 
-// ------------------------------------------------------------
 void BeamNodeBC::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -39,7 +34,6 @@ void BeamNodeBC::saveToStream(std::ostream& out)
     out << m_color << endl;
 }
 
-// ------------------------------------------------------------
 void BeamNodeBC::readFromStream(std::istream& in)
 {
     char buffer[255];
@@ -50,13 +44,11 @@ void BeamNodeBC::readFromStream(std::istream& in)
     in >> m_color;
 }
 
-// ------------------------------------------------------------
 void BeamNodeBC::setColor(int color)
 {
     m_color = color;
 }
 
-// ------------------------------------------------------------
 int BeamNodeBC::getColor()
 {
     return m_color;

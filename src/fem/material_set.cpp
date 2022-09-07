@@ -2,20 +2,20 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 MaterialSet::MaterialSet()
     : Base()
 {
     m_currentMaterialIdx = -1;
 }
 
-// ------------------------------------------------------------
+
 MaterialSet::~MaterialSet()
 {
     deleteAll();
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::print(std::ostream& out)
 {
     using namespace std;
@@ -24,13 +24,13 @@ void MaterialSet::print(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::addMaterial(Material* material)
 {
     m_materials.push_back(MaterialPtr(material));
 }
 
-// ------------------------------------------------------------
+
 Material* MaterialSet::getMaterial(long i)
 {
     if ((i >= 0) && (i < (long)m_materials.size()))
@@ -39,7 +39,7 @@ Material* MaterialSet::getMaterial(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 bool MaterialSet::deleteMaterial(long i)
 {
     if ((i >= 0) && (i < (long)m_materials.size()))
@@ -55,7 +55,7 @@ bool MaterialSet::deleteMaterial(long i)
     return false;
 }
 
-// ------------------------------------------------------------
+
 Material* MaterialSet::removeMaterial(long i)
 {
     if ((i >= 0) && (i < (long)m_materials.size()))
@@ -76,19 +76,19 @@ Material* MaterialSet::removeMaterial(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::deleteAll()
 {
     m_materials.clear();
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::clear()
 {
     m_materials.clear();
 }
 
-// ------------------------------------------------------------
+
 long MaterialSet::enumerateMaterials(long count)
 {
     for (unsigned int i = 0; i < m_materials.size(); i++)
@@ -96,13 +96,13 @@ long MaterialSet::enumerateMaterials(long count)
     return count;
 }
 
-// ------------------------------------------------------------
+
 size_t MaterialSet::getSize()
 {
     return m_materials.size();
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -112,7 +112,7 @@ void MaterialSet::saveToStream(std::ostream& out)
         m_materials[i]->saveToStream(out);
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::readFromStream(std::istream& in)
 {
     long nMaterials;
@@ -128,13 +128,13 @@ void MaterialSet::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
+
 Material* MaterialSet::createMaterial()
 {
     return new Material();
 }
 
-// ------------------------------------------------------------
+
 bool MaterialSet::removeMaterial(Material* material)
 {
     std::vector<MaterialPtr>::iterator p = m_materials.begin();
@@ -157,7 +157,7 @@ bool MaterialSet::removeMaterial(Material* material)
     return false;
 }
 
-// ------------------------------------------------------------
+
 void MaterialSet::setCurrentMaterial(long i)
 {
     if ((i >= 0) && (i < (long)m_materials.size()))
@@ -166,7 +166,7 @@ void MaterialSet::setCurrentMaterial(long i)
         m_currentMaterialIdx = -1;
 }
 
-// ------------------------------------------------------------
+
 Material* MaterialSet::currentMaterial()
 {
     if (m_currentMaterialIdx != -1)

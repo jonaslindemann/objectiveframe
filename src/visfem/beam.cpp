@@ -5,7 +5,7 @@
 using namespace ivf;
 using namespace vfem;
 
-// ------------------------------------------------------------
+
 Beam::Beam()
     : Composite()
 {
@@ -99,7 +99,7 @@ Beam::Beam()
     this->setUseSelectShape(true);
 }
 
-// ------------------------------------------------------------
+
 Beam::~Beam()
 {
     for (int i = 0; i < 2; i++)
@@ -113,19 +113,19 @@ Beam::~Beam()
     }
 }
 
-// ------------------------------------------------------------
+
 void Beam::setBeam(ofem::Beam* beam)
 {
     m_femBeam = beam;
 }
 
-// ------------------------------------------------------------
+
 ofem::Beam* Beam::getBeam()
 {
     return m_femBeam;
 }
 
-// ------------------------------------------------------------
+
 void Beam::refresh()
 {
     if (m_femBeam != nullptr)
@@ -236,7 +236,7 @@ void Beam::refresh()
     }
 }
 
-// ------------------------------------------------------------
+
 void Beam::doCreateGeometry()
 {
     if (m_femBeam != nullptr)
@@ -245,7 +245,7 @@ void Beam::doCreateGeometry()
     }
 }
 
-// ------------------------------------------------------------
+
 void Beam::setNodes(vfem::Node* node1, vfem::Node* node2)
 {
     for (int i = 0; i < 2; i++)
@@ -273,7 +273,7 @@ vfem::Node* vfem::Beam::getNode(int idx)
         return nullptr;
 }
 
-// ------------------------------------------------------------
+
 void Beam::doCreateSelect()
 {
     if (m_beamModel != nullptr)
@@ -314,7 +314,7 @@ void Beam::doCreateSelect()
     }
 }
 
-// ------------------------------------------------------------
+
 void Beam::initExtrusion()
 {
     Vec3d p1, p2;

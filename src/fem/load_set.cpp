@@ -5,19 +5,19 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
+
 LoadSet::LoadSet()
     : Base()
 {
 }
 
-// ------------------------------------------------------------
+
 LoadSet::~LoadSet()
 {
     deleteAll();
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::print(std::ostream& out)
 {
     for (unsigned int i = 0; i < m_loads.size(); i++)
@@ -25,14 +25,14 @@ void LoadSet::print(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::addLoad(Load* load)
 {
     load->addReference();
     m_loads.push_back(load);
 }
 
-// ------------------------------------------------------------
+
 Load* LoadSet::getLoad(long i)
 {
     if ((i >= 0) && (i < (long)m_loads.size()))
@@ -41,7 +41,7 @@ Load* LoadSet::getLoad(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 bool LoadSet::deleteLoad(long i)
 {
     std::vector<Load*>::iterator p = m_loads.begin();
@@ -63,7 +63,7 @@ bool LoadSet::deleteLoad(long i)
     return false;
 }
 
-// ------------------------------------------------------------
+
 Load* LoadSet::removeLoad(long i)
 {
     std::vector<Load*>::iterator p = m_loads.begin();
@@ -80,7 +80,7 @@ Load* LoadSet::removeLoad(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::deleteAll()
 {
     for (unsigned int i = 0; i < m_loads.size(); i++)
@@ -93,7 +93,7 @@ void LoadSet::deleteAll()
     m_loads.clear();
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::clear()
 {
     for (unsigned int i = 0; i < m_loads.size(); i++)
@@ -104,7 +104,7 @@ void LoadSet::clear()
     m_loads.clear();
 }
 
-// ------------------------------------------------------------
+
 long LoadSet::enumerateLoads(long count)
 {
     for (long i = 0; i < (long)m_loads.size(); i++)
@@ -112,13 +112,13 @@ long LoadSet::enumerateLoads(long count)
     return count;
 }
 
-// ------------------------------------------------------------
+
 size_t LoadSet::getSize()
 {
     return m_loads.size();
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::saveToStream(std::ostream& out)
 {
     Base::saveToStream(out);
@@ -127,7 +127,7 @@ void LoadSet::saveToStream(std::ostream& out)
         m_loads[i]->saveToStream(out);
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::readFromStream(std::istream& in)
 {
     long nLoads;
@@ -143,7 +143,7 @@ void LoadSet::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::connectNodes(NodeSet* nodes)
 {
     for (unsigned int i = 0; i < m_loads.size(); i++)
@@ -162,13 +162,13 @@ void LoadSet::connectNodes(NodeSet* nodes)
     }
 }
 
-// ------------------------------------------------------------
+
 Load* LoadSet::createLoad()
 {
     return new Load();
 }
 
-// ------------------------------------------------------------
+
 void LoadSet::connectElements(ElementSet* elements)
 {
     for (unsigned int i = 0; i < m_loads.size(); i++)
@@ -187,7 +187,7 @@ void LoadSet::connectElements(ElementSet* elements)
     }
 }
 
-// ------------------------------------------------------------
+
 bool LoadSet::removeLoad(Load* load)
 {
     std::vector<Load*>::iterator p = m_loads.begin();

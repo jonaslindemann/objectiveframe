@@ -38,6 +38,8 @@ public:
     long enumerateNodes(long count = 1);
     long enumerateDofs(long count = 1);
 
+    void resetNodeKind(NodeKind newKind);
+
     // Get/set methods
 
     size_t getSize();

@@ -5,7 +5,6 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
 BeamLoad::BeamLoad()
     : ElementLoad()
     , m_name { "Noname" }
@@ -13,24 +12,20 @@ BeamLoad::BeamLoad()
 {
 }
 
-// ------------------------------------------------------------
 BeamLoad::~BeamLoad()
 {
 }
 
-// ------------------------------------------------------------
 void BeamLoad::setName(const std::string& name)
 {
     m_name = name;
 }
 
-// ------------------------------------------------------------
 const std::string BeamLoad::getName()
 {
     return m_name;
 }
 
-// ------------------------------------------------------------
 void BeamLoad::saveToStream(std::ostream& out)
 {
     ElementLoad::saveToStream(out);
@@ -41,7 +36,6 @@ void BeamLoad::saveToStream(std::ostream& out)
     out << m_color << endl;
 }
 
-// ------------------------------------------------------------
 void BeamLoad::readFromStream(std::istream& in)
 {
     char buffer[255];
@@ -52,13 +46,11 @@ void BeamLoad::readFromStream(std::istream& in)
     in >> m_color;
 }
 
-// ------------------------------------------------------------
 void BeamLoad::setColor(int color)
 {
     m_color = color;
 }
 
-// ------------------------------------------------------------
 int BeamLoad::getColor()
 {
     return m_color;

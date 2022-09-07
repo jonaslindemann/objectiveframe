@@ -16,7 +16,7 @@ using namespace std;
 using namespace ivf;
 using namespace vfem;
 
-// ------------------------------------------------------------
+
 BeamLoad::BeamLoad()
     : Shape()
 {
@@ -36,14 +36,14 @@ BeamLoad::BeamLoad()
     this->setUseSelectShape(false);
 }
 
-// ------------------------------------------------------------
+
 BeamLoad::~BeamLoad()
 {
     m_q.clear();
     m_arrow.clear();
 }
 
-// ------------------------------------------------------------
+
 void BeamLoad::refresh()
 {
     ColorTable* colorTable;
@@ -70,7 +70,7 @@ void BeamLoad::refresh()
     this->initExtrusion();
 }
 
-// ------------------------------------------------------------
+
 void BeamLoad::initExtrusion()
 {
     Vec3d p1, p2;
@@ -143,7 +143,7 @@ void BeamLoad::initExtrusion()
     }
 }
 
-// ------------------------------------------------------------
+
 void BeamLoad::setBeamLoad(ofem::BeamLoad* load)
 {
     int i;
@@ -170,7 +170,7 @@ void BeamLoad::setBeamLoad(ofem::BeamLoad* load)
     }
 }
 
-// ------------------------------------------------------------
+
 void BeamLoad::doCreateGeometry()
 {
     int old_style = ivfGetGLEJoinStyle();
@@ -184,7 +184,7 @@ void BeamLoad::doCreateGeometry()
     ivfSetGLEJoinStyle(old_style);
 }
 
-// ------------------------------------------------------------
+
 void BeamLoad::doCreateSelect()
 {
     int old_style = ivfGetGLEJoinStyle();

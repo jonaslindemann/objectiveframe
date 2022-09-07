@@ -2,7 +2,6 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
 InternalDofs::InternalDofs()
 {
     // Default we define 6 internal dofs.
@@ -10,7 +9,6 @@ InternalDofs::InternalDofs()
     this->setKind(FEM_DISPL_ROT_DOFS);
 }
 
-// ------------------------------------------------------------
 InternalDofs::~InternalDofs()
 {
     // Delete any extra dofs, if specified
@@ -21,7 +19,6 @@ InternalDofs::~InternalDofs()
             delete m_dofs[i];
 }
 
-// ------------------------------------------------------------
 void InternalDofs::setKind(int kind)
 {
     m_kind = kind;
@@ -55,13 +52,11 @@ void InternalDofs::setKind(int kind)
     };
 }
 
-// ------------------------------------------------------------
 int InternalDofs::getKind()
 {
     return m_kind;
 }
 
-// ------------------------------------------------------------
 void InternalDofs::add(unsigned int localDof)
 {
     // Add an extra dof to a specified local dof
@@ -75,7 +70,6 @@ void InternalDofs::add(unsigned int localDof)
     }
 }
 
-// ------------------------------------------------------------
 void InternalDofs::clear(unsigned int localDof)
 {
     // Clear extra dof at local dof
@@ -88,7 +82,6 @@ void InternalDofs::clear(unsigned int localDof)
     }
 }
 
-// ------------------------------------------------------------
 long InternalDofs::enumerateDofs(long count)
 {
     // Enumerate dofs
@@ -101,7 +94,6 @@ long InternalDofs::enumerateDofs(long count)
     return count;
 }
 
-// ------------------------------------------------------------
 bool InternalDofs::isAssigned(unsigned int localDof)
 {
     if (localDof < m_dofs.size())
@@ -112,7 +104,6 @@ bool InternalDofs::isAssigned(unsigned int localDof)
     return false;
 }
 
-// ------------------------------------------------------------
 Dof* InternalDofs::getDof(unsigned int localDof)
 {
     if (localDof < m_dofs.size())
@@ -123,7 +114,6 @@ Dof* InternalDofs::getDof(unsigned int localDof)
     return NULL;
 }
 
-// ------------------------------------------------------------
 void InternalDofs::readFromStream(std::istream& in)
 {
     unsigned int i;
@@ -143,7 +133,6 @@ void InternalDofs::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
 void InternalDofs::saveToStream(std::ostream& out)
 {
     using namespace std;

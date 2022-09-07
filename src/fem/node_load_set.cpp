@@ -3,18 +3,18 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 NodeLoadSet::NodeLoadSet()
     : LoadSet()
 {
 }
 
-// ------------------------------------------------------------
+
 NodeLoadSet::~NodeLoadSet()
 {
 }
 
-// ------------------------------------------------------------
+
 Load* NodeLoadSet::createLoad()
 {
     return new NodeLoad();

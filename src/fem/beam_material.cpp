@@ -13,7 +13,6 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
 BeamMaterial::BeamMaterial()
     : Material()
 {
@@ -30,12 +29,10 @@ BeamMaterial::BeamMaterial()
     m_representation = -1;
 }
 
-// ------------------------------------------------------------
 BeamMaterial::~BeamMaterial()
 {
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::setProperties(double E, double G,
     double A, double Iy,
     double Iz, double Kv)
@@ -48,7 +45,6 @@ void BeamMaterial::setProperties(double E, double G,
     m_Kv = Kv;
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::getProperties(double& E, double& G, double& A,
     double& Iy, double& Iz, double& Kv)
 {
@@ -60,7 +56,6 @@ void BeamMaterial::getProperties(double& E, double& G, double& A,
     Kv = m_Kv;
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::print(ostream& out)
 {
     out << "Material : " << this->getName() << endl;
@@ -72,7 +67,6 @@ void BeamMaterial::print(ostream& out)
     out << "   Kv = " << m_Kv << endl;
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::saveToStream(std::ostream& out)
 {
     Material::saveToStream(out);
@@ -99,7 +93,6 @@ void BeamMaterial::saveToStream(std::ostream& out)
     }
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::readFromStream(std::istream& in)
 {
     int sectionType;
@@ -159,7 +152,6 @@ void BeamMaterial::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::setSection(Section* section)
 {
     if (m_section != NULL)
@@ -217,31 +209,26 @@ void BeamMaterial::setSectionType(SectionType sectionType)
     }
 }
 
-// ------------------------------------------------------------
 Section* BeamMaterial::getSection()
 {
     return m_section;
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::setName(const std::string& name)
 {
     m_name = name;
 }
 
-// ------------------------------------------------------------
 const std::string BeamMaterial::getName()
 {
     return m_name;
 }
 
-// ------------------------------------------------------------
 void BeamMaterial::setColor(int color)
 {
     m_color = color;
 }
 
-// ------------------------------------------------------------
 int BeamMaterial::getColor()
 {
     return m_color;

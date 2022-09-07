@@ -2,7 +2,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 NodeBC::NodeBC()
 {
     int i;
@@ -13,18 +13,18 @@ NodeBC::NodeBC()
     }
 }
 
-// ------------------------------------------------------------
+
 NodeBC::~NodeBC()
 {
     this->clearNodes();
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::print(std::ostream& out)
 {
 }
 
-// ------------------------------------------------------------
+
 json_nl NodeBC::toJson()
 {
     json_nl j;
@@ -41,7 +41,7 @@ json_nl NodeBC::toJson()
     return j;
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -60,7 +60,7 @@ void NodeBC::saveToStream(std::ostream& out)
     }
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::readFromStream(std::istream& in)
 {
     int nNodes, i;
@@ -84,14 +84,14 @@ void NodeBC::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::addNode(Node* node)
 {
     node->addReference();
     m_nodes.push_back(node);
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::clearNodes()
 {
     unsigned int i;
@@ -102,7 +102,7 @@ void NodeBC::clearNodes()
     m_nodes.clear();
 }
 
-// ------------------------------------------------------------
+
 bool NodeBC::removeNode(Node* node)
 {
     std::vector<Node*>::iterator p = m_nodes.begin();
@@ -125,7 +125,7 @@ bool NodeBC::removeNode(Node* node)
         return false;
 }
 
-// ------------------------------------------------------------
+
 Node* NodeBC::getNode(unsigned int idx)
 {
     if (idx < m_nodes.size())
@@ -134,7 +134,7 @@ Node* NodeBC::getNode(unsigned int idx)
         return NULL;
 }
 
-// ------------------------------------------------------------
+
 long NodeBC::getNodeIndex(unsigned int idx)
 {
     if (idx < m_nodeIndex.size())
@@ -143,19 +143,19 @@ long NodeBC::getNodeIndex(unsigned int idx)
         return -1;
 }
 
-// ------------------------------------------------------------
+
 size_t NodeBC::getNodeIndexSize()
 {
     return m_nodeIndex.size();
 }
 
-// ------------------------------------------------------------
+
 size_t NodeBC::getNodeSize()
 {
     return m_nodes.size();
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::prescribe(int dof, double value)
 {
     if ((dof >= 1) && (dof <= 6))
@@ -196,7 +196,7 @@ void NodeBC::release()
         this->unprescribe(i);
 }
 
-// ------------------------------------------------------------
+
 void NodeBC::unprescribe(int dof)
 {
     if ((dof >= 1) && (dof <= 6))
@@ -206,7 +206,7 @@ void NodeBC::unprescribe(int dof)
     }
 }
 
-// ------------------------------------------------------------
+
 bool NodeBC::isPrescribed(int dof)
 {
     if ((dof >= 1) && (dof <= 6))
@@ -215,7 +215,7 @@ bool NodeBC::isPrescribed(int dof)
         return false;
 }
 
-// ------------------------------------------------------------
+
 double NodeBC::getPrescribedValue(int dof)
 {
     if ((dof >= 1) && (dof <= 6))

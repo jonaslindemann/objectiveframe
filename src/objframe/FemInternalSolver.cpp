@@ -9,6 +9,166 @@
 
 using namespace ofem;
 
+void bar3e(
+    RowVector& ex,
+    RowVector& ey,
+    RowVector& ez,
+    RowVector& ep,
+    double eq,
+    Matrix& Ke,
+    ColumnVector& fe)
+{
+    /*
+    E = ep[0]
+    A = ep[1]
+
+    b = np.mat([
+        [ex[1]-ex[0]],
+        [ey[1]-ey[0]],
+        [ez[1]-ez[0]]
+    ])
+    L = np.sqrt(b.T*b).item()
+
+    n = np.asarray(b.T/L).reshape(3)
+
+    G = np.mat([
+        [n[0], n[1], n[2], 0.,   0.,   0.],
+        [0.,   0.,   0.,   n[0], n[1], n[2]]
+    ])
+
+    Kle = E*A/L*np.mat([
+        [1, -1],
+        [-1, 1]
+    ])
+
+    return G.T*Kle*G
+    */
+
+    double E = ep(1);
+    double A = ep(2);
+
+    ColumnVector b(3);
+    RowVector n(3);
+    Matrix G(2, 6);
+    Matrix Kle(2, 2);
+    ColumnVector fle(2);    
+
+    b << ex(2) - ex(1) 
+      << ey(2) - ey(1) 
+      << ez(2) - ez(1);
+    
+    double L = sqrt((b.t() * b).AsScalar());
+     
+    n = b.t() / L; 
+
+    G << n(1) << n(2) << n(3) << 0.0  << 0.0  << 0.0
+      << 0.0  <<  0.0 <<  0.0 << n(1) << n(2) << n(3);
+
+    double a = E * A / L;
+
+    Kle << a << -a
+        << -a << a;
+
+    a = eq * L / 2.0;
+
+    fle << a << a;
+
+    Ke = G.t() * Kle * G;
+    fe = G.t() * fle;
+}
+
+void bar3s(
+    RowVector& ex,
+    RowVector& ey,
+    RowVector& ez,
+    RowVector& ep,
+    RowVector& ed,
+    double eq,
+    int n,
+    ColumnVector& es,
+    ColumnVector& edi,
+    ColumnVector& eci)
+{
+    /*
+    E = ep[0]
+    A = ep[1]
+
+    b = np.mat([
+        [ex[1]-ex[0]],
+        [ey[1]-ey[0]],
+        [ez[1]-ez[0]]
+    ])
+    L = np.sqrt(b.T*b).item()
+
+    n = np.asarray(b.T/L).reshape(3)
+
+    G = np.mat([
+        [n[0], n[1], n[2], 0., 0., 0.],
+        [0., 0., 0., n[0], n[1], n[2]]
+    ])
+
+    #Kle = E*A/L*np.mat([
+    #    [ 1,-1],
+    #    [-1, 1]
+    #])
+
+    u = np.asmatrix(ed).T
+    N = E*A/L*np.mat([[-1., 1.]])*G*u
+
+    return N.item()
+    */
+    double E = ep(1);
+    double A = ep(2);
+
+    ColumnVector b(3);
+    RowVector nn(3);
+    Matrix G(2, 6);
+    Matrix Kle(2, 2);
+    ColumnVector fle(2);
+
+    b << ex(2) - ex(1)
+      << ey(2) - ey(1)
+      << ez(2) - ez(1);
+
+    double L = sqrt((b.t() * b).AsScalar());
+
+    nn = b.t() / L;
+
+    G << nn(1) << nn(2) << nn(3) << 0.0 << 0.0 << 0.0
+      << 0.0 << 0.0 << 0.0 << nn(1) << nn(2) << nn(3);
+
+    double c1 = E * A / L;
+
+    Kle << c1 << -c1
+        << -c1 << c1;
+
+    c1 = eq * L / 2.0;
+
+    fle << c1 << c1;
+
+    ColumnVector ae = ed.t();
+    ColumnVector ale = G * ae;
+
+    RowVector B(2);
+
+    B << -1.0 / L << 1.0 / L;
+
+    for (int i = 1; i <= n; i++)
+    {
+        eci(i) = (i - 1.0) * L / (n - 1.0);
+        double x = eci(i);
+        double up = -eq * (0.5 * pow(x, 2) - 0.5 * L * x) / E / A;
+        double Np = -eq * (x - 0.5 * L);
+
+        RowVector N(2);
+        N << 1.0 - x / L << x / L;
+
+        edi(i) = (N * ale + up).AsScalar(); // [1 x 2] * [2 x 1]
+        es(i) = (E * A * B * ale + Np).AsScalar();
+        eci(i) = x;
+    }
+}
+
 void beam3e(
     RowVector& ex,
     RowVector& ey,
@@ -353,7 +513,7 @@ void FrameSolver::execute()
     // Retrieve individual parts of fem model
     //
 
-    ElementSet* elementSet = femModel->getElementSet();
+    BeamSet* elementSet = static_cast<BeamSet*>(femModel->getElementSet());
     NodeSet* nodeSet = femModel->getNodeSet();
     MaterialSet* materialSet = femModel->getMaterialSet();
     NodeBCSet* bcSet = femModel->getNodeBCSet();
@@ -396,6 +556,9 @@ void FrameSolver::execute()
     // Enumerate everything
     //
 
+    nodeSet->resetNodeKind(nkNotConnected);
+    elementSet->updateNodeKinds();  
+
     nodeSet->enumerateNodes();
     materialSet->enumerateMaterials();
     elementSet->enumerateElements();
@@ -417,10 +580,13 @@ void FrameSolver::execute()
     RowVector Ep(6);
     Ep = 0.0;
     Matrix Ke(12, 12);
+    Matrix Ke_b(6, 6);
     ColumnVector fe(12);
+    ColumnVector fe_b(6);
     m_f.ReSize(m_nDof, 1);
     m_f = 0.0;
     RowVector DofTopo(12);
+    RowVector DofTopo_b(6);
 
     //
     // Element loads
@@ -462,15 +628,31 @@ void FrameSolver::execute()
     {
         auto beam = static_cast<ofem::Beam*>(elementSet->getElement(i - 1));
 
-        for (j = 0; j < 6; j++)
-            DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+        if (beam->beamType() == btBeam)
+        {
+            for (j = 0; j < 6; j++)
+                DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
-        for (j = 0; j < 6; j++)
-            DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
+            for (j = 0; j < 6; j++)
+                DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
 
-        bandwidth = (int)max(DofTopo) - (int)min(DofTopo);
-        if (bandwidth > maxBandwidth)
-            maxBandwidth = bandwidth;
+            bandwidth = (int)max(DofTopo) - (int)min(DofTopo);
+            if (bandwidth > maxBandwidth)
+                maxBandwidth = bandwidth;
+        }
+        else
+        {
+            cout << "Found a Bar element..." << endl;
+            for (j = 0; j < 3; j++)
+                DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+
+            for (j = 0; j < 3; j++)
+                DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
+
+            bandwidth = (int)max(DofTopo) - (int)min(DofTopo);
+            if (bandwidth > maxBandwidth)
+                maxBandwidth = bandwidth;        
+        }
     }
 
     // so_print(endl << "\tBandwidth = " << maxBandwidth);
@@ -507,7 +689,6 @@ void FrameSolver::execute()
 
         if (beam->getMaterial() != NULL)
         {
-
             beam->getMaterial()->getProperties(E, G, A, Iy, Iz, Kv);
             Ep(1) = E;
             Ep(2) = G;
@@ -516,17 +697,33 @@ void FrameSolver::execute()
             Ep(5) = Iz;
             Ep(6) = Kv;
 
-            for (j = 0; j < 6; j++)
-                DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+            if (beam->beamType() == ofem::btBeam)
+            {
+                for (j = 0; j < 6; j++)
+                    DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
-            for (j = 0; j < 6; j++)
-                DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
+                for (j = 0; j < 6; j++)
+                    DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
 
-            RowVector RowEq(4);
-            RowEq = Eq.Row(i);
+                RowVector RowEq(4);
+                RowEq = Eq.Row(i);
 
-            beam3e(Ex, Ey, Ez, Eo, Ep, RowEq, Ke, fe);
-            assem(DofTopo, K, Ke, m_f, fe);
+                beam3e(Ex, Ey, Ez, Eo, Ep, RowEq, Ke, fe);
+                assem(DofTopo, K, Ke, m_f, fe);
+            }
+            else
+            {
+                for (j = 0; j < 3; j++)
+                    DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+
+                for (j = 0; j < 3; j++)
+                    DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
+
+                double eq = 0.0;
+
+                bar3e(Ex, Ey, Ez, Ep, eq, Ke, fe);
+                assem(DofTopo, K, Ke, m_f, fe);
+            }
         }
         else
         {
@@ -584,13 +781,16 @@ void FrameSolver::execute()
         {
             Node* node = nodeBC->getNode(j);
 
-            for (k = 0; k < 6; k++)
+            if (node->getKind() != nkNotConnected)
             {
-                if (nodeBC->isPrescribed(k + 1))
+                for (k = 0; k < 6; k++)
                 {
-                    bcCount++;
-                    Bc(bcCount, 1) = node->getDof(k)->getNumber();
-                    Bc(bcCount, 2) = nodeBC->getPrescribedValue(k);
+                    if (nodeBC->isPrescribed(k + 1))
+                    {
+                        bcCount++;
+                        Bc(bcCount, 1) = node->getDof(k)->getNumber();
+                        Bc(bcCount, 2) = nodeBC->getPrescribedValue(k);
+                    }
                 }
             }
         }
@@ -750,11 +950,15 @@ void FrameSolver::execute()
     for (i = 0; i < nodeSet->getSize(); i++)
     {
         Node* node = nodeSet->getNode(i);
-        node->setValueSize(3);
-        for (j = 0; j < 3; j++)
+
+        if (node->getKind() != nkNotConnected)
         {
-            nodeValue = m_GlobalA(node->getDof(j)->getNumber());
-            node->setValue(j, nodeValue);
+            node->setValueSize(3);
+            for (j = 0; j < 3; j++)
+            {
+                nodeValue = m_GlobalA(node->getDof(j)->getNumber());
+                node->setValue(j, nodeValue);
+            }
         }
     }
     //
@@ -763,6 +967,7 @@ void FrameSolver::execute()
 
     int n;
     RowVector Ed(12);
+    RowVector Ed_b(6);
     Matrix Es;
     Matrix Edi;
     ColumnVector Eci;
@@ -805,39 +1010,87 @@ void FrameSolver::execute()
         Ep(5) = Iz;
         Ep(6) = Kv;
 
-        for (j = 0; j < 6; j++)
+        if (beam->beamType() == btBeam)
         {
-            DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
-            DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
-            Ed(j + 1) = m_GlobalA((int)DofTopo(j + 1));
-            Ed(j + 7) = m_GlobalA((int)DofTopo(j + 7));
+            for (j = 0; j < 6; j++)
+            {
+                DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+                DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
+                Ed(j + 1) = m_GlobalA((int)DofTopo(j + 1));
+                Ed(j + 7) = m_GlobalA((int)DofTopo(j + 7));
+            }
+
+            RowVector RowEq(4);
+            RowEq = Eq.Row(i);
+            beam3s(Ex, Ey, Ez, Eo, Ep, Ed, RowEq, n, Es, Edi, Eci);
+
+            int pos = 0;
+
+            for (k = 1; k <= n; k++)
+            {
+                N = Es(k, 1);
+                T = Es(k, 2);
+                Vy = Es(k, 3);
+                Vz = Es(k, 4);
+                My = Es(k, 5);
+                Mz = Es(k, 6);
+
+                Navier = calcNavier(N, My, Mz, beam);
+                updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
+
+                for (j = 1; j <= 6; j++)
+                    beam->setValue(pos++, Es(k, j));
+            }
+
+            for (k = 1; k <= n; k++)
+                for (j = 1; j <= 4; j++)
+                    beam->setValue(pos++, Edi(k, j));
         }
-
-        RowVector RowEq(4);
-        RowEq = Eq.Row(i);
-        beam3s(Ex, Ey, Ez, Eo, Ep, Ed, RowEq, n, Es, Edi, Eci);
-
-        int pos = 0;
-
-        for (k = 1; k <= n; k++)
+        else
         {
-            N = Es(k, 1);
-            T = Es(k, 2);
-            Vy = Es(k, 3);
-            Vz = Es(k, 4);
-            My = Es(k, 5);
-            Mz = Es(k, 6);
+            for (j = 0; j < 3; j++)
+            {
+                DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+                DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
+                Ed_b(j + 1) = m_GlobalA((int)DofTopo(j + 1));
+                Ed_b(j + 4) = m_GlobalA((int)DofTopo(j + 4));
+            }
 
-            Navier = calcNavier(N, My, Mz, beam);
-            updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
+            double eq = 0.0;
 
-            for (j = 1; j <= 6; j++)
-                beam->setValue(pos++, Es(k, j));
+            ColumnVector Es_b(n);
+            ColumnVector Edi_b(n);
+            ColumnVector Eci_b(n);
+
+            bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci);
+
+            int pos = 0;
+
+            for (k = 1; k <= n; k++)
+            {
+                N = Es_b(k);
+                T = 0.0;
+                Vy = 0.0;
+                Vz = 0.0;
+                My = 0.0;
+                Mz = 0.0;
+
+                Navier = calcNavier(N, My, Mz, beam);
+                updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
+
+                for (j = 1; j <= 6; j++)
+                    if (j==1)
+                        beam->setValue(pos++, Es_b(k));
+                    else
+                        beam->setValue(pos++, 0.0);
+            }
+
+            for (k = 1; k <= n; k++)
+                for (j = 1; j <= 4; j++)
+                {
+                    beam->setValue(pos++, 0.0);
+                }
         }
-
-        for (k = 1; k <= n; k++)
-            for (j = 1; j <= 4; j++)
-                beam->setValue(pos++, Edi(k, j));
     }
 
     printMaxMin();

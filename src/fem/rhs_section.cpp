@@ -4,7 +4,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 RHSSection::RHSSection(double height, double width, double WT)
     : Section()
 // TODO: check and complete member initialisation list!
@@ -13,7 +13,7 @@ RHSSection::RHSSection(double height, double width, double WT)
     this->setSectionSize(height, width, WT);
 }
 
-// ------------------------------------------------------------
+
 RHSSection::RHSSection()
 {
     this->setSectionType(FEM_RHS_SECTION);
@@ -22,12 +22,12 @@ RHSSection::RHSSection()
     this->setSectionSize(0.1, 0.1, 0.01);
 }
 
-// ------------------------------------------------------------
+
 RHSSection::~RHSSection()
 {
 }
 
-// ------------------------------------------------------------
+
 void RHSSection::setSectionSize(double height, double width, double WT)
 {
     double X[10], Y[10];
@@ -66,7 +66,7 @@ void RHSSection::setSectionSize(double height, double width, double WT)
     this->setData();
 }
 
-// ------------------------------------------------------------
+
 void RHSSection::getSectionSize(double& height, double& width, double& WT)
 {
     height = m_prop[0];
@@ -74,7 +74,7 @@ void RHSSection::getSectionSize(double& height, double& width, double& WT)
     WT = m_prop[4];
 }
 
-// ------------------------------------------------------------
+
 void RHSSection::setData()
 {
     double height = m_prop[0];
@@ -99,7 +99,7 @@ void RHSSection::setData()
     m_data[5] = 0;
 }
 
-// ------------------------------------------------------------
+
 void RHSSection::getExcY(double& emax, double& emin)
 {
     emax = m_prop[1] / 2.0;
@@ -123,7 +123,7 @@ void RHSSection::getSectionProps(double& width, double& height, double& UFW, dou
     this->getSectionSize(height, width, WT);
 }
 
-// ------------------------------------------------------------
+
 void RHSSection::getExcZ(double& emax, double& emin)
 {
     emax = m_prop[0] / 2.0;

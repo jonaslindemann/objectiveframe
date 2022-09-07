@@ -2,7 +2,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 Coord::Coord()
     : Base()
 {
@@ -11,12 +11,12 @@ Coord::Coord()
     m_coord[2] = 0.0;
 }
 
-// ------------------------------------------------------------
+
 Coord::~Coord()
 {
 }
 
-// ------------------------------------------------------------
+
 void Coord::setCoord(double x, double y, double z)
 {
     m_coord[0] = x;
@@ -24,7 +24,7 @@ void Coord::setCoord(double x, double y, double z)
     m_coord[2] = z;
 }
 
-// ------------------------------------------------------------
+
 void Coord::getCoord(double& x, double& y, double& z)
 {
     x = m_coord[0];

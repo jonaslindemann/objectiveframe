@@ -7,7 +7,7 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
+
 Beam::Beam()
     : Element()
     , m_materialIndex { -1 }
@@ -17,18 +17,18 @@ Beam::Beam()
 {
 }
 
-// ------------------------------------------------------------
+
 Beam::~Beam()
 {
 }
 
-// ------------------------------------------------------------
+
 void Beam::print(std::ostream& out)
 {
     Element::print(out);
 }
 
-// ------------------------------------------------------------
+
 void Beam::saveToStream(std::ostream& out)
 {
     Element::saveToStream(out);
@@ -39,7 +39,7 @@ void Beam::saveToStream(std::ostream& out)
         out << -1 << endl;
 }
 
-// ------------------------------------------------------------
+
 void Beam::readFromStream(std::istream& in)
 {
     Element::readFromStream(in);
@@ -47,31 +47,31 @@ void Beam::readFromStream(std::istream& in)
     in >> m_materialIndex;
 }
 
-// ------------------------------------------------------------
+
 void Beam::setMaterial(BeamMaterial* material)
 {
     m_material = material;
 }
 
-// ------------------------------------------------------------
+
 BeamMaterial* Beam::getMaterial()
 {
     return m_material;
 }
 
-// ------------------------------------------------------------
+
 long Beam::getMaterialIndex()
 {
     return m_materialIndex;
 }
 
-// ------------------------------------------------------------
+
 void Beam::setBeamRotation(double angle)
 {
     m_beamRotation = angle;
 }
 
-// ------------------------------------------------------------
+
 double Beam::getBeamRotation()
 {
     return m_beamRotation;
@@ -80,7 +80,7 @@ double Beam::getBeamRotation()
 void ofem::Beam::addNode(Node* node)
 {
     ofem::Element::addNode(node);
-    
+
     switch (m_beamType)
     {
     case btBeam:
@@ -98,7 +98,7 @@ void ofem::Beam::addNode(Node* node)
     }
 }
 
-// ------------------------------------------------------------
+
 void Beam::getOrientationZ(double& ex, double& ey, double& ez)
 {
     double x1, y1, z1, x2, y2, z2;
@@ -152,7 +152,7 @@ void Beam::getOrientationZ(double& ex, double& ey, double& ez)
     ez = v[2];
 }
 
-// ------------------------------------------------------------
+
 void Beam::getOrientationY(double& ex, double& ey, double& ez)
 {
     double x1, y1, z1, x2, y2, z2;

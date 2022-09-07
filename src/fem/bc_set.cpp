@@ -5,19 +5,16 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
 BCSet::BCSet()
     : Base()
 {
 }
 
-// ------------------------------------------------------------
 BCSet::~BCSet()
 {
     deleteAll();
 }
 
-// ------------------------------------------------------------
 void BCSet::print(std::ostream& out)
 {
     using namespace std;
@@ -26,7 +23,6 @@ void BCSet::print(std::ostream& out)
     out << endl;
 }
 
-// ------------------------------------------------------------
 json_nl BCSet::toJson()
 {
     json_nl j = Base::toJson();
@@ -41,13 +37,11 @@ json_nl BCSet::toJson()
     return j;
 }
 
-// ------------------------------------------------------------
 void BCSet::addBC(BC* bc)
 {
     m_bcs.push_back(BCPtr(bc));
 }
 
-// ------------------------------------------------------------
 BC* BCSet::getBC(long i)
 {
     if ((i >= 0) && (i < (long)m_bcs.size()))
@@ -56,7 +50,6 @@ BC* BCSet::getBC(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
 bool BCSet::deleteBC(long i)
 {
     std::vector<BCPtr>::iterator p = m_bcs.begin();
@@ -70,7 +63,6 @@ bool BCSet::deleteBC(long i)
     return false;
 }
 
-// ------------------------------------------------------------
 BCPtr BCSet::removeBC(long i)
 {
     std::vector<BCPtr>::iterator p = m_bcs.begin();
@@ -86,19 +78,16 @@ BCPtr BCSet::removeBC(long i)
         return NULL;
 }
 
-// ------------------------------------------------------------
 void BCSet::deleteAll()
 {
     m_bcs.clear();
 }
 
-// ------------------------------------------------------------
 void BCSet::clear()
 {
     m_bcs.clear();
 }
 
-// ------------------------------------------------------------
 long BCSet::enumerateBCs(long count)
 {
     for (auto i = 0; i < m_bcs.size(); i++)
@@ -106,13 +95,11 @@ long BCSet::enumerateBCs(long count)
     return count;
 }
 
-// ------------------------------------------------------------
 size_t BCSet::getSize()
 {
     return m_bcs.size();
 }
 
-// ------------------------------------------------------------
 void BCSet::saveToStream(std::ostream& out)
 {
     using namespace std;
@@ -122,7 +109,6 @@ void BCSet::saveToStream(std::ostream& out)
         m_bcs[i]->saveToStream(out);
 }
 
-// ------------------------------------------------------------
 void BCSet::readFromStream(std::istream& in)
 {
     long nBCs;
@@ -138,7 +124,6 @@ void BCSet::readFromStream(std::istream& in)
     }
 }
 
-// ------------------------------------------------------------
 void BCSet::connectNodes(NodeSet* nodes)
 {
     for (unsigned int i = 0; i < m_bcs.size(); i++)
@@ -158,13 +143,11 @@ void BCSet::connectNodes(NodeSet* nodes)
     }
 }
 
-// ------------------------------------------------------------
 BC* BCSet::createBC()
 {
     return new BC();
 }
 
-// ------------------------------------------------------------
 bool BCSet::removeBC(BC* bc)
 {
     auto p = m_bcs.begin();

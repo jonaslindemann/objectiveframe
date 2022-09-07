@@ -4,7 +4,7 @@
 
 using namespace ofem;
 
-// ------------------------------------------------------------
+
 LSection::LSection(double height, double width, double WT, double LFT)
     : Section()
 {
@@ -12,7 +12,7 @@ LSection::LSection(double height, double width, double WT, double LFT)
     this->setSectionSize(height, width, WT, LFT);
 }
 
-// ------------------------------------------------------------
+
 LSection::LSection()
     : Section()
 {
@@ -20,12 +20,12 @@ LSection::LSection()
     this->setSectionSize(0.1, 0.1, 0.01, 0.01);
 }
 
-// ------------------------------------------------------------
+
 LSection::~LSection()
 {
 }
 
-// ------------------------------------------------------------
+
 void LSection::setSectionSize(double width, double height, double WT, double LFT)
 {
     double X[7], Y[7];
@@ -63,7 +63,7 @@ void LSection::setSectionSize(double width, double height, double WT, double LFT
     this->setData();
 }
 
-// ------------------------------------------------------------
+
 void LSection::getSectionSize(double& width, double& height, double& WT, double& LFT)
 {
     height = m_prop[0];
@@ -72,7 +72,7 @@ void LSection::getSectionSize(double& width, double& height, double& WT, double&
     LFT = m_prop[6];
 }
 
-// ------------------------------------------------------------
+
 void LSection::setData()
 {
     double height = m_prop[0];

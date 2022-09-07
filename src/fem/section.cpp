@@ -5,7 +5,7 @@
 using namespace ofem;
 using namespace std;
 
-// ------------------------------------------------------------
+
 Section::Section()
     : Base()
     , m_nbrOfProps { 0 }
@@ -21,13 +21,13 @@ Section::Section()
     this->setSectionProps(0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.09);
 }
 
-// ------------------------------------------------------------
+
 Section::~Section()
 {
     this->clear();
 }
 
-// ------------------------------------------------------------
+
 void Section::addPoint(double x, double y)
 {
     Coord* coord = new Coord();
@@ -35,7 +35,7 @@ void Section::addPoint(double x, double y)
     m_coords.push_back(coord);
 }
 
-// ------------------------------------------------------------
+
 void Section::clear()
 {
     for (unsigned int i = 0; i < m_coords.size(); i++)
@@ -43,7 +43,7 @@ void Section::clear()
     m_coords.clear();
 }
 
-// ------------------------------------------------------------
+
 void Section::getCoord(unsigned int idx, double& x, double& y)
 {
     double z;
@@ -51,13 +51,13 @@ void Section::getCoord(unsigned int idx, double& x, double& y)
         m_coords[idx]->getCoord(x, y, z);
 }
 
-// ------------------------------------------------------------
+
 size_t Section::getSize()
 {
     return m_coords.size();
 }
 
-// ------------------------------------------------------------
+
 void Section::getNormal(unsigned int idx, double& ex, double& ey)
 {
     double x1, y1, z;
@@ -95,7 +95,7 @@ void Section::getNormal(unsigned int idx, double& ex, double& ey)
     }
 }
 
-// ------------------------------------------------------------
+
 void Section::setPropSize(int size)
 {
     m_nbrOfProps = size;
@@ -106,19 +106,19 @@ void Section::setPropSize(int size)
         m_prop[i] = 0;
 }
 
-// ------------------------------------------------------------
+
 void Section::getPropSize(int& size)
 {
     size = m_nbrOfProps;
 }
 
-// ------------------------------------------------------------
+
 void Section::getAllProps(double*& props)
 {
     props = m_prop;
 }
 
-// ------------------------------------------------------------
+
 void Section::setDataSize(int size)
 {
     m_nbrOfData = size;
@@ -129,25 +129,25 @@ void Section::setDataSize(int size)
         m_data[i] = 0;
 }
 
-// ------------------------------------------------------------
+
 void Section::getDataSize(int& size)
 {
     size = m_nbrOfData;
 }
 
-// ------------------------------------------------------------
+
 void Section::getAllData(double*& data)
 {
     data = m_data;
 }
 
-// ------------------------------------------------------------
+
 void Section::setAutoCalc(bool mode)
 {
     m_autoCalc = mode;
 }
 
-// ------------------------------------------------------------
+
 bool Section::autoCalc()
 {
     return m_autoCalc;

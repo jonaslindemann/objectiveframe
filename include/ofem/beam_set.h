@@ -20,6 +20,8 @@ public:
 
     ClassInfo("BeamSet", ElementSet);
 
+    void updateNodeKinds();
+
     // Methods
 
     void connectMaterials(BeamMaterialSet* materialSet);

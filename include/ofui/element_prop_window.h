@@ -14,6 +14,7 @@ class ElementPropWindow : public UiWindow
 private:
     std::string m_name;
     vfem::Beam* m_beam;
+    ivf::Composite* m_selectedShapes;
     FemWidget* m_widget;
     float m_beamRotation;
     float m_oldBeamRotation;
@@ -24,6 +25,7 @@ public:
     virtual ~ElementPropWindow();
 
     void setBeam(vfem::Beam* beam);
+    void setSelectedShapes(ivf::Composite* selected);
     void setWidget(FemWidget* widget);
 
     static std::shared_ptr<ElementPropWindow> create(const std::string name);

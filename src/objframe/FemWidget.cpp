@@ -2422,7 +2422,9 @@ void FemWidget::onSelect(Composite* selectedShapes)
                 }
                 if (firstShape->isClass("vfem::Beam"))
                 {
+                    m_elementPropWindow->setSelectedShapes(nullptr);
                     m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
+ 
                     m_singleElementSelection = true;
                 }
             }
@@ -2438,6 +2440,8 @@ void FemWidget::onSelect(Composite* selectedShapes)
                 }
 
                 m_nodePropWindow->setSelectedShapes(selectedShapes);
+                m_elementPropWindow->setSelectedShapes(selectedShapes);
+                m_elementPropWindow->setBeam(nullptr);
 
                 m_mixedSelection = m_nodeSelection && m_elementSelection;
             }

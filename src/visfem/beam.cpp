@@ -5,7 +5,6 @@
 using namespace ivf;
 using namespace vfem;
 
-
 Beam::Beam()
     : Composite()
 {
@@ -99,7 +98,6 @@ Beam::Beam()
     this->setUseSelectShape(true);
 }
 
-
 Beam::~Beam()
 {
     for (int i = 0; i < 2; i++)
@@ -113,18 +111,15 @@ Beam::~Beam()
     }
 }
 
-
 void Beam::setBeam(ofem::Beam* beam)
 {
     m_femBeam = beam;
 }
 
-
 ofem::Beam* Beam::getBeam()
 {
     return m_femBeam;
 }
-
 
 void Beam::refresh()
 {
@@ -188,6 +183,12 @@ void Beam::refresh()
                     m_solidLine->setRadius(m_beamModel->getLineRadius());
                 m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                 m_solidLine->setState(Shape::OS_ON);
+
+                if (this->getBeam()->beamType() == ofem::btBar)
+                    m_solidLine->setOffsets(-m_beamModel->getNodeSize() * 2.0, -m_beamModel->getNodeSize() * 2.0);
+                else
+                    m_solidLine->setOffsets(0.0, 0.0);
+
                 m_beamTexture->deactivate();
                 m_beamTexture->setTextureModifier(1.0, 1.0 / m_solidLine->getLength(), 0.0);
                 m_solidLine->setTextureMode(0);
@@ -236,7 +237,6 @@ void Beam::refresh()
     }
 }
 
-
 void Beam::doCreateGeometry()
 {
     if (m_femBeam != nullptr)
@@ -244,7 +244,6 @@ void Beam::doCreateGeometry()
         Composite::doCreateGeometry();
     }
 }
-
 
 void Beam::setNodes(vfem::Node* node1, vfem::Node* node2)
 {
@@ -272,7 +271,6 @@ vfem::Node* vfem::Beam::getNode(int idx)
     else
         return nullptr;
 }
-
 
 void Beam::doCreateSelect()
 {
@@ -313,7 +311,6 @@ void Beam::doCreateSelect()
         }
     }
 }
-
 
 void Beam::initExtrusion()
 {
@@ -415,48 +412,74 @@ void Beam::initResults()
 
             for (k = 0; k < n; k++)
             {
-                switch (m_beamModel->getResultType())
+                if (m_femBeam->beamType() == ofem::btBeam)
                 {
-                case IVF_BEAM_N:
-                    value = m_femBeam->getValue(0 + 6 * k);
-                    if (value > 0)
+                    switch (m_beamModel->getResultType())
                     {
-                        value = fabs(value) / resultInfo->getMaxN();
-                        colorMapPos->getColor(value, red, green, blue);
-                    }
-                    else
-                    {
-                        value = fabs(value) / resultInfo->getMinN();
-                        colorMapNeg->getColor(fabs(value), red, green, blue);
-                    }
+                    case IVF_BEAM_N:
+                        value = m_femBeam->getValue(0 + 6 * k);
+                        if (value > 0)
+                        {
+                            value = fabs(value) / resultInfo->getMaxN();
+                            colorMapPos->getColor(value, red, green, blue);
+                        }
+                        else
+                        {
+                            value = fabs(value) / resultInfo->getMinN();
+                            colorMapNeg->getColor(fabs(value), red, green, blue);
+                        }
 
-                    break;
-                case IVF_BEAM_T:
-                    value = m_femBeam->getValue(3 + 6 * k);
-                    value = (fabs(value) - resultInfo->getMinT()) / resultInfo->getMaxT();
-                    break;
-                case IVF_BEAM_V:
-                    v1 = m_femBeam->getValue(1 + 6 * k);
-                    v2 = m_femBeam->getValue(2 + 6 * k);
-                    value = sqrt(pow(v1, 2) + pow(v2, 2));
-                    value = (value - resultInfo->getMinV()) / resultInfo->getMaxV();
-                    break;
-                case IVF_BEAM_M:
-                    v1 = m_femBeam->getValue(4 + 6 * k);
-                    v2 = m_femBeam->getValue(5 + 6 * k);
-                    value = sqrt(pow(v1, 2) + pow(v2, 2));
-                    value = (value - resultInfo->getMinM()) / resultInfo->getMaxM();
-                    break;
-                case IVF_BEAM_NAVIER:
-                    N = m_femBeam->getValue(0 + 6 * k);
-                    My = m_femBeam->getValue(4 + 6 * k);
-                    Mz = m_femBeam->getValue(5 + 6 * k);
-                    value = calcNavier(N, My, Mz);
-                    value = (fabs(value) - resultInfo->getMinNavier()) / resultInfo->getMaxNavier();
-                    break;
-                default:
-                    value = 0.0;
-                    break;
+                        break;
+                    case IVF_BEAM_T:
+                        value = m_femBeam->getValue(3 + 6 * k);
+                        value = (fabs(value) - resultInfo->getMinT()) / resultInfo->getMaxT();
+                        break;
+                    case IVF_BEAM_V:
+                        v1 = m_femBeam->getValue(1 + 6 * k);
+                        v2 = m_femBeam->getValue(2 + 6 * k);
+                        value = sqrt(pow(v1, 2) + pow(v2, 2));
+                        value = (value - resultInfo->getMinV()) / resultInfo->getMaxV();
+                        break;
+                    case IVF_BEAM_M:
+                        v1 = m_femBeam->getValue(4 + 6 * k);
+                        v2 = m_femBeam->getValue(5 + 6 * k);
+                        value = sqrt(pow(v1, 2) + pow(v2, 2));
+                        value = (value - resultInfo->getMinM()) / resultInfo->getMaxM();
+                        break;
+                    case IVF_BEAM_NAVIER:
+                        N = m_femBeam->getValue(0 + 6 * k);
+                        My = m_femBeam->getValue(4 + 6 * k);
+                        Mz = m_femBeam->getValue(5 + 6 * k);
+                        value = calcNavier(N, My, Mz);
+                        value = (fabs(value) - resultInfo->getMinNavier()) / resultInfo->getMaxNavier();
+                        break;
+                    default:
+                        value = 0.0;
+                        break;
+                    }
+                }
+                else
+                {
+                    switch (m_beamModel->getResultType())
+                    {
+                    case IVF_BEAM_N:
+                        value = m_femBeam->getValue(0 + 6 * k);
+                        if (value > 0)
+                        {
+                            value = fabs(value) / resultInfo->getMaxN();
+                            colorMapPos->getColor(value, red, green, blue);
+                        }
+                        else
+                        {
+                            value = fabs(value) / resultInfo->getMinN();
+                            colorMapNeg->getColor(fabs(value), red, green, blue);
+                        }
+
+                        break;
+                    default:
+                        value = 0.0;
+                        break;
+                    }
                 }
 
                 if (m_beamModel->getResultType() != IVF_BEAM_N)

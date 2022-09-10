@@ -1,4 +1,4 @@
-#OF_VERSION=0
+#OF_VERSION=1
 1
 1
 default
@@ -867,11 +867,7 @@ default
 
 1
 1 1
-4
-19
-15
-14
-18
+0
 0 -1000 0 
 single
 1

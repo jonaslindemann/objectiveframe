@@ -642,14 +642,13 @@ void FrameSolver::execute()
         }
         else
         {
-            cout << "Found a Bar element..." << endl;
             for (j = 0; j < 3; j++)
                 DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
             for (j = 0; j < 3; j++)
                 DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
 
-            bandwidth = (int)max(DofTopo) - (int)min(DofTopo);
+            bandwidth = (int)max(DofTopo_b) - (int)min(DofTopo_b);
             if (bandwidth > maxBandwidth)
                 maxBandwidth = bandwidth;        
         }
@@ -713,6 +712,9 @@ void FrameSolver::execute()
             }
             else
             {
+                Ep(1) = E;
+                Ep(2) = A;
+
                 for (j = 0; j < 3; j++)
                     DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
@@ -721,8 +723,8 @@ void FrameSolver::execute()
 
                 double eq = 0.0;
 
-                bar3e(Ex, Ey, Ez, Ep, eq, Ke, fe);
-                assem(DofTopo, K, Ke, m_f, fe);
+                bar3e(Ex, Ey, Ez, Ep, eq, Ke_b, fe_b);
+                assem(DofTopo_b, K, Ke_b, m_f, fe_b);
             }
         }
         else
@@ -787,9 +789,12 @@ void FrameSolver::execute()
                 {
                     if (nodeBC->isPrescribed(k + 1))
                     {
-                        bcCount++;
-                        Bc(bcCount, 1) = node->getDof(k)->getNumber();
-                        Bc(bcCount, 2) = nodeBC->getPrescribedValue(k);
+                        if (node->getDof(k) != nullptr)
+                        {
+                            bcCount++;
+                            Bc(bcCount, 1) = node->getDof(k)->getNumber();
+                            Bc(bcCount, 2) = nodeBC->getPrescribedValue(k);
+                        }
                     }
                 }
             }
@@ -903,21 +908,19 @@ void FrameSolver::execute()
     if (m_X != NULL)
         delete m_X;
 
-    /*
-        if (Ksys.LogDeterminant().Sign()<0)
-        {
-                so_print("Error: System unstable.");
-                m_errorStatus = BS_UNSTABLE;
-                return;
-        }
+    if (Ksys.LogDeterminant().Sign()<0)
+    {
+            so_print("Error: System unstable.");
+            m_errorStatus = BS_UNSTABLE;
+            return;
+    }
 
-        if (Ksys.LogDeterminant().Sign()==0)
-        {
-                so_print("Error: Matrix singular.");
-                m_errorStatus = BS_SINGULAR;
-                return;
-        }
-    */
+    if (Ksys.LogDeterminant().Sign()==0)
+    {
+            so_print("Error: Matrix singular.");
+            m_errorStatus = BS_SINGULAR;
+            return;
+    }
 
     m_X = new LinearEquationSolver(Ksys);
     m_a = m_X->i() * fsys;
@@ -1052,8 +1055,8 @@ void FrameSolver::execute()
             {
                 DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
-                Ed_b(j + 1) = m_GlobalA((int)DofTopo(j + 1));
-                Ed_b(j + 4) = m_GlobalA((int)DofTopo(j + 4));
+                Ed_b(j + 1) = m_GlobalA((int)DofTopo_b(j + 1));
+                Ed_b(j + 4) = m_GlobalA((int)DofTopo_b(j + 4));
             }
 
             double eq = 0.0;
@@ -1062,7 +1065,10 @@ void FrameSolver::execute()
             ColumnVector Edi_b(n);
             ColumnVector Eci_b(n);
 
-            bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci);
+            Ep(1) = E;
+            Ep(2) = A;
+
+            bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci_b);
 
             int pos = 0;
 
@@ -1075,7 +1081,7 @@ void FrameSolver::execute()
                 My = 0.0;
                 Mz = 0.0;
 
-                Navier = calcNavier(N, My, Mz, beam);
+                Navier = 0.0;
                 updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
 
                 for (j = 1; j <= 6; j++)
@@ -1215,6 +1221,7 @@ void FrameSolver::update()
     RowVector Ep(6);
     Ep = 0.0;
     RowVector DofTopo(12);
+    RowVector DofTopo_b(6);
     int i, j, k;
     double E, G, A, Iy, Iz, Kv;
 
@@ -1249,6 +1256,7 @@ void FrameSolver::update()
 
     int n;
     RowVector Ed(12);
+    RowVector Ed_b(6);
     Matrix Es;
     Matrix Edi;
     ColumnVector Eci;
@@ -1257,6 +1265,7 @@ void FrameSolver::update()
 
     initMaxMin();
 
+    /*
     for (i = 1; i <= elementSet->getSize(); i++)
     {
 
@@ -1325,6 +1334,127 @@ void FrameSolver::update()
             for (j = 1; j <= 4; j++)
                 beam->setValue(pos++, Edi(k, j));
     }
+    */
+    for (i = 1; i <= elementSet->getSize(); i++)
+    {
+
+        double x1, y1, z1;
+        double x2, y2, z2;
+        double ex, ey, ez;
+
+        Beam* beam = (Beam*)elementSet->getElement(i - 1);
+        n = beam->getEvaluationPoints();
+        beam->setValueSize(n * 11);
+
+        beam->getNode(0)->getCoord(x1, y1, z1);
+        beam->getNode(1)->getCoord(x2, y2, z2);
+
+        Ex(1) = x1;
+        Ey(1) = y1;
+        Ez(1) = z1;
+        Ex(2) = x2;
+        Ey(2) = y2;
+        Ez(2) = z2;
+
+        beam->getOrientationZ(ex, ey, ez);
+        Eo(1) = ex;
+        Eo(2) = ey;
+        Eo(3) = ez;
+
+        beam->getMaterial()->getProperties(E, G, A, Iy, Iz, Kv);
+        Ep(1) = E;
+        Ep(2) = G;
+        Ep(3) = A;
+        Ep(4) = Iy;
+        Ep(5) = Iz;
+        Ep(6) = Kv;
+
+        if (beam->beamType() == btBeam)
+        {
+            for (j = 0; j < 6; j++)
+            {
+                DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+                DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
+                Ed(j + 1) = m_GlobalA((int)DofTopo(j + 1));
+                Ed(j + 7) = m_GlobalA((int)DofTopo(j + 7));
+            }
+
+            RowVector RowEq(4);
+            RowEq = Eq.Row(i);
+            beam3s(Ex, Ey, Ez, Eo, Ep, Ed, RowEq, n, Es, Edi, Eci);
+
+            int pos = 0;
+
+            for (k = 1; k <= n; k++)
+            {
+                N = Es(k, 1);
+                T = Es(k, 2);
+                Vy = Es(k, 3);
+                Vz = Es(k, 4);
+                My = Es(k, 5);
+                Mz = Es(k, 6);
+
+                Navier = calcNavier(N, My, Mz, beam);
+                updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
+
+                for (j = 1; j <= 6; j++)
+                    beam->setValue(pos++, Es(k, j));
+            }
+
+            for (k = 1; k <= n; k++)
+                for (j = 1; j <= 4; j++)
+                    beam->setValue(pos++, Edi(k, j));
+        }
+        else
+        {
+            for (j = 0; j < 3; j++)
+            {
+                DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
+                DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
+                Ed_b(j + 1) = m_GlobalA((int)DofTopo_b(j + 1));
+                Ed_b(j + 4) = m_GlobalA((int)DofTopo_b(j + 4));
+            }
+
+            double eq = 0.0;
+
+            ColumnVector Es_b(n);
+            ColumnVector Edi_b(n);
+            ColumnVector Eci_b(n);
+
+            Ep(1) = E;
+            Ep(2) = A;
+
+            bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci_b);
+
+            int pos = 0;
+
+            for (k = 1; k <= n; k++)
+            {
+                N = Es_b(k);
+                T = 0.0;
+                Vy = 0.0;
+                Vz = 0.0;
+                My = 0.0;
+                Mz = 0.0;
+
+                Navier = 0.0;
+                updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
+
+                for (j = 1; j <= 6; j++)
+                    if (j == 1)
+                        beam->setValue(pos++, Es_b(k));
+                    else
+                        beam->setValue(pos++, 0.0);
+            }
+
+            for (k = 1; k <= n; k++)
+                for (j = 1; j <= 4; j++)
+                {
+                    beam->setValue(pos++, 0.0);
+                }
+        }
+    }
+
     printMaxMin();
 }
 

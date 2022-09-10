@@ -13,6 +13,7 @@ ElementPropWindow::ElementPropWindow(const std::string name)
     , m_oldBeamRotation { 0.0f }
     , m_widget { nullptr }
     , m_beamType { 0 }
+    , m_selectedShapes { nullptr }
 {
 }
 
@@ -33,6 +34,11 @@ void ElementPropWindow::setBeam(vfem::Beam* beam)
         else
             m_beamType = 1;
     }
+}
+
+void ofui::ElementPropWindow::setSelectedShapes(ivf::Composite* selected)
+{
+    m_selectedShapes = selected;
 }
 
 void ElementPropWindow::setWidget(FemWidget* widget)
@@ -58,9 +64,15 @@ void ElementPropWindow::doDraw()
         ImGui::RadioButton("Bar", &m_beamType, 1);
 
         if (m_beamType == 0)
+        {
             m_beam->getBeam()->setBeamType(ofem::btBeam);
+            m_beam->refresh();
+        }
         else
+        {
             m_beam->getBeam()->setBeamType(ofem::btBar);
+            m_beam->refresh();
+        }
 
         if (m_beam->getBeam()->getValueSize() > 0)
         {
@@ -138,7 +150,31 @@ void ElementPropWindow::doDraw()
     }
     else
     {
-        ImGui::Text("Select a node to display node properties.");
+        if (m_selectedShapes!=nullptr)
+        {
+            ImGui::SliderAngle("Rotation", &m_beamRotation, -180.0f, 180.0f);
+
+            ImGui::RadioButton("Beam", &m_beamType, 0);
+            ImGui::SameLine();
+            ImGui::RadioButton("Bar", &m_beamType, 1);
+
+            for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+            {
+                auto shape = m_selectedShapes->getChild(i);
+                if (shape->isClass("vfem::Beam"))
+                {
+                    auto beam = static_cast<vfem::Beam*>(shape);
+                    if (m_beamType == 0)
+                        beam->getBeam()->setBeamType(ofem::btBeam);
+                    else
+                        beam->getBeam()->setBeamType(ofem::btBar);
+
+                    beam->refresh();
+                }
+            }
+        }
+        else
+            ImGui::Text("Select an element to display element properties.");
     }
 
     if (m_oldBeamRotation != m_beamRotation)

@@ -267,7 +267,6 @@ bool Model::open()
                 std::string line;
                 std::getline(inputFile, line);
             }
-
             this->readFromStream(inputFile);
         }
         else
@@ -285,6 +284,9 @@ void Model::save()
 {
     if (m_fileName != "")
     {
+        if (m_version == "0")
+            m_version = "1";
+
         fstream outputFile;
         outputFile.open(m_fileName.c_str(), ios::out);
         outputFile << "#OF_VERSION=" << m_version << "\n";

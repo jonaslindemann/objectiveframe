@@ -32,6 +32,9 @@ private:
     std::string m_fileName;
     std::string m_version;
 
+    std::string m_readVersion;
+    std::string m_writeVersion;
+
     std::vector<std::string> m_snapShots;
     std::vector<std::string> m_restoredSnapShots;
 

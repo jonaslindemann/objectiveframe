@@ -2,11 +2,12 @@
 
 #include <ofem/beam.h>
 
+#include <ofem/model_state_info.h>
+
 #include <cmath>
 
 using namespace ofem;
 using namespace std;
-
 
 Beam::Beam()
     : Element()
@@ -17,17 +18,14 @@ Beam::Beam()
 {
 }
 
-
 Beam::~Beam()
 {
 }
-
 
 void Beam::print(std::ostream& out)
 {
     Element::print(out);
 }
-
 
 void Beam::saveToStream(std::ostream& out)
 {
@@ -37,40 +35,53 @@ void Beam::saveToStream(std::ostream& out)
         out << this->getMaterial()->getNumber() << endl;
     else
         out << -1 << endl;
-}
 
+    if (ModelStateInfo::getInstance().writeVersion() == "2")
+    {
+        if (m_beamType == btBeam)
+            out << 0 << "\n";
+        else
+            out << 1 << "\n";
+    }
+}
 
 void Beam::readFromStream(std::istream& in)
 {
     Element::readFromStream(in);
     in >> m_beamRotation;
     in >> m_materialIndex;
-}
 
+    if (ModelStateInfo::getInstance().readVersion() == "2")
+    {
+        int beamType;
+        in >> beamType;
+
+        if (beamType == 0)
+            m_beamType = btBeam;
+        else
+            m_beamType = btBar;
+    }
+}
 
 void Beam::setMaterial(BeamMaterial* material)
 {
     m_material = material;
 }
 
-
 BeamMaterial* Beam::getMaterial()
 {
     return m_material;
 }
-
 
 long Beam::getMaterialIndex()
 {
     return m_materialIndex;
 }
 
-
 void Beam::setBeamRotation(double angle)
 {
     m_beamRotation = angle;
 }
-
 
 double Beam::getBeamRotation()
 {
@@ -97,7 +108,6 @@ void ofem::Beam::addNode(Node* node)
         break;
     }
 }
-
 
 void Beam::getOrientationZ(double& ex, double& ey, double& ez)
 {
@@ -151,7 +161,6 @@ void Beam::getOrientationZ(double& ex, double& ey, double& ez)
     ey = v[1];
     ez = v[2];
 }
-
 
 void Beam::getOrientationY(double& ex, double& ey, double& ez)
 {

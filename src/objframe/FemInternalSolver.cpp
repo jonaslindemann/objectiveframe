@@ -5,9 +5,18 @@
 
 #include <ofem/beam_load.h>
 
-#include <StatusOutput.h>
+#include <logger.h>
+
+#include <sstream>
 
 using namespace ofem;
+
+std::string float2str(double value)
+{
+    std::stringstream coordStream;
+    coordStream << std::fixed << std::setw(10) << std::setprecision(2) << value;
+    return coordStream.str();
+}
 
 void bar3e(
     RowVector& ex,
@@ -51,18 +60,18 @@ void bar3e(
     RowVector n(3);
     Matrix G(2, 6);
     Matrix Kle(2, 2);
-    ColumnVector fle(2);    
+    ColumnVector fle(2);
 
-    b << ex(2) - ex(1) 
-      << ey(2) - ey(1) 
+    b << ex(2) - ex(1)
+      << ey(2) - ey(1)
       << ez(2) - ez(1);
-    
-    double L = sqrt((b.t() * b).AsScalar());
-     
-    n = b.t() / L; 
 
-    G << n(1) << n(2) << n(3) << 0.0  << 0.0  << 0.0
-      << 0.0  <<  0.0 <<  0.0 << n(1) << n(2) << n(3);
+    double L = sqrt((b.t() * b).AsScalar());
+
+    n = b.t() / L;
+
+    G << n(1) << n(2) << n(3) << 0.0 << 0.0 << 0.0
+      << 0.0 << 0.0 << 0.0 << n(1) << n(2) << n(3);
 
     double a = E * A / L;
 
@@ -431,10 +440,10 @@ void assem(
 
     for (i = 1; i <= Ke.Nrows(); i++)
         for (j = i; j <= Ke.Ncols(); j++)
-                K((int)Topo(i), (int)Topo(j)) = K((int)Topo(i), (int)Topo(j)) + Ke(i, j);
+            K((int)Topo(i), (int)Topo(j)) = K((int)Topo(i), (int)Topo(j)) + Ke(i, j);
 
     for (i = 1; i <= fe.Nrows(); i++)
-            f((int)Topo(i)) = f((int)Topo(i)) + fe(i);
+        f((int)Topo(i)) = f((int)Topo(i)) + fe(i);
 }
 
 double max(RowVector& rowVector)
@@ -493,8 +502,8 @@ void FrameSolver::execute()
 
     m_errorStatus = BS_NO_ERROR;
 
-    so_print("\nSimple 3D beam solver");
-    so_print("---------------------\n");
+    Logger::instance()->log(LogLevel::Error, "\nSimple 3D beam solver");
+    Logger::instance()->log(LogLevel::Error, "---------------------\n");
 
     //
     // Retrieve fem model
@@ -504,7 +513,7 @@ void FrameSolver::execute()
 
     if (femModel == NULL)
     {
-        so_print("Error: Invalid model.");
+        Logger::instance()->log(LogLevel::Error, "Invalid model.");
         m_errorStatus = BS_INVALID_MODEL;
         return;
     }
@@ -526,28 +535,28 @@ void FrameSolver::execute()
 
     if (nodeSet->getSize() == 0)
     {
-        so_print("Error: No nodes defined.");
+        Logger::instance()->log(LogLevel::Error, "No nodes defined.");
         m_errorStatus = BS_NO_NODES;
         return;
     }
 
     if (elementSet->getSize() == 0)
     {
-        so_print("Error: No elements defined.");
+        Logger::instance()->log(LogLevel::Error, "No elements defined.");
         m_errorStatus = BS_NO_ELEMENTS;
         return;
     }
 
     if (bcSet->getSize() == 0)
     {
-        so_print("Error: No boundary conditions defined.");
+        Logger::instance()->log(LogLevel::Error, "No boundary conditions defined.");
         m_errorStatus = BS_NO_BC;
         return;
     }
 
     if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL))
     {
-        so_print("Error: No node loads defined.");
+        Logger::instance()->log(LogLevel::Error, "No node loads defined.");
         m_errorStatus = BS_NO_LOADS;
         return;
     }
@@ -557,7 +566,7 @@ void FrameSolver::execute()
     //
 
     nodeSet->resetNodeKind(nkNotConnected);
-    elementSet->updateNodeKinds();  
+    elementSet->updateNodeKinds();
 
     nodeSet->enumerateNodes();
     materialSet->enumerateMaterials();
@@ -592,7 +601,7 @@ void FrameSolver::execute()
     // Element loads
     //
 
-    so_print("Setting up element loads.");
+    Logger::instance()->log(LogLevel::Info, "Setting up element loads.");
 
     for (i = 0; i < elementLoadSet->getSize(); i++)
     {
@@ -619,7 +628,7 @@ void FrameSolver::execute()
     // Calculate bandwidth
     //
 
-    so_print("Calculating bandwidth.");
+    Logger::instance()->log(LogLevel::Info, "Calculating bandwidth.");
 
     int maxBandwidth = 0;
     int bandwidth;
@@ -650,7 +659,7 @@ void FrameSolver::execute()
 
             bandwidth = (int)max(DofTopo_b) - (int)min(DofTopo_b);
             if (bandwidth > maxBandwidth)
-                maxBandwidth = bandwidth;        
+                maxBandwidth = bandwidth;
         }
     }
 
@@ -661,7 +670,7 @@ void FrameSolver::execute()
     SymmetricBandMatrix K(m_nDof, maxBandwidth);
     K = 0.0;
 
-    so_print("Assembling system matrix.");
+    Logger::instance()->log(LogLevel::Info, "Assembling system matrix.");
 
     for (i = 1; i <= elementSet->getSize(); i++)
     {
@@ -729,7 +738,7 @@ void FrameSolver::execute()
         }
         else
         {
-            so_print("Error: Element with undefined material.");
+            Logger::instance()->log(LogLevel::Error, "Element with undefined material.");
             m_errorStatus = BS_UNDEFINED_MATERIAL;
         }
 
@@ -744,7 +753,7 @@ void FrameSolver::execute()
     // Node loads
     //
 
-    so_print("Defining load vector.");
+    Logger::instance()->log(LogLevel::Info, "Defining load vector.");
 
     for (i = 0; i < nodeLoadSet->getSize(); i++)
     {
@@ -769,7 +778,7 @@ void FrameSolver::execute()
     // Boundary conditions
     //
 
-    so_print("Setting up boundary conditions.");
+    Logger::instance()->log(LogLevel::Info, "Setting up boundary conditions.");
 
     Matrix Bc(m_nDof, 2);
     Bc = 0.0;
@@ -809,7 +818,7 @@ void FrameSolver::execute()
     // WARNING!! routine does not handle prescribed displacements!=0.0
     //
 
-    so_print("Removing boundary conditions from system matrix.");
+    Logger::instance()->log(LogLevel::Info, "Removing boundary conditions from system matrix.");
 
     RowVector Idx(m_nDof);
     Idx = 0.0;
@@ -839,7 +848,7 @@ void FrameSolver::execute()
     int row = 1;
     int col = 1;
 
-    so_print("Creating Ksys.");
+    Logger::instance()->log(LogLevel::Info, "Creating Ksys.");
 
     for (i = 1; i <= K.Nrows(); i++)
     {
@@ -874,7 +883,7 @@ void FrameSolver::execute()
     // Apply feedback force
     //
 
-    so_print("Applying feedback force.");
+    Logger::instance()->log(LogLevel::Info, "Applying feedback force.");
 
     ColumnVector fsys = m_fsys;
 
@@ -893,33 +902,37 @@ void FrameSolver::execute()
             fsys(ldof3) += m_force[2];
         }
         else
-            so_print("Somethings wrong...");
+            Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
     }
 
     if (fsys.IsZero())
     {
-        so_print("Error: No effective loads applied.");
+        Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
         m_errorStatus = BS_NO_LOADS;
         return;
     }
 
-    so_print("Solving system. Keeping LU factorisation.");
+    Logger::instance()->log(LogLevel::Info, "Solving system. Keeping LU factorisation.");
 
     if (m_X != NULL)
         delete m_X;
 
-    if (Ksys.LogDeterminant().Sign()<0)
+    auto logDetSign = Ksys.LogDeterminant().Sign();
+
+    Logger::instance()->log(LogLevel::Info, "logDetSign = " + float2str(logDetSign));
+
+    if (logDetSign < 0)
     {
-            so_print("Error: System unstable.");
-            m_errorStatus = BS_UNSTABLE;
-            return;
+        Logger::instance()->log(LogLevel::Error, "System unstable.");
+        m_errorStatus = BS_UNSTABLE;
+        return;
     }
 
-    if (Ksys.LogDeterminant().Sign()==0)
+    if (logDetSign == 0)
     {
-            so_print("Error: Matrix singular.");
-            m_errorStatus = BS_SINGULAR;
-            return;
+        Logger::instance()->log(LogLevel::Error, "Matrix singular.");
+        m_errorStatus = BS_SINGULAR;
+        return;
     }
 
     m_X = new LinearEquationSolver(Ksys);
@@ -944,7 +957,7 @@ void FrameSolver::execute()
     // Store displacements in nodes
     //
 
-    so_print("Storing results in nodes and elements.");
+    Logger::instance()->log(LogLevel::Error, "Storing results in nodes and elements.");
 
     nodeSet->clearNodeValues();
 
@@ -1085,7 +1098,7 @@ void FrameSolver::execute()
                 updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
 
                 for (j = 1; j <= 6; j++)
-                    if (j==1)
+                    if (j == 1)
                         beam->setValue(pos++, Es_b(k));
                     else
                         beam->setValue(pos++, 0.0);
@@ -1117,7 +1130,7 @@ void FrameSolver::recompute()
 
         if (femModel == NULL)
         {
-            so_print("Error: Invalid model.");
+            Logger::instance()->log(LogLevel::Error, "Invalid model.");
             m_errorStatus = BS_INVALID_MODEL;
             return;
         }
@@ -1184,7 +1197,7 @@ void FrameSolver::recompute()
 
 void FrameSolver::update()
 {
-    so_print("Updating results.");
+    Logger::instance()->log(LogLevel::Info, "Updating results.");
 
     //
     // Retrieve fem model
@@ -1194,7 +1207,7 @@ void FrameSolver::update()
 
     if (femModel == NULL)
     {
-        so_print("Error: Invalid model.");
+        Logger::instance()->log(LogLevel::Error, "Invalid model.");
         m_errorStatus = BS_INVALID_MODEL;
         return;
     }

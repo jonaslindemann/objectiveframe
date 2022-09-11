@@ -170,6 +170,8 @@ void ElementPropWindow::doDraw()
                         beam->getBeam()->setBeamType(ofem::btBar);
 
                     beam->refresh();
+
+                    m_widget->setNeedRecalc(true);
                 }
             }
         }

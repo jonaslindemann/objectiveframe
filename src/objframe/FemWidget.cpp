@@ -2711,14 +2711,12 @@ void FemWidget::onMouseDown(int x, int y)
 {
     m_mouseDownPos[0] = x;
     m_mouseDownPos[1] = y;
-#ifdef ADVANCED_GL
     if ((m_overlaySelected) && (m_selectedButton != nullptr))
     {
         m_interactionNode = nullptr;
         m_selectedButton->setButtonState(GenericButton::BS_PRESSED);
         this->redraw();
     }
-#endif
 
     if ((getEditMode() == WidgetMode::User) && (!m_overlaySelected))
     {
@@ -2734,13 +2732,11 @@ void FemWidget::onMouseDown(int x, int y)
 
 void FemWidget::onMouseUp(int x, int y)
 {
-#ifdef ADVANCED_GL
     if ((m_overlaySelected) && (m_selectedButton != nullptr))
     {
         this->onButton(m_selectedButton->getId(), (PlaneButton*)m_selectedButton);
         this->redraw();
     }
-#endif
 
     m_startAlfa = m_alfa;
     m_startBeta = m_beta;
@@ -2948,22 +2944,26 @@ void FemWidget::onButton(int objectName, PlaneButton* button)
     case ToolbarButton::NodeLoad:
         m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
         m_nodeLoadsWindow->setVisible(true);
+        this->setNeedRecalc(true);
         break;
     case ToolbarButton::BeamLoad:
         m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet*)m_beamModel->getElementLoadSet());
         m_elementLoadsWindow->setVisible(true);
+        this->setNeedRecalc(true);
         // this->showBeamLoads();
         // m_objectButtons->recheck();
         break;
     case ToolbarButton::Materials:
         m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet*)m_beamModel->getMaterialSet());
         m_materialsWindow->setVisible(true);
+        this->setNeedRecalc(true);
         // this->showMaterials();
         // m_objectButtons->recheck();
         break;
     case ToolbarButton::NodeBC:
         m_nodeBCsWindow->setFemNodeBCSet((ofem::BeamNodeBCSet*)m_beamModel->getNodeBCSet());
         m_nodeBCsWindow->setVisible(true);
+        this->setNeedRecalc(true);
         break;
     default:
         break;

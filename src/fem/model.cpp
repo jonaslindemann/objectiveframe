@@ -1,5 +1,7 @@
 #include <ofem/model.h>
 
+#include <ofem/model_state_info.h>
+
 #include <sstream>
 
 using namespace ofem;
@@ -8,8 +10,11 @@ using namespace std;
 
 Model::Model()
     : Base()
-    , m_version { "1" }
+    , m_version { "2" }
+    , m_readVersion { "" }
+    , m_writeVersion { "" }
 {
+    ModelStateInfo::getInstance().setVersion(m_version);
 }
 
 
@@ -254,7 +259,8 @@ bool Model::open()
 {
     if (m_fileName != "")
     {
-        m_version = queryFileVersion(m_fileName);
+        std::string readVersion = queryFileVersion(m_fileName);
+        ModelStateInfo::getInstance().setReadVersion(readVersion);
 
         fstream inputFile;
 
@@ -262,7 +268,7 @@ bool Model::open()
         if (inputFile.is_open())
         {
             // Skip version line
-            if (m_version != "0")
+            if (readVersion != "0")
             {
                 std::string line;
                 std::getline(inputFile, line);
@@ -284,8 +290,7 @@ void Model::save()
 {
     if (m_fileName != "")
     {
-        if (m_version == "0")
-            m_version = "1";
+        ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
 
         fstream outputFile;
         outputFile.open(m_fileName.c_str(), ios::out);

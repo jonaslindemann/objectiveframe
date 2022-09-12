@@ -1108,6 +1108,9 @@ void FemWidget::deleteSelected()
 
     this->snapShot();
 
+    m_elementPropWindow->setBeam(nullptr);
+    m_nodePropWindow->setNode(nullptr);
+
     setDeleteFilter(DeleteMode::Elements);
     deleteSelectedKeep();
     setDeleteFilter(DeleteMode::Nodes);
@@ -3045,6 +3048,9 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'd'))
         m_showMetricsWindow = !m_showMetricsWindow;
+
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'r'))
+        this->executeCalc();
 
     if ((modifier == ModifierKey::mkAlt) && (key == 's'))
     {

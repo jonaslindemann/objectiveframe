@@ -170,8 +170,8 @@ void BeamMaterial::assignPropFromSection()
     {
         this->setProperties(
             m_section->data(0),
-            m_section->data(1),
             m_section->data(2),
+            m_section->data(1),
             m_section->data(3),
             m_section->data(4),
             m_section->data(5));

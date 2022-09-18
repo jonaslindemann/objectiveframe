@@ -491,7 +491,7 @@ void FemWidget::setEditMode(WidgetMode mode)
     }
 }
 
-void FemWidget::setBeamRefreshMode(int mode)
+void FemWidget::setBeamRefreshMode(ivf::LineRefreshMode mode)
 {
     auto scene = this->getScene()->getComposite();
     int i;
@@ -540,7 +540,7 @@ void FemWidget::setCustomMode(CustomMode mode)
     m_customMode = mode;
     m_customModeSet = true;
     m_haveScaleFactor = false;
-    this->setBeamRefreshMode(IVF_REFRESH_NODES);
+    this->setBeamRefreshMode(ivf::rmNodes);
 
     if (m_customMode == CustomMode::Feedback)
     {

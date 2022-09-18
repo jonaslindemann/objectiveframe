@@ -1,0 +1,60 @@
+
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Mast,string%%";
+var levels = %%levels,4,int%%;
+var levelDist =%%levelDist,2.0,float%%;
+var nSupports = %%nSupports,4,int%%;
+var shrink = %%shrink,0.9,float%%;
+var radius = %%radius,2.0,float%%;
+
+var pi = 3.14159265358979323846;
+
+// Nodes
+
+// o ---- o ---- o ---- o
+
+var startNodeIdx = nodeCount();
+
+var dR = 2.0*pi/nSupports;
+
+for (var level=0; level<levels; ++level)
+{
+	for (var i=0; i<nSupports; ++i)
+	{
+		var x = radius*pow(shrink,double(level)) * cos(i * dR);
+		var z = radius*pow(shrink,double(level)) * sin(i * dR);
+		var y = level*levelDist;
+		addNode(x, y, z);
+	}
+}
+
+for (var level=0; level<levels-1; ++level)
+{
+	for (var i=0; i<nSupports; ++i)
+	{
+		addBeam(startNodeIdx + i + level*nSupports, startNodeIdx + i + (level+1)*nSupports);
+	}
+}
+
+for (var level=1; level<levels; ++level)
+{
+	for (var i=0; i<(nSupports-1); ++i)
+	{
+		addBeam(startNodeIdx + i + level*nSupports, startNodeIdx + i + 1 + level*nSupports);
+	}
+	addBeam(startNodeIdx + level*nSupports + nSupports-1, startNodeIdx + level*nSupports);
+}
+
+for (var level=0; level<levels-1; ++level)
+{
+	for (var i=0; i<(nSupports-1); ++i)
+	{
+		addBeam(startNodeIdx + i + level*nSupports, startNodeIdx + i + 1 + (level+1)*nSupports);
+	}
+	addBeam(startNodeIdx + level*nSupports + nSupports-1, startNodeIdx + (level+1)*nSupports);
+}
+
+}

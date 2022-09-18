@@ -24,6 +24,7 @@
 #include <ivf/SelectOrtho.h>
 #include <ivf/Shape.h>
 #include <ivf/Sphere.h>
+#include <ivf/SolidLine.h>
 
 #include <vfem/beam.h>
 #include <vfem/beam_load.h>
@@ -297,7 +298,7 @@ public:
     Fl_Widget* getCoordWidget();
     const std::string getFileName();
     void setSelectFilter(SelectMode filter);
-    void setBeamRefreshMode(int mode);
+    void setBeamRefreshMode(ivf::LineRefreshMode mode);
     void setEditMode(WidgetMode mode);
     void setCustomMode(CustomMode mode);
     void setScalefactor(double scalefactor);

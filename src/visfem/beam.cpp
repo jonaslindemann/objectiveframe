@@ -181,11 +181,21 @@ void Beam::refresh()
             case IVF_BEAM_SOLID:
                 if (m_beamModel != nullptr)
                     m_solidLine->setRadius(m_beamModel->getLineRadius());
+                
+
                 m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                 m_solidLine->setState(Shape::OS_ON);
 
+                m_solidLine->setUseOffsetConeCap(true);
+                m_solidLine->setOffsetConeCapRadius(0.0);
+                m_solidLine->setOffsets(-m_beamModel->getNodeSize() * 2.0, -m_beamModel->getNodeSize() * 2.0);
+                m_solidLine->setStartOffsets(-m_beamModel->getNodeSize(), -m_beamModel->getNodeSize());
+
                 if (this->getBeam()->beamType() == ofem::btBar)
+                {
                     m_solidLine->setOffsets(-m_beamModel->getNodeSize() * 2.0, -m_beamModel->getNodeSize() * 2.0);
+                    m_solidLine->setStartOffsets(-m_beamModel->getNodeSize(), -m_beamModel->getNodeSize());
+                }
                 else
                     m_solidLine->setOffsets(0.0, 0.0);
 

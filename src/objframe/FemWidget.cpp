@@ -2450,7 +2450,7 @@ void FemWidget::onSelect(Composite* selectedShapes)
             }
         }
     }
-    else
+    else if (m_customMode == CustomMode::Feedback)
     {
         if (selectedShapes->getSize() > 0)
         {

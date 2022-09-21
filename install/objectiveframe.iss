@@ -4,7 +4,7 @@
 [Setup]
 SignTool=signtool_lu
 AppName=ObjectiveFrame
-AppVerName=ObjectiveFrame 2.0.0-b2
+AppVerName=ObjectiveFrame 2.0.0-b3
 AppPublisher=Division of Structural Mechanics
 AppPublisherURL=http://www.byggmek.lth.se
 AppSupportURL=http://www.byggmek.lth.se
@@ -41,6 +41,7 @@ Source: "..\bin\maps\*.*"; DestDir: "{app}\maps"; Flags: ignoreversion; Componen
 Source: "..\bin\fonts\*.*"; DestDir: "{app}\fonts"; Flags: ignoreversion; Components: main
 Source: "..\bin\images\*.*"; DestDir: "{app}\images"; Flags: ignoreversion; Components: main
 Source: "..\bin\new_images\*.*"; DestDir: "{app}\new_images"; Flags: ignoreversion; Components: main
+Source: "..\bin\plugins\*.*"; DestDir: "{app}\plugins"; Flags: ignoreversion; Components: main
 
 [Icons]
 Name: {group}\ObjectiveFrame; Filename: {app}\objframe.exe

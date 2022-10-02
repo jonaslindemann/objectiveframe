@@ -1,5 +1,9 @@
 #include "FemWidget.h"
 
+#ifdef WIN32
+#include "resource.h"
+#endif
+
 #include <filesystem>
 #include <functional>
 #include <sstream>
@@ -41,9 +45,7 @@ void feedbackCallback(void* pointer)
     Fl::add_timeout(0.01f, feedbackCallback, widget);
 }
 
-
 // Constructor/Destructor
-
 
 FemWidget::FemWidget(int X, int Y, int W, int H, const char* L)
     : FltkWidget(X, Y, W, H, L)
@@ -136,7 +138,6 @@ void FemWidget::runPlugin(ScriptPlugin* plugin)
 {
     this->snapShot();
 
-
     chaiscript::ChaiScript::State s = m_chai.get_state(); // get initial state
     try
     {
@@ -151,9 +152,7 @@ void FemWidget::runPlugin(ScriptPlugin* plugin)
     m_chai.set_state(s);
 }
 
-
 // Get/set methods
-
 
 void FemWidget::setCoordWidget(Fl_Widget* widget)
 {
@@ -489,6 +488,8 @@ void FemWidget::setEditMode(WidgetMode mode)
         this->getScene()->enableCursor();
         this->getScene()->disableCursorShape();
     }
+
+    this->updateButtonState();
 }
 
 void FemWidget::setBeamRefreshMode(ivf::LineRefreshMode mode)
@@ -553,7 +554,7 @@ void FemWidget::setCustomMode(CustomMode mode)
         this->setEditMode(WidgetMode::Select);
     }
 
-    if (m_customMode == CustomMode::Structure)
+    if ((m_customMode == CustomMode::Structure) || (m_customMode == CustomMode::Paste))
     {
         this->setEditMode(WidgetMode::SelectPosition);
     }
@@ -635,9 +636,7 @@ const std::string FemWidget::getProgPath()
     return m_progPath;
 }
 
-
 // Widget methods
-
 
 void FemWidget::save()
 {
@@ -801,6 +800,59 @@ void FemWidget::revertLastSnapShot()
     this->setEditMode(prevEditMode);
 }
 
+void FemWidget::open(std::string filename)
+{
+    // Change filename and erase previous model/scene
+
+    this->setFileName(filename);
+    this->deleteAll();
+
+    log("Setting color map path.");
+    std::string colorPath = "";
+
+    colorPath = colorPath + m_progPath;
+    colorPath = colorPath + "maps/";
+
+    // Initialize and open beam model
+
+    m_beamModel->initialize();
+    m_beamModel->setFileName(m_fileName);
+    m_beamModel->setPath(colorPath);
+    m_beamModel->open();
+    m_beamModel->setTextFont(m_labelFont);
+    m_beamModel->setCamera(this->getCamera());
+    m_beamModel->setShowNodeNumbers(true);
+
+    // Generate a Ivf++ representation
+
+    m_beamModel->generateModel();
+
+    // Update dialogs
+
+    m_nodePropWindow->setNode(nullptr);
+    m_elementPropWindow->setBeam(nullptr);
+
+    // Add tactile force
+
+    this->getScene()->addChild(m_tactileForce);
+
+    double loadSize = m_beamModel->getLoadSize();
+
+    m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
+    m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
+    m_tactileForce->setDirection(0.0, -1.0, 0.0);
+    m_tactileForce->setOffset(-loadSize * 0.7);
+
+    m_needRecalc = true;
+
+    if (m_internalSolver != nullptr)
+        delete m_internalSolver;
+
+    m_internalSolver = nullptr;
+
+    this->setEditMode(WidgetMode::Select);
+}
+
 void FemWidget::open()
 {
     // Open model
@@ -826,54 +878,7 @@ void FemWidget::open()
         // Change filename and erase previous model/scene
 
         std::string filename = fnfc.filename();
-        this->setFileName(filename);
-        this->deleteAll();
-        // this->addToScene(m_plane);
-
-        log("Setting color map path.");
-        std::string colorPath = "";
-
-        colorPath = colorPath + m_progPath;
-        colorPath = colorPath + "maps/";
-
-        // Initialize and open beam model
-
-        m_beamModel->initialize();
-        m_beamModel->setFileName(m_fileName);
-        m_beamModel->setPath(colorPath);
-        m_beamModel->open();
-        m_beamModel->setTextFont(m_labelFont);
-        m_beamModel->setCamera(this->getCamera());
-        m_beamModel->setShowNodeNumbers(true);
-
-        // Generate a Ivf++ representation
-
-        m_beamModel->generateModel();
-
-        // Update dialogs
-
-        m_nodePropWindow->setNode(nullptr);
-        m_elementPropWindow->setBeam(nullptr);
-
-        // Add tactile force
-
-        this->getScene()->addChild(m_tactileForce);
-
-        double loadSize = m_beamModel->getLoadSize();
-
-        m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
-        m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
-        m_tactileForce->setDirection(0.0, -1.0, 0.0);
-        m_tactileForce->setOffset(-loadSize * 0.7);
-
-        m_needRecalc = true;
-
-        if (m_internalSolver != nullptr)
-            delete m_internalSolver;
-
-        m_internalSolver = nullptr;
-
-        this->setEditMode(WidgetMode::ViewZoom);
+        this->open(filename);
     }
 }
 
@@ -902,6 +907,37 @@ void FemWidget::openScript()
         std::string filename = fnfc.filename();
         this->runScript(filename);
     }
+}
+
+void FemWidget::copy()
+{
+    auto selectedShapes = this->getSelectedShapes();
+
+    m_modelClipBoard->clear();
+
+    for (int i = 0; i < selectedShapes->getSize(); i++)
+    {
+        auto shape = selectedShapes->getChild(i);
+
+        if (shape->isClass("vfem::Node"))
+        {
+            auto vnode = static_cast<vfem::Node*>(shape);
+            auto node = vnode->getFemNode();
+            m_modelClipBoard->addNode(node);
+        }
+
+        if (shape->isClass("vfem::Beam"))
+        {
+            auto vbeam = static_cast<vfem::Beam*>(shape);
+            auto beam = vbeam->getBeam();
+            m_modelClipBoard->addElement(beam);
+        }
+    }
+}
+
+void FemWidget::paste()
+{
+    this->setCustomMode(CustomMode::Paste);
 }
 
 void FemWidget::showProperties()
@@ -1432,7 +1468,6 @@ void FemWidget::setupOverlay()
     m_objectButtons->addChild(button);
 
     m_overlayScene->addChild(m_objectButtons);
-
 }
 
 void FemWidget::setupScripting()
@@ -1453,13 +1488,19 @@ void FemWidget::setupScripting()
 void FemWidget::setupPlugins()
 {
     std::string path = "plugins";
-    for (const auto& entry : std::filesystem::directory_iterator(path))
+
+    if (std::filesystem::is_directory(path))
     {
-        auto filename = entry.path();
-        auto plugin = ScriptPlugin::create(filename.string());
-        m_plugins.push_back(plugin);
-        log("Loading plugin - " + filename.string() + " - " + plugin->name());
+        for (const auto& entry : std::filesystem::directory_iterator(path))
+        {
+            auto filename = entry.path();
+            auto plugin = ScriptPlugin::create(filename.string());
+            m_plugins.push_back(plugin);
+            log("Loading plugin - " + filename.string() + " - " + plugin->name());
+        }
     }
+    else
+        log("Could find load any plugins...");
 }
 
 void FemWidget::assignNodeBCSelected()
@@ -1775,7 +1816,7 @@ vfem::Node* FemWidget::addNode(double x, double y, double z)
     ivfNode->setPosition(x + m_selectedPos[0], y + m_selectedPos[1], z + m_selectedPos[2]);
     ivfNode->setMaterial(m_nodeMaterial);
     ivfNode->setDirectRefresh(true);
-    ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize() * 1.5);
+    ivfNode->nodeLabel()->setSize(float(m_beamModel->getNodeSize() * 1.5));
 
     femNode->setUser(static_cast<void*>(ivfNode));
 
@@ -2059,9 +2100,7 @@ void FemWidget::hideAllDialogs()
     m_materialsWindow->hide();
 }
 
-
 // Widget events
-
 
 void FemWidget::onInit()
 {
@@ -2105,20 +2144,29 @@ void FemWidget::onInit()
     this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
     this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(false);
     this->getScene()->getCurrentPlane()->getGrid()->setUseOutline(true);
-    this->getScene()->getCurrentPlane()->getGrid()->setMajorColor(0.2, 0.2, 0.4, 1.0);
-    this->getScene()->getCurrentPlane()->getGrid()->setMinorColor(0.3, 0.3, 0.5, 1.0);
-    this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2, 0.2, 0.4, 1.0);
-    this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2, 0.2, 0.4, 1.0);
+    this->getScene()->getCurrentPlane()->getGrid()->setMajorColor(0.2f, 0.2f, 0.4f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setMinorColor(0.3f, 0.3f, 0.5f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2f, 0.2f, 0.4f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.4f, 1.0f);
     this->getScene()->setRenderFlatShadow(true);
     this->getScene()->setShadowColor(0.3, 0.3, 0.4);
     this->getScene()->setShadowPrePost(false, false);
 
     // Label rendering setup
 
-    m_labelFont = ivf::BitmapFont::create("fonts/white_font.fnt");
-    m_axisFont = ivf::BitmapFont::create("fonts/black_font.fnt");
-    m_greenFont = ivf::BitmapFont::create("fonts/green_font.fnt");
-    m_redFont = ivf::BitmapFont::create("fonts/red_font.fnt");
+    if (std::filesystem::is_directory("fonts"))
+    {
+        m_labelFont = ivf::BitmapFont::create("fonts/white_font.fnt");
+        m_axisFont = ivf::BitmapFont::create("fonts/black_font.fnt");
+        m_greenFont = ivf::BitmapFont::create("fonts/green_font.fnt");
+        m_redFont = ivf::BitmapFont::create("fonts/red_font.fnt");
+    }
+    else
+    {
+        log("No font directory found.");
+        this->disableRedrawTimer();
+        this->quit();
+    }
 
     m_textLayer = ivf::Composite::create();
     this->getScene()->getPostComposite()->addChild(m_textLayer);
@@ -2161,6 +2209,12 @@ void FemWidget::onInit()
     std::string colorPath = m_progPath;
     colorPath = colorPath + "maps/";
 
+    if (!std::filesystem::is_directory(colorPath))
+    {
+        this->disableRedrawTimer();
+        this->quit();
+    }
+
     log("Initializing beam model.");
     m_beamModel = new vfem::BeamModel();
     m_beamModel->initialize();
@@ -2179,6 +2233,19 @@ void FemWidget::onInit()
     m_beamModel->setShowNodeNumbers(false);
 
     m_beamModel->generateModel();
+
+    // Initialise model clipboard
+
+    m_modelClipBoard = new ofem::ModelClipBoard();
+
+    using namespace std::placeholders;
+    ofem::ModelClipboardCreateNodeFunc onCreateNode = std::bind(&FemWidget::onClipboardCreateNode, this, _1, _2, _3);
+    m_modelClipBoard->assignOnCreateNode(onCreateNode);
+
+    ofem::ModelClipboardCreateElementFunc onCreateElement = std::bind(&FemWidget::onClipboardCreateElement, this, _1, _2);
+    m_modelClipBoard->assignOnCreateElement(onCreateElement);
+
+    // m_modelClipBoard->assignOnCreateElement(this->onClipboardCreateElement());
 
     // Initialize color table
 
@@ -2245,7 +2312,6 @@ void FemWidget::onInit()
     m_nodeCursor->setRadius(m_beamModel->getNodeSize());
     this->getScene()->setCursorShape(m_nodeCursor);
 
-
     // Create ImGui interface
 
     m_showStyleEditor = false;
@@ -2296,7 +2362,14 @@ void FemWidget::onInit()
 
     log("Setting initial edit mode.");
     this->setEditMode(WidgetMode::Select);
-    //this->setEditMode(WidgetMode::SelectVolume);
+    // this->setEditMode(WidgetMode::SelectVolume);
+
+    if (m_argc > 1)
+    {
+        // We have command line arguments
+        log("Loading from command line:" + to_string(m_argv[1]));
+        this->open(to_string(m_argv[1]));
+    }
 }
 
 void FemWidget::doMouse(int x, int y)
@@ -2327,7 +2400,7 @@ void FemWidget::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
     ivfNode->setFemNode(femNode);
     ivfNode->setPosition(x, y, z);
     ivfNode->setMaterial(m_nodeMaterial);
-    ivfNode->nodeLabel()->setSize(m_beamModel->getNodeSize() * 1.5);
+    ivfNode->nodeLabel()->setSize(float(m_beamModel->getNodeSize() * 1.5));
     ivfNode->setDirectRefresh(true);
 
     // We need a recalc
@@ -2427,7 +2500,7 @@ void FemWidget::onSelect(Composite* selectedShapes)
                 {
                     m_elementPropWindow->setSelectedShapes(nullptr);
                     m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
- 
+
                     m_singleElementSelection = true;
                 }
             }
@@ -2579,14 +2652,14 @@ void FemWidget::onMoveCompleted()
 void FemWidget::onUnderlay()
 {
     glBegin(GL_QUADS);
-    glColor4f(0.6, 0.6, 0.7, 1.0);
+    glColor4f(0.6f, 0.6f, 0.7f, 1.0f);
     glVertex2i(0, 0);
-    glColor4f(0.2, 0.2, 0.4, 1.0);
-    glVertex2f(0, pixel_h());
-    glColor4f(0.2, 0.2, 0.4, 1.0);
-    glVertex2f(pixel_w(), pixel_h());
-    glColor4f(0.6, 0.6, 0.7, 1.0);
-    glVertex2f(pixel_w(), 0);
+    glColor4f(0.2f, 0.2f, 0.4f, 1.0f);
+    glVertex2f(0.0f, float(pixel_h()));
+    glColor4f(0.2f, 0.2f, 0.4f, 1.0f);
+    glVertex2f(float(pixel_w()), float(pixel_h()));
+    glColor4f(0.6f, 0.6f, 0.7f, 1.0f);
+    glVertex2f(float(pixel_w()), 0.0f);
     glEnd();
 }
 
@@ -2879,12 +2952,17 @@ void FemWidget::onSelectPosition(double x, double y, double z)
     if (m_customMode == CustomMode::Structure)
     {
         log(ofutil::to_coord_string(x, y, z));
-        
+
         m_selectedPos[0] = x;
         m_selectedPos[1] = y;
         m_selectedPos[2] = z;
 
         this->runPlugin(m_pluginWindow->plugin());
+    }
+
+    if (m_customMode == CustomMode::Paste)
+    {
+        m_modelClipBoard->paste(m_beamModel);
     }
 }
 
@@ -2893,36 +2971,68 @@ void FemWidget::onMoveStart()
     this->snapShot();
 }
 
-#ifdef ADVANCED_GL
+void FemWidget::updateButtonState()
+{
+    m_editButtons->clearChecked();
+    m_objectButtons->clearChecked();
+
+    switch (this->getEditMode())
+    {
+    case WidgetMode::Select:
+        m_editButtons->check(0);
+        break;
+    case WidgetMode::BoxSelection:
+        m_editButtons->check(1);
+        break;
+    case WidgetMode::Move:
+        m_editButtons->check(2);
+        break;
+    case WidgetMode::CreateNode:
+        m_objectButtons->check(0);
+        break;
+    case WidgetMode::CreateLine:
+        m_objectButtons->check(1);
+        break;
+    default:
+        break;
+    }
+
+    if ((m_customMode == CustomMode::Feedback))
+    {
+        m_editButtons->clearChecked();
+        m_editButtons->check(5);
+    }
+}
+
 void FemWidget::onButton(int objectName, PlaneButton* button)
 {
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
-    // m_viewButtons->clearChecked();
+
     switch (objectName)
     {
     case ToolbarButton::Select:
-        m_editButtons->check(0);
+        // m_editButtons->check(0);
         this->setEditMode(WidgetMode::Select);
         break;
     case ToolbarButton::SelectBox:
-        m_editButtons->check(1);
+        // m_editButtons->check(1);
         this->setEditMode(WidgetMode::BoxSelection);
         break;
     case ToolbarButton::Move:
-        m_editButtons->check(2);
+        // m_editButtons->check(2);
         this->setEditMode(WidgetMode::Move);
         break;
     case ToolbarButton::CreateNode:
-        m_objectButtons->check(0);
+        // m_objectButtons->check(0);
         this->setEditMode(WidgetMode::CreateNode);
         break;
     case ToolbarButton::CreateBeam:
-        m_objectButtons->check(1);
+        // m_objectButtons->check(1);
         this->setEditMode(WidgetMode::CreateLine);
         break;
     case ToolbarButton::Feedback:
-        m_editButtons->check(5);
+        // m_editButtons->check(5);
         this->setCustomMode(CustomMode::Feedback);
         break;
     case ToolbarButton::ViewZoom:
@@ -2971,8 +3081,10 @@ void FemWidget::onButton(int objectName, PlaneButton* button)
     default:
         break;
     }
+
     this->redraw();
 }
+
 void FemWidget::onOverButton(int objectName, PlaneButton* button)
 {
     m_consoleWindow->clear();
@@ -3021,7 +3133,6 @@ void FemWidget::onOverButton(int objectName, PlaneButton* button)
         break;
     }
 }
-#endif
 
 void FemWidget::onShortcut(ModifierKey modifier, int key)
 {
@@ -3116,8 +3227,8 @@ void FemWidget::onHighlightFilter(Shape* shape, bool& highlight)
 
 void FemWidget::onKeyboard(int key)
 {
-    //if (key == 122)
-    //    this->setEditMode(WidgetMode::ViewPan);
+    // if (key == 122)
+    //     this->setEditMode(WidgetMode::ViewPan);
 
     if (key == ImGuiKey_Delete)
         this->deleteSelected();
@@ -3147,6 +3258,16 @@ void FemWidget::onKeyboard(int key)
     */
 }
 
+void FemWidget::onClipboardCreateNode(double x, double y, double z)
+{
+    log("CB: Create node x = " + to_string(x) + ", " + to_string(y) + ", " + to_string(z));
+}
+
+void FemWidget::onClipboardCreateElement(int i0, int i1)
+{
+    log("CB: Create element i0 = " + to_string(i0) + ", " + to_string(i1));
+}
+
 void FemWidget::onDrawImGui()
 {
     bool openDialog = false;
@@ -3166,10 +3287,10 @@ void FemWidget::onDrawImGui()
             if (ImGui::MenuItem("New", "CTRL+N"))
             {
                 m_showNewFileDlg = true;
-                m_newModelPopup->nodeSize(m_relNodeSize * 100.0);
-                m_newModelPopup->loadSize(m_relLoadSize * 100.0);
-                m_newModelPopup->lineRadius(m_relLineRadius * 100.0);
-                m_newModelPopup->modelSize(this->getWorkspace());
+                m_newModelPopup->nodeSize(float(m_relNodeSize * 100.0f));
+                m_newModelPopup->loadSize(float(m_relLoadSize * 100.0f));
+                m_newModelPopup->lineRadius(float(m_relLineRadius * 100.0f));
+                m_newModelPopup->modelSize(float(this->getWorkspace()));
                 m_newModelPopup->show();
             }
 
@@ -3208,6 +3329,13 @@ void FemWidget::onDrawImGui()
 
             if (ImGui::MenuItem("Redo", "Ctrl-Y"))
                 this->restoreLastSnapShot();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Copy", ""))
+                this->copy();
+            if (ImGui::MenuItem("Paste", ""))
+                this->paste();
 
             ImGui::Separator();
 
@@ -3422,4 +3550,3 @@ void FemWidget::onInitImGui()
 void FemWidget::onPostRender()
 {
 }
-

@@ -3,83 +3,73 @@
 #include "MainFrame.h"
 #ifdef WIN32
 #include <windows.h>
+#include "resource.h"
 #endif
 
-static void cb_wndMain(Fl_Widget* widget, void* p)
-{
-    MainFrame* mainFrame = (MainFrame*)p;
-    mainFrame->close();
+static void cb_wndMain(Fl_Widget* widget, void* p) {
+  MainFrame* mainFrame = (MainFrame*)p;
+  mainFrame->close();
 }
 
-MainFrame::MainFrame()
-{
-    {
-        wndMain = new Fl_Double_Window(746, 583, "ObjectiveFrame");
-        wndMain->user_data((void*)(this));
-        {
-            ivfWorkspace = new FemWidget(0, 0, 746, 583);
-            ivfWorkspace->box(FL_NO_BOX);
-            ivfWorkspace->color(FL_FOREGROUND_COLOR);
-            ivfWorkspace->selection_color(FL_BACKGROUND_COLOR);
-            ivfWorkspace->labeltype(FL_NORMAL_LABEL);
-            ivfWorkspace->labelfont(0);
-            ivfWorkspace->labelsize(14);
-            ivfWorkspace->labelcolor(FL_FOREGROUND_COLOR);
-            ivfWorkspace->align(Fl_Align(FL_ALIGN_CENTER));
-            ivfWorkspace->when(FL_WHEN_RELEASE);
-            Fl_Group::current()->resizable(ivfWorkspace);
-        } // FemWidget* ivfWorkspace
-        wndMain->end();
-    } // Fl_Double_Window* wndMain
-    wndMain->callback(cb_wndMain, this);
+MainFrame::MainFrame() {
+  { wndMain = new Fl_Double_Window(746, 583, "ObjectiveFrame");
+    wndMain->user_data((void*)(this));
+    { ivfWorkspace = new FemWidget(0, 0, 746, 583);
+      ivfWorkspace->box(FL_NO_BOX);
+      ivfWorkspace->color(FL_FOREGROUND_COLOR);
+      ivfWorkspace->selection_color(FL_BACKGROUND_COLOR);
+      ivfWorkspace->labeltype(FL_NORMAL_LABEL);
+      ivfWorkspace->labelfont(0);
+      ivfWorkspace->labelsize(14);
+      ivfWorkspace->labelcolor(FL_FOREGROUND_COLOR);
+      ivfWorkspace->align(Fl_Align(FL_ALIGN_CENTER));
+      ivfWorkspace->when(FL_WHEN_RELEASE);
+      Fl_Group::current()->resizable(ivfWorkspace);
+    } // FemWidget* ivfWorkspace
+    wndMain->end();
+  } // Fl_Double_Window* wndMain
+  wndMain->callback(cb_wndMain, this);
 }
 
-void MainFrame::show()
-{
-#ifdef WIN32
-    extern HINSTANCE fl_display;
-// wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
-#endif
-    wndMain->size(Fl::w() - 40, Fl::h() - 40);
-    wndMain->position(20, 40);
-    wndMain->show();
-    ivfWorkspace->show();
+void MainFrame::show() {
+  #ifdef WIN32
+  extern HINSTANCE fl_display;
+  wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_ICON1)));
+  #endif
+  wndMain->size(Fl::w()-40, Fl::h()-40);
+  wndMain->position(20,40);
+  wndMain->show();
+  ivfWorkspace->show();
 }
 
-void MainFrame::updateToggles()
-{
+void MainFrame::updateToggles() {
 }
 
-void MainFrame::close()
-{
-    ivfWorkspace->hideAllDialogs();
-    wndMain->hide();
+void MainFrame::close() {
+  ivfWorkspace->hideAllDialogs();
+  wndMain->hide();
 }
 
-void MainFrame::setArguments(int argc, char** argv)
-{
-    m_argc = argc;
-    m_argv = argv;
-    ivfWorkspace->setArguments(m_argc, m_argv);
+void MainFrame::setArguments(int argc, char** argv) {
+  m_argc = argc;
+  m_argv = argv;
+  ivfWorkspace->setArguments(m_argc, m_argv);
 }
 
-MainFrame::~MainFrame()
-{
+MainFrame::~MainFrame() {
 }
 
-void MainFrame::setProgramPath(const std::string& path)
-{
-    ivfWorkspace->setProgramPath(path);
+void MainFrame::setProgramPath(const std::string& path) {
+  ivfWorkspace->setProgramPath(path);
 }
 
-void MainFrame::show_fullscreen(int x, int y, int width, int height)
-{
-#ifdef WIN32
-// extern HINSTANCE fl_display;
-// wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
-#endif
-    wndMain->show();
-    wndMain->resize(x, y, width, height);
-    wndMain->border(0);
-    ivfWorkspace->show();
+void MainFrame::show_fullscreen(int x, int y, int width, int height) {
+  #ifdef WIN32
+  //extern HINSTANCE fl_display;
+  //wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
+  #endif
+  wndMain->show();
+  wndMain->resize(x,y,width,height);
+  wndMain->border(0);
+  ivfWorkspace->show();
 }

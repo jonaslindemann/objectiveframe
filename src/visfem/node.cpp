@@ -103,7 +103,7 @@ void Node::refresh()
         ss << m_femNode->getNumber();
         std::string s(ss.str());
 
-        m_nodeLabel->setText(s, m_beamModel->getNodeSize() * 1.5);
+        m_nodeLabel->setText(s, float(m_beamModel->getNodeSize() * 1.5f));
     }
     else
     {
@@ -197,5 +197,5 @@ void Node::setBeamModel(BeamModel* model)
     m_beamModel = model;
     m_nodeLabel->setCamera(m_beamModel->camera());
     m_nodeLabel->setFont(m_beamModel->textFont());
-    m_nodeLabel->setSize(m_beamModel->getNodeSize() * 1.5);
+    m_nodeLabel->setSize(float(m_beamModel->getNodeSize() * 1.5f));
 }

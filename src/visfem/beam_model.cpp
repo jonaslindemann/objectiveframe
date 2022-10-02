@@ -107,7 +107,7 @@ void BeamModel::generateModel()
         ivfNode->setFemNode(nodeSet->getNode(i));
         ivfNode->setMaterial(m_nodeMaterial);
         ivfNode->setDirectRefresh(true);
-        ivfNode->nodeLabel()->setSize(m_nodeSize * 1.5);
+        ivfNode->nodeLabel()->setSize(float(m_nodeSize * 1.5f));
         ivfNode->refresh();
         // if (m_pnodeSize!=nullptr)
         //	ivfNode->setNodeSize(*m_pnodeSize);

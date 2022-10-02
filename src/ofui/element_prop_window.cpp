@@ -26,7 +26,7 @@ void ElementPropWindow::setBeam(vfem::Beam* beam)
     m_beam = beam;
     if (m_beam != nullptr)
     {
-        m_beamRotation = float(m_beam->getBeam()->getBeamRotation()) * 2.0f * PI / 360.0f;
+        m_beamRotation = float(m_beam->getBeam()->getBeamRotation() * 2.0f * PI / 360.0f);
         m_oldBeamRotation = m_beamRotation;
 
         if (m_beam->getBeam()->beamType() == ofem::btBeam)
@@ -81,7 +81,7 @@ void ElementPropWindow::doDraw()
                 if (ImGui::BeginTabItem("Section forces"))
                 {
                     int n = m_beam->getBeam()->getEvaluationPoints();
-                    int k = m_beam->getBeam()->getValueSize();
+                    size_t k = m_beam->getBeam()->getValueSize();
 
                     int pos = 0;
 
@@ -117,7 +117,7 @@ void ElementPropWindow::doDraw()
                 if (ImGui::BeginTabItem("Displacements"))
                 {
                     int n = m_beam->getBeam()->getEvaluationPoints();
-                    int k = m_beam->getBeam()->getValueSize();
+                    size_t k = m_beam->getBeam()->getValueSize();
 
                     int pos = 6 * n;
 

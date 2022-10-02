@@ -6,9 +6,6 @@
 #define OBJFRAME_AUTHOR1 "Main author: Jonas Lindemann"
 #define OBJFRAME_AUTHOR2 "Contributors: Pierre Olsson, Daniel Akesson"
 
-#define ADVANCED_GL
-#define USE_IMGUI
-
 #include <chaiscript/chaiscript.hpp>
 
 #include <sstream>
@@ -37,6 +34,7 @@
 #include <ofem/beam_node_bc.h>
 #include <ofem/beam_node_load.h>
 #include <ofem/calfem_writer.h>
+#include <ofem/model_clip_board.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
@@ -77,7 +75,8 @@ enum class CustomMode
 {
     Normal,
     Feedback,
-    Structure
+    Structure,
+    Paste
 };
 
 enum class SelectMode
@@ -193,6 +192,8 @@ private:
     ofem::BeamLoadPtr m_currentElementLoad;
     ofem::BeamNodeLoadPtr m_currentNodeLoad;
     ofem::BeamNodeBCPtr m_currentNodeBC;
+    ofem::ModelClipBoardPtr m_modelClipBoard;
+
     vfem::NodePtr m_interactionNode;
 #ifdef USE_LEAP
     LeapInteraction* m_leapinteraction;
@@ -344,6 +345,7 @@ public:
     void lockScaleFactor();
     virtual void setWorkspace(double size, bool resetCamera = true) override;
 
+    void open(std::string filename);
     void open();
     void save();
     void saveAs();
@@ -377,9 +379,13 @@ public:
     void doFeedback();
     void showMessage(std::string message);
     void updateAxisLabels();
+    void updateButtonState();
 
     void runScript(const std::string filename);
     void openScript();
+
+    void copy();
+    void paste();
 
     // Specific scripting interface methods
 
@@ -415,6 +421,9 @@ public:
     virtual void onDeSelect() override;
     virtual void onKeyboard(int key) override;
 
+    void onClipboardCreateNode(double x, double y, double z);
+    void onClipboardCreateElement(int i0, int i1);
+
     // ImGui events
 
     virtual void onDrawImGui();
@@ -425,5 +434,8 @@ public:
     virtual void onButton(int objectName, PlaneButton* button);
     virtual void onOverButton(int objectName, PlaneButton* button);
     virtual void onShortcut(ModifierKey modifier, int key);
+
+    // Plugin handling
+
     void runPlugin(ScriptPlugin* plugin);
 };

@@ -8,6 +8,9 @@ decl {\#ifdef WIN32} {private local
 decl {\#include <windows.h>} {private local
 }
 
+decl {\#include "resource.h"} {selected private global
+}
+
 decl {\#endif} {private local
 }
 
@@ -41,7 +44,7 @@ class MainFrame {open
   } {
     code {\#ifdef WIN32
 extern HINSTANCE fl_display;
-//wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_OBJFRAME)));
+wndMain->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_ICON1)));
 \#endif
 wndMain->size(Fl::w()-40, Fl::h()-40);
 wndMain->position(20,40);
@@ -77,7 +80,6 @@ ivfWorkspace->setArguments(m_argc, m_argv);} {}
 wndMain->show();
 wndMain->resize(x,y,width,height);
 wndMain->border(0);
-ivfWorkspace->show();} {selected
-    }
+ivfWorkspace->show();} {}
   }
 }

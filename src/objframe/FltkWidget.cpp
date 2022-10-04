@@ -139,6 +139,7 @@ void FltkWidget::deleteAll()
     m_scene->deleteAll();
     this->redraw();
     m_selectedShapes->clear();
+    m_scene->addChild(m_volumeSelection);
 }
 
 
@@ -1046,6 +1047,12 @@ void FltkWidget::doMouse(int x, int y)
             m_volumeEnd[0] = vx;
             m_volumeEnd[1] = vy;
             m_volumeEnd[2] = vz;
+
+            if (m_volumeStart[1] == m_volumeEnd[1])
+            {
+                m_volumeStart[1] = -1e300;
+                m_volumeEnd[1] = 1e300;
+            }
 
             if (m_editMode == WidgetMode::SelectVolume)
                 onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1], m_volumeEnd[2]);

@@ -1,7 +1,6 @@
 #include <FL/Fl.H>
 
 #include "ObjframeConfig.h"
-#define ADVANCED_GL
 
 #include "MainFrame.h"
 

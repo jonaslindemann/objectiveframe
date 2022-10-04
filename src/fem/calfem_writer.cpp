@@ -116,7 +116,20 @@ void CalfemWriter::saveToStream(std::ostream& out)
     for (i = 0; i < elementSet->getSize(); i++)
     {
         Beam* element = (Beam*)elementSet->getElement(i);
-        arrRow(out, vector<int> { element->getNode(0)->getNumber() - 1, element->getNode(1)->getNumber() - 1, element->getMaterial()->getNumber() - 1 });
+        if (element->beamType() == btBeam)
+            arrRow(out, vector<int> { element->getNode(0)->getNumber() - 1, element->getNode(1)->getNumber() - 1, element->getMaterial()->getNumber() - 1 });
+    }
+
+    endArr(out);
+    out << "\n";
+
+    beginArr(out, "bar_topo");
+
+    for (i = 0; i < elementSet->getSize(); i++)
+    {
+        Beam* element = (Beam*)elementSet->getElement(i);
+        if (element->beamType() == btBar)
+            arrRow(out, vector<int> { element->getNode(0)->getNumber() - 1, element->getNode(1)->getNumber() - 1, element->getMaterial()->getNumber() - 1 });
     }
 
     endArr(out);
@@ -152,8 +165,11 @@ void CalfemWriter::saveToStream(std::ostream& out)
     for (i = 0; i < elementSet->getSize(); i++)
     {
         Beam* element = (Beam*)elementSet->getElement(i);
-        element->getOrientationZ(ex, ey, ez);
-        arrRow(out, vector<double> { ex, ey, ez });
+        if (element->beamType() == btBeam)
+        {
+            element->getOrientationZ(ex, ey, ez);
+            arrRow(out, vector<double> { ex, ey, ez });
+        }
     }
 
     endArr(out);

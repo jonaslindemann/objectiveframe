@@ -1945,7 +1945,6 @@ void FemWidget::unlockScaleFactor()
 
 void FemWidget::refreshToolbars()
 {
-#ifdef ADVANCED_GL
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
     // m_viewButtons->clearChecked();
@@ -1976,7 +1975,6 @@ void FemWidget::refreshToolbars()
     }
 
     this->redraw();
-#endif
 }
 
 void FemWidget::removeNodeLoadsFromSelected()
@@ -2611,7 +2609,6 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
             if (m_beamModel->getNodeSet()->removeNode(visNode->getFemNode()))
             {
                 doit = true;
-                this->snapShot();
             }
             else
                 doit = false;
@@ -2629,7 +2626,6 @@ void FemWidget::onDeleteShape(Shape* shape, bool& doit)
             if (beamSet->removeElement(femBeam))
             {
                 doit = true;
-                this->snapShot();
             }
             else
                 doit = false;
@@ -2712,7 +2708,6 @@ void FemWidget::onInitContext()
 
 void FemWidget::onPassiveMotion(int x, int y)
 {
-#ifdef ADVANCED_GL
     unsigned int i;
     bool inside = false;
     bool needInvalidate = false;
@@ -2776,7 +2771,6 @@ void FemWidget::onPassiveMotion(int x, int y)
     {
         redraw();
     }
-#endif
 }
 
 void FemWidget::onMouse(int x, int y)
@@ -2962,6 +2956,7 @@ void FemWidget::onSelectPosition(double x, double y, double z)
 
     if (m_customMode == CustomMode::Paste)
     {
+        m_modelClipBoard->setOffset(x, 0.0, z);
         m_modelClipBoard->paste(m_beamModel);
     }
 }
@@ -3139,6 +3134,15 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
     if (key == FL_Delete)
         this->deleteSelected();
 
+    if (key == FL_Escape)
+    {
+        m_editButtons->clearChecked();
+        m_objectButtons->clearChecked();
+        m_editButtons->check(0);
+        this->setEditMode(WidgetMode::Select);
+        this->redraw();
+    }
+
     if ((modifier == ModifierKey::mkCtrl) && (key == 'o'))
         this->open();
 
@@ -3150,6 +3154,12 @@ void FemWidget::onShortcut(ModifierKey modifier, int key)
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'a'))
         this->selectAll();
+
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'c'))
+        this->copy();
+
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'v'))
+        this->paste();
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'z'))
         this->restoreLastSnapShot();
@@ -3261,11 +3271,15 @@ void FemWidget::onKeyboard(int key)
 void FemWidget::onClipboardCreateNode(double x, double y, double z)
 {
     log("CB: Create node x = " + to_string(x) + ", " + to_string(y) + ", " + to_string(z));
+
+    this->addNode(x, y, z);
 }
 
 void FemWidget::onClipboardCreateElement(int i0, int i1)
 {
     log("CB: Create element i0 = " + to_string(i0) + ", " + to_string(i1));
+
+    this->addBeam(i0, i1);
 }
 
 void FemWidget::onDrawImGui()

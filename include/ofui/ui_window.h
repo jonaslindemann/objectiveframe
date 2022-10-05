@@ -15,6 +15,8 @@ private:
     bool m_visible;
     ImGuiWindowFlags m_windowFlags;
     bool m_updatePos;
+    bool m_centerBottom;
+
     int m_corner;
 
 public:
@@ -33,7 +35,12 @@ public:
     void show();
     void hide();
     void setSize(int w, int h);
+    int width();
+    int height();
+   
     void align(int corner);
+    void centerBottom();
+
     void setPosition(int x, int y);
 
 protected:

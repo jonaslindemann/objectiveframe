@@ -685,9 +685,23 @@ void FemWidget::saveAs()
 
 void FemWidget::exportAsCalfem()
 {
-    auto writer = new ofem::CalfemWriter("cfexport.py");
-    writer->setFemModel(m_beamModel);
-    writer->save();
+    // Save model
+
+    Fl_Native_File_Chooser fnfc;
+    fnfc.title("Save as");
+    fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+    fnfc.filter("CALFEM for Python\t*.py\n");
+    fnfc.directory(""); // default directory to use
+
+    int result = fnfc.show();
+
+    if (result == 0)
+    {
+        std::string filename = fnfc.filename();
+        auto writer = new ofem::CalfemWriter(filename);
+        writer->setFemModel(m_beamModel);
+        writer->save();
+    }
 }
 
 void FemWidget::snapShot()
@@ -1364,7 +1378,7 @@ void FemWidget::setupOverlay()
     m_editArea = new Area2D();
     m_editArea->add(0, 0);
     m_editArea->add(65, 0);
-    m_editArea->add(65, 520);
+    m_editArea->add(65, 600);
     m_editArea->add(0, 520);
     m_editArea->setColor(0, 0.0f, 0.0f, 0.0f);
     m_editArea->setColor(1, 0.0f, 0.0f, 0.0f);
@@ -1423,6 +1437,12 @@ void FemWidget::setupOverlay()
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
+    button = new PlaneButton(ToolbarButton::Run, "images/run.png");
+    button->setSize(40.0, 40.0);
+    button->setPosition(30.0, 520.0, 0.0);
+    button->setHint("Excecute calculation");
+    m_editButtons->addChild(button);
+
     m_overlayScene->addChild(m_editButtons);
 
     //
@@ -1466,6 +1486,11 @@ void FemWidget::setupOverlay()
     button->setPosition(330.0, 30.0, 0.0);
     button->setHint("Show beam properties");
     m_objectButtons->addChild(button);
+
+    m_logoButton = new PlaneButton(1234, "images/logo.png");
+    m_logoButton->setSize(120.0, 120.0);
+
+    m_overlayScene->addChild(m_logoButton);
 
     m_overlayScene->addChild(m_objectButtons);
 }
@@ -2109,6 +2134,7 @@ void FemWidget::onInit()
 
     m_consoleWindow = ConsoleWindow::create("Hints");
     m_consoleWindow->setVisible(true);
+    m_consoleWindow->centerBottom();
 
     using std::placeholders::_1;
     LoggerMessageFunc f = std::bind(&FemWidget::onMessage, this, _1);
@@ -2147,7 +2173,7 @@ void FemWidget::onInit()
     this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2f, 0.2f, 0.4f, 1.0f);
     this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.4f, 1.0f);
     this->getScene()->setRenderFlatShadow(true);
-    this->getScene()->setShadowColor(0.3, 0.3, 0.4);
+    this->getScene()->setShadowColor(0.2f, 0.2f, 0.4f);
     this->getScene()->setShadowPrePost(false, false);
 
     // Label rendering setup
@@ -2678,6 +2704,7 @@ void FemWidget::onOverlay()
     // Update button positions
 
     m_objectButtons->setPosition(0.0, pixel_h() - 70, 0.0);
+    m_logoButton->setPosition(pixel_w() - 80, pixel_h() - 80, 0.0);
 
     // Render overlay "scene"
 
@@ -3030,6 +3057,10 @@ void FemWidget::onButton(int objectName, PlaneButton* button)
         // m_editButtons->check(5);
         this->setCustomMode(CustomMode::Feedback);
         break;
+    case ToolbarButton::Run:
+        // m_editButtons->check(5);
+        this->executeCalc();
+        break;
     case ToolbarButton::ViewZoom:
         this->setEditMode(WidgetMode::ViewZoom);
         break;
@@ -3099,6 +3130,9 @@ void FemWidget::onOverButton(int objectName, PlaneButton* button)
         break;
     case ToolbarButton::Feedback:
         console("Interact with model using an movable force.");
+        break;
+    case ToolbarButton::Run:
+        console("Execute calculation");
         break;
     case ToolbarButton::ViewZoom:
         break;
@@ -3435,6 +3469,7 @@ void FemWidget::onDrawImGui()
             }
             ImGui::EndMenu();
         }
+        /*
         if (ImGui::BeginMenu("Calculation"))
         {
             if (ImGui::MenuItem("Execute", ""))
@@ -3442,6 +3477,7 @@ void FemWidget::onDrawImGui()
 
             ImGui::EndMenu();
         }
+        */
         if (ImGui::BeginMenu("Results"))
         {
             if (ImGui::MenuItem("Normal", ""))
@@ -3542,9 +3578,7 @@ void FemWidget::onInitImGui()
     ImGui::StyleColorsDark();
 
     ImGuiIO& io = ImGui::GetIO();
-    // ImFont* font1 = io.Fonts->AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 20*pixels_per_unit());
     io.Fonts->AddFontFromFileTTF("fonts/RopaSans-Regular.ttf", 22 * pixels_per_unit());
-    // ImFont* font2 = io.Fonts->AddFontFromFileTTF("anotherfont.otf", 13);
 
     ImGuiStyle& style = ImGui::GetStyle();
 

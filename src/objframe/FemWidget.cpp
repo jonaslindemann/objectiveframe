@@ -110,7 +110,7 @@ FemWidget::~FemWidget()
 void FemWidget::runScript(const std::string filename)
 {
 
-    ScriptPlugin plugin("plugins/frame.chai");
+    ScriptPlugin plugin(m_progPath + "/plugins/frame.chai");
 
     plugin.param("floors", "4");
     plugin.param("rows", "4");
@@ -818,6 +818,9 @@ void FemWidget::open(std::string filename)
 {
     // Change filename and erase previous model/scene
 
+    if (!std::filesystem::exists(filename))
+        return;
+
     this->setFileName(filename);
     this->deleteAll();
 
@@ -1401,43 +1404,43 @@ void FemWidget::setupOverlay()
 
     m_editButtons = new ButtonGroup();
 
-    button = new PlaneButton(ToolbarButton::Select, "images/tlselect.png");
+    button = new PlaneButton(ToolbarButton::Select, m_progPath + "/images/tlselect.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 60.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::SelectBox, "images/tlselectbox.png");
+    button = new PlaneButton(ToolbarButton::SelectBox, m_progPath + "/images/tlselectbox.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 120.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Move, "images/tlmove.png");
+    button = new PlaneButton(ToolbarButton::Move, m_progPath + "/images/tlmove.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 200.0, 0.0);
     button->setHint("Move nodes or elements");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Inspect, "images/tlinspect.png");
+    button = new PlaneButton(ToolbarButton::Inspect, m_progPath + "/images/tlinspect.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 270, 0.0);
     button->setHint("Node or element info");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Delete, "images/tldelete.png");
+    button = new PlaneButton(ToolbarButton::Delete, m_progPath + "/images/tldelete.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 360.0, 0.0);
     button->setHint("Delete node or element");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Feedback, "images/tlfeedback.png");
+    button = new PlaneButton(ToolbarButton::Feedback, m_progPath + "/images/tlfeedback.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 440.0, 0.0);
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Run, "images/run.png");
+    button = new PlaneButton(ToolbarButton::Run, m_progPath + "/images/run.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 520.0, 0.0);
     button->setHint("Excecute calculation");
@@ -1451,43 +1454,43 @@ void FemWidget::setupOverlay()
 
     m_objectButtons = new ButtonGroup();
 
-    button = new PlaneButton(ToolbarButton::CreateNode, "images/tlnode.png");
+    button = new PlaneButton(ToolbarButton::CreateNode, m_progPath + "/images/tlnode.png");
     button->setSize(50.0, 50.0);
     button->setPosition(30.0, 30.0, 0.0);
     button->setHint("Create node");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::CreateBeam, "images/tlsolidline.png");
+    button = new PlaneButton(ToolbarButton::CreateBeam, m_progPath + "/images/tlsolidline.png");
     button->setSize(50.0, 50.0);
     button->setPosition(90.0, 30.0, 0.0);
     button->setHint("Create element");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::NodeLoad, "images/tlnodeloads.png");
+    button = new PlaneButton(ToolbarButton::NodeLoad, m_progPath + "/images/tlnodeloads.png");
     button->setSize(50.0, 50.0);
     button->setPosition(150.0, 30.0, 0.0);
     button->setHint("Show node loads");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::BeamLoad, "images/tldload.png");
+    button = new PlaneButton(ToolbarButton::BeamLoad, m_progPath + "/images/tldload.png");
     button->setSize(50.0, 50.0);
     button->setPosition(210.0, 30.0, 0.0);
     button->setHint("Show element loads");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::NodeBC, "images/tlbc.png");
+    button = new PlaneButton(ToolbarButton::NodeBC, m_progPath + "/images/tlbc.png");
     button->setSize(50.0, 50.0);
     button->setPosition(270.0, 30.0, 0.0);
     button->setHint("Show boundary conditions");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Materials, "images/tlmaterials.png");
+    button = new PlaneButton(ToolbarButton::Materials, m_progPath + "/images/tlmaterials.png");
     button->setSize(50.0, 50.0);
     button->setPosition(330.0, 30.0, 0.0);
     button->setHint("Show beam properties");
     m_objectButtons->addChild(button);
 
-    m_logoButton = new PlaneButton(1234, "images/logo.png");
+    m_logoButton = new PlaneButton(1234, m_progPath + "/images/logo.png");
     m_logoButton->setSize(120.0, 120.0);
 
     m_overlayScene->addChild(m_logoButton);
@@ -2178,12 +2181,12 @@ void FemWidget::onInit()
 
     // Label rendering setup
 
-    if (std::filesystem::is_directory("fonts"))
+    if (std::filesystem::is_directory(m_progPath + "fonts"))
     {
-        m_labelFont = ivf::BitmapFont::create("fonts/white_font.fnt");
-        m_axisFont = ivf::BitmapFont::create("fonts/black_font.fnt");
-        m_greenFont = ivf::BitmapFont::create("fonts/green_font.fnt");
-        m_redFont = ivf::BitmapFont::create("fonts/red_font.fnt");
+        m_labelFont = ivf::BitmapFont::create(m_progPath + "fonts/white_font.fnt");
+        m_axisFont = ivf::BitmapFont::create(m_progPath + "fonts/black_font.fnt");
+        m_greenFont = ivf::BitmapFont::create(m_progPath + "fonts/green_font.fnt");
+        m_redFont = ivf::BitmapFont::create(m_progPath + "fonts/red_font.fnt");
     }
     else
     {
@@ -3578,7 +3581,11 @@ void FemWidget::onInitImGui()
     ImGui::StyleColorsDark();
 
     ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->AddFontFromFileTTF("fonts/RopaSans-Regular.ttf", 22 * pixels_per_unit());
+
+    std::filesystem::path p1 = m_progPath / std::filesystem::path("fonts/RopaSans-Regular.ttf");
+    std::string fontFilename = p1.string();
+
+    io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 22 * pixels_per_unit());
 
     ImGuiStyle& style = ImGui::GetStyle();
 

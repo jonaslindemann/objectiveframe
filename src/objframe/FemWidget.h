@@ -1,7 +1,7 @@
 #pragma once
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 2"
-#define OBJFRAME_RELEASE "Release version - 2.0.0-b5"
+#define OBJFRAME_RELEASE "Release version - 2.0.0-b6"
 #define OBJFRAME_COPYRIGHT_STRING "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund university"
 #define OBJFRAME_AUTHOR1 "Main author: Jonas Lindemann"
 #define OBJFRAME_AUTHOR2 "Contributors: Pierre Olsson, Daniel Akesson"
@@ -54,6 +54,7 @@
 #include <ofui/node_prop_window.h>
 #include <ofui/settings_window.h>
 #include <ofui/plugin_prop_window.h>
+#include <ofui/scale_window.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -254,6 +255,7 @@ private:
     ofui::LogWindowPtr m_logWindow;
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
+    ofui::ScaleWindowPtr m_scaleWindow;
 
     bool m_showStyleEditor;
     bool m_showMetricsWindow;
@@ -346,6 +348,11 @@ public:
     void deleteSelected();
     void unlockScaleFactor();
     void lockScaleFactor();
+    bool isScaleFactorLocked();
+
+    double autoScaleFactor();
+
+
     virtual void setWorkspace(double size, bool resetCamera = true) override;
 
     void open(std::string filename);

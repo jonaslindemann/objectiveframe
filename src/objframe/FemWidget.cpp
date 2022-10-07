@@ -1651,9 +1651,11 @@ void FemWidget::executeCalc()
             m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / maxNodeValue);
         else
             m_beamModel->setScaleFactor(1.0);
+
     }
 
     m_settingsWindow->update();
+    m_scaleWindow->show();
 
     // log("Scale factor = " << m_scalefactor);
 
@@ -1964,6 +1966,19 @@ void FemWidget::setInteractionNode(vfem::Node* interactionNode)
 void FemWidget::lockScaleFactor()
 {
     m_lockScaleFactor = true;
+}
+
+bool FemWidget::isScaleFactorLocked()
+{
+    return m_lockScaleFactor;
+}
+
+double FemWidget::autoScaleFactor()
+{
+    if (m_internalSolver != nullptr)
+        return this->getWorkspace() * 0.020 / m_internalSolver->getMaxNodeValue();
+    else
+        return 1.0;
 }
 
 void FemWidget::unlockScaleFactor()
@@ -2384,6 +2399,10 @@ void FemWidget::onInit()
     m_pluginWindow = PluginPropWindow::create("Plugin properties");
     m_pluginWindow->setWidget(this);
     m_pluginWindow->setVisible(false);
+
+    m_scaleWindow = ScaleWindow::create("Scaling");
+    m_scaleWindow->setWidget(this);
+    m_scaleWindow->setVisible(false);
 
     // Set initial edit mode
 
@@ -2986,7 +3005,7 @@ void FemWidget::onSelectPosition(double x, double y, double z)
 
     if (m_customMode == CustomMode::Paste)
     {
-        m_modelClipBoard->setOffset(x, 0.0, z);
+        m_modelClipBoard->setOffset(x, y, z);
         m_modelClipBoard->paste(m_beamModel);
     }
 }
@@ -3548,6 +3567,7 @@ void FemWidget::onDrawImGui()
     m_logWindow->draw();
     m_consoleWindow->draw();
     m_pluginWindow->draw();
+    m_scaleWindow->draw();
 
     ImGui::Render();
 

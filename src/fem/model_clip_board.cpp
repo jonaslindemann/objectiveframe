@@ -11,6 +11,10 @@ void ModelClipBoard::calcCenter()
 {
     double x, y, z;
 
+    m_center[0] = 0.0;
+    m_center[1] = 0.0;
+    m_center[2] = 0.0;
+
     for (auto node : m_nodes)
     {
         node->getCoord(x, y, z);

@@ -1,7 +1,7 @@
 #pragma once
 
 #define OBJFRAME_VERSION_STRING "ObjectiveFrame 2"
-#define OBJFRAME_RELEASE "Release version - 2.0.0-b7"
+#define OBJFRAME_RELEASE "Release version - 2.0.0-b8"
 #define OBJFRAME_COPYRIGHT_STRING "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund university"
 #define OBJFRAME_AUTHOR1 "Main author: Jonas Lindemann"
 #define OBJFRAME_AUTHOR2 "Contributors: Pierre Olsson, Daniel Akesson"

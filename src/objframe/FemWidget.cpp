@@ -94,7 +94,6 @@ FemWidget::FemWidget(int X, int Y, int W, int H, const char* L)
     m_mixedSelection = false;
 
     this->setupScripting();
-    this->setupPlugins();
 }
 
 FemWidget::~FemWidget()
@@ -1515,7 +1514,7 @@ void FemWidget::setupScripting()
 
 void FemWidget::setupPlugins()
 {
-    std::string path = "plugins";
+    std::string path = m_progPath + "plugins";
 
     if (std::filesystem::is_directory(path))
     {
@@ -1528,7 +1527,7 @@ void FemWidget::setupPlugins()
         }
     }
     else
-        log("Could find load any plugins...");
+        log("Couldn't find load any plugins...");
 }
 
 void FemWidget::assignNodeBCSelected()
@@ -2409,6 +2408,8 @@ void FemWidget::onInit()
     log("Setting initial edit mode.");
     this->setEditMode(WidgetMode::Select);
     // this->setEditMode(WidgetMode::SelectVolume);
+
+    this->setupPlugins();
 
     if (m_argc > 1)
     {

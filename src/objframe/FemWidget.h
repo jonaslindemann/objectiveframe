@@ -1,10 +1,10 @@
 #pragma once
 
-#define OBJFRAME_VERSION_STRING "ObjectiveFrame 2"
-#define OBJFRAME_RELEASE "Release version - 2.0.0-b8"
-#define OBJFRAME_COPYRIGHT_STRING "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund university"
-#define OBJFRAME_AUTHOR1 "Main author: Jonas Lindemann"
-#define OBJFRAME_AUTHOR2 "Contributors: Pierre Olsson, Daniel Akesson"
+constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.0-b9";
+constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund university";
+constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
+constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 
 #include <chaiscript/chaiscript.hpp>
 

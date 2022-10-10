@@ -1183,13 +1183,16 @@ void FrameSolver::recompute()
         nodeSet->clearNodeValues();
 
         for (i = 0; i < nodeSet->getSize(); i++)
-        {
+        { 
             Node* node = nodeSet->getNode(i);
             node->setValueSize(3);
             for (j = 0; j < 3; j++)
             {
-                nodeValue = m_GlobalA(node->getDof(j)->getNumber());
-                node->setValue(j, nodeValue);
+                if (node->getDof(j) != nullptr)
+                {
+                    nodeValue = m_GlobalA(node->getDof(j)->getNumber());
+                    node->setValue(j, nodeValue);
+                }
             }
         }
     }

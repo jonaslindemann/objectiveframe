@@ -1,0 +1,31 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Truss - Queen Post,string%%";
+var angle = %%angle,30.0,float%%;
+var width = %%width,5.0,float%%;
+
+var pi = 3.14159265358979323846;
+
+var s = nodeCount();
+
+var h = width * tan(angle*2.0*pi/360.0) * 0.5;
+
+
+addNode(-width/2.0, 0.0, 0.0);
+addNode(0.0, 0.0, 0.0);
+addNode(width/2.0, 0.0, 0.0);
+addNode(0.0, h, 0.0);
+addNode(-width/4.0, h/2.0, 0.0);
+addNode(width/4.0, h/2.0, 0.0);
+
+addBeam(s, s + 1);
+addBeam(s + 1, s + 2);
+addBeam(s, s + 3);
+addBeam(s + 3, s + 2);
+addBeam(s + 1, s + 3);
+addBeam(s + 1, s + 4);
+addBeam(s + 1, s + 5);
+
+}

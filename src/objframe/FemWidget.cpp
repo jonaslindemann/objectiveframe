@@ -1650,7 +1650,6 @@ void FemWidget::executeCalc()
             m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / maxNodeValue);
         else
             m_beamModel->setScaleFactor(1.0);
-
     }
 
     m_settingsWindow->update();

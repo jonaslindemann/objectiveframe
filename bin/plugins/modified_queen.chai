@@ -1,0 +1,49 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Truss - Modified Queen,string%%";
+var angle = %%angle,30.0,float%%;
+var w = %%w,5.0,float%%;
+
+var pi = 3.14159265358979323846;
+
+var s = nodeCount();
+
+var h = w * tan(angle*2.0*pi/360.0) * 0.5;
+var a = w * tan(angle*2.0*pi/360.0) / 3.0;
+var b = w * tan(angle*2.0*pi/360.0) / 6.0;
+
+
+addNode(-w/2.0, 0.0, 0.0);   // 0
+addNode(w/2.0, 0.0, 0.0);    // 1
+addNode(0.0, h, 0.0);        // 2
+
+addNode(-w/4.0, 0.0, 0.0);
+addNode(0.0, 0.0, 0.0);
+addNode(w/4.0, 0.0, 0.0);
+
+addNode(w/3.0, b, 0.0);
+addNode(w/6.0, a, 0.0);
+addNode(-w/6.0, a, 0.0);
+addNode(-w/3.0, b, 0.0);
+
+addBeam(s, s+3);
+addBeam(s+3, s+4);
+addBeam(s+4, s+5);
+addBeam(s+5, s+1);
+addBeam(s, s+9);
+addBeam(s+9, s+8);
+addBeam(s+8, s+2);
+addBeam(s+2, s+7);
+addBeam(s+7, s+6);
+addBeam(s+6, s+1);
+addBeam(s+3, s+9);
+addBeam(s+3, s+8);
+addBeam(s+4, s+8);
+addBeam(s+4, s+2);
+addBeam(s+4, s+7);
+addBeam(s+5, s+7);
+addBeam(s+5, s+6);
+
+}

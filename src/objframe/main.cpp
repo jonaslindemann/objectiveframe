@@ -15,8 +15,24 @@
 #include "LeapListener.h"
 #endif
 
+#include <crtdbg.h>
+
 int main(int argc, char** argv)
 {
+
+    /*
+    int tmp;
+
+    // Get the current bits
+    tmp = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+
+    // Clear the upper 16 bits and OR in the desired freqency
+    tmp = (tmp & 0x0000FFFF) | _CRTDBG_CHECK_EVERY_16_DF;
+
+    // Set the new bits
+    _CrtSetDbgFlag(tmp);  
+    */
+    
     int width = 1280;
     int height = 1024;
 

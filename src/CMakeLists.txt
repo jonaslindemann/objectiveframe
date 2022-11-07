@@ -1,1 +1,1 @@
-SUBDIRS(newmat fem visfem util objframe ofui imgui_fltk)
+SUBDIRS(newmat fem visfem util objframe ofui imgui_fltk objframe_glfw)

@@ -16,6 +16,12 @@ private:
     GLFWmonitor* m_monitor;
     int m_width, m_height;
     std::string m_title;
+    int m_mouseButton;
+    int m_mouseAction;
+    int m_mouseMods;
+    int m_mouseX;
+    int m_mouseY;
+
 public:
     GLFWWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
     virtual ~GLFWWindow();
@@ -33,6 +39,12 @@ public:
 
     GLFWwindow* ref();
 
+    int mouseButton();
+    int mouseAction();
+    int mouseMods();
+    int mouseX();
+    int mouseY();
+
 public:
 
     void doKey(int key, int scancode, int action, int mods);
@@ -41,11 +53,11 @@ public:
     void doResize(int width, int height);
     void doDraw();
 
-    virtual void onKey(int key, int scancode, int action, int mods);
-    virtual void onMousePosition(double x, double y);
-    virtual void onMouseButton(int button, int action, int mods);
-    virtual void onResize(int width, int height);
-    virtual void onDraw();
+    virtual void onGlfwKey(int key, int scancode, int action, int mods);
+    virtual void onGlfwMousePosition(double x, double y);
+    virtual void onGlfwMouseButton(int button, int action, int mods);
+    virtual void onGlfwResize(int width, int height);
+    virtual void onGlfwDraw();
 
 
 };

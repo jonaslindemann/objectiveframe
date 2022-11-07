@@ -13,7 +13,14 @@ std::shared_ptr<GLFWWindow> GLFWWindow::create(int width, int height, const std:
 }
 
 GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
-    :m_width(width), m_height(height), m_title(title)
+    : m_width(width)
+    , m_height(height)
+    , m_title(title)
+    , m_mouseButton(-1)
+    , m_mouseAction(-1)
+    , m_mouseMods(-1)
+    , m_mouseX(-1)
+    , m_mouseY(-1)
 {
     m_window = glfwCreateWindow(width, height, title.c_str(), monitor, shared);
 
@@ -22,8 +29,6 @@ GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonit
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-
-
 }
 
 GLFWWindow::~GLFWWindow()
@@ -75,6 +80,31 @@ GLFWwindow* GLFWWindow::ref()
     return m_window;
 }
 
+int GLFWWindow::mouseButton()
+{
+    return m_mouseButton;
+}
+
+int GLFWWindow::mouseAction()
+{
+    return m_mouseAction;
+}
+
+int GLFWWindow::mouseMods()
+{
+    return m_mouseMods;
+}
+
+int GLFWWindow::mouseX()
+{
+    return m_mouseX;
+}
+
+int GLFWWindow::mouseY()
+{
+    return m_mouseY;
+}
+
 int GLFWWindow::width()
 {
     if (m_window)
@@ -115,25 +145,30 @@ void GLFWWindow::getSize(int& width, int& height)
 void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 {
     cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
-    onKey(key, scancode, action, mods);
+    onGlfwKey(key, scancode, action, mods);
 }
 
 void GLFWWindow::doMousePosition(double x, double y)
 {
     cout << "doMousePosition: " << x << ", " << y << endl;
-    onMousePosition(x, y);
+    m_mouseX = x;
+    m_mouseY = y;
+    onGlfwMousePosition(x, y);
 }
 
 void GLFWWindow::doMouseButton(int button, int action, int mods)
 {
     cout << "doMouseButton: " << button << ", " << action << ", " << mods << endl;
-    onMouseButton(button, action, mods);
+    m_mouseButton = button;
+    m_mouseAction = action;
+    m_mouseMods = mods;
+    onGlfwMouseButton(button, action, mods);
 }
 
 void GLFWWindow::doResize(int width, int height)
 {
     cout << "doResize: " << width << ", " << height << endl;
-    onResize(width, height);
+    onGlfwResize(width, height);
 }
 
 void GLFWWindow::doDraw()
@@ -146,26 +181,26 @@ void GLFWWindow::doDraw()
 
     glViewport(0, 0, width, height);
 
-    onDraw();
+    onGlfwDraw();
 }
 
-void GLFWWindow::onKey(int key, int scancode, int action, int mods)
+void GLFWWindow::onGlfwKey(int key, int scancode, int action, int mods)
 {
 }
 
-void GLFWWindow::onMousePosition(double x, double y)
+void GLFWWindow::onGlfwMousePosition(double x, double y)
 {
 }
 
-void GLFWWindow::onMouseButton(int button, int action, int mods)
+void GLFWWindow::onGlfwMouseButton(int button, int action, int mods)
 {
 }
 
-void GLFWWindow::onResize(int width, int height)
+void GLFWWindow::onGlfwResize(int width, int height)
 {
 }
 
-void GLFWWindow::onDraw()
+void GLFWWindow::onGlfwDraw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 }

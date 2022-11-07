@@ -1,4 +1,4 @@
-#include "IvfViewWindow.h"
+ #include "IvfViewWindow.h"
 
 #include <iostream>
 
@@ -20,8 +20,8 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
 {
     // State variables
 
-    m_currentButton = ButtonState::NoButton;
-    m_currentModifier = ButtonState::NoButton;
+    m_currentButton = ButtonState::bsNoButton;
+    m_currentModifier = ButtonState::bsNoButton;
 
     m_angleX = 0.0f;
     m_angleY = 0.0f;
@@ -332,6 +332,24 @@ Composite* IvfViewWindow::getSelectedShapes()
     return m_selectedShapes;
 }
 
+bool IvfViewWindow::isInitialized()
+{
+    return false;
+}
+
+void IvfViewWindow::disableRedrawTimer()
+{
+}
+
+void IvfViewWindow::enableRedrawTimer()
+{
+}
+
+bool IvfViewWindow::isRedrawTimerEnabled()
+{
+    return false;
+}
+
 // ------------------------------------------------------------
 void IvfViewWindow::setUseOverlay(bool flag)
 {
@@ -385,7 +403,7 @@ ButtonState IvfViewWindow::getCurrentMouseButton()
 // ------------------------------------------------------------
 ButtonState IvfViewWindow::getCurrentModifier()
 {
-    m_currentModifier = ButtonState::NoButton;
+    m_currentModifier = ButtonState::bsNoButton;
 
     /*
     if (Fl::get_key(FL_Shift_L))
@@ -405,23 +423,33 @@ ButtonState IvfViewWindow::getCurrentModifier()
     return m_currentModifier;
 }
 
-void IvfViewWindow::onKey(int key, int scancode, int action, int mods)
+void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 {
 }
 
-void IvfViewWindow::onMousePosition(double x, double y)
+void IvfViewWindow::onGlfwMousePosition(double x, double y)
 {
+    doMouse(mouseX(), mouseY());
 }
 
-void IvfViewWindow::onMouseButton(int button, int action, int mods)
+void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 {
+    if (action == GLFW_PRESS)
+    {
+        doMouseDown(mouseX(), mouseY());
+    }
+    else
+    {
+        doMouseUp(mouseX(), mouseY());
+    }
 }
 
-void IvfViewWindow::onResize(int width, int height)
+void IvfViewWindow::onGlfwResize(int width, int height)
 {
+    doResize(width, height);
 }
 
-void IvfViewWindow::onDraw()
+void IvfViewWindow::onGlfwDraw()
 {
     if (!m_initDone)
     {
@@ -533,4 +561,287 @@ void IvfViewWindow::redraw()
 void IvfViewWindow::doDrawImGui()
 {
 
+}
+
+void IvfViewWindow::onInit()
+{
+}
+
+void IvfViewWindow::onDestroy()
+{
+}
+
+void IvfViewWindow::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
+{
+}
+
+void IvfViewWindow::onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine)
+{
+}
+
+void IvfViewWindow::onSelect(ivf::Composite* selectedShapes)
+{
+}
+
+void IvfViewWindow::onDeSelect()
+{
+}
+
+void IvfViewWindow::onCoordinate(double x, double y, double z)
+{
+}
+
+void IvfViewWindow::onDeleteShape(ivf::Shape* shape, bool& doit)
+{
+}
+
+void IvfViewWindow::onInitContext()
+{
+}
+
+void IvfViewWindow::onOverlay()
+{
+}
+
+void IvfViewWindow::onHighlightShape(ivf::Shape* shape)
+{
+}
+
+void IvfViewWindow::doMouseUp(int x, int y)
+{
+    // Call onMouseUp event method
+
+    //if (getEditMode() == WidgetMode::Move)
+    //    onMoveCompleted();
+
+    this->getScene()->showCursor();
+    onMouseUp(x, y);
+}
+
+void IvfViewWindow::doMouseDown(int x, int y)
+{
+    m_moveStart = true;
+    onMouseDown(x, y);
+}
+
+void IvfViewWindow::doPassiveMotion(int x, int y)
+{
+}
+
+void IvfViewWindow::doMotion(int x, int y)
+{
+}
+
+void IvfViewWindow::doMouse(int x, int y)
+{
+    cout << "doMouse(" << x << ", " << y << ")" << endl;
+
+    // Store mouse down position.
+
+    Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+    pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
+
+    if ((m_editMode == WidgetMode::Select) && (m_selectEnabled))
+    {
+        if (m_selectedShape != NULL)
+        {
+            if (m_selectedShape->getSelect() != GLBase::SS_ON)
+            {
+                bool select = true;
+                onSelectFilter(m_selectedShape, select);
+                if (select)
+                {
+                    m_selectedShape->setSelect(GLBase::SS_ON);
+                    m_selectedShapes->addChild(m_selectedShape);
+                    onSelect(m_selectedShapes);
+                }
+                redraw();
+            }
+        }
+        else
+        {
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+            m_selectedShapes->clear();
+            onDeSelect();
+            redraw();
+        }
+    }
+
+    // Handle node creation
+
+    if ((m_editMode == WidgetMode::CreateNode) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        double vx, vy, vz;
+        Node* node = NULL;
+        Vec3d pos;
+
+        m_scene->updateCursor(x, y);
+        pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(vx, vy, vz);
+
+        if (m_editEnabled)
+            onCreateNode(vx, vy, vz, node);
+
+        if (node != NULL)
+        {
+            m_scene->addChild(node);
+            redraw();
+        }
+    }
+
+    // Handle selection
+
+    if ((m_editMode == WidgetMode::SelectPosition) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        double vx, vy, vz;
+        Node* node = NULL;
+        Vec3d pos;
+
+        m_scene->updateCursor(x, y);
+        pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(vx, vy, vz);
+
+        //onSelectPosition(vx, vy, vz);
+    }
+
+    if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT) > 0)
+    {
+        double vx, vy, vz;
+        Node* node = NULL;
+        Vec3d pos;
+
+        m_scene->updateCursor(x, y);
+        pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(vx, vy, vz);
+
+        if (m_clickNumber == 0)
+        {
+            m_volumeStart[0] = vx;
+            m_volumeStart[1] = vy;
+            m_volumeStart[2] = vz;
+
+            m_volumeEnd[0] = vx;
+            m_volumeEnd[1] = vy;
+            m_volumeEnd[2] = vz;
+
+            ivf::Point3d p0, p1;
+            p0.setComponents(m_volumeStart);
+            p1.setComponents(m_volumeEnd);
+            m_volumeSelection->setSize(&p0, &p1);
+
+            m_volumeSelection->setState(Shape::OS_ON);
+            m_clickNumber++;
+        }
+        else if (m_clickNumber == 1)
+        {
+            m_volumeEnd[0] = vx;
+            m_volumeEnd[1] = vy;
+            m_volumeEnd[2] = vz;
+
+            if (m_volumeStart[1] == m_volumeEnd[1])
+            {
+                m_volumeStart[1] = -1e300;
+                m_volumeEnd[1] = 1e300;
+            }
+
+            //if (m_editMode == WidgetMode::SelectVolume)
+            //    onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1], m_volumeEnd[2]);
+            //else
+            //    this->selectAllBox();
+
+            m_volumeSelection->setState(Shape::OS_OFF);
+            m_clickNumber = 0;
+        }
+
+        // onSelectPosition(vx, vy, vz);
+    }
+
+    if (m_editMode == WidgetMode::CreateLine)
+    {
+        if (m_selectedShapes->getSize() < 2)
+        {
+            if (m_selectedShape != NULL)
+            {
+                if (m_selectedShape->isClass("Node"))
+                {
+                    m_selectedShape->setSelect(GLBase::SS_ON);
+                    m_selectedShapes->addChild(m_selectedShape);
+                }
+                redraw();
+            }
+            else
+            {
+                m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+                m_selectedShapes->clear();
+                redraw();
+            }
+        }
+
+        if (m_selectedShapes->getSize() == 2)
+        {
+            this->createLine();
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+            m_selectedShapes->clear();
+            redraw();
+        }
+    }
+
+    // Call onMouse event handler
+
+    onMouse(x, y);
+}
+
+void IvfViewWindow::doKeyboard(int key)
+{
+    // Call onMouseUp event method
+
+    onKeyboard(key);
+}
+
+void IvfViewWindow::onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
+{
+}
+
+void IvfViewWindow::onSelectFilter(ivf::Shape* shape, bool& select)
+{
+}
+
+void IvfViewWindow::onHighlightFilter(ivf::Shape*, bool& highlight)
+{
+}
+
+void IvfViewWindow::onMotion(int x, int y)
+{
+}
+
+void IvfViewWindow::onPassiveMotion(int x, int y)
+{
+}
+
+void IvfViewWindow::onMouse(int x, int y)
+{
+}
+
+void IvfViewWindow::onMouseDown(int x, int y)
+{
+}
+
+void IvfViewWindow::onMouseUp(int x, int y)
+{
+}
+
+void IvfViewWindow::onKeyboard(int key)
+{
+}
+
+void IvfViewWindow::onPostRender()
+{
+}
+
+void IvfViewWindow::onPreRender()
+{
+}
+
+void IvfViewWindow::onDrawImGui()
+{
 }

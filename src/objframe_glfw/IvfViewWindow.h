@@ -11,11 +11,39 @@
 
 // Widget modes
 
-enum class WidgetMode { Select, SimpleSelect, View, ViewZoom, ViewPan, CameraTarget, Move, Create, CreateNode, CreateLine, CreateObject, Manipulate, User };
+enum class WidgetMode
+{
+    Select,
+    SimpleSelect,
+    View,
+    ViewZoom,
+    ViewPan,
+    CameraTarget,
+    Move,
+    Create,
+    CreateNode,
+    CreateLine,
+    CreateObject,
+    SelectPosition,
+    SelectVolume,
+    BoxSelection,
+    Manipulate,
+    User
+};
 
 // Mouse modes
 
-enum class ButtonState { Button1, Button2, Button3, NoButton, Shift, Ctrl, Alt };
+enum class ButtonState
+{
+    bsButton1,
+    bsButton2,
+    bsButton3,
+    bsNoButton,
+    bsShift,
+    bsCtrl,
+    bsAlt
+};
+
 
 #include <ivf/Base.h>
 #include <ivf/Composite.h>
@@ -48,7 +76,7 @@ private:
     ButtonState m_currentModifier;
 
     WidgetMode m_editMode;
-    int	m_clickNumber;
+    int m_clickNumber;
     bool m_snapToGrid;
 
     int m_manipulatorMode;
@@ -65,6 +93,9 @@ private:
     double m_startPos[3];
     double m_endPos[3];
 
+    double m_volumeStart[3];
+    double m_volumeEnd[3];
+
     double m_manipStartPos[3];
     double m_manipEndPos[3];
     double m_snapUnit;
@@ -78,15 +109,19 @@ private:
     long m_nLines;
 
     bool m_doOverlay;
+    bool m_doUnderlay;
     bool m_editEnabled;
     bool m_selectEnabled;
     bool m_initDone;
     bool m_disableRedrawTimer;
     bool m_quit;
+    bool m_moveStart;
 
     bool m_mouseUpdate;
 
     double m_controlSize;
+
+    bool m_offScreenRendering;
 
     GLuint m_screenTexture;
     GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
@@ -95,12 +130,13 @@ private:
 
     // Interaction objects
 
-    ivf::WorkspacePtr			m_scene;
-    ivf::ShapePtr				m_selectedShape;
-    ivf::CameraPtr				m_camera;
-    ivf::CompositePtr			m_selectedShapes;
-    ivf::LightingPtr			m_lighting;
-    ivf::ShapePtr               m_lastShape;
+    ivf::WorkspacePtr m_scene;
+    ivf::ShapePtr m_selectedShape;
+    ivf::CameraPtr m_camera;
+    ivf::CompositePtr m_selectedShapes;
+    ivf::LightingPtr m_lighting;
+    ivf::ShapePtr m_lastShape;
+    ivf::WireBrickPtr m_volumeSelection;
 
 public:
     IvfViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
@@ -109,11 +145,11 @@ public:
     static std::shared_ptr<IvfViewWindow> create(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
 
 public:
-    virtual void onKey(int key, int scancode, int action, int mods) override;
-    virtual void onMousePosition(double x, double y) override;
-    virtual void onMouseButton(int button, int action, int mods) override;
-    virtual void onResize(int width, int height) override;
-    virtual void onDraw() override;
+    virtual void onGlfwKey(int key, int scancode, int action, int mods) override;
+    virtual void onGlfwMousePosition(double x, double y) override;
+    virtual void onGlfwMouseButton(int button, int action, int mods) override;
+    virtual void onGlfwResize(int width, int height) override;
+    virtual void onGlfwDraw() override;
 
 public:
     void redraw();

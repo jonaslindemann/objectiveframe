@@ -1382,6 +1382,9 @@ void FltkWidget::doMouseUp(int x, int y)
     onMouseUp(x, y);
 }
 
+void FltkWidget::onMouseUp(int x, int y)
+{
+}
 
 void FltkWidget::doKeyboard(int key)
 {
@@ -1394,12 +1397,6 @@ void FltkWidget::doShortcut(ModifierKey modifier, int key)
 {
     onShortcut(modifier, key);
 }
-
-
-void FltkWidget::onMouseUp(int x, int y)
-{
-}
-
 
 void FltkWidget::onCoordinate(double x, double y, double z)
 {

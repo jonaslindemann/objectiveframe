@@ -33,7 +33,7 @@ enum class WidgetMode
 
 // Mouse modes
 
-enum class ButtonState
+enum class ButtonState 
 {
     bsButton1,
     bsButton2,

@@ -91,12 +91,13 @@ FemView::~FemView()
     // Do some cleanup
 
     log("Deleting internal solver.");
+
     delete m_internalSolver;
 }
 
 void FemView::runScript(const std::string filename)
 {
-
+    /*
     ScriptPlugin plugin(m_progPath + "/plugins/frame.chai");
 
     plugin.param("floors", "4");
@@ -119,24 +120,29 @@ void FemView::runScript(const std::string filename)
     }
 
     m_chai.set_state(s);
+    */
 }
 
 void FemView::runPlugin(ScriptPlugin* plugin)
 {
     this->snapShot();
 
-    chaiscript::ChaiScript::State s = m_chai.get_state(); // get initial state
+    chaiscript::ChaiScript script;
+
+    this->setupScript(script);
+
+    chaiscript::ChaiScript::State s = script.get_state(); // get initial state
     try
     {
         m_pluginRunning = true;
-        m_chai.eval(plugin->source());
+        script.eval(plugin->source());
         m_pluginRunning = false;
     }
     catch (const chaiscript::exception::eval_error& e)
     {
         log(e.pretty_print());
     }
-    m_chai.set_state(s);
+    script.set_state(s);
 }
 
 // Get/set methods
@@ -1495,6 +1501,7 @@ void FemView::setupOverlay()
 
 void FemView::setupScripting()
 {
+    /*
     // Add math library to script environment
 
     auto mathlib = chaiscript::extras::math::bootstrap();
@@ -1506,6 +1513,22 @@ void FemView::setupScripting()
     m_chai.add(chaiscript::fun(&FemView::newModel, this), "newModel");
     m_chai.add(chaiscript::fun(&FemView::addBeam, this), "addBeam");
     m_chai.add(chaiscript::fun(&FemView::nodeCount, this), "nodeCount");
+    */
+}
+
+void FemView::setupScript(chaiscript::ChaiScript& script)
+{
+    // Add math library to script environment
+
+    auto mathlib = chaiscript::extras::math::bootstrap();
+    script.add(mathlib);
+
+    // Bind ObjectiveFrame specific functions
+
+    script.add(chaiscript::fun(&FemView::addNode, this), "addNode");
+    script.add(chaiscript::fun(&FemView::newModel, this), "newModel");
+    script.add(chaiscript::fun(&FemView::addBeam, this), "addBeam");
+    script.add(chaiscript::fun(&FemView::nodeCount, this), "nodeCount");
 }
 
 void FemView::setupPlugins()

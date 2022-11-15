@@ -264,7 +264,7 @@ private:
     // Scripting
 
     bool m_pluginRunning;
-    chaiscript::ChaiScript m_chai;
+    //chaiscript::ChaiScript m_chai;
 
     // Plugins
 
@@ -285,6 +285,7 @@ private:
     // Setup functions
 
     void setupScripting();
+    void setupScript(chaiscript::ChaiScript& script);
     void setupOverlay();
     void setupPlugins();
 

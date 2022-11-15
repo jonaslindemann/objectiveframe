@@ -113,8 +113,7 @@ void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 
 void IvfViewWindow::onGlfwResize(int width, int height)
 {
-    m_camera->setViewPort(this->width(), this->width());
-    m_camera->initialize();
+    //m_camera->setViewPort(this->width(), this->height());
 }
 
 void IvfViewWindow::onGlfwDraw()
@@ -189,7 +188,7 @@ void IvfViewWindow::onGlfwDraw()
 
         glPopAttrib();
 
-        m_camera->setViewPort(this->width(), this->width());
+        m_camera->setViewPort(this->width(), this->height());
         m_camera->initialize();
     }
 
@@ -210,7 +209,7 @@ void IvfViewWindow::onGlfwDraw()
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0.0, (double)width(), (double)width(), 0.0, 0.0, 1.0);
+        glOrtho(0.0, (double)width(), (double)height(), 0.0, 0.0, 1.0);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
@@ -218,7 +217,7 @@ void IvfViewWindow::onGlfwDraw()
 
         glPopAttrib();
 
-        m_camera->setViewPort(width(), width());
+        m_camera->setViewPort(width(), height());
         m_camera->initialize();
     }
 

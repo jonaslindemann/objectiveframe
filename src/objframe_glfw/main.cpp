@@ -5,6 +5,7 @@
 #include "GLFWWindow.h"
 
 #include "IvfViewWindow.h"
+#include "FemView.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -20,8 +21,9 @@ int main(void)
     app->hint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     app->hint(GLFW_CONTEXT_VERSION_MINOR, 2);
     app->hint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    app->hint(GLFW_SAMPLES, 4);
 
-    auto window = IvfViewWindow::create(640, 480, "ObjectiveFrame");
+    auto window = FemView::create(1280, 1024, "ObjectiveFrame");
 
     app->addWindow(window);
 

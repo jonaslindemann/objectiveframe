@@ -3,14 +3,18 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofem;
 using namespace ofui;
 
 MaterialPropPopup::MaterialPropPopup(const std::string name, bool modal)
     : PopupWindow(name, modal)
-    , m_widget { nullptr }
+    , m_view { nullptr }
     , m_color { 0 }
     , m_nameArr {}
     , m_E { 0.0 }
@@ -44,15 +48,22 @@ std::shared_ptr<MaterialPropPopup> MaterialPropPopup::create(const std::string n
     return std::make_shared<MaterialPropPopup>(name, modal);
 }
 
+#ifdef USE_FEMVIEW
+void ofui::MaterialPropPopup::setFemView(FemView* view)
+{
+    m_view = view;
+}
+#else
 void MaterialPropPopup::setFemWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
     this->update();
 }
+#endif
 
 void MaterialPropPopup::update()
 {
-    auto material = m_widget->getCurrentMaterial();
+    auto material = m_view->getCurrentMaterial();
 
     if (material != nullptr)
     {
@@ -103,7 +114,7 @@ void MaterialPropPopup::update()
 
 void MaterialPropPopup::updateMaterial()
 {
-    auto material = m_widget->getCurrentMaterial();
+    auto material = m_view->getCurrentMaterial();
     auto section = material->getSection();
 
     if (material != nullptr)
@@ -132,11 +143,11 @@ void MaterialPropPopup::doPopup()
     BeamMaterial* material = nullptr;
     Section* section = nullptr;
 
-    if (m_widget != nullptr)
+    if (m_view != nullptr)
     {
-        if (m_widget->getCurrentMaterial() != nullptr)
+        if (m_view->getCurrentMaterial() != nullptr)
         {
-            material = m_widget->getCurrentMaterial();
+            material = m_view->getCurrentMaterial();
             section = material->getSection();
 
             if (ImGui::BeginTabBar("Test"))
@@ -247,9 +258,9 @@ void MaterialPropPopup::doPopup()
     {
         this->close(PopupResult::OK);
 
-        if (m_widget != nullptr)
+        if (m_view != nullptr)
         {
-            auto material = m_widget->getCurrentMaterial();
+            auto material = m_view->getCurrentMaterial();
             if (material != nullptr)
             {
 
@@ -257,7 +268,7 @@ void MaterialPropPopup::doPopup()
                 material->setColor(m_color);
                 material->assignPropFromSection();
 
-                m_widget->set_changed();
+                m_view->set_changed();
             }
         }
         ImGui::CloseCurrentPopup();

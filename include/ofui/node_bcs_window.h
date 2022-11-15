@@ -9,7 +9,11 @@
 
 #include <ofem/beam_node_bc_set.h>
 
+#ifdef USE_FEMVIEW
+class FemView;
+#else
 class FemWidget;
+#endif
 
 namespace ofui
 {
@@ -18,7 +22,11 @@ class NodeBCsWindow : public UiWindow
 {
 private:
     ofem::BeamNodeBCSet* m_femNodeBCSet;
-    FemWidget* m_widget;
+#ifdef USE_FEMVIEW
+    FemView* m_view;
+#else
+    FemWidget* m_view;
+#endif
     std::vector<bool> m_selected;
     int m_currentItemIdx;
     BCPropPopupPtr m_propPopup;
@@ -30,7 +38,11 @@ public:
     static std::shared_ptr<NodeBCsWindow> create(const std::string name);
 
     void setFemNodeBCSet(ofem::BeamNodeBCSet* bcSet);
+#ifdef USE_FEMVIEW
+    void setFemView(FemView* view);
+#else
     void setFemWidget(FemWidget* widget);
+#endif
 
 protected:
     virtual void doPreDraw();

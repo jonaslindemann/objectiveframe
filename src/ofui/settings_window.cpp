@@ -1,6 +1,11 @@
 #include <ofui/settings_window.h>
 
-#include "FemWidget.h"
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
+#include <FemWidget.h>
+#endif
+
 #include <vfem/beam_model.h>
 
 using namespace ofui;
@@ -11,7 +16,7 @@ SettingsWindow::SettingsWindow(const std::string name)
     , m_nodeSize { 0.4f }
     , m_lineRadius { 0.15f }
     , m_loadSize { 7.0f }
-    , m_widget { nullptr }
+    , m_view { nullptr }
     , m_scaleFactor { 1.0f }
     , m_lockScaleFactor { false }
     , m_showNodeNumbers { false }
@@ -22,27 +27,42 @@ SettingsWindow::~SettingsWindow()
 {
 }
 
+#ifdef USE_FEMVIEW
+void ofui::SettingsWindow::setFemView(FemView* view)
+{
+    m_view = view;
+    m_size = float(m_view->getWorkspace());
+    m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
+    m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
+    m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
+    m_scaleFactor = float(m_view->getScalefactor());
+    m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_view->getModel())->showNodeNumbers();
+}
+#else
 void SettingsWindow::setFemWidget(FemWidget* femWidget)
 {
-    m_widget = femWidget;
-    m_size = float(m_widget->getWorkspace());
-    m_nodeSize = float(m_widget->getRelNodeSize() * 100.0f);
-    m_loadSize = float(m_widget->getRelLoadSize() * 100.0f);
-    m_lineRadius = float(m_widget->getRelLineRadius() * 100.0f);
-    m_scaleFactor = float(m_widget->getScalefactor());
-    m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_widget->getModel())->showNodeNumbers();
-    m_offscreenRendering = m_widget->offscreenRendering();
+    m_view = femWidget;
+    m_size = float(m_view->getWorkspace());
+    m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
+    m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
+    m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
+    m_scaleFactor = float(m_view->getScalefactor());
+    m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_view->getModel())->showNodeNumbers();
+    m_offscreenRendering = m_view->offscreenRendering();
 }
+#endif
 
 void SettingsWindow::update()
 {
-    m_size = float(m_widget->getWorkspace());
-    m_nodeSize = float(m_widget->getRelNodeSize() * 100.0f);
-    m_loadSize = float(m_widget->getRelLoadSize() * 100.0f);
-    m_lineRadius = float(m_widget->getRelLineRadius() * 100.0f);
-    m_scaleFactor = float(m_widget->getScalefactor());
-    m_offscreenRendering = m_widget->offscreenRendering();
-    static_cast<vfem::BeamModel*>(m_widget->getModel())->setShowNodeNumbers(m_showNodeNumbers);
+    m_size = float(m_view->getWorkspace());
+    m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
+    m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
+    m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
+    m_scaleFactor = float(m_view->getScalefactor());
+#ifndef USE_FEMVIEW
+    m_offscreenRendering = m_view->offscreenRendering();
+#endif
+    static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
@@ -75,24 +95,25 @@ void SettingsWindow::doDraw()
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
-    if (m_widget != nullptr)
+    if (m_view != nullptr)
     {
-        m_widget->setRelNodeSize(m_nodeSize / 100.0f);
-        m_widget->setRelLineRadius(m_lineRadius / 100.0f);
-        m_widget->setRelLoadSize(m_loadSize / 100.0f);
+        m_view->setRelNodeSize(m_nodeSize / 100.0f);
+        m_view->setRelLineRadius(m_lineRadius / 100.0f);
+        m_view->setRelLoadSize(m_loadSize / 100.0f);
 
-        m_widget->setWorkspace(m_size, false);
+        m_view->setWorkspace(m_size, false);
 
-        m_widget->setScalefactor(m_scaleFactor);
+        m_view->setScalefactor(m_scaleFactor);
 
         if (m_lockScaleFactor)
-            m_widget->lockScaleFactor();
+            m_view->lockScaleFactor();
         else
-            m_widget->unlockScaleFactor();
+            m_view->unlockScaleFactor();
+#ifndef USE_FEMVIEW
+        if (m_offscreenRendering != m_view->offscreenRendering())
+            m_view->setOffscreenRendering(m_offscreenRendering);
+#endif
 
-        if (m_offscreenRendering != m_widget->offscreenRendering())
-            m_widget->setOffscreenRendering(m_offscreenRendering);
-
-        static_cast<vfem::BeamModel*>(m_widget->getModel())->setShowNodeNumbers(m_showNodeNumbers);
+        static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     }
 }

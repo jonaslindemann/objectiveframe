@@ -21,6 +21,10 @@ GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonit
     , m_mouseMods(-1)
     , m_mouseX(-1)
     , m_mouseY(-1)
+    , m_currentKey(-1)
+    , m_altDown(false)
+    , m_ctrlDown(false)
+    , m_shiftDown(false)
 {
     m_window = glfwCreateWindow(width, height, title.c_str(), monitor, shared);
 
@@ -105,6 +109,26 @@ int GLFWWindow::mouseY()
     return m_mouseY;
 }
 
+bool GLFWWindow::isAnyMouseButtonDown()
+{
+    return ((m_mouseButton == GLFW_MOUSE_BUTTON_1) || (m_mouseButton == GLFW_MOUSE_BUTTON_2) || (m_mouseButton == GLFW_MOUSE_BUTTON_3)) && (m_mouseAction == GLFW_PRESS);
+}
+
+bool GLFWWindow::isShiftDown()
+{
+    return m_shiftDown;
+}
+
+bool GLFWWindow::isCtrlDown()
+{
+    return m_ctrlDown;
+}
+
+bool GLFWWindow::isAltDown()
+{
+    return m_altDown;
+}
+
 int GLFWWindow::width()
 {
     if (m_window)
@@ -144,13 +168,32 @@ void GLFWWindow::getSize(int& width, int& height)
 
 void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 {
-    cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
+    //cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
+
+    if (mods & GLFW_MOD_SHIFT)
+        m_shiftDown = true;
+    else
+        m_shiftDown = false;
+
+    if (mods & GLFW_MOD_CONTROL)
+        m_ctrlDown = true;
+    else
+        m_ctrlDown = false;
+
+    if (mods & GLFW_MOD_ALT)
+        m_altDown = true;
+    else
+        m_altDown = false;
+
+    if (m_shiftDown)
+        cout << "Shift is pressed" << "\n";
+
     onGlfwKey(key, scancode, action, mods);
 }
 
 void GLFWWindow::doMousePosition(double x, double y)
 {
-    cout << "doMousePosition: " << x << ", " << y << endl;
+    //cout << "doMousePosition: " << x << ", " << y << endl;
     m_mouseX = x;
     m_mouseY = y;
     onGlfwMousePosition(x, y);
@@ -158,7 +201,6 @@ void GLFWWindow::doMousePosition(double x, double y)
 
 void GLFWWindow::doMouseButton(int button, int action, int mods)
 {
-    cout << "doMouseButton: " << button << ", " << action << ", " << mods << endl;
     m_mouseButton = button;
     m_mouseAction = action;
     m_mouseMods = mods;

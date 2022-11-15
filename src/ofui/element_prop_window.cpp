@@ -1,6 +1,10 @@
 #include <ofui/element_prop_window.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofui;
 
@@ -11,7 +15,7 @@ ElementPropWindow::ElementPropWindow(const std::string name)
     , m_beam { nullptr }
     , m_beamRotation { 0.0f }
     , m_oldBeamRotation { 0.0f }
-    , m_widget { nullptr }
+    , m_view { nullptr }
     , m_beamType { 0 }
     , m_selectedShapes { nullptr }
 {
@@ -41,10 +45,17 @@ void ofui::ElementPropWindow::setSelectedShapes(ivf::Composite* selected)
     m_selectedShapes = selected;
 }
 
+#ifdef USE_FEMVIEW
+void ofui::ElementPropWindow::setView(FemView* view)
+{
+    m_view = view;
+}
+#else
 void ElementPropWindow::setWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
 }
+#endif
 
 std::shared_ptr<ElementPropWindow> ElementPropWindow::create(const std::string name)
 {
@@ -171,7 +182,7 @@ void ElementPropWindow::doDraw()
 
                     beam->refresh();
 
-                    m_widget->setNeedRecalc(true);
+                    m_view->setNeedRecalc(true);
                 }
             }
         }
@@ -181,9 +192,9 @@ void ElementPropWindow::doDraw()
 
     if (m_oldBeamRotation != m_beamRotation)
     {
-        if (m_widget != nullptr)
+        if (m_view != nullptr)
         {
-            m_widget->setRotationSelected(double(m_beamRotation * 360.0f / 2.0f / PI));
+            m_view->setRotationSelected(double(m_beamRotation * 360.0f / 2.0f / PI));
         }
     }
 }

@@ -9,7 +9,11 @@
 
 #include <ofui/popup_window.h>
 
+#ifdef USE_FEMVIEW
+class FemView;
+#else
 class FemWidget;
+#endif 
 
 namespace ofui
 {
@@ -17,7 +21,11 @@ namespace ofui
 class BCPropPopup : public PopupWindow
 {
 private:
-    FemWidget* m_widget;
+#ifdef USE_FEMVIEW
+    FemView* m_view;
+#else
+    FemWidget* m_view;
+#endif
     std::array<char, 255> m_nameArr;
     int m_color;
     bool m_prescribedDofs[6];
@@ -29,7 +37,11 @@ public:
 
     static std::shared_ptr<BCPropPopup> create(const std::string name, bool modal = true);
 
+#ifdef USE_FEMVIEW
+    void setFemView(FemView* view);
+#else
     void setFemWidget(FemWidget* widget);
+#endif
 
     void update();
 

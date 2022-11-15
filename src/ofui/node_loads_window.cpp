@@ -2,7 +2,11 @@
 
 #include <imgui.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofem;
 using namespace ofui;
@@ -11,7 +15,7 @@ NodeLoadsWindow::NodeLoadsWindow(const std::string name)
     : UiWindow(name)
     , m_femNodeLoadSet { nullptr }
     , m_currentItemIdx { -1 }
-    , m_widget { nullptr }
+    , m_view { nullptr }
 {
     m_propPopup = NodeLoadPropPopup::create("Node Load", true);
     m_propPopup->setVisible(false);
@@ -32,11 +36,19 @@ void NodeLoadsWindow::setFemNodeLoadSet(BeamNodeLoadSet* bcSet)
     m_selected.resize(m_femNodeLoadSet->getSize(), false);
 }
 
+#ifdef USE_FEMVIEW
+void ofui::NodeLoadsWindow::setFemView(FemView* view)
+{
+    m_view = view;
+    m_propPopup->setFemView(view);
+}
+#else
 void NodeLoadsWindow::setFemWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
     m_propPopup->setFemWidget(widget);
 }
+#endif
 
 void NodeLoadsWindow::doPreDraw()
 {
@@ -58,7 +70,7 @@ void NodeLoadsWindow::doDraw()
                 if (ImGui::Selectable(nodeLoad->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = i;
-                    m_widget->setCurrentNodeLoad(nodeLoad);
+                    m_view->setCurrentNodeLoad(nodeLoad);
                     m_propPopup->update();
                 }
                 ImGui::PopID();
@@ -78,7 +90,7 @@ void NodeLoadsWindow::doDraw()
             BeamNodeLoad* load = new BeamNodeLoad();
             load->setName("new load");
             m_femNodeLoadSet->addLoad(load);
-            m_widget->addNodeLoad(load);
+            m_view->addNodeLoad(load);
         }
     }
     if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f)))
@@ -87,7 +99,7 @@ void NodeLoadsWindow::doDraw()
         {
             if (m_currentItemIdx != -1)
             {
-                m_widget->removeNodesFromNodeLoad();
+                m_view->removeNodesFromNodeLoad();
                 m_femNodeLoadSet->removeLoad(m_currentItemIdx);
             }
         }
@@ -96,16 +108,16 @@ void NodeLoadsWindow::doDraw()
     {
         if (m_femNodeLoadSet != nullptr)
         {
-            m_widget->assignNodeLoadSelected();
-            m_widget->setNeedRecalc(true);
+            m_view->assignNodeLoadSelected();
+            m_view->setNeedRecalc(true);
         }
     }
     if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f)))
     {
         if (m_femNodeLoadSet != nullptr)
         {
-            m_widget->removeNodeLoadsFromSelected();
-            m_widget->setNeedRecalc(true);
+            m_view->removeNodeLoadsFromSelected();
+            m_view->setNeedRecalc(true);
         }
     }
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))

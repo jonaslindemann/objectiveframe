@@ -2,7 +2,11 @@
 
 #include <imgui.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofem;
 using namespace ofui;
@@ -11,7 +15,7 @@ ElementLoadsWindow::ElementLoadsWindow(const std::string name)
     : UiWindow(name)
     , m_femBeamLoadSet { nullptr }
     , m_currentItemIdx { -1 }
-    , m_widget { nullptr }
+    , m_view { nullptr }
 {
     m_propPopup = ElementLoadPropPopup::create("Element Load", true);
     m_propPopup->setVisible(false);
@@ -32,11 +36,18 @@ void ElementLoadsWindow::setFemLoadSet(BeamLoadSet* bcSet)
     m_selected.resize(m_femBeamLoadSet->getSize(), false);
 }
 
+#ifdef USE_FEMVIEW
+void ofui::ElementLoadsWindow::setFemView(FemView* view)
+{
+    m_view = view;
+}
+#else
 void ElementLoadsWindow::setFemWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
     m_propPopup->setFemWidget(widget);
 }
+#endif
 
 void ElementLoadsWindow::doPreDraw()
 {
@@ -58,7 +69,7 @@ void ElementLoadsWindow::doDraw()
                 if (ImGui::Selectable(beamLoad->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = i;
-                    m_widget->setCurrentBeamLoad(beamLoad);
+                    m_view->setCurrentBeamLoad(beamLoad);
                     m_propPopup->update();
                 }
                 ImGui::PopID();
@@ -78,7 +89,7 @@ void ElementLoadsWindow::doDraw()
             ofem::BeamLoad* load = new ofem::BeamLoad();
             load->setName("new load");
             m_femBeamLoadSet->addLoad(load);
-            m_widget->addBeamLoad(load);
+            m_view->addBeamLoad(load);
         }
     }
     if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f)))
@@ -87,7 +98,7 @@ void ElementLoadsWindow::doDraw()
         {
             if (m_currentItemIdx != -1)
             {
-                m_widget->removeNodesFromNodeLoad();
+                m_view->removeNodesFromNodeLoad();
                 m_femBeamLoadSet->removeLoad(m_currentItemIdx);
             }
         }
@@ -96,16 +107,16 @@ void ElementLoadsWindow::doDraw()
     {
         if (m_femBeamLoadSet != nullptr)
         {
-            m_widget->assignBeamLoadSelected();
-            m_widget->setNeedRecalc(true);
+            m_view->assignBeamLoadSelected();
+            m_view->setNeedRecalc(true);
         }
     }
     if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f)))
     {
         if (m_femBeamLoadSet != nullptr)
         {
-            m_widget->removeBeamLoadsFromSelected();
-            m_widget->setNeedRecalc(true);
+            m_view->removeBeamLoadsFromSelected();
+            m_view->setNeedRecalc(true);
         }
     }
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))

@@ -1,0 +1,12 @@
+file(GLOB SOURCE_FILES ../ofui/*.cpp) 
+file(GLOB INCLUDE_FILES ${PROJECT_SOURCE_DIR}/include/ofui/*.h ${PROJECT_SOURCE_DIR}/src/objframe_glfw/*.h) 
+
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include)
+	add_definitions(-DUSE_FEMVIEW)
+	add_library(ofui_glfwd ${INCLUDE_FILES} ${SOURCE_FILES})
+else(CMAKE_BUILD_TYPE STREQUAL Debug)
+	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include)
+	add_definitions(-DUSE_FEMVIEW)
+	add_library(ofui_glfw ${INCLUDE_FILES} ${SOURCE_FILES})
+endif(CMAKE_BUILD_TYPE STREQUAL Debug) 

@@ -3,13 +3,17 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofui;
 
 ElementLoadPropPopup::ElementLoadPropPopup(const std::string name, bool modal)
     : PopupWindow(name, modal)
-    , m_widget { nullptr }
+    , m_view { nullptr }
     , m_color { 0 }
     , m_nameArr {}
     , m_force { 0.0, 0.0, 0.0 }
@@ -25,15 +29,22 @@ std::shared_ptr<ElementLoadPropPopup> ElementLoadPropPopup::create(const std::st
     return std::make_shared<ElementLoadPropPopup>(name, modal);
 }
 
+#ifdef USE_FEMVIEW
+void ofui::ElementLoadPropPopup::setFemView(FemView* view)
+{
+    m_view = view;
+}
+#else
 void ElementLoadPropPopup::setFemWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
     this->update();
 }
+#endif
 
 void ElementLoadPropPopup::update()
 {
-    auto load = m_widget->getCurrentBeamLoad();
+    auto load = m_view->getCurrentBeamLoad();
 
     if (load != nullptr)
     {
@@ -58,11 +69,11 @@ void ElementLoadPropPopup::update()
 
 void ElementLoadPropPopup::doPopup()
 {
-    if (m_widget != nullptr)
+    if (m_view != nullptr)
     {
-        if (m_widget->getCurrentBeamLoad() != nullptr)
+        if (m_view->getCurrentBeamLoad() != nullptr)
         {
-            auto load = m_widget->getCurrentNodeLoad();
+            auto load = m_view->getCurrentNodeLoad();
             ImGui::InputText("Name", m_nameArr.data(), 255);
             ImGui::InputInt("Color", &m_color);
             ImGui::Separator();
@@ -91,9 +102,9 @@ void ElementLoadPropPopup::doPopup()
     {
         this->close(PopupResult::OK);
 
-        if (m_widget != nullptr)
+        if (m_view != nullptr)
         {
-            auto load = m_widget->getCurrentNodeLoad();
+            auto load = m_view->getCurrentNodeLoad();
             if (load != nullptr)
             {
 
@@ -103,7 +114,7 @@ void ElementLoadPropPopup::doPopup()
                 load->setValue(1.0);
                 load->setDirection(m_force[0], m_force[1], m_force[2]);
 
-                m_widget->set_changed();
+                m_view->set_changed();
             }
         }
         ImGui::CloseCurrentPopup();

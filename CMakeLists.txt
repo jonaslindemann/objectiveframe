@@ -2,14 +2,16 @@ project(objframe2)
 
 cmake_minimum_required(VERSION 3.10)
 
+set (CMAKE_CXX_STANDARD 17)
+
 set( LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib )
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
 option( USE_LEAP "Build with support for LeapMotion" OFF)
 
-set( LIB_DRIVE "c:")
+set( LIB_DRIVE "d:")
 
-set( IVF_ROOT "${LIB_DRIVE}/Users/Jonas Lindemann/Development/ivfplusplus" )
+set( IVF_ROOT "${LIB_DRIVE}/Libraries/ivfplusplus" )
 message(${IVF_ROOT})
 
 set( IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include )
@@ -120,6 +122,8 @@ configure_file (
 set( OBJFRAME_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/vc ${PROJECT_SOURCE_DIR}/src/fem ${PROJECT_SOURCE_DIR}/src/visfem ${PROJECT_SOURCE_DIR}/src/newmat ${PROJECT_SOURCE_DIR}/src/util ${PROJECT_SOURCE_DIR}/src/imgui ${PROJECT_SOURCE_DIR}/src/imgui_fltk ${PROJECT_SOURCE_DIR}/src/objframe)
 
 include_directories( ${DEPENDS_INCLUDE_DIR} ${OBJFRAME_INCLUDE_DIR} ${FLTK_INCLUDE_DIR} ${FLTK_ABI_INCLUDE_DIR} ${JPEG_INCLUDE_DIR} ${PNG_PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${IVF_INCLUDE_DIR} ${OBJFRAME_INCLUDE} ${LEAP_INCLUDE_DIR} ${FTGL_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR} ${GLFW3_INCLUDE_DIR} ${CHAISCRIPT_EXTRAS_INCLUDE} ${CHAISCRIPT_INCLUDE})
+
+message( ${IVF_INCLUDE_DIR} )
 
 if(win32)
     link_directories( ${PROJECT_SOURCE_DIR}/lib ${IVF_LIBS} ${LEAP_LIBS})

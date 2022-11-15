@@ -9,8 +9,6 @@
 
 #include "GLFWWindow.h"
 
-using namespace std;
-
 class GLFWApplication {
 private:
     std::vector<GLFWWindowPtr> m_windows;

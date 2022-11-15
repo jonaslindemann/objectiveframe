@@ -7,8 +7,6 @@
 #include <memory>
 #include <map>
 
-using namespace std;
-
 class GLFWWindow {
 private:
     GLFWwindow* m_window;
@@ -21,6 +19,12 @@ private:
     int m_mouseMods;
     int m_mouseX;
     int m_mouseY;
+
+    bool m_shiftDown;
+    bool m_ctrlDown;
+    bool m_altDown;
+
+    int m_currentKey;
 
 public:
     GLFWWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
@@ -44,6 +48,11 @@ public:
     int mouseMods();
     int mouseX();
     int mouseY();
+    bool isAnyMouseButtonDown();
+
+    bool isShiftDown();
+    bool isCtrlDown();
+    bool isAltDown();
 
 public:
 

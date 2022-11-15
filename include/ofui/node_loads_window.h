@@ -9,7 +9,11 @@
 
 #include <ofem/beam_node_load_set.h>
 
+#ifdef USE_FEMVIEW
+class FemView;
+#else
 class FemWidget;
+#endif
 
 namespace ofui
 {
@@ -18,7 +22,11 @@ class NodeLoadsWindow : public UiWindow
 {
 private:
     ofem::BeamNodeLoadSet* m_femNodeLoadSet;
-    FemWidget* m_widget;
+#ifdef USE_FEMVIEW
+    FemView* m_view;
+#else
+    FemWidget* m_view;
+#endif
     std::vector<bool> m_selected;
     int m_currentItemIdx;
     NodeLoadPropPopupPtr m_propPopup;
@@ -30,7 +38,11 @@ public:
     static std::shared_ptr<NodeLoadsWindow> create(const std::string name);
 
     void setFemNodeLoadSet(ofem::BeamNodeLoadSet* bcSet);
+#ifdef USE_FEMVIEW
+    void setFemView(FemView* view);
+#else
     void setFemWidget(FemWidget* widget);
+#endif
 
 protected:
     virtual void doPreDraw();

@@ -44,17 +44,17 @@ enum class ButtonState
     bsAlt
 };
 
-
 #include <ivf/Base.h>
-#include <ivf/Composite.h>
+#include <ivf/Brick.h>
 #include <ivf/Camera.h>
+#include <ivf/Composite.h>
 #include <ivf/CulledScene.h>
 #include <ivf/Extrusion.h>
 #include <ivf/Node.h>
 #include <ivf/Shape.h>
-#include <ivf/Brick.h>
 #include <ivf/SolidLine.h>
 #include <ivf/Workspace.h>
+
 
 /* Later perhaps
 #include <ivfmanip/IvfTranslateManipulator.h>
@@ -64,10 +64,15 @@ enum class ButtonState
 #include <ivfmath/Plane.h>
 #include <ivfmath/Point3d.h>
 
+enum ModifierKey
+{
+    mkCtrl,
+    mkAlt,
+    mkNone
+};
 
 class IvfViewWindow : public GLFWWindow {
 private:
-
     // State variables
 
     int m_moving, m_beginX, m_beginY;
@@ -118,6 +123,8 @@ private:
     bool m_moveStart;
 
     bool m_mouseUpdate;
+
+    bool m_initialised;
 
     double m_controlSize;
 
@@ -215,6 +222,8 @@ public:
     void clearSelection();
     void selectAll();
 
+    void addSelection(ivf::Shape* shape);
+
     /**
      * Set widget edit mode.
      *
@@ -255,6 +264,10 @@ public:
     /** Enables the use of a overlay layer (see onOverlay) */
     void setUseOverlay(bool flag);
 
+    void setUseUnderlay(bool flag);
+
+    bool useUnderlay();
+
     /** Enables/disables selection */
     void setSelectEnable(bool flag);
 
@@ -275,9 +288,8 @@ public:
 
     bool isInitialized();
 
-    void disableRedrawTimer();
-    void enableRedrawTimer();
-    bool isRedrawTimerEnabled();
+    void selectAllBox();
+    bool isInsideVolume(ivf::Shape* shape);
 
 protected:
 
@@ -290,6 +302,7 @@ protected:
     virtual void doMouse(int x, int y);         // Calls onMouse
     virtual void doKeyboard(int key);
 
+    void doInitImGui();
     void doDrawImGui();
 
 public:
@@ -365,6 +378,8 @@ public:
      */
     virtual void onSelect(ivf::Composite* selectedShapes);
 
+    virtual bool onInsideVolume(ivf::Shape* shape);
+
     /**
      * onDeSelect event
      *
@@ -408,6 +423,8 @@ public:
      */
     virtual void onOverlay();
 
+    virtual void onUnderlay();
+
     /**
      * onHighlightShape event
      *
@@ -439,6 +456,7 @@ public:
     virtual void onPostRender();
     virtual void onPreRender();
 
+    virtual void onInitImGui();
     virtual void onDrawImGui();
 };
 

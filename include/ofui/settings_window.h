@@ -2,7 +2,11 @@
 
 #include <ofui/ui_window.h>
 
+#ifdef USE_FEMVIEW
+class FemView;
+#else
 class FemWidget;
+#endif
 
 namespace ofui
 {
@@ -19,13 +23,21 @@ private:
     bool m_showNodeNumbers;
     bool m_offscreenRendering;
 
-    FemWidget* m_widget;
+#ifdef USE_FEMVIEW
+    FemView* m_view;
+#else
+    FemWidget* m_view;
+#endif
 
 public:
     SettingsWindow(const std::string name);
     virtual ~SettingsWindow();
 
+#ifdef USE_FEMVIEW
+    void setFemView(FemView* view);
+#else
     void setFemWidget(FemWidget* femWidget);
+#endif
 
     void update();
 

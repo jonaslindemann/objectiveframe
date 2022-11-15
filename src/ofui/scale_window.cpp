@@ -1,13 +1,18 @@
 #include <ofui/scale_window.h>
 
-#include "FemWidget.h"
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
+#include <FemWidget.h>
+#endif
+
 #include <vfem/beam_model.h>
 
 using namespace ofui;
 
 ScaleWindow::ScaleWindow(const std::string name)
     : UiWindow(name)
-    , m_widget { nullptr }
+    , m_view { nullptr }
     , m_scaleFactor { 1.0f }
     , m_lockScaleFactor { false }
     , m_animate { false }
@@ -18,19 +23,25 @@ ScaleWindow::ScaleWindow(const std::string name)
 ScaleWindow::~ScaleWindow()
 {
 }
-
+#ifdef USE_FEMVIEW
+void ofui::ScaleWindow::setView(FemView* view)
+{
+    m_view = view;
+}
+#else
 void ScaleWindow::setWidget(FemWidget* femWidget)
 {
-    m_widget = femWidget;
-    m_scaleFactor = float(m_widget->getScalefactor());
-    m_lockScaleFactor = m_widget->isScaleFactorLocked();
+    m_view = femWidget;
+    m_scaleFactor = float(m_view->getScalefactor());
+    m_lockScaleFactor = m_view->isScaleFactorLocked();
 }
+#endif
 
 void ScaleWindow::update()
 {
-    m_scaleFactor = float(m_widget->getScalefactor());
+    m_scaleFactor = float(m_view->getScalefactor());
 
-    m_lockScaleFactor = m_widget->isScaleFactorLocked();
+    m_lockScaleFactor = m_view->isScaleFactorLocked();
 }
 
 std::shared_ptr<ScaleWindow> ScaleWindow::create(const std::string name)
@@ -44,7 +55,7 @@ void ScaleWindow::doDraw()
 
     this->update();
 
-    ImGui::DragFloat("Scale factor", &m_scaleFactor, m_widget->autoScaleFactor() * 0.01, m_widget->autoScaleFactor(), m_widget->autoScaleFactor() * 2.0);
+    ImGui::DragFloat("Scale factor", &m_scaleFactor, m_view->autoScaleFactor() * 0.01, m_view->autoScaleFactor(), m_view->autoScaleFactor() * 2.0);
     ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
     ImGui::Checkbox("Animate", &m_animate);
     if (m_animate)
@@ -52,16 +63,16 @@ void ScaleWindow::doDraw()
         ImGui::SliderFloat("Animation speed", &m_animationSpeed, 0.01, 0.2);
     }
 
-    if (m_widget != nullptr)
+    if (m_view != nullptr)
     {
         if (m_animate)
-            m_widget->setScalefactor(m_widget->autoScaleFactor() * (0.5 + 0.5*sin(ImGui::GetFrameCount()*m_animationSpeed)));
+            m_view->setScalefactor(m_view->autoScaleFactor() * (0.5 + 0.5*sin(ImGui::GetFrameCount()*m_animationSpeed)));
         else
-            m_widget->setScalefactor(m_scaleFactor);
+            m_view->setScalefactor(m_scaleFactor);
 
         if (m_lockScaleFactor)
-            m_widget->lockScaleFactor();
+            m_view->lockScaleFactor();
         else
-            m_widget->unlockScaleFactor();
+            m_view->unlockScaleFactor();
     }
 }

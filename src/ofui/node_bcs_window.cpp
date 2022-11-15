@@ -2,7 +2,11 @@
 
 #include <imgui.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofem;
 using namespace ofui;
@@ -11,7 +15,7 @@ NodeBCsWindow::NodeBCsWindow(const std::string name)
     : UiWindow(name)
     , m_femNodeBCSet { nullptr }
     , m_currentItemIdx { -1 }
-    , m_widget { nullptr }
+    , m_view { nullptr }
 {
     m_propPopup = BCPropPopup::create("Node BC", true);
     m_propPopup->setVisible(false);
@@ -32,11 +36,19 @@ void NodeBCsWindow::setFemNodeBCSet(BeamNodeBCSet* bcSet)
     m_selected.resize(m_femNodeBCSet->getSize(), false);
 }
 
+#ifdef USE_FEMVIEW
+void ofui::NodeBCsWindow::setFemView(FemView* view)
+{
+    m_view = view;
+    m_propPopup->setFemView(view);
+}
+#else
 void NodeBCsWindow::setFemWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
     m_propPopup->setFemWidget(widget);
 }
+#endif
 
 void NodeBCsWindow::doPreDraw()
 {
@@ -58,7 +70,7 @@ void NodeBCsWindow::doDraw()
                 if (ImGui::Selectable(nodeBC->getName().c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = static_cast<int>(i);
-                    m_widget->setCurrentNodeBC(nodeBC);
+                    m_view->setCurrentNodeBC(nodeBC);
                     m_propPopup->update();
                 }
                 ImGui::PopID();
@@ -86,7 +98,7 @@ void NodeBCsWindow::doDraw()
         {
             if (m_currentItemIdx != -1)
             {
-                m_widget->removeBCsFromBC();
+                m_view->removeBCsFromBC();
                 m_femNodeBCSet->removeBC(m_currentItemIdx);
             }
         }
@@ -95,16 +107,16 @@ void NodeBCsWindow::doDraw()
     {
         if (m_femNodeBCSet != nullptr)
         {
-            m_widget->assignNodeBCSelected();
-            m_widget->setNeedRecalc(true);
+            m_view->assignNodeBCSelected();
+            m_view->setNeedRecalc(true);
         }
     }
     if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f)))
     {
         if (m_femNodeBCSet != nullptr)
         {
-            m_widget->removeNodeBCsFromSelected();
-            m_widget->setNeedRecalc(true);
+            m_view->removeNodeBCsFromSelected();
+            m_view->setNeedRecalc(true);
         }
     }
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))

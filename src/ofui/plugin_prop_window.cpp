@@ -1,13 +1,17 @@
 #include <ofui/plugin_prop_window.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofui;
 
 PluginPropWindow::PluginPropWindow(const std::string name)
     : UiWindow(name)
     , m_plugin { nullptr }
-    , m_widget { nullptr }
+    , m_view { nullptr }
 {
 }
 
@@ -30,10 +34,17 @@ ScriptPlugin* ofui::PluginPropWindow::plugin()
     return m_plugin;
 }
 
+#ifdef USE_FEMVIEW
+void ofui::PluginPropWindow::setView(FemView* view)
+{
+    m_view = view;
+}
+#else
 void ofui::PluginPropWindow::setWidget(FemWidget* widget)
 {
-    m_widget = widget;
+    m_view = widget;
 }
+#endif
 
 void PluginPropWindow::doDraw()
 {

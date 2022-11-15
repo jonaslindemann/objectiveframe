@@ -3,13 +3,17 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#ifdef USE_FEMVIEW
+#include <FemView.h>
+#else
 #include <FemWidget.h>
+#endif
 
 using namespace ofui;
 
 NodeLoadPropPopup::NodeLoadPropPopup(const std::string name, bool modal)
     : PopupWindow(name, modal)
-    , m_widget { nullptr }
+    , m_view { nullptr }
     , m_color { 0 }
     , m_nameArr {}
     , m_force { 0.0, 0.0, 0.0 }
@@ -25,15 +29,23 @@ std::shared_ptr<NodeLoadPropPopup> NodeLoadPropPopup::create(const std::string n
     return std::make_shared<NodeLoadPropPopup>(name, modal);
 }
 
-void NodeLoadPropPopup::setFemWidget(FemWidget* widget)
+#ifdef USE_FEMVIEW
+void ofui::NodeLoadPropPopup::setFemView(FemView* view)
 {
-    m_widget = widget;
+    m_view = view;
     this->update();
 }
+#else
+void NodeLoadPropPopup::setFemWidget(FemWidget* widget)
+{
+    m_view = widget;
+    this->update();
+}
+#endif
 
 void NodeLoadPropPopup::update()
 {
-    auto load = m_widget->getCurrentNodeLoad();
+    auto load = m_view->getCurrentNodeLoad();
 
     if (load != nullptr)
     {
@@ -57,11 +69,11 @@ void NodeLoadPropPopup::update()
 
 void NodeLoadPropPopup::doPopup()
 {
-    if (m_widget != nullptr)
+    if (m_view != nullptr)
     {
-        if (m_widget->getCurrentNodeLoad() != nullptr)
+        if (m_view->getCurrentNodeLoad() != nullptr)
         {
-            auto load = m_widget->getCurrentNodeLoad();
+            auto load = m_view->getCurrentNodeLoad();
             ImGui::InputText("Name", m_nameArr.data(), 255);
             ImGui::InputInt("Color", &m_color);
             ImGui::Separator();
@@ -90,9 +102,9 @@ void NodeLoadPropPopup::doPopup()
     {
         this->close(PopupResult::OK);
 
-        if (m_widget != nullptr)
+        if (m_view != nullptr)
         {
-            auto load = m_widget->getCurrentNodeLoad();
+            auto load = m_view->getCurrentNodeLoad();
             if (load != nullptr)
             {
 
@@ -102,7 +114,7 @@ void NodeLoadPropPopup::doPopup()
                 load->setValue(1.0);
                 load->setDirection(m_force[0], m_force[1], m_force[2]);
 
-                m_widget->set_changed();
+                m_view->set_changed();
             }
         }
         ImGui::CloseCurrentPopup();

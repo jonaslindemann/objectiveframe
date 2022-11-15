@@ -255,7 +255,7 @@ public:
      * \param IVF_TRANS_MANIP translation manipulator
      * \param IVF_ROT_MANIP rotation manipulator
      */
-    void manipulateSelected(int mode);
+    //void manipulateSelected(int mode);
 
     /** Returns manipulation mode */
     int getManipulatorMode();

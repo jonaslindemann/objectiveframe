@@ -4,7 +4,11 @@
 
 #include <script_plugin.h>
 
+#ifdef USE_FEMVIEW
+class FemView;
+#else
 class FemWidget;
+#endif
 
 namespace ofui
 {
@@ -13,7 +17,11 @@ class PluginPropWindow : public UiWindow
 {
 private:
     ScriptPlugin* m_plugin;
-    FemWidget* m_widget;
+#ifdef USE_FEMVIEW
+    FemView* m_view;
+#else
+    FemWidget* m_view;
+#endif
 
 public:
     PluginPropWindow(const std::string name);
@@ -24,7 +32,11 @@ public:
     void setPlugin(ScriptPlugin* plugin);
     ScriptPlugin* plugin();
 
+#ifdef USE_FEMVIEW
+    void setView(FemView* view);
+#else
     void setWidget(FemWidget* widget);
+#endif
 
 protected:
     virtual void doDraw();

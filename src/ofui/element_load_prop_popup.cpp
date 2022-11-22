@@ -30,7 +30,7 @@ std::shared_ptr<ElementLoadPropPopup> ElementLoadPropPopup::create(const std::st
 }
 
 #ifdef USE_FEMVIEW
-void ofui::ElementLoadPropPopup::setFemView(FemView* view)
+void ofui::ElementLoadPropPopup::setFemView(FemViewWindow* view)
 {
     m_view = view;
 }

@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <iostream>
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     auto win = GLFWWindowTracker::instance()->get(window);

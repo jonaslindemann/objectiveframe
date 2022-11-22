@@ -5,7 +5,7 @@
 #include <vfem/beam.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif
@@ -20,7 +20,7 @@ private:
     vfem::Beam* m_beam;
     ivf::Composite* m_selectedShapes;
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -35,7 +35,7 @@ public:
     void setBeam(vfem::Beam* beam);
     void setSelectedShapes(ivf::Composite* selected);
 #ifdef USE_FEMVIEW
-    void setView(FemView* view);
+    void setView(FemViewWindow* view);
 #else
     void setWidget(FemWidget* widget);
 #endif

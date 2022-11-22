@@ -35,7 +35,7 @@ ScriptPlugin* ofui::PluginPropWindow::plugin()
 }
 
 #ifdef USE_FEMVIEW
-void ofui::PluginPropWindow::setView(FemView* view)
+void ofui::PluginPropWindow::setView(FemViewWindow* view)
 {
     m_view = view;
 }

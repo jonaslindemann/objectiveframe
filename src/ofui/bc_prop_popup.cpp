@@ -31,7 +31,7 @@ std::shared_ptr<BCPropPopup> BCPropPopup::create(const std::string name, bool mo
 }
 
 #ifdef USE_FEMVIEW
-void BCPropPopup::setFemView(FemView* view)
+void BCPropPopup::setFemView(FemViewWindow* view)
 {
     m_view = view;
     this->update();

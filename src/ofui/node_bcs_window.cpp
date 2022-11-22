@@ -37,7 +37,7 @@ void NodeBCsWindow::setFemNodeBCSet(BeamNodeBCSet* bcSet)
 }
 
 #ifdef USE_FEMVIEW
-void ofui::NodeBCsWindow::setFemView(FemView* view)
+void ofui::NodeBCsWindow::setFemView(FemViewWindow* view)
 {
     m_view = view;
     m_propPopup->setFemView(view);

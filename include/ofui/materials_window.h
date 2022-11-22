@@ -11,7 +11,7 @@
 #include <ofem/beam_material_set.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif
@@ -24,7 +24,7 @@ class MaterialsWindow : public UiWindow
 private:
     ofem::BeamMaterialSet* m_materials;
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -41,7 +41,7 @@ public:
     void setFemMaterialSet(ofem::BeamMaterialSet* materialSet);
 
 #ifdef USE_FEMVIEW
-    void setFemView(FemView* view);
+    void setFemView(FemViewWindow* view);
 #else
     void setFemWidget(FemWidget* widget);
 #endif

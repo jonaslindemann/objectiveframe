@@ -166,6 +166,13 @@ void GLFWWindow::getSize(int& width, int& height)
     }
 }
 
+void GLFWWindow::draw()
+{
+    this->makeCurrent();
+    this->doDraw();
+    this->swapBuffers();
+}
+
 void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 {
     //cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;

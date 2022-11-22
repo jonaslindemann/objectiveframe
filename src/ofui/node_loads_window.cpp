@@ -37,7 +37,7 @@ void NodeLoadsWindow::setFemNodeLoadSet(BeamNodeLoadSet* bcSet)
 }
 
 #ifdef USE_FEMVIEW
-void ofui::NodeLoadsWindow::setFemView(FemView* view)
+void ofui::NodeLoadsWindow::setFemView(FemViewWindow* view)
 {
     m_view = view;
     m_propPopup->setFemView(view);

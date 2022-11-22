@@ -28,7 +28,7 @@ SettingsWindow::~SettingsWindow()
 }
 
 #ifdef USE_FEMVIEW
-void ofui::SettingsWindow::setFemView(FemView* view)
+void ofui::SettingsWindow::setFemView(FemViewWindow* view)
 {
     m_view = view;
     m_size = float(m_view->getWorkspace());

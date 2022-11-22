@@ -41,6 +41,8 @@ public:
     int height();
     void getSize(int& width, int& height);
 
+    void draw();
+
     GLFWwindow* ref();
 
     int mouseButton();

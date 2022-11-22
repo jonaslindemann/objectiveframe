@@ -380,6 +380,8 @@ public:
 
     virtual bool onInsideVolume(ivf::Shape* shape);
 
+    virtual void onSelectPosition(double x, double y, double z);
+
     /**
      * onDeSelect event
      *

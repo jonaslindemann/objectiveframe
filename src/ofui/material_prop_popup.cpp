@@ -49,7 +49,7 @@ std::shared_ptr<MaterialPropPopup> MaterialPropPopup::create(const std::string n
 }
 
 #ifdef USE_FEMVIEW
-void ofui::MaterialPropPopup::setFemView(FemView* view)
+void ofui::MaterialPropPopup::setFemView(FemViewWindow* view)
 {
     m_view = view;
 }

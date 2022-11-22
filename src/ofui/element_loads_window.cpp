@@ -37,7 +37,7 @@ void ElementLoadsWindow::setFemLoadSet(BeamLoadSet* bcSet)
 }
 
 #ifdef USE_FEMVIEW
-void ofui::ElementLoadsWindow::setFemView(FemView* view)
+void ofui::ElementLoadsWindow::setFemView(FemViewWindow* view)
 {
     m_view = view;
 }

@@ -3,7 +3,7 @@
 #include <ofui/ui_window.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif 
@@ -21,7 +21,7 @@ private:
 
 
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -31,7 +31,7 @@ public:
     virtual ~ScaleWindow();
 
 #ifdef USE_FEMVIEW
-    void setView(FemView* view);
+    void setView(FemViewWindow* view);
 #else
     void setWidget(FemWidget* femWidget);
 #endif

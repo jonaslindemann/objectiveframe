@@ -24,7 +24,7 @@ NodePropWindow::~NodePropWindow()
 }
 
 #ifdef USE_FEMVIEW
-void ofui::NodePropWindow::setView(FemView* view)
+void ofui::NodePropWindow::setView(FemViewWindow* view)
 {
     m_view = view;
 }

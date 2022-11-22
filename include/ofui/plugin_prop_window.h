@@ -5,7 +5,7 @@
 #include <script_plugin.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif
@@ -18,7 +18,7 @@ class PluginPropWindow : public UiWindow
 private:
     ScriptPlugin* m_plugin;
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -33,7 +33,7 @@ public:
     ScriptPlugin* plugin();
 
 #ifdef USE_FEMVIEW
-    void setView(FemView* view);
+    void setView(FemViewWindow* view);
 #else
     void setWidget(FemWidget* widget);
 #endif

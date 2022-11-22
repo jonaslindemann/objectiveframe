@@ -30,7 +30,7 @@ std::shared_ptr<NodeLoadPropPopup> NodeLoadPropPopup::create(const std::string n
 }
 
 #ifdef USE_FEMVIEW
-void ofui::NodeLoadPropPopup::setFemView(FemView* view)
+void ofui::NodeLoadPropPopup::setFemView(FemViewWindow* view)
 {
     m_view = view;
     this->update();

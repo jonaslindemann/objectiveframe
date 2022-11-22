@@ -10,7 +10,7 @@
 #include <ofui/popup_window.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif
@@ -22,7 +22,7 @@ class MaterialPropPopup : public PopupWindow
 {
 private:
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -71,7 +71,7 @@ public:
     static std::shared_ptr<MaterialPropPopup> create(const std::string name, bool modal = true);
 
 #ifdef USE_FEMVIEW
-    void setFemView(FemView* view);
+    void setFemView(FemViewWindow* view);
 #else
     void setFemWidget(FemWidget* widget);
 #endif

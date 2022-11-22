@@ -37,7 +37,7 @@ void MaterialsWindow::setFemMaterialSet(BeamMaterialSet* materialSet)
 }
 
 #ifdef USE_FEMVIEW
-void ofui::MaterialsWindow::setFemView(FemView* view)
+void ofui::MaterialsWindow::setFemView(FemViewWindow* view)
 {
     m_view = view;
     m_propPopup->setFemView(view);

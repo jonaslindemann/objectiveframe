@@ -87,6 +87,16 @@ IvfViewWindow::~IvfViewWindow()
 void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 {
     //cout << "onGlfwKey " << key << ", " << scancode << ", " << action << ", " << mods << "\n";
+    m_currentModifier = ButtonState::bsNoButton;
+
+    if (isShiftDown())
+        m_currentModifier = ButtonState::bsShift;
+    if (isCtrlDown())
+        m_currentModifier = ButtonState::bsCtrl;
+    if (isAltDown())
+        m_currentModifier = ButtonState::bsAlt;
+
+    doKeyboard(key);
 }
 
 void IvfViewWindow::onGlfwMousePosition(double x, double y)
@@ -103,7 +113,17 @@ void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 {
     if (action == GLFW_PRESS)
     {
+        if (button == GLFW_MOUSE_BUTTON_1)
+            m_currentButton = ButtonState::bsButton1;
+
+        if (button == GLFW_MOUSE_BUTTON_2)
+            m_currentButton = ButtonState::bsButton2;
+
+        if (button == GLFW_MOUSE_BUTTON_3)
+            m_currentButton = ButtonState::bsButton3;
+
         doMouseDown(mouseX(), mouseY());
+        doMouse(mouseX(), mouseY());
     }
     else
     {
@@ -126,6 +146,7 @@ void IvfViewWindow::onGlfwDraw()
 
         m_lighting = Lighting::getInstance();
         m_lighting->setTwoSide(true);
+        m_lighting->enable();
 
         auto light = m_lighting->getLight(0);
         light->setLightPosition(0.0f, 0.5f, 1.0f, 0.0f);
@@ -662,6 +683,7 @@ ButtonState IvfViewWindow::getCurrentModifier()
 
 void IvfViewWindow::redraw()
 {
+    this->m_scene->getComposite()->refresh();
 }
 
 void IvfViewWindow::doInitImGui()
@@ -729,6 +751,10 @@ void IvfViewWindow::onSelect(ivf::Composite* selectedShapes)
 bool IvfViewWindow::onInsideVolume(ivf::Shape* shape)
 {
     return false;
+}
+
+void IvfViewWindow::onSelectPosition(double x, double y, double z)
+{
 }
 
 void IvfViewWindow::onDeSelect()
@@ -898,6 +924,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
 void IvfViewWindow::doMotion(int x, int y)
 {
+    //cout << "doMotion()\n";
     m_angleX = 0.0f;
     m_angleY = 0.0f;
     m_moveX = 0.0f;
@@ -934,6 +961,7 @@ void IvfViewWindow::doMotion(int x, int y)
 
             m_scene->updateSizes();
             redraw();
+            draw();
         }
 
 #ifdef OLD_VIEW_HANDLING
@@ -1009,6 +1037,7 @@ void IvfViewWindow::doMotion(int x, int y)
             }
             m_scene->getComposite()->refresh();
             redraw();
+            draw();
         }
     }
 
@@ -1049,6 +1078,7 @@ void IvfViewWindow::doMouse(int x, int y)
             m_selectedShapes->clear();
             onDeSelect();
             redraw();
+            draw();
         }
     }
 
@@ -1071,6 +1101,7 @@ void IvfViewWindow::doMouse(int x, int y)
         {
             m_scene->addChild(node);
             redraw();
+            draw();
         }
     }
 
@@ -1086,7 +1117,7 @@ void IvfViewWindow::doMouse(int x, int y)
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
 
-        //onSelectPosition(vx, vy, vz);
+        onSelectPosition(vx, vy, vz);
     }
 
     if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT) > 0)
@@ -1153,12 +1184,14 @@ void IvfViewWindow::doMouse(int x, int y)
                     m_selectedShapes->addChild(m_selectedShape);
                 }
                 redraw();
+                draw();
             }
             else
             {
                 m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
                 m_selectedShapes->clear();
                 redraw();
+                draw();
             }
         }
 
@@ -1168,6 +1201,7 @@ void IvfViewWindow::doMouse(int x, int y)
             m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
             m_selectedShapes->clear();
             redraw();
+            draw();
         }
     }
 
@@ -1180,8 +1214,13 @@ void IvfViewWindow::doKeyboard(int key)
 {
     // Call onMouseUp event method
 
+    if (isShiftDown())
+        m_scene->lockCursor();
+    else
+        m_scene->unlockCursor();
+
     onKeyboard(key);
-    cout << "IvfView::onKeyboard " << key << endl;
+    //cout << "IvfView::onKeyboard " << key << endl;
 }
 
 void IvfViewWindow::onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
@@ -1198,12 +1237,12 @@ void IvfViewWindow::onHighlightFilter(ivf::Shape*, bool& highlight)
 
 void IvfViewWindow::onMotion(int x, int y)
 {
-    cout << "IvfView::onMotion" << endl;
+    //cout << "IvfView::onMotion" << endl;
 }
 
 void IvfViewWindow::onPassiveMotion(int x, int y)
 {
-    cout << "IvfView::onPassiveMotion" << endl;
+    //cout << "IvfView::onPassiveMotion" << endl;
 }
 
 void IvfViewWindow::onMouse(int x, int y)

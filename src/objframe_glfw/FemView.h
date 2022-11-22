@@ -6,6 +6,11 @@ constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2022\nDivision of
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 
+#ifdef WIN32
+#include <shobjidl.h>
+#endif
+
+
 #include <chaiscript/chaiscript.hpp>
 
 #include <sstream>
@@ -133,7 +138,7 @@ string to_string(T Number)
 
 #include "IvfViewWindow.h"
 
-class FemView : public IvfViewWindow
+class FemViewWindow : public IvfViewWindow
 {
 private:
     std::string m_coordText;
@@ -290,10 +295,10 @@ private:
     void setupPlugins();
 
 public:
-    FemView(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
-    virtual ~FemView();
+    FemViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
+    virtual ~FemViewWindow();
 
-    static std::shared_ptr<FemView> create(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
+    static std::shared_ptr<FemViewWindow> create(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
 
     // Get set methods
     void setFileName(const std::string& name);

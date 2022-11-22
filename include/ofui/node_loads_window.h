@@ -10,7 +10,7 @@
 #include <ofem/beam_node_load_set.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif
@@ -23,7 +23,7 @@ class NodeLoadsWindow : public UiWindow
 private:
     ofem::BeamNodeLoadSet* m_femNodeLoadSet;
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -39,7 +39,7 @@ public:
 
     void setFemNodeLoadSet(ofem::BeamNodeLoadSet* bcSet);
 #ifdef USE_FEMVIEW
-    void setFemView(FemView* view);
+    void setFemView(FemViewWindow* view);
 #else
     void setFemWidget(FemWidget* widget);
 #endif

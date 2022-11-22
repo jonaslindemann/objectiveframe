@@ -30,9 +30,332 @@ using namespace ivf;
 using namespace std;
 using namespace ofui;
 
+// FLTK colormap
+
+typedef unsigned char uchar;
+
+unsigned int fl_cmap[256] = {
+    0x00000000, //   0
+    0xff000000, //   1
+    0x00ff0000, //   2
+    0xffff0000, //   3
+    0x0000ff00, //   4
+    0xff00ff00, //   5
+    0x00ffff00, //   6
+    0xffffff00, //   7
+    0x55555500, //   8
+    0xc6717100, //   9
+    0x71c67100, //  10
+    0x8e8e3800, //  11
+    0x7171c600, //  12
+    0x8e388e00, //  13
+    0x388e8e00, //  14
+    0x00008000, //  15
+    0xa8a89800, //  16
+    0xe8e8d800, //  17
+    0x68685800, //  18
+    0x98a8a800, //  19
+    0xd8e8e800, //  20
+    0x58686800, //  21
+    0x9c9ca800, //  22
+    0xdcdce800, //  23
+    0x5c5c6800, //  24
+    0x9ca89c00, //  25
+    0xdce8dc00, //  26
+    0x5c685c00, //  27
+    0x90909000, //  28
+    0xc0c0c000, //  29
+    0x50505000, //  30
+    0xa0a0a000, //  31
+    0x00000000, //  32
+    0x0d0d0d00, //  33
+    0x1a1a1a00, //  34
+    0x26262600, //  35
+    0x31313100, //  36
+    0x3d3d3d00, //  37
+    0x48484800, //  38
+    0x55555500, //  39
+    0x5f5f5f00, //  40
+    0x6a6a6a00, //  41
+    0x75757500, //  42
+    0x80808000, //  43
+    0x8a8a8a00, //  44
+    0x95959500, //  45
+    0xa0a0a000, //  46
+    0xaaaaaa00, //  47
+    0xb5b5b500, //  48
+    0xc0c0c000, //  49
+    0xcbcbcb00, //  50
+    0xd5d5d500, //  51
+    0xe0e0e000, //  52
+    0xeaeaea00, //  53
+    0xf5f5f500, //  54
+    0xffffff00, //  55
+    0x00000000, //  56
+    0x00240000, //  57
+    0x00480000, //  58
+    0x006d0000, //  59
+    0x00910000, //  60
+    0x00b60000, //  61
+    0x00da0000, //  62
+    0x00ff0000, //  63
+    0x3f000000, //  64
+    0x3f240000, //  65
+    0x3f480000, //  66
+    0x3f6d0000, //  67
+    0x3f910000, //  68
+    0x3fb60000, //  69
+    0x3fda0000, //  70
+    0x3fff0000, //  71
+    0x7f000000, //  72
+    0x7f240000, //  73
+    0x7f480000, //  74
+    0x7f6d0000, //  75
+    0x7f910000, //  76
+    0x7fb60000, //  77
+    0x7fda0000, //  78
+    0x7fff0000, //  79
+    0xbf000000, //  80
+    0xbf240000, //  81
+    0xbf480000, //  82
+    0xbf6d0000, //  83
+    0xbf910000, //  84
+    0xbfb60000, //  85
+    0xbfda0000, //  86
+    0xbfff0000, //  87
+    0xff000000, //  88
+    0xff240000, //  89
+    0xff480000, //  90
+    0xff6d0000, //  91
+    0xff910000, //  92
+    0xffb60000, //  93
+    0xffda0000, //  94
+    0xffff0000, //  95
+    0x00003f00, //  96
+    0x00243f00, //  97
+    0x00483f00, //  98
+    0x006d3f00, //  99
+    0x00913f00, // 100
+    0x00b63f00, // 101
+    0x00da3f00, // 102
+    0x00ff3f00, // 103
+    0x3f003f00, // 104
+    0x3f243f00, // 105
+    0x3f483f00, // 106
+    0x3f6d3f00, // 107
+    0x3f913f00, // 108
+    0x3fb63f00, // 109
+    0x3fda3f00, // 110
+    0x3fff3f00, // 111
+    0x7f003f00, // 112
+    0x7f243f00, // 113
+    0x7f483f00, // 114
+    0x7f6d3f00, // 115
+    0x7f913f00, // 116
+    0x7fb63f00, // 117
+    0x7fda3f00, // 118
+    0x7fff3f00, // 119
+    0xbf003f00, // 120
+    0xbf243f00, // 121
+    0xbf483f00, // 122
+    0xbf6d3f00, // 123
+    0xbf913f00, // 124
+    0xbfb63f00, // 125
+    0xbfda3f00, // 126
+    0xbfff3f00, // 127
+    0xff003f00, // 128
+    0xff243f00, // 129
+    0xff483f00, // 130
+    0xff6d3f00, // 131
+    0xff913f00, // 132
+    0xffb63f00, // 133
+    0xffda3f00, // 134
+    0xffff3f00, // 135
+    0x00007f00, // 136
+    0x00247f00, // 137
+    0x00487f00, // 138
+    0x006d7f00, // 139
+    0x00917f00, // 140
+    0x00b67f00, // 141
+    0x00da7f00, // 142
+    0x00ff7f00, // 143
+    0x3f007f00, // 144
+    0x3f247f00, // 145
+    0x3f487f00, // 146
+    0x3f6d7f00, // 147
+    0x3f917f00, // 148
+    0x3fb67f00, // 149
+    0x3fda7f00, // 150
+    0x3fff7f00, // 151
+    0x7f007f00, // 152
+    0x7f247f00, // 153
+    0x7f487f00, // 154
+    0x7f6d7f00, // 155
+    0x7f917f00, // 156
+    0x7fb67f00, // 157
+    0x7fda7f00, // 158
+    0x7fff7f00, // 159
+    0xbf007f00, // 160
+    0xbf247f00, // 161
+    0xbf487f00, // 162
+    0xbf6d7f00, // 163
+    0xbf917f00, // 164
+    0xbfb67f00, // 165
+    0xbfda7f00, // 166
+    0xbfff7f00, // 167
+    0xff007f00, // 168
+    0xff247f00, // 169
+    0xff487f00, // 170
+    0xff6d7f00, // 171
+    0xff917f00, // 172
+    0xffb67f00, // 173
+    0xffda7f00, // 174
+    0xffff7f00, // 175
+    0x0000bf00, // 176
+    0x0024bf00, // 177
+    0x0048bf00, // 178
+    0x006dbf00, // 179
+    0x0091bf00, // 180
+    0x00b6bf00, // 181
+    0x00dabf00, // 182
+    0x00ffbf00, // 183
+    0x3f00bf00, // 184
+    0x3f24bf00, // 185
+    0x3f48bf00, // 186
+    0x3f6dbf00, // 187
+    0x3f91bf00, // 188
+    0x3fb6bf00, // 189
+    0x3fdabf00, // 190
+    0x3fffbf00, // 191
+    0x7f00bf00, // 192
+    0x7f24bf00, // 193
+    0x7f48bf00, // 194
+    0x7f6dbf00, // 195
+    0x7f91bf00, // 196
+    0x7fb6bf00, // 197
+    0x7fdabf00, // 198
+    0x7fffbf00, // 199
+    0xbf00bf00, // 200
+    0xbf24bf00, // 201
+    0xbf48bf00, // 202
+    0xbf6dbf00, // 203
+    0xbf91bf00, // 204
+    0xbfb6bf00, // 205
+    0xbfdabf00, // 206
+    0xbfffbf00, // 207
+    0xff00bf00, // 208
+    0xff24bf00, // 209
+    0xff48bf00, // 210
+    0xff6dbf00, // 211
+    0xff91bf00, // 212
+    0xffb6bf00, // 213
+    0xffdabf00, // 214
+    0xffffbf00, // 215
+    0x0000ff00, // 216
+    0x0024ff00, // 217
+    0x0048ff00, // 218
+    0x006dff00, // 219
+    0x0091ff00, // 220
+    0x00b6ff00, // 221
+    0x00daff00, // 222
+    0x00ffff00, // 223
+    0x3f00ff00, // 224
+    0x3f24ff00, // 225
+    0x3f48ff00, // 226
+    0x3f6dff00, // 227
+    0x3f91ff00, // 228
+    0x3fb6ff00, // 229
+    0x3fdaff00, // 230
+    0x3fffff00, // 231
+    0x7f00ff00, // 232
+    0x7f24ff00, // 233
+    0x7f48ff00, // 234
+    0x7f6dff00, // 235
+    0x7f91ff00, // 236
+    0x7fb6ff00, // 237
+    0x7fdaff00, // 238
+    0x7fffff00, // 239
+    0xbf00ff00, // 240
+    0xbf24ff00, // 241
+    0xbf48ff00, // 242
+    0xbf6dff00, // 243
+    0xbf91ff00, // 244
+    0xbfb6ff00, // 245
+    0xbfdaff00, // 246
+    0xbfffff00, // 247
+    0xff00ff00, // 248
+    0xff24ff00, // 249
+    0xff48ff00, // 250
+    0xff6dff00, // 251
+    0xff91ff00, // 252
+    0xffb6ff00, // 253
+    0xffdaff00, // 254
+    0xffffff00 // 255};
+};
+
+// File dialog
+
+std::string wstrtostr(const std::wstring& wstr)
+{
+    std::string strTo;
+    char* szTo = new char[wstr.length() + 1];
+    szTo[wstr.size()] = '\0';
+    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, szTo, (int)wstr.length(), NULL, NULL);
+    strTo = szTo;
+    delete[] szTo;
+    return strTo;
+}
+
+std::string openFileDialog()
+{
+    #ifdef WIN32
+    std::wstring filename;
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr))
+    {
+        IFileOpenDialog* pFileOpen;
+
+        // Create the FileOpenDialog object.
+        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+            IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+        if (SUCCEEDED(hr))
+        {
+            // Show the Open dialog box.
+            hr = pFileOpen->Show(NULL);
+
+            // Get the file name from the dialog box.
+            if (SUCCEEDED(hr))
+            {
+                IShellItem* pItem;
+                hr = pFileOpen->GetResult(&pItem);
+                if (SUCCEEDED(hr))
+                {
+                    PWSTR pszFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                    // Display the file name to the user.
+                    if (SUCCEEDED(hr))
+                    {
+                        //MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+                        filename = pszFilePath;
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileOpen->Release();
+        }
+        CoUninitialize();
+    }
+    #endif
+    return wstrtostr(filename);
+}
+
+
 // Constructor/Destructor
 
-FemView::FemView(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
+FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
     : IvfViewWindow(width, height, title, monitor, shared)
 {
     m_width = width;
@@ -79,12 +402,12 @@ FemView::FemView(int width, int height, const std::string title, GLFWmonitor* mo
     this->setupScripting();
 }
 
-std::shared_ptr<FemView> FemView::create(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
+std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
 {
-    return std::make_shared<FemView>(width, height, title, monitor, shared);
+    return std::make_shared<FemViewWindow>(width, height, title, monitor, shared);
 }
 
-FemView::~FemView()
+FemViewWindow::~FemViewWindow()
 {
     log("Destructor.");
 
@@ -95,7 +418,7 @@ FemView::~FemView()
     delete m_internalSolver;
 }
 
-void FemView::runScript(const std::string filename)
+void FemViewWindow::runScript(const std::string filename)
 {
     /*
     ScriptPlugin plugin(m_progPath + "/plugins/frame.chai");
@@ -123,7 +446,7 @@ void FemView::runScript(const std::string filename)
     */
 }
 
-void FemView::runPlugin(ScriptPlugin* plugin)
+void FemViewWindow::runPlugin(ScriptPlugin* plugin)
 {
     this->snapShot();
 
@@ -147,19 +470,19 @@ void FemView::runPlugin(ScriptPlugin* plugin)
 
 // Get/set methods
 
-void FemView::setFileName(const std::string& name)
+void FemViewWindow::setFileName(const std::string& name)
 {
     m_fileName = name;
 }
 
-const std::string FemView::getFileName()
+const std::string FemViewWindow::getFileName()
 {
     // Return current filename
 
     return m_fileName;
 }
 
-void FemView::updateAxisLabels()
+void FemViewWindow::updateAxisLabels()
 {
     m_textLayer->clear();
 
@@ -245,7 +568,7 @@ void FemView::updateAxisLabels()
     m_textLayer->addChild(lowerRight);
 }
 
-void FemView::setWorkspace(double size, bool resetCamera)
+void FemViewWindow::setWorkspace(double size, bool resetCamera)
 {
     IvfViewWindow::setWorkspace(size, resetCamera);
 
@@ -282,28 +605,28 @@ void FemView::setWorkspace(double size, bool resetCamera)
     updateAxisLabels();
 }
 
-void FemView::setCurrentMaterial(ofem::BeamMaterial* material)
+void FemViewWindow::setCurrentMaterial(ofem::BeamMaterial* material)
 {
     // Set current material
 
     m_currentMaterial = material;
 }
 
-ofem::BeamMaterial* FemView::getCurrentMaterial()
+ofem::BeamMaterial* FemViewWindow::getCurrentMaterial()
 {
     // Return current material
 
     return m_currentMaterial;
 }
 
-void FemView::setCurrentBeamLoad(ofem::BeamLoad* elementLoad)
+void FemViewWindow::setCurrentBeamLoad(ofem::BeamLoad* elementLoad)
 {
     // Set current elementload
 
     m_currentElementLoad = elementLoad;
 }
 
-void FemView::setRepresentation(RepresentationMode repr)
+void FemViewWindow::setRepresentation(RepresentationMode repr)
 {
     // Change model representation
     m_representation = repr;
@@ -348,34 +671,34 @@ void FemView::setRepresentation(RepresentationMode repr)
     this->redraw();
 }
 
-ofem::BeamModel* FemView::getModel()
+ofem::BeamModel* FemViewWindow::getModel()
 {
     return m_beamModel;
 }
 
-Shape* FemView::getSelectedShape()
+Shape* FemViewWindow::getSelectedShape()
 {
     // Return currently selected shape
 
     return m_selectedShape;
 }
 
-ofem::BeamLoad* FemView::getCurrentBeamLoad()
+ofem::BeamLoad* FemViewWindow::getCurrentBeamLoad()
 {
     return m_currentElementLoad;
 }
 
-void FemView::setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad)
+void FemViewWindow::setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
     m_currentNodeLoad = nodeLoad;
 }
 
-ofem::BeamNodeLoad* FemView::getCurrentNodeLoad()
+ofem::BeamNodeLoad* FemViewWindow::getCurrentNodeLoad()
 {
     return m_currentNodeLoad;
 }
 
-void FemView::setEditMode(WidgetMode mode)
+void FemViewWindow::setEditMode(WidgetMode mode)
 {
     // If setEditMode is not called in response to a setCustomMode call,
     // the custom mode is set to OF_NORMAL
@@ -475,7 +798,7 @@ void FemView::setEditMode(WidgetMode mode)
     this->updateButtonState();
 }
 
-void FemView::setBeamRefreshMode(ivf::LineRefreshMode mode)
+void FemViewWindow::setBeamRefreshMode(ivf::LineRefreshMode mode)
 {
     auto scene = this->getScene()->getComposite();
     int i;
@@ -491,30 +814,30 @@ void FemView::setBeamRefreshMode(ivf::LineRefreshMode mode)
     }
 }
 
-void FemView::setArguments(int argc, char** argv)
+void FemViewWindow::setArguments(int argc, char** argv)
 {
     m_argc = argc;
     m_argv = argv;
 }
 
-void FemView::setScalefactor(double scalefactor)
+void FemViewWindow::setScalefactor(double scalefactor)
 {
     m_beamModel->setScaleFactor(scalefactor);
     this->set_changed();
     this->redraw();
 }
 
-double FemView::getScalefactor()
+double FemViewWindow::getScalefactor()
 {
     return m_beamModel->getScaleFactor();
 }
 
-void FemView::setCurrentNodeBC(ofem::BeamNodeBC* bc)
+void FemViewWindow::setCurrentNodeBC(ofem::BeamNodeBC* bc)
 {
     m_currentNodeBC = bc;
 }
 
-void FemView::setCustomMode(CustomMode mode)
+void FemViewWindow::setCustomMode(CustomMode mode)
 {
     if (m_customMode == CustomMode::Feedback)
     {
@@ -547,81 +870,81 @@ void FemView::setCustomMode(CustomMode mode)
     }
 }
 
-void FemView::setSelectFilter(SelectMode filter)
+void FemViewWindow::setSelectFilter(SelectMode filter)
 {
     m_selectFilter = filter;
 }
 
-void FemView::setDeleteFilter(DeleteMode filter)
+void FemViewWindow::setDeleteFilter(DeleteMode filter)
 {
     m_deleteFilter = filter;
 }
 
-void FemView::setHighlightFilter(HighlightMode filter)
+void FemViewWindow::setHighlightFilter(HighlightMode filter)
 {
     m_highlightFilter = filter;
 }
 
-void FemView::setNeedRecalc(bool flag)
+void FemViewWindow::setNeedRecalc(bool flag)
 {
     m_needRecalc = flag;
 }
 
-void FemView::setRelNodeSize(double size)
+void FemViewWindow::setRelNodeSize(double size)
 {
     m_relNodeSize = size;
 }
 
-void FemView::setRelLineRadius(double radius)
+void FemViewWindow::setRelLineRadius(double radius)
 {
     m_relLineRadius = radius;
 }
 
-void FemView::setRelLoadSize(double size)
+void FemViewWindow::setRelLoadSize(double size)
 {
     m_relLoadSize = size;
 }
 
-double FemView::getRelNodeSize()
+double FemViewWindow::getRelNodeSize()
 {
     return m_relNodeSize;
 }
 
-double FemView::getRelLineRadius()
+double FemViewWindow::getRelLineRadius()
 {
     return m_relLineRadius;
 }
 
-double FemView::getRelLoadSize()
+double FemViewWindow::getRelLoadSize()
 {
     return m_relLoadSize;
 }
 
-ofem::BeamNodeBC* FemView::getCurrentNodeBC()
+ofem::BeamNodeBC* FemViewWindow::getCurrentNodeBC()
 {
     return m_currentNodeBC;
 }
 
-void FemView::setResultType(int type)
+void FemViewWindow::setResultType(int type)
 {
     m_beamModel->setResultType(type);
     this->set_changed();
     this->redraw();
 }
 
-void FemView::setProgramPath(const std::string& progPath)
+void FemViewWindow::setProgramPath(const std::string& progPath)
 {
     m_progPath = progPath;
 }
 
-const std::string FemView::getProgPath()
+const std::string FemViewWindow::getProgPath()
 {
     return m_progPath;
 }
 
 // Widget methods
 
-void FemView::save()
+void FemViewWindow::save()
 {
     // Save model
 
@@ -647,7 +970,7 @@ void FemView::save()
     */
 }
 
-void FemView::saveAs()
+void FemViewWindow::saveAs()
 {
     // Save model
 
@@ -670,7 +993,7 @@ void FemView::saveAs()
     */
 }
 
-void FemView::exportAsCalfem()
+void FemViewWindow::exportAsCalfem()
 {
     // Save model
     /*
@@ -693,13 +1016,13 @@ void FemView::exportAsCalfem()
     */
 }
 
-void FemView::snapShot()
+void FemViewWindow::snapShot()
 {
     m_beamModel->snapShot();
     log("Current undo level: " + ofutil::to_string(m_beamModel->snapShotCount()));
 }
 
-void FemView::restoreLastSnapShot()
+void FemViewWindow::restoreLastSnapShot()
 {
     auto prevEditMode = this->getEditMode();
 
@@ -751,7 +1074,7 @@ void FemView::restoreLastSnapShot()
     this->setEditMode(prevEditMode);
 }
 
-void FemView::revertLastSnapShot()
+void FemViewWindow::revertLastSnapShot()
 {
     auto prevEditMode = this->getEditMode();
 
@@ -803,7 +1126,7 @@ void FemView::revertLastSnapShot()
     this->setEditMode(prevEditMode);
 }
 
-void FemView::open(std::string filename)
+void FemViewWindow::open(std::string filename)
 {
     // Change filename and erase previous model/scene
 
@@ -859,11 +1182,18 @@ void FemView::open(std::string filename)
     this->setEditMode(WidgetMode::Select);
 }
 
-void FemView::open()
+void FemViewWindow::open()
 {
     // Open model
 
     this->hideAllDialogs();
+
+    auto filename = openFileDialog();
+
+    if (filename != "")
+    {
+        this->open(filename);
+    }
 
     // Prompt for a filename
 
@@ -891,7 +1221,7 @@ void FemView::open()
     */
 }
 
-void FemView::openScript()
+void FemViewWindow::openScript()
 {
     // Open model
 
@@ -921,7 +1251,7 @@ void FemView::openScript()
     */
 }
 
-void FemView::copy()
+void FemViewWindow::copy()
 {
     auto selectedShapes = this->getSelectedShapes();
 
@@ -947,16 +1277,16 @@ void FemView::copy()
     }
 }
 
-void FemView::paste()
+void FemViewWindow::paste()
 {
     this->setCustomMode(CustomMode::Paste);
 }
 
-void FemView::set_changed()
+void FemViewWindow::set_changed()
 {
 }
 
-void FemView::showProperties()
+void FemViewWindow::showProperties()
 {
     // Properties for selected shape
 
@@ -995,11 +1325,11 @@ void FemView::showProperties()
     this->refreshToolbars();
 }
 
-void FemView::showMaterials()
+void FemViewWindow::showMaterials()
 {
 }
 
-void FemView::newModel()
+void FemViewWindow::newModel()
 {
     this->hideAllDialogs();
 
@@ -1038,18 +1368,24 @@ void FemView::newModel()
 
     auto colorTable = m_beamModel->getColorTable();
 
-    /*
-    uchar r, g, b;
+    unsigned int c, red, green, blue;   
 
     for (int i = 0; i < 256; i++)
     {
-        Fl::get_color((Fl_Color)i, r, g, b);
+        if (i & 0xffffff00)
+            c = (unsigned)i;
+        else
+            c = fl_cmap[i];
+
+        red = uchar(c >> 24);
+        green = uchar(c >> 16);
+        blue = uchar(c >> 8);        
+
         colorTable->setColor(i,
-            (float)r / 255.0f,
-            (float)g / 255.0f,
-            (float)b / 255.0f);
+            (float)red / 255.0f,
+            (float)green / 255.0f,
+            (float)blue / 255.0f);
     }
-    */
 
     // Initialize dialogs
 
@@ -1088,7 +1424,7 @@ void FemView::newModel()
     this->redraw();
 }
 
-void FemView::assignMaterialToSelected()
+void FemViewWindow::assignMaterialToSelected()
 {
     // Assigns a material to selected shapes
 
@@ -1114,7 +1450,7 @@ void FemView::assignMaterialToSelected()
     }
 }
 
-void FemView::removeMaterialFromSelected()
+void FemViewWindow::removeMaterialFromSelected()
 {
     // Remove materials from selected shapes
 
@@ -1137,7 +1473,7 @@ void FemView::removeMaterialFromSelected()
     this->redraw();
 }
 
-void FemView::deleteBeamLoad(ofem::BeamLoad* elementLoad)
+void FemViewWindow::deleteBeamLoad(ofem::BeamLoad* elementLoad)
 {
     // Delete a beam load
 
@@ -1156,7 +1492,7 @@ void FemView::deleteBeamLoad(ofem::BeamLoad* elementLoad)
     m_beamModel->getElementLoadSet()->removeLoad(elementLoad);
 }
 
-void FemView::deleteSelected()
+void FemViewWindow::deleteSelected()
 {
     // Delete things in an orderly fashion
 
@@ -1178,7 +1514,7 @@ void FemView::deleteSelected()
     this->redraw();
 }
 
-void FemView::addBeamLoad(ofem::BeamLoad* elementLoad)
+void FemViewWindow::addBeamLoad(ofem::BeamLoad* elementLoad)
 {
     // Add a beam load
 
@@ -1204,7 +1540,7 @@ void FemView::addBeamLoad(ofem::BeamLoad* elementLoad)
     this->addToScene(visLoad);
 }
 
-void FemView::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
+void FemViewWindow::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
     // Add a node load
 
@@ -1230,7 +1566,7 @@ void FemView::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
     this->addToScene(visNodeLoad);
 }
 
-void FemView::addNodeBC(ofem::BeamNodeBC* bc)
+void FemViewWindow::addNodeBC(ofem::BeamNodeBC* bc)
 {
     // Add a node load
 
@@ -1256,11 +1592,11 @@ void FemView::addNodeBC(ofem::BeamNodeBC* bc)
     this->addToScene(visNodeBC);
 }
 
-void FemView::showBeamLoads()
+void FemViewWindow::showBeamLoads()
 {
 }
 
-void FemView::assignBeamLoadSelected()
+void FemViewWindow::assignBeamLoadSelected()
 {
     // Assign a beam load to selected beams
 
@@ -1286,7 +1622,7 @@ void FemView::assignBeamLoadSelected()
     }
 }
 
-void FemView::assignNodeLoadSelected()
+void FemViewWindow::assignNodeLoadSelected()
 {
     // Assign a node load to selected nodes
 
@@ -1314,7 +1650,7 @@ void FemView::assignNodeLoadSelected()
     }
 }
 
-void FemView::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
+void FemViewWindow::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
     // Delete a node load
 
@@ -1333,7 +1669,7 @@ void FemView::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
     setCurrentNodeLoad(nullptr);
 }
 
-void FemView::deleteNodeBC(ofem::BeamNodeBC* bc)
+void FemViewWindow::deleteNodeBC(ofem::BeamNodeBC* bc)
 {
     // Delete a node load
 
@@ -1353,7 +1689,7 @@ void FemView::deleteNodeBC(ofem::BeamNodeBC* bc)
     setCurrentNodeBC(nullptr);
 }
 
-void FemView::setRotationSelected(double rotation)
+void FemViewWindow::setRotationSelected(double rotation)
 {
     // Assigns a material to selected shapes
 
@@ -1375,7 +1711,7 @@ void FemView::setRotationSelected(double rotation)
     this->redraw();
 }
 
-void FemView::setupOverlay()
+void FemViewWindow::setupOverlay()
 {
     PlaneButton* button;
 
@@ -1499,7 +1835,7 @@ void FemView::setupOverlay()
     m_overlayScene->addChild(m_objectButtons);
 }
 
-void FemView::setupScripting()
+void FemViewWindow::setupScripting()
 {
     /*
     // Add math library to script environment
@@ -1516,7 +1852,7 @@ void FemView::setupScripting()
     */
 }
 
-void FemView::setupScript(chaiscript::ChaiScript& script)
+void FemViewWindow::setupScript(chaiscript::ChaiScript& script)
 {
     // Add math library to script environment
 
@@ -1525,13 +1861,13 @@ void FemView::setupScript(chaiscript::ChaiScript& script)
 
     // Bind ObjectiveFrame specific functions
 
-    script.add(chaiscript::fun(&FemView::addNode, this), "addNode");
-    script.add(chaiscript::fun(&FemView::newModel, this), "newModel");
-    script.add(chaiscript::fun(&FemView::addBeam, this), "addBeam");
-    script.add(chaiscript::fun(&FemView::nodeCount, this), "nodeCount");
+    script.add(chaiscript::fun(&FemViewWindow::addNode, this), "addNode");
+    script.add(chaiscript::fun(&FemViewWindow::newModel, this), "newModel");
+    script.add(chaiscript::fun(&FemViewWindow::addBeam, this), "addBeam");
+    script.add(chaiscript::fun(&FemViewWindow::nodeCount, this), "nodeCount");
 }
 
-void FemView::setupPlugins()
+void FemViewWindow::setupPlugins()
 {
     std::string path = m_progPath + "plugins";
 
@@ -1549,7 +1885,7 @@ void FemView::setupPlugins()
         log("Couldn't find load any plugins...");
 }
 
-void FemView::assignNodeBCSelected()
+void FemViewWindow::assignNodeBCSelected()
 {
     // Assign a node load to selected nodes
 
@@ -1575,7 +1911,7 @@ void FemView::assignNodeBCSelected()
     }
 }
 
-void FemView::assignNodeFixedBCSelected()
+void FemViewWindow::assignNodeFixedBCSelected()
 {
     this->snapShot();
     this->setCurrentNodeBC(m_beamModel->defaultNodeFixedBC());
@@ -1583,7 +1919,7 @@ void FemView::assignNodeFixedBCSelected()
     this->setCurrentNodeBC(nullptr);
 }
 
-void FemView::assignNodePosBCSelected()
+void FemViewWindow::assignNodePosBCSelected()
 {
     this->snapShot();
     this->setCurrentNodeBC(m_beamModel->defaultNodePosBC());
@@ -1591,7 +1927,7 @@ void FemView::assignNodePosBCSelected()
     this->setCurrentNodeBC(nullptr);
 }
 
-void FemView::assignNodeFixedBCGround()
+void FemViewWindow::assignNodeFixedBCGround()
 {
     this->snapShot();
     this->clearSelection();
@@ -1600,7 +1936,7 @@ void FemView::assignNodeFixedBCGround()
     this->assignNodeFixedBCSelected();
 }
 
-void FemView::assignNodePosBCGround()
+void FemViewWindow::assignNodePosBCGround()
 {
     this->snapShot();
     this->clearSelection();
@@ -1609,7 +1945,7 @@ void FemView::assignNodePosBCGround()
     this->assignNodePosBCSelected();
 }
 
-void FemView::executeCalc()
+void FemViewWindow::executeCalc()
 {
     double maxNodeValue;
 
@@ -1681,19 +2017,19 @@ void FemView::executeCalc()
     this->setRepresentation(RepresentationMode::Results);
 }
 
-void FemView::selectAllNodes()
+void FemViewWindow::selectAllNodes()
 {
     setSelectFilter(SelectMode::Nodes);
     selectAll();
 }
 
-void FemView::selectAllElements()
+void FemViewWindow::selectAllElements()
 {
     setSelectFilter(SelectMode::Elements);
     selectAll();
 }
 
-void FemView::doFeedback()
+void FemViewWindow::doFeedback()
 {
     // Is there a calculation ?
 
@@ -1844,7 +2180,7 @@ void FemView::doFeedback()
     }
 }
 
-vfem::Node* FemView::addNode(double x, double y, double z)
+vfem::Node* FemViewWindow::addNode(double x, double y, double z)
 {
     // First we create a FemNode
 
@@ -1871,7 +2207,7 @@ vfem::Node* FemView::addNode(double x, double y, double z)
     return ivfNode;
 }
 
-vfem::Beam* FemView::addBeam(int i0, int i1)
+vfem::Beam* FemViewWindow::addBeam(int i0, int i1)
 {
     auto nodeSet = m_beamModel->getNodeSet();
     auto beamSet = m_beamModel->getElementSet();
@@ -1913,12 +2249,12 @@ vfem::Beam* FemView::addBeam(int i0, int i1)
         return nullptr;
 }
 
-size_t FemView::nodeCount()
+size_t FemViewWindow::nodeCount()
 {
     return m_beamModel->getNodeSet()->getSize();
 }
 
-void FemView::showMessage(std::string message)
+void FemViewWindow::showMessage(std::string message)
 {
     m_messagePopup->setMessage(message);
     m_messagePopup->show();
@@ -1936,22 +2272,22 @@ void CIvfFemWidget::updateLeapFrame(Frame leapFrame)
 }
 #endif
 
-ExtrArrowPtr FemView::getTactileForce()
+ExtrArrowPtr FemViewWindow::getTactileForce()
 {
     return m_tactileForce;
 }
 
-void FemView::setTactileForce(ExtrArrowPtr force)
+void FemViewWindow::setTactileForce(ExtrArrowPtr force)
 {
     m_tactileForce = force;
 }
 
-vfem::NodePtr FemView::getInteractionNode()
+vfem::NodePtr FemViewWindow::getInteractionNode()
 {
     return m_interactionNode;
 }
 
-void FemView::setInteractionNode(vfem::Node* interactionNode)
+void FemViewWindow::setInteractionNode(vfem::Node* interactionNode)
 {
     m_interactionNode = interactionNode;
 }
@@ -1980,17 +2316,17 @@ void FemView::setInteractionNode(vfem::Node* interactionNode)
 //	}
 // }
 
-void FemView::lockScaleFactor()
+void FemViewWindow::lockScaleFactor()
 {
     m_lockScaleFactor = true;
 }
 
-bool FemView::isScaleFactorLocked()
+bool FemViewWindow::isScaleFactorLocked()
 {
     return m_lockScaleFactor;
 }
 
-double FemView::autoScaleFactor()
+double FemViewWindow::autoScaleFactor()
 {
     if (m_internalSolver != nullptr)
         return this->getWorkspace() * 0.020 / m_internalSolver->getMaxNodeValue();
@@ -1998,12 +2334,12 @@ double FemView::autoScaleFactor()
         return 1.0;
 }
 
-void FemView::unlockScaleFactor()
+void FemViewWindow::unlockScaleFactor()
 {
     m_lockScaleFactor = false;
 }
 
-void FemView::refreshToolbars()
+void FemViewWindow::refreshToolbars()
 {
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
@@ -2037,7 +2373,7 @@ void FemView::refreshToolbars()
     this->redraw();
 }
 
-void FemView::removeNodeLoadsFromSelected()
+void FemViewWindow::removeNodeLoadsFromSelected()
 {
     // Remove materials from selected shapes
 
@@ -2066,7 +2402,7 @@ void FemView::removeNodeLoadsFromSelected()
     this->redraw();
 }
 
-void FemView::removeNodesFromNodeLoad()
+void FemViewWindow::removeNodesFromNodeLoad()
 {
     ofem::BeamNodeLoad* nodeLoad = this->getCurrentNodeLoad();
 
@@ -2078,7 +2414,7 @@ void FemView::removeNodesFromNodeLoad()
     this->redraw();
 }
 
-void FemView::removeNodeBCsFromSelected()
+void FemViewWindow::removeNodeBCsFromSelected()
 {
     // Remove materials from selected shapes
 
@@ -2107,7 +2443,7 @@ void FemView::removeNodeBCsFromSelected()
     this->redraw();
 }
 
-void FemView::removeBCsFromBC()
+void FemViewWindow::removeBCsFromBC()
 {
     ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
@@ -2119,7 +2455,7 @@ void FemView::removeBCsFromBC()
     this->redraw();
 }
 
-void FemView::removeBeamLoadsFromSelected()
+void FemViewWindow::removeBeamLoadsFromSelected()
 {
     // Remove materials from selected shapes
 
@@ -2148,7 +2484,7 @@ void FemView::removeBeamLoadsFromSelected()
     this->redraw();
 }
 
-void FemView::hideAllDialogs()
+void FemViewWindow::hideAllDialogs()
 {
     log("Hiding all dialogs.");
 
@@ -2160,7 +2496,7 @@ void FemView::hideAllDialogs()
 
 // Widget events
 
-void FemView::onInit()
+void FemViewWindow::onInit()
 {
     // Create log window early as it will be called by the logger.
 
@@ -2172,7 +2508,7 @@ void FemView::onInit()
     m_consoleWindow->centerBottom();
 
     using std::placeholders::_1;
-    LoggerMessageFunc f = std::bind(&FemView::onMessage, this, _1);
+    LoggerMessageFunc f = std::bind(&FemViewWindow::onMessage, this, _1);
     Logger::instance()->assignOnMessageShort(f);
 
     // Display version information.
@@ -2298,10 +2634,10 @@ void FemView::onInit()
     m_modelClipBoard = new ofem::ModelClipBoard();
 
     using namespace std::placeholders;
-    ofem::ModelClipboardCreateNodeFunc onCreateNode = std::bind(&FemView::onClipboardCreateNode, this, _1, _2, _3);
+    ofem::ModelClipboardCreateNodeFunc onCreateNode = std::bind(&FemViewWindow::onClipboardCreateNode, this, _1, _2, _3);
     m_modelClipBoard->assignOnCreateNode(onCreateNode);
 
-    ofem::ModelClipboardCreateElementFunc onCreateElement = std::bind(&FemView::onClipboardCreateElement, this, _1, _2);
+    ofem::ModelClipboardCreateElementFunc onCreateElement = std::bind(&FemViewWindow::onClipboardCreateElement, this, _1, _2);
     m_modelClipBoard->assignOnCreateElement(onCreateElement);
 
     // m_modelClipBoard->assignOnCreateElement(this->onClipboardCreateElement());
@@ -2311,18 +2647,24 @@ void FemView::onInit()
     log("Initializing color table.");
     auto colorTable = m_beamModel->getColorTable();
 
-    /*
-    uchar r, g, b;
+    unsigned int c, red, green, blue;
 
     for (int i = 0; i < 256; i++)
     {
-        Fl::get_color((Fl_Color)i, r, g, b);
+        if (i & 0xffffff00)
+            c = (unsigned)i;
+        else
+            c = fl_cmap[i];
+
+        red = uchar(c >> 24);
+        green = uchar(c >> 16);
+        blue = uchar(c >> 8);
+
         colorTable->setColor(i,
-            (float)r / 255.0f,
-            (float)g / 255.0f,
-            (float)b / 255.0f);
+            (float)red / 255.0f,
+            (float)green / 255.0f,
+            (float)blue / 255.0f);
     }
-    */
 
     // Initialize gle library
 
@@ -2377,7 +2719,7 @@ void FemView::onInit()
     // Create ImGui interface
 
     m_showStyleEditor = false;
-    m_showMetricsWindow = false;
+    m_showMetricsWindow = true;
     m_showNewFileDlg = false;
     m_coordWindow = CoordWindow::create("Coord window");
 
@@ -2440,13 +2782,13 @@ void FemView::onInit()
     }
 }
 
-void FemView::doMouse(int x, int y)
+void FemViewWindow::doMouse(int x, int y)
 {
     if (!m_overlaySelected)
         IvfViewWindow::doMouse(x, y);
 }
 
-void FemView::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
+void FemViewWindow::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 {
     // Create a node
 
@@ -2478,7 +2820,7 @@ void FemView::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
     newNode = ivfNode;
 }
 
-void FemView::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine)
+void FemViewWindow::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine)
 {
     if (node1 == node2)
         return;
@@ -2531,7 +2873,7 @@ void FemView::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& newLine)
     newLine = static_cast<Shape*>(visBeam);
 }
 
-void FemView::onSelect(Composite* selectedShapes)
+void FemViewWindow::onSelect(Composite* selectedShapes)
 {
     // Handle object selection
 
@@ -2611,7 +2953,7 @@ void FemView::onSelect(Composite* selectedShapes)
     }
 }
 
-bool FemView::onInsideVolume(ivf::Shape* shape)
+bool FemViewWindow::onInsideVolume(ivf::Shape* shape)
 {
     if (shape->isClass("vfem::Beam"))
     {
@@ -2625,29 +2967,29 @@ bool FemView::onInsideVolume(ivf::Shape* shape)
         return false;
 }
 
-std::string FemView::float2str(double value)
+std::string FemViewWindow::float2str(double value)
 {
     std::stringstream coordStream;
     coordStream << std::fixed << std::setw(10) << std::setprecision(2) << value;
     return coordStream.str();
 }
 
-void FemView::log(std::string message)
+void FemViewWindow::log(std::string message)
 {
     Logger::instance()->log(LogLevel::Info, message);
 }
 
-void FemView::onMessage(std::string message)
+void FemViewWindow::onMessage(std::string message)
 {
     m_logWindow->log(message + "\n");
 }
 
-void FemView::console(std::string message)
+void FemViewWindow::console(std::string message)
 {
     m_consoleWindow->log(message + "\n");
 }
 
-void FemView::onCoordinate(double x, double y, double z)
+void FemViewWindow::onCoordinate(double x, double y, double z)
 {
     // Update coordinate display
 
@@ -2660,7 +3002,7 @@ void FemView::onCoordinate(double x, double y, double z)
     m_coordWindow->setCoord(x, y, z);
 }
 
-void FemView::onDeleteShape(Shape* shape, bool& doit)
+void FemViewWindow::onDeleteShape(Shape* shape, bool& doit)
 {
     // Handle shape deletion
 
@@ -2699,17 +3041,17 @@ void FemView::onDeleteShape(Shape* shape, bool& doit)
     m_needRecalc = doit;
 }
 
-void FemView::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
+void FemViewWindow::onMove(Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
 {
     doit = true;
     m_needRecalc = true;
 }
 
-void FemView::onMoveCompleted()
+void FemViewWindow::onMoveCompleted()
 {
 }
 
-void FemView::onUnderlay()
+void FemViewWindow::onUnderlay()
 {
     glBegin(GL_QUADS);
     glColor4f(0.6f, 0.6f, 0.7f, 1.0f);
@@ -2723,7 +3065,7 @@ void FemView::onUnderlay()
     glEnd();
 }
 
-void FemView::onOverlay()
+void FemViewWindow::onOverlay()
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
@@ -2753,7 +3095,7 @@ void FemView::onOverlay()
     glEnable(GL_DEPTH_TEST);
 }
 
-void FemView::onInitContext()
+void FemViewWindow::onInitContext()
 {
     IvfViewWindow::onInitContext();
     glEnable(GL_DEPTH_TEST);
@@ -2771,7 +3113,7 @@ void FemView::onInitContext()
     }
 }
 
-void FemView::onPassiveMotion(int x, int y)
+void FemViewWindow::onPassiveMotion(int x, int y)
 {
     unsigned int i;
     bool inside = false;
@@ -2835,14 +3177,15 @@ void FemView::onPassiveMotion(int x, int y)
     if (needInvalidate)
     {
         redraw();
+        draw();
     }
 }
 
-void FemView::onMouse(int x, int y)
+void FemViewWindow::onMouse(int x, int y)
 {
 }
 
-void FemView::onMouseDown(int x, int y)
+void FemViewWindow::onMouseDown(int x, int y)
 {
     m_mouseDownPos[0] = x;
     m_mouseDownPos[1] = y;
@@ -2865,7 +3208,7 @@ void FemView::onMouseDown(int x, int y)
     }
 }
 
-void FemView::onMouseUp(int x, int y)
+void FemViewWindow::onMouseUp(int x, int y)
 {
     if ((m_overlaySelected) && (m_selectedButton != nullptr))
     {
@@ -2893,7 +3236,7 @@ void FemView::onMouseUp(int x, int y)
     }
 }
 
-void FemView::onMotion(int x, int y)
+void FemViewWindow::onMotion(int x, int y)
 {
     if ((m_customMode == CustomMode::Feedback) && (getCurrentMouseButton() == ButtonState::bsButton1))
     {
@@ -2927,11 +3270,12 @@ void FemView::onMotion(int x, int y)
 
         doFeedback();
 
-        this->redraw();
+        this->redraw(); // Refresh
+        this->draw();
     }
 }
 
-void FemView::onDeSelect()
+void FemViewWindow::onDeSelect()
 {
     log("onDeSelect");
     m_nodePropWindow->setNode(nullptr);
@@ -2946,7 +3290,7 @@ void FemView::onDeSelect()
     }
 }
 
-void FemView::onHighlightShape(Shape* shape)
+void FemViewWindow::onHighlightShape(Shape* shape)
 {
     if (m_customMode == CustomMode::Feedback)
     {
@@ -2966,7 +3310,7 @@ void FemView::onHighlightShape(Shape* shape)
     }
 }
 
-void FemView::onSelectFilter(Shape* shape, bool& select)
+void FemViewWindow::onSelectFilter(Shape* shape, bool& select)
 {
     switch (m_selectFilter)
     {
@@ -3006,7 +3350,7 @@ void FemView::onSelectFilter(Shape* shape, bool& select)
     }
 }
 
-void FemView::onSelectPosition(double x, double y, double z)
+void FemViewWindow::onSelectPosition(double x, double y, double z)
 {
     if (m_customMode == CustomMode::Structure)
     {
@@ -3026,12 +3370,12 @@ void FemView::onSelectPosition(double x, double y, double z)
     }
 }
 
-void FemView::onMoveStart()
+void FemViewWindow::onMoveStart()
 {
     this->snapShot();
 }
 
-void FemView::updateButtonState()
+void FemViewWindow::updateButtonState()
 {
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
@@ -3064,7 +3408,7 @@ void FemView::updateButtonState()
     }
 }
 
-void FemView::onButton(int objectName, PlaneButton* button)
+void FemViewWindow::onButton(int objectName, PlaneButton* button)
 {
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
@@ -3149,7 +3493,7 @@ void FemView::onButton(int objectName, PlaneButton* button)
     this->redraw();
 }
 
-void FemView::onOverButton(int objectName, PlaneButton* button)
+void FemViewWindow::onOverButton(int objectName, PlaneButton* button)
 {
     m_consoleWindow->clear();
     switch (objectName)
@@ -3201,7 +3545,7 @@ void FemView::onOverButton(int objectName, PlaneButton* button)
     }
 }
 
-void FemView::onShortcut(ModifierKey modifier, int key)
+void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 {
     //if (key == FL_Delete)
     //    this->deleteSelected();
@@ -3282,7 +3626,7 @@ void FemView::onShortcut(ModifierKey modifier, int key)
     }
 }
 
-void FemView::onHighlightFilter(Shape* shape, bool& highlight)
+void FemViewWindow::onHighlightFilter(Shape* shape, bool& highlight)
 {
     switch (m_highlightFilter)
     {
@@ -3307,7 +3651,7 @@ void FemView::onHighlightFilter(Shape* shape, bool& highlight)
     }
 }
 
-void FemView::onKeyboard(int key)
+void FemViewWindow::onKeyboard(int key)
 {
     // if (key == 122)
     //     this->setEditMode(WidgetMode::ViewPan);
@@ -3340,21 +3684,21 @@ void FemView::onKeyboard(int key)
     */
 }
 
-void FemView::onClipboardCreateNode(double x, double y, double z)
+void FemViewWindow::onClipboardCreateNode(double x, double y, double z)
 {
     log("CB: Create node x = " + to_string(x) + ", " + to_string(y) + ", " + to_string(z));
 
     this->addNode(x, y, z);
 }
 
-void FemView::onClipboardCreateElement(int i0, int i1)
+void FemViewWindow::onClipboardCreateElement(int i0, int i1)
 {
     log("CB: Create element i0 = " + to_string(i0) + ", " + to_string(i1));
 
     this->addBeam(i0, i1);
 }
 
-void FemView::onDrawImGui()
+void FemViewWindow::onDrawImGui()
 {
     bool openDialog = false;
     bool saveDialog = false;
@@ -3611,7 +3955,7 @@ void FemView::onDrawImGui()
     }
 }
 
-void FemView::onInitImGui()
+void FemViewWindow::onInitImGui()
 {
     ImGui::StyleColorsDark();
 
@@ -3637,6 +3981,6 @@ void FemView::onInitImGui()
     style.ScaleAllSizes(1.0);
 }
 
-void FemView::onPostRender()
+void FemViewWindow::onPostRender()
 {
 }

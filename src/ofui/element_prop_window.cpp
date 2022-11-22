@@ -46,7 +46,7 @@ void ofui::ElementPropWindow::setSelectedShapes(ivf::Composite* selected)
 }
 
 #ifdef USE_FEMVIEW
-void ofui::ElementPropWindow::setView(FemView* view)
+void ofui::ElementPropWindow::setView(FemViewWindow* view)
 {
     m_view = view;
 }

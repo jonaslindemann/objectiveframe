@@ -24,7 +24,7 @@ ScaleWindow::~ScaleWindow()
 {
 }
 #ifdef USE_FEMVIEW
-void ofui::ScaleWindow::setView(FemView* view)
+void ofui::ScaleWindow::setView(FemViewWindow* view)
 {
     m_view = view;
 }

@@ -6,7 +6,7 @@
 #include <vfem/node.h>
 
 #ifdef USE_FEMVIEW
-class FemView;
+class FemViewWindow;
 #else
 class FemWidget;
 #endif
@@ -21,7 +21,7 @@ private:
     vfem::Node* m_node;
     ivf::Composite* m_selectedShapes;
 #ifdef USE_FEMVIEW
-    FemView* m_view;
+    FemViewWindow* m_view;
 #else
     FemWidget* m_view;
 #endif
@@ -34,7 +34,7 @@ public:
     virtual ~NodePropWindow();
 
 #ifdef USE_FEMVIEW
-    void setView(FemView* view);
+    void setView(FemViewWindow* view);
 #else
     void setWidget(FemWidget* widget);
 #endif

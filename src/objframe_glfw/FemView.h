@@ -431,7 +431,7 @@ public:
     virtual void onSelectPosition(double x, double y, double z);
     virtual void onMoveStart();
     virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit) override;
-    virtual void onMoveCompleted();
+    virtual void onMoveCompleted() override;
     virtual void onMotion(int x, int y) override;
     virtual void onDeSelect() override;
     virtual void onKeyboard(int key) override;

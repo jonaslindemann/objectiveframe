@@ -52,6 +52,7 @@ std::shared_ptr<NodePropWindow> NodePropWindow::create(const std::string name)
 
 void NodePropWindow::doDraw()
 {
+    ImGuiIO& io = ImGui::GetIO();
     ImGui::Dummy(ImVec2(150.0, 0.0));
     if (m_node != nullptr)
     {

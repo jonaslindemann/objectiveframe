@@ -96,7 +96,17 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
     if (isAltDown())
         m_currentModifier = ButtonState::bsAlt;
 
-    doKeyboard(key);
+    if ((key < GLFW_KEY_LEFT_SHIFT) && (m_currentModifier != ButtonState::bsNoButton))
+    {
+        if (m_currentModifier == ButtonState::bsShift)
+            doShortcut(ModifierKey::mkShift, key);
+        if (m_currentModifier == ButtonState::bsCtrl)
+            doShortcut(ModifierKey::mkCtrl, key);
+        if (m_currentModifier == ButtonState::bsAlt)
+            doShortcut(ModifierKey::mkAlt, key);
+    }
+    else
+        doKeyboard(key);
 }
 
 void IvfViewWindow::onGlfwMousePosition(double x, double y)
@@ -121,13 +131,16 @@ void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 
         if (button == GLFW_MOUSE_BUTTON_3)
             m_currentButton = ButtonState::bsButton3;
-
-        doMouseDown(mouseX(), mouseY());
-        doMouse(mouseX(), mouseY());
+        if (!isOverWindow())
+        {
+            doMouseDown(mouseX(), mouseY());
+            doMouse(mouseX(), mouseY());
+        }
     }
     else
     {
-        doMouseUp(mouseX(), mouseY());
+        if (!isOverWindow())
+            doMouseUp(mouseX(), mouseY());
     }
 }
 
@@ -561,6 +574,12 @@ void IvfViewWindow::quit()
     m_quit = true;
 }
 
+bool IvfViewWindow::isOverWindow()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    return io.WantCaptureMouse;
+}
+
 void IvfViewWindow::addSelection(ivf::Shape* shape)
 {
     m_selectedShapes->addChild(shape);
@@ -736,6 +755,10 @@ void IvfViewWindow::onDestroy()
 {
 }
 
+void IvfViewWindow::onShortcut(ModifierKey modifier, int key)
+{
+}
+
 void IvfViewWindow::onCreateNode(double x, double y, double z, ivf::Node*& newNode)
 {
 }
@@ -789,8 +812,8 @@ void IvfViewWindow::doMouseUp(int x, int y)
 {
     // Call onMouseUp event method
 
-    //if (getEditMode() == WidgetMode::Move)
-    //    onMoveCompleted();
+    if (getEditMode() == WidgetMode::Move)
+        onMoveCompleted();
 
     this->getScene()->showCursor();
     onMouseUp(x, y);
@@ -1055,7 +1078,7 @@ void IvfViewWindow::doMouse(int x, int y)
     Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
-    if ((m_editMode == WidgetMode::Select) && (m_selectEnabled))
+    if ((m_editMode == WidgetMode::Select) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
         if (m_selectedShape != NULL)
         {
@@ -1160,10 +1183,10 @@ void IvfViewWindow::doMouse(int x, int y)
                 m_volumeEnd[1] = 1e300;
             }
 
-            //if (m_editMode == WidgetMode::SelectVolume)
-            //    onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1], m_volumeEnd[2]);
-            //else
-            //    this->selectAllBox();
+            if (m_editMode == WidgetMode::SelectVolume)
+                onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1], m_volumeEnd[2]);
+            else
+                this->selectAllBox();
 
             m_volumeSelection->setState(Shape::OS_OFF);
             m_clickNumber = 0;
@@ -1223,7 +1246,16 @@ void IvfViewWindow::doKeyboard(int key)
     //cout << "IvfView::onKeyboard " << key << endl;
 }
 
+void IvfViewWindow::doShortcut(ModifierKey modifier, int key)
+{
+    onShortcut(modifier, key);
+}
+
 void IvfViewWindow::onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit)
+{
+}
+
+void IvfViewWindow::onMoveCompleted()
 {
 }
 
@@ -1258,6 +1290,10 @@ void IvfViewWindow::onMouseUp(int x, int y)
 }
 
 void IvfViewWindow::onKeyboard(int key)
+{
+}
+
+void IvfViewWindow::onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz)
 {
 }
 

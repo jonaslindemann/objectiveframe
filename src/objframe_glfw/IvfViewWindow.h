@@ -66,6 +66,7 @@ enum class ButtonState
 
 enum ModifierKey
 {
+    mkShift,
     mkCtrl,
     mkAlt,
     mkNone
@@ -161,6 +162,8 @@ public:
 public:
     void redraw();
     void quit();
+
+    bool isOverWindow();
 
     /** Returns camera used by widget */
     ivf::Camera* getCamera();
@@ -301,6 +304,7 @@ protected:
     virtual void doMotion(int x, int y);        // Calls onMotion
     virtual void doMouse(int x, int y);         // Calls onMouse
     virtual void doKeyboard(int key);
+    virtual void doShortcut(ModifierKey modifier, int key);
 
     void doInitImGui();
     void doDrawImGui();
@@ -322,6 +326,8 @@ public:
      * This method is called when the widget is destroyed.
      */
     virtual void onDestroy();
+
+    virtual void onShortcut(ModifierKey modifier, int key);
 
     /**
      * onCreateNode event
@@ -446,6 +452,8 @@ public:
      */
     virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit);
 
+    virtual void onMoveCompleted();
+
     virtual void onSelectFilter(ivf::Shape* shape, bool& select);
     virtual void onHighlightFilter(ivf::Shape*, bool& highlight);
     virtual void onMotion(int x, int y);
@@ -454,6 +462,7 @@ public:
     virtual void onMouseDown(int x, int y);
     virtual void onMouseUp(int x, int y);
     virtual void onKeyboard(int key);
+    virtual void onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz);
 
     virtual void onPostRender();
     virtual void onPreRender();

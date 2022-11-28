@@ -2719,7 +2719,7 @@ void FemViewWindow::onInit()
     // Create ImGui interface
 
     m_showStyleEditor = false;
-    m_showMetricsWindow = true;
+    m_showMetricsWindow = false;
     m_showNewFileDlg = false;
     m_coordWindow = CoordWindow::create("Coord window");
 
@@ -3559,37 +3559,37 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
     //    this->redraw();
     //}
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'o'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'O'))
         this->open();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'n'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'N'))
         this->newModel();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 's'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'S'))
         this->save();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'a'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'A'))
         this->selectAll();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'c'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'C'))
         this->copy();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'v'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'V'))
         this->paste();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'z'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'Z'))
         this->restoreLastSnapShot();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'y'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'Y'))
         this->revertLastSnapShot();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'd'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'D'))
         m_showMetricsWindow = !m_showMetricsWindow;
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'r'))
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'R'))
         this->executeCalc();
 
-    if ((modifier == ModifierKey::mkAlt) && (key == 's'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'S'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
@@ -3598,7 +3598,7 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
-    if ((modifier == ModifierKey::mkAlt) && (key == 'm'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'M'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
@@ -3607,7 +3607,7 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
-    if ((modifier == ModifierKey::mkAlt) && (key == 'n'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'N'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
@@ -3616,7 +3616,7 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
-    if ((modifier == ModifierKey::mkAlt) && (key == 'l'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'L'))
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();

@@ -96,7 +96,7 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
     if (isAltDown())
         m_currentModifier = ButtonState::bsAlt;
 
-    if ((key < GLFW_KEY_LEFT_SHIFT) && (m_currentModifier != ButtonState::bsNoButton))
+    if ((key < GLFW_KEY_LEFT_SHIFT) && (m_currentModifier != ButtonState::bsNoButton) && (action == GLFW_PRESS))
     {
         if (m_currentModifier == ButtonState::bsShift)
             doShortcut(ModifierKey::mkShift, key);

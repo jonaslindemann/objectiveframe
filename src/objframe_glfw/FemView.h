@@ -448,7 +448,7 @@ public:
 
     virtual void onButton(int objectName, PlaneButton* button);
     virtual void onOverButton(int objectName, PlaneButton* button);
-    virtual void onShortcut(ModifierKey modifier, int key);
+    virtual void onShortcut(ModifierKey modifier, int key) override;
 
     // Plugin handling
 

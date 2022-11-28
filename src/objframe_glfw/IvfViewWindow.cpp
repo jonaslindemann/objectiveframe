@@ -86,7 +86,7 @@ IvfViewWindow::~IvfViewWindow()
 
 void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 {
-    //cout << "onGlfwKey " << key << ", " << scancode << ", " << action << ", " << mods << "\n";
+    cout << "onGlfwKey " << key << ", " << scancode << ", " << action << ", " << mods << "\n";
     m_currentModifier = ButtonState::bsNoButton;
 
     if (isShiftDown())
@@ -572,6 +572,7 @@ Workspace* IvfViewWindow::getScene()
 void IvfViewWindow::quit()
 {
     m_quit = true;
+    this->close();
 }
 
 bool IvfViewWindow::isOverWindow()
@@ -840,12 +841,9 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
     if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled))
     {
-        bool needInvalidate = false;
-
         if (m_selectedShape != nullptr)
         {
             m_selectedShape->setHighlight(Shape::HS_OFF);
-            needInvalidate = true;
         }
 
         // Do pick
@@ -857,17 +855,17 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
         if (m_selectedShape != NULL)
         {
             bool highlight = true;
+
             onHighlightFilter(m_selectedShape, highlight);
+
             if (highlight)
             {
                 m_selectedShape->setHighlight(Shape::HS_ON);
                 onHighlightShape(m_selectedShape);
             }
-            needInvalidate = true;
         }
 
-        if (needInvalidate)
-            redraw();
+        redraw();
     }
 
     if (getEditMode() == WidgetMode::CreateNode)

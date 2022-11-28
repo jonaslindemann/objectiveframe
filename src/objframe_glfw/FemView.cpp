@@ -309,6 +309,12 @@ std::string wstrtostr(const std::wstring& wstr)
 std::string openFileDialog()
 {
     #ifdef WIN32
+
+	COMDLG_FILTERSPEC fileTypes[] = {
+        { L"ObjectiveFrame files", L"*.df3" },
+        { L"All files", L"*.*" }
+    };
+
     std::wstring filename;
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     if (SUCCEEDED(hr))
@@ -322,6 +328,8 @@ std::string openFileDialog()
         if (SUCCEEDED(hr))
         {
             // Show the Open dialog box.
+            pFileOpen->SetDefaultExtension(L"df3");
+            pFileOpen->SetFileTypes(_countof(fileTypes), fileTypes);
             hr = pFileOpen->Show(NULL);
 
             // Get the file name from the dialog box.
@@ -352,12 +360,68 @@ std::string openFileDialog()
     return wstrtostr(filename);
 }
 
+std::string saveFileDialog()
+{
+#ifdef WIN32
+
+	COMDLG_FILTERSPEC fileTypes[] = {
+        { L"ObjectiveFrame files", L"*.df3" },
+        { L"All files", L"*.*" }
+    };
+
+    std::wstring filename;
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr))
+    {
+        IFileOpenDialog* pFileOpen;
+
+        // Create the FileOpenDialog object.
+        hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL,
+            IID_IFileSaveDialog, reinterpret_cast<void**>(&pFileOpen));
+
+        if (SUCCEEDED(hr))
+        {
+            // Show the Open dialog box.
+            pFileOpen->SetDefaultExtension(L"df3");
+            pFileOpen->SetFileTypes(_countof(fileTypes), fileTypes);
+            hr = pFileOpen->Show(NULL);
+
+            // Get the file name from the dialog box.
+            if (SUCCEEDED(hr))
+            {
+                IShellItem* pItem;
+                hr = pFileOpen->GetResult(&pItem);
+                if (SUCCEEDED(hr))
+                {
+                    PWSTR pszFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                    // Display the file name to the user.
+                    if (SUCCEEDED(hr))
+                    {
+                        // MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+                        filename = pszFilePath;
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileOpen->Release();
+        }
+        CoUninitialize();
+    }
+#endif
+    return wstrtostr(filename);
+}
+
 
 // Constructor/Destructor
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
     : IvfViewWindow(width, height, title, monitor, shared)
 {
+    setUseEscQuit(false);
+
     m_width = width;
     m_height = height;
     m_tactileForce = nullptr;
@@ -948,49 +1012,32 @@ void FemViewWindow::save()
 {
     // Save model
 
-    /*
     if (m_fileName == "noname.df3")
     {
-        Fl_Native_File_Chooser fnfc;
-        fnfc.title("Save");
-        fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
-        fnfc.filter("ObjectiveFrame\t*.df3\n");
-        fnfc.directory(""); // default directory to use
+        auto filename = saveFileDialog();
 
-        int result = fnfc.show();
-
-        if (result != 0)
-            return;
-
-        std::string filename = fnfc.filename();
-        this->setFileName(filename);
+        if (filename != "")
+            this->setFileName(filename);
     }
-    m_beamModel->setFileName(m_fileName);
-    m_beamModel->save();
-    */
+    else
+    {
+        m_beamModel->setFileName(m_fileName);
+        m_beamModel->save();
+    }
 }
 
 void FemViewWindow::saveAs()
 {
     // Save model
 
-    /*
-    Fl_Native_File_Chooser fnfc;
-    fnfc.title("Save as");
-    fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
-    fnfc.filter("ObjectiveFrame\t*.df3\n");
-    fnfc.directory(""); // default directory to use
+    auto filename = saveFileDialog();
 
-    int result = fnfc.show();
-
-    if (result == 0)
+    if (filename != "")
     {
-        std::string filename = fnfc.filename();
         this->setFileName(filename);
         m_beamModel->setFileName(m_fileName);
         m_beamModel->save();
     }
-    */
 }
 
 void FemViewWindow::exportAsCalfem()
@@ -3653,6 +3700,15 @@ void FemViewWindow::onHighlightFilter(Shape* shape, bool& highlight)
 
 void FemViewWindow::onKeyboard(int key)
 {
+    if (key == 256)
+    {
+         m_editButtons->clearChecked();
+         m_objectButtons->clearChecked();
+         m_editButtons->check(0);
+         this->setEditMode(WidgetMode::Select);
+         this->redraw();
+    }
+
     // if (key == 122)
     //     this->setEditMode(WidgetMode::ViewPan);
 

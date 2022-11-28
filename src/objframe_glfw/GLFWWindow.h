@@ -23,6 +23,7 @@ private:
     bool m_shiftDown;
     bool m_ctrlDown;
     bool m_altDown;
+    bool m_escQuit;
 
     int m_currentKey;
 
@@ -55,6 +56,9 @@ public:
     bool isShiftDown();
     bool isCtrlDown();
     bool isAltDown();
+
+    bool useEscQuit();
+    void setUseEscQuit(bool flag);
 
 public:
 

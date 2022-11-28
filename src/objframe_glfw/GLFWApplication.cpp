@@ -8,8 +8,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 {
     auto win = GLFWWindowTracker::instance()->get(window);
 
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        win->close();
+    if (win->useEscQuit())
+    {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            win->close();
+    }
 
     win->doKey(key, scancode, action, mods);
 }

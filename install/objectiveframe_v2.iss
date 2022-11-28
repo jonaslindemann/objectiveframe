@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ObjectiveFrame"
-#define MyAppVersion "2.0.0-b9"
+#define MyAppVersion "2.0.0-b10"
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
-#define MyAppExeName "objframe.exe"
+#define MyAppExeName "objframe_glfw.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".df3"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt

@@ -25,6 +25,7 @@ GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonit
     , m_altDown(false)
     , m_ctrlDown(false)
     , m_shiftDown(false)
+    , m_escQuit(true)
 {
     m_window = glfwCreateWindow(width, height, title.c_str(), monitor, shared);
 
@@ -127,6 +128,16 @@ bool GLFWWindow::isCtrlDown()
 bool GLFWWindow::isAltDown()
 {
     return m_altDown;
+}
+
+bool GLFWWindow::useEscQuit()
+{
+    return m_escQuit;
+}
+
+void GLFWWindow::setUseEscQuit(bool flag)
+{
+    m_escQuit = flag;
 }
 
 int GLFWWindow::width()

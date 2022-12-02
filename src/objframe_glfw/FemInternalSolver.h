@@ -1,5 +1,4 @@
-#ifndef _CFemInternalSolver_h_
-#define _CFemInternalSolver_h_
+#pragma once
 
 #include <ofem/beam_model.h>
 
@@ -61,10 +60,13 @@ private:
     CResultInfo* m_resultInfo;
 
 public:
-    double calcNavier(double N, double My, double Mz, ofem::Beam* beam);
-    void setResultInfo(CResultInfo* resultInfo);
     FrameSolver();
     virtual ~FrameSolver();
+
+    static std::shared_ptr<FrameSolver> create()
+    {
+        return std::make_shared<FrameSolver>();
+    }
 
     void execute();
     void recompute();
@@ -73,11 +75,13 @@ public:
     void initMaxMin();
     void printMaxMin();
     void updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier);
+    double calcNavier(double N, double My, double Mz, ofem::Beam* beam);
 
     void setBeamModel(ofem::BeamModel* model);
     void setFeedbackForce(ofem::Node* node, double fx, double fy, double fz);
     double getMaxNodeValue();
     int getLastError();
+    void setResultInfo(CResultInfo* resultInfo);
 };
 
-#endif
+typedef std::shared_ptr<FrameSolver> FrameSolverPtr;

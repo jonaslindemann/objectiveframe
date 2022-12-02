@@ -1,6 +1,8 @@
 #pragma once
 #include <ofem/input_file_writer.h>
 
+#include <memory>
+
 namespace ofem
 {
 
@@ -15,6 +17,11 @@ public:
     CalfemWriter(const std::string fname);
 
     ClassInfo("CalfemWriter", InputFileWriter);
+
+    static CalfemWriterPtr create(const std::string fname)
+    {
+        return CalfemWriterPtr(new CalfemWriter(fname));
+    }
 
     void writeHeader(std::ostream& out);
     void writeImports(std::ostream& out);

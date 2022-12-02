@@ -414,6 +414,59 @@ std::string saveFileDialog()
     return wstrtostr(filename);
 }
 
+std::string saveAsCalfemFileDialog()
+{
+#ifdef WIN32
+
+    COMDLG_FILTERSPEC fileTypes[] = {
+        { L"CALFEM for Python", L"*.py" },
+        { L"All files", L"*.*" }
+    };
+
+    std::wstring filename;
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr))
+    {
+        IFileOpenDialog* pFileOpen;
+
+        // Create the FileOpenDialog object.
+        hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL,
+            IID_IFileSaveDialog, reinterpret_cast<void**>(&pFileOpen));
+
+        if (SUCCEEDED(hr))
+        {
+            // Show the Open dialog box.
+            pFileOpen->SetDefaultExtension(L"py");
+            pFileOpen->SetFileTypes(_countof(fileTypes), fileTypes);
+            hr = pFileOpen->Show(NULL);
+
+            // Get the file name from the dialog box.
+            if (SUCCEEDED(hr))
+            {
+                IShellItem* pItem;
+                hr = pFileOpen->GetResult(&pItem);
+                if (SUCCEEDED(hr))
+                {
+                    PWSTR pszFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                    // Display the file name to the user.
+                    if (SUCCEEDED(hr))
+                    {
+                        // MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+                        filename = pszFilePath;
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileOpen->Release();
+        }
+        CoUninitialize();
+    }
+#endif
+    return wstrtostr(filename);
+}
 
 // Constructor/Destructor
 
@@ -474,12 +527,6 @@ std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, cons
 FemViewWindow::~FemViewWindow()
 {
     log("Destructor.");
-
-    // Do some cleanup
-
-    log("Deleting internal solver.");
-
-    delete m_internalSolver;
 }
 
 void FemViewWindow::runScript(const std::string filename)
@@ -1043,24 +1090,15 @@ void FemViewWindow::saveAs()
 void FemViewWindow::exportAsCalfem()
 {
     // Save model
-    /*
 
-    Fl_Native_File_Chooser fnfc;
-    fnfc.title("Save as");
-    fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
-    fnfc.filter("CALFEM for Python\t*.py\n");
-    fnfc.directory(""); // default directory to use
+    auto filename = saveAsCalfemFileDialog();
 
-    int result = fnfc.show();
-
-    if (result == 0)
+    if (filename != "")
     {
-        std::string filename = fnfc.filename();
-        auto writer = new ofem::CalfemWriter(filename);
+        auto writer = ofem::CalfemWriter::create(filename);
         writer->setFemModel(m_beamModel);
         writer->save();
     }
-    */
 }
 
 void FemViewWindow::snapShot()
@@ -1113,9 +1151,6 @@ void FemViewWindow::restoreLastSnapShot()
 
     m_needRecalc = true;
 
-    if (m_internalSolver != nullptr)
-        delete m_internalSolver;
-
     m_internalSolver = nullptr;
 
     this->setEditMode(prevEditMode);
@@ -1164,9 +1199,6 @@ void FemViewWindow::revertLastSnapShot()
     m_tactileForce->setOffset(-loadSize * 0.7);
 
     m_needRecalc = true;
-
-    if (m_internalSolver != nullptr)
-        delete m_internalSolver;
 
     m_internalSolver = nullptr;
 
@@ -1220,9 +1252,6 @@ void FemViewWindow::open(std::string filename)
     m_tactileForce->setOffset(-loadSize * 0.7);
 
     m_needRecalc = true;
-
-    if (m_internalSolver != nullptr)
-        delete m_internalSolver;
 
     m_internalSolver = nullptr;
 
@@ -1458,9 +1487,6 @@ void FemViewWindow::newModel()
     this->getScene()->addChild(m_tactileForce);
 
     m_needRecalc = true;
-
-    if (m_internalSolver != nullptr)
-        delete m_internalSolver;
 
     m_internalSolver = nullptr;
 
@@ -1760,9 +1786,9 @@ void FemViewWindow::setRotationSelected(double rotation)
 
 void FemViewWindow::setupOverlay()
 {
-    PlaneButton* button;
+    PlaneButtonPtr button;
 
-    m_editArea = new Area2D();
+    m_editArea = Area2D::create();
     m_editArea->add(0, 0);
     m_editArea->add(65, 0);
     m_editArea->add(65, 600);
@@ -1773,7 +1799,7 @@ void FemViewWindow::setupOverlay()
     m_editArea->setColor(3, 0.0f, 0.0f, 0.0f);
     m_areas.push_back(m_editArea);
 
-    m_objectArea = new Area2D();
+    m_objectArea = Area2D::create();
     m_objectArea->add(0, 0);
     m_objectArea->add(0, 0);
     m_objectArea->add(0, 0);
@@ -1786,45 +1812,45 @@ void FemViewWindow::setupOverlay()
 
     // Create edit toolbar
 
-    m_editButtons = new ButtonGroup();
+    m_editButtons = ButtonGroup::create();
 
-    button = new PlaneButton(ToolbarButton::Select, m_progPath + "/images/tlselect.png");
+    button = PlaneButton::create(ToolbarButton::Select, m_progPath + "/images/tlselect.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 60.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::SelectBox, m_progPath + "/images/tlselectbox.png");
+    button = PlaneButton::create(ToolbarButton::SelectBox, m_progPath + "/images/tlselectbox.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 120.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Move, m_progPath + "/images/tlmove.png");
+    button = PlaneButton::create(ToolbarButton::Move, m_progPath + "/images/tlmove.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 200.0, 0.0);
     button->setHint("Move nodes or elements");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Inspect, m_progPath + "/images/tlinspect.png");
+    button = PlaneButton::create(ToolbarButton::Inspect, m_progPath + "/images/tlinspect.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 270, 0.0);
     button->setHint("Node or element info");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Delete, m_progPath + "/images/tldelete.png");
+    button = PlaneButton::create(ToolbarButton::Delete, m_progPath + "/images/tldelete.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 360.0, 0.0);
     button->setHint("Delete node or element");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Feedback, m_progPath + "/images/tlfeedback.png");
+    button = PlaneButton::create(ToolbarButton::Feedback, m_progPath + "/images/tlfeedback.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 440.0, 0.0);
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Run, m_progPath + "/images/run.png");
+    button = PlaneButton::create(ToolbarButton::Run, m_progPath + "/images/run.png");
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 520.0, 0.0);
     button->setHint("Excecute calculation");
@@ -1836,27 +1862,27 @@ void FemViewWindow::setupOverlay()
     // Create object toolbar
     //
 
-    m_objectButtons = new ButtonGroup();
+    m_objectButtons = ButtonGroup::create();
 
-    button = new PlaneButton(ToolbarButton::CreateNode, m_progPath + "/images/tlnode.png");
+    button = PlaneButton::create(ToolbarButton::CreateNode, m_progPath + "/images/tlnode.png");
     button->setSize(50.0, 50.0);
     button->setPosition(30.0, 30.0, 0.0);
     button->setHint("Create node");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::CreateBeam, m_progPath + "/images/tlsolidline.png");
+    button = PlaneButton::create(ToolbarButton::CreateBeam, m_progPath + "/images/tlsolidline.png");
     button->setSize(50.0, 50.0);
     button->setPosition(90.0, 30.0, 0.0);
     button->setHint("Create element");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::NodeLoad, m_progPath + "/images/tlnodeloads.png");
+    button = PlaneButton::create(ToolbarButton::NodeLoad, m_progPath + "/images/tlnodeloads.png");
     button->setSize(50.0, 50.0);
     button->setPosition(150.0, 30.0, 0.0);
     button->setHint("Show node loads");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::BeamLoad, m_progPath + "/images/tldload.png");
+    button = PlaneButton::create(ToolbarButton::BeamLoad, m_progPath + "/images/tldload.png");
     button->setSize(50.0, 50.0);
     button->setPosition(210.0, 30.0, 0.0);
     button->setHint("Show element loads");
@@ -1996,13 +2022,11 @@ void FemViewWindow::executeCalc()
 {
     double maxNodeValue;
 
-    if (m_internalSolver != nullptr)
-        delete m_internalSolver;
-
-    m_internalSolver = new FrameSolver();
+    m_internalSolver = FrameSolver::create();
     m_internalSolver->setBeamModel(m_beamModel);
     m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
     m_internalSolver->execute();
+
     if (m_internalSolver->getLastError() != BS_NO_ERROR)
     {
         switch (m_internalSolver->getLastError())
@@ -2092,10 +2116,7 @@ void FemViewWindow::doFeedback()
 
             double maxNodeValue = 0.0;
 
-            if (m_internalSolver != nullptr)
-                delete m_internalSolver;
-
-            m_internalSolver = new FrameSolver();
+            m_internalSolver = FrameSolver::create();
             m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
             m_internalSolver->setBeamModel(m_beamModel);
 
@@ -3268,9 +3289,6 @@ void FemViewWindow::onMouseUp(int x, int y)
 
     if (getEditMode() == WidgetMode::User)
     {
-        // if (getCurrentMouseButton() == IVF_BUTTON3)
-        //	setCustomMode(OF_FEEDBACK);
-
         if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
             if (m_saneModel)
@@ -3297,12 +3315,6 @@ void FemViewWindow::onMotion(int x, int y)
         case ButtonState::bsCtrl:
             m_beta = m_startBeta + (y - m_mouseDownPos[1]) * M_PI / 500.0;
             break;
-            /*
-             case IVF_ALT:
-             m_tactileForceValue = 100.0*sqrt(pow(x - m_mouseDownPos[0],2)+pow(y - m_mouseDownPos[1],2));
-             //m_haveScaleFactor = false;
-             break;
-             */
         default:
             m_alfa = m_startAlfa + (x - m_mouseDownPos[0]) * M_PI / 500.0;
             m_beta = m_startBeta + (y - m_mouseDownPos[1]) * M_PI / 500.0;
@@ -3325,6 +3337,7 @@ void FemViewWindow::onMotion(int x, int y)
 void FemViewWindow::onDeSelect()
 {
     log("onDeSelect");
+
     m_nodePropWindow->setNode(nullptr);
     m_nodePropWindow->setSelectedShapes(nullptr);
     m_elementPropWindow->setBeam(nullptr);

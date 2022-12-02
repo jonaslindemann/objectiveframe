@@ -204,7 +204,7 @@ private:
     LeapInteraction* m_leapinteraction;
 #endif
 
-    FrameSolver* m_internalSolver;
+    FrameSolverPtr m_internalSolver;
 
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_lineMaterial;
@@ -228,13 +228,13 @@ private:
 
     // Overlay stuff
 
-    vector<Area2D*> m_areas;
-    vector<PlaneButton*> m_buttons;
+    vector<Area2DPtr> m_areas;
+    vector<PlaneButtonPtr> m_buttons;
     ivf::SelectOrthoPtr m_overlayScene;
-    ButtonGroup* m_editButtons;
-    ButtonGroup* m_objectButtons;
-    Area2D* m_editArea;
-    Area2D* m_objectArea;
+    ButtonGroupPtr m_editButtons;
+    ButtonGroupPtr m_objectButtons;
+    Area2DPtr m_editArea;
+    Area2DPtr m_objectArea;
 
     PlaneButton* m_logoButton;
 

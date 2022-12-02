@@ -8,6 +8,8 @@
 #include <ivf/QuadPlane.h>
 #include <ivf/Texture.h>
 
+IvfSmartPointer(PlaneButton);
+
 class PlaneButton : public ivf::GenericButton
 {
 private:
@@ -23,6 +25,18 @@ private:
 public:
     PlaneButton(int id);
     PlaneButton(int id, const std::string& name);
+
+    IvfClassInfo("PlaneButton", ivf::GenericButton);
+
+    static PlaneButtonPtr create(int id)
+    {
+        return PlaneButtonPtr(new PlaneButton(id));
+    }
+
+    static PlaneButtonPtr create(int id, const std::string& name)
+    {
+        return PlaneButtonPtr(new PlaneButton(id, name));
+    }
 
     virtual ~PlaneButton();
 

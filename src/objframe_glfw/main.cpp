@@ -34,6 +34,7 @@ int main(int argc, char** argv)
 
     auto window = FemViewWindow::create(1280, 1024, "ObjectiveFrame");
     window->setProgramPath(progPath);
+    window->setWindowIcon(progPath + "images\\logo.png");
 
     app->addWindow(window);
 

@@ -79,12 +79,14 @@ void CalfemWriter::saveToStream(std::ostream& out)
     NodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
     ElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
+    /*
     nodeSet->enumerateNodes(0);
     materialSet->enumerateMaterials(0);
     elementSet->enumerateElements(0);
     nodeLoadSet->enumerateLoads(0);
     elementLoadSet->enumerateLoads(0);
     bcSet->enumerateBCs(0);
+    */
 
     //
     // Write materials

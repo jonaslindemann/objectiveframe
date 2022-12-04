@@ -1,5 +1,8 @@
 #include "GLFWWindow.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #undef GLAD_GL_IMPLEMENTATION
 #include <glad/glad.h>
 
@@ -175,6 +178,14 @@ void GLFWWindow::getSize(int& width, int& height)
         width = -1;
         height = -1;
     }
+}
+
+void GLFWWindow::setWindowIcon(const std::string filename)
+{
+    GLFWimage images[1];
+    images[0].pixels = stbi_load(filename.c_str(), &images[0].width, &images[0].height, 0, 4); // rgba channels
+    glfwSetWindowIcon(m_window, 1, images);
+    stbi_image_free(images[0].pixels);
 }
 
 void GLFWWindow::draw()

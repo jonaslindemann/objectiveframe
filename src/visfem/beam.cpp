@@ -404,10 +404,9 @@ void Beam::initResults()
 {
     if (m_beamModel != nullptr)
     {
-        CColorMap* colorMapPos = m_beamModel->getColorMapPos();
-        CColorMap* colorMapNeg = m_beamModel->getColorMapNeg();
-        CColorMap* colorMapStd = m_beamModel->getColorMapStd();
-        CResultInfo* resultInfo = m_beamModel->getResultInfo();
+        ColorMapPtr colorMapPos = m_beamModel->getColorMapPos();
+        ColorMapPtr colorMapNeg = m_beamModel->getColorMapNeg();
+        ColorMapPtr colorMapStd = m_beamModel->getColorMapStd();
 
         if (m_femBeam != nullptr)
         {
@@ -430,38 +429,38 @@ void Beam::initResults()
                         value = m_femBeam->getValue(0 + 6 * k);
                         if (value > 0)
                         {
-                            value = fabs(value) / resultInfo->getMaxN();
+                            value = fabs(value) / m_beamModel->maxN();
                             colorMapPos->getColor(value, red, green, blue);
                         }
                         else
                         {
-                            value = fabs(value) / resultInfo->getMinN();
+                            value = fabs(value) / m_beamModel->minN();
                             colorMapNeg->getColor(fabs(value), red, green, blue);
                         }
 
                         break;
                     case IVF_BEAM_T:
                         value = m_femBeam->getValue(3 + 6 * k);
-                        value = (fabs(value) - resultInfo->getMinT()) / resultInfo->getMaxT();
+                        value = (fabs(value) - m_beamModel->minT()) / m_beamModel->maxT();
                         break;
                     case IVF_BEAM_V:
                         v1 = m_femBeam->getValue(1 + 6 * k);
                         v2 = m_femBeam->getValue(2 + 6 * k);
                         value = sqrt(pow(v1, 2) + pow(v2, 2));
-                        value = (value - resultInfo->getMinV()) / resultInfo->getMaxV();
+                        value = (value - m_beamModel->minV()) / m_beamModel->maxV();
                         break;
                     case IVF_BEAM_M:
                         v1 = m_femBeam->getValue(4 + 6 * k);
                         v2 = m_femBeam->getValue(5 + 6 * k);
                         value = sqrt(pow(v1, 2) + pow(v2, 2));
-                        value = (value - resultInfo->getMinM()) / resultInfo->getMaxM();
+                        value = (value - m_beamModel->minM()) / m_beamModel->maxM();
                         break;
                     case IVF_BEAM_NAVIER:
                         N = m_femBeam->getValue(0 + 6 * k);
                         My = m_femBeam->getValue(4 + 6 * k);
                         Mz = m_femBeam->getValue(5 + 6 * k);
                         value = calcNavier(N, My, Mz);
-                        value = (fabs(value) - resultInfo->getMinNavier()) / resultInfo->getMaxNavier();
+                        value = (fabs(value) - m_beamModel->minNavier()) / m_beamModel->maxNavier();
                         break;
                     default:
                         value = 0.0;
@@ -476,12 +475,12 @@ void Beam::initResults()
                         value = m_femBeam->getValue(0 + 6 * k);
                         if (value > 0)
                         {
-                            value = fabs(value) / resultInfo->getMaxN();
+                            value = fabs(value) / m_beamModel->maxN();
                             colorMapPos->getColor(value, red, green, blue);
                         }
                         else
                         {
-                            value = fabs(value) / resultInfo->getMinN();
+                            value = fabs(value) / m_beamModel->minN();
                             colorMapNeg->getColor(fabs(value), red, green, blue);
                         }
 

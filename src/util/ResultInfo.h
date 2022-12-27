@@ -1,7 +1,7 @@
 #ifndef _CResultInfo_h_
 #define _CResultInfo_h_
 
-class CResultInfo
+class ResultInfo
 {
 private:
     double m_maxN;
@@ -16,8 +16,8 @@ private:
     double m_minNavier;
 
 public:
-    CResultInfo();
-    virtual ~CResultInfo();
+    ResultInfo();
+    virtual ~ResultInfo();
 
     void setMaxM(double maxM);
     double getMaxV();

@@ -1578,7 +1578,7 @@ void FrameSolver::printMaxMin()
 #endif
 }
 
-void FrameSolver::setResultInfo(CResultInfo* resultInfo)
+void FrameSolver::setResultInfo(ResultInfo* resultInfo)
 {
     m_resultInfo = resultInfo;
 }

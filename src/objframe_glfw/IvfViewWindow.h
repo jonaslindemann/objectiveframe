@@ -7,7 +7,7 @@
 #include <memory>
 #include <map>
 
-#include "GLFWWindow.h"
+#include <GLFWWindow.h>
 
 // Widget modes
 
@@ -55,14 +55,10 @@ enum class ButtonState
 #include <ivf/SolidLine.h>
 #include <ivf/Workspace.h>
 
-
-/* Later perhaps
-#include <ivfmanip/IvfTranslateManipulator.h>
-#include <ivfmanip/IvfRotateManipulator.h>
-*/
-
 #include <ivfmath/Plane.h>
 #include <ivfmath/Point3d.h>
+
+#include <ofmath/grid_plane.h>
 
 enum ModifierKey
 {
@@ -146,6 +142,10 @@ private:
     ivf::ShapePtr m_lastShape;
     ivf::WireBrickPtr m_volumeSelection;
 
+    ofmath::GridPlane m_xzPlane;
+    ofmath::GridPlane m_xyPlane;
+    ofmath::GridPlane m_yzPlane;
+
 public:
     IvfViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
     virtual ~IvfViewWindow();
@@ -167,6 +167,8 @@ public:
 
     /** Returns camera used by widget */
     ivf::Camera* getCamera();
+
+    void updateCursor(int x, int y);
 
     /**
      * Add a shape to the scene.
@@ -304,6 +306,7 @@ protected:
     virtual void doMotion(int x, int y);        // Calls onMotion
     virtual void doMouse(int x, int y);         // Calls onMouse
     virtual void doKeyboard(int key);
+    virtual void doKeyboardReleased(int key);
     virtual void doShortcut(ModifierKey modifier, int key);
 
     void doInitImGui();

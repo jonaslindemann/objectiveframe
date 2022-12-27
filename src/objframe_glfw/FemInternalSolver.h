@@ -1,10 +1,11 @@
-#pragma once
+ #pragma once
 
 #include <ofem/beam_model.h>
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 
 #include <include.h>
 
@@ -12,21 +13,18 @@
 #include <newmatap.h>
 #include <newmatio.h>
 
-#include <ResultInfo.h>
-
-#ifdef use_namespace
-using namespace NEWMAT;
-#endif
-
-#define BS_NO_ERROR 0
-#define BS_NO_NODES 1
-#define BS_NO_ELEMENTS 2
-#define BS_NO_BC 3
-#define BS_NO_LOADS 4
-#define BS_UNSTABLE 5
-#define BS_INVALID_MODEL 6
-#define BS_SINGULAR 7
-#define BS_UNDEFINED_MATERIAL 8
+enum class ModelState
+{
+    Ok,
+    NoNodes,
+    NoElements,
+    NoBC,
+    NoLoads,
+    Unstable,
+    Invalid,
+    Singular,
+    UndefinedMaterial
+};
 
 class FrameSolver
 {
@@ -35,7 +33,7 @@ private:
     double m_maxNodeValue;
     ofem::Node* m_forceNode;
     double m_force[3];
-    LinearEquationSolver* m_X;
+    std::unique_ptr<LinearEquationSolver> m_X;
     int m_nDof;
     int m_nVars;
     ColumnVector m_f;
@@ -44,7 +42,7 @@ private:
     ColumnVector m_ldof;
     ColumnVector m_GlobalA;
     ColumnVector m_a;
-    int m_errorStatus;
+    ModelState m_modelState;
 
     double m_maxN;
     double m_minN;
@@ -56,8 +54,6 @@ private:
     double m_minV;
     double m_maxNavier;
     double m_minNavier;
-
-    CResultInfo* m_resultInfo;
 
 public:
     FrameSolver();
@@ -80,8 +76,8 @@ public:
     void setBeamModel(ofem::BeamModel* model);
     void setFeedbackForce(ofem::Node* node, double fx, double fy, double fz);
     double getMaxNodeValue();
-    int getLastError();
-    void setResultInfo(CResultInfo* resultInfo);
+
+    ModelState modelState();
 };
 
 typedef std::shared_ptr<FrameSolver> FrameSolverPtr;

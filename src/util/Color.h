@@ -1,20 +1,23 @@
-#ifndef _CColor_h_
-#define _CColor_h_
+#pragma once
+
+#include <memory>
 
 /**
  * Color class
  */
-class CColor
+class ColorEntry
 {
 private:
     float m_color[4];
 
 public:
     /** Color class constructor. */
-    CColor();
+    ColorEntry();
 
     /** Color class destructor. */
-    virtual ~CColor();
+    virtual ~ColorEntry();
+
+    static std::shared_ptr<ColorEntry> create();
 
     // Get/set methods
 
@@ -29,4 +32,4 @@ public:
     void getColor(float* array);
 };
 
-#endif
+typedef std::shared_ptr<ColorEntry> ColorEntryPtr;

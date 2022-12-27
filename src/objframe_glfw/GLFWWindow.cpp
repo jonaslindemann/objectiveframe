@@ -197,7 +197,7 @@ void GLFWWindow::draw()
 
 void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 {
-    //cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
+    cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
 
     if (mods & GLFW_MOD_SHIFT)
         m_shiftDown = true;
@@ -215,7 +215,11 @@ void GLFWWindow::doKey(int key, int scancode, int action, int mods)
         m_altDown = false;
 
     if (m_shiftDown)
-        cout << "Shift is pressed" << "\n";
+        cout << "Shift is pressed"
+             << "\n";
+    else
+        cout << "Shift is not pressed"
+             << "\n";
 
     onGlfwKey(key, scancode, action, mods);
 }

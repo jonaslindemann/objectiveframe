@@ -1,16 +1,16 @@
-#ifndef _CColorMap_h_
-#define _CColorMap_h_
+#pragma once
 
 #include "Color.h"
 
 #include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
 
-class CColorMap
+class ColorMap
 {
 private:
-    std::vector<CColor*> m_colors;
+    std::vector<ColorEntryPtr> m_colors;
     bool m_reverseColors;
     double m_value;
     float m_currentColor[3];
@@ -20,8 +20,10 @@ private:
     bool m_error;
 
 public:
-    CColorMap();
-    virtual ~CColorMap();
+    ColorMap();
+    virtual ~ColorMap();
+
+    static std::shared_ptr<ColorMap> create();
 
     void open(const std::string& fname);
     bool open();
@@ -34,4 +36,4 @@ public:
     void getColor(double value, float& r, float& g, float& b);
 };
 
-#endif
+typedef std::shared_ptr<ColorMap> ColorMapPtr;

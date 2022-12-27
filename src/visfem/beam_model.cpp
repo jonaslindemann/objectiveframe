@@ -16,9 +16,9 @@
 #include <ColorMap.h>
 #include <ResultInfo.h>
 
-using namespace ivf;
+// using namespace ivf;
 using namespace vfem;
-using namespace std;
+// using namespace std;
 
 BeamModel::BeamModel()
     : ofem::BeamModel()
@@ -30,13 +30,13 @@ BeamModel::BeamModel()
     m_beamLoadSize = 1.0;
     m_scaleFactor = 1.0;
 
-    m_colorTable = new ColorTable();
+    m_colorTable = new vfem::ColorTable();
 
-    m_colorMapPos = new CColorMap();
-    m_colorMapNeg = new CColorMap();
-    m_colorMapStd = new CColorMap();
+    m_colorMapPos = ColorMap::create();
+    m_colorMapNeg = ColorMap::create();
+    m_colorMapStd = ColorMap::create();
 
-    m_resultInfo = new CResultInfo();
+    //m_resultInfo = new ResultInfo();
 
     m_beamType = IVF_BEAM_SOLID;
     m_resultType = IVF_BEAM_NO_RESULT;
@@ -52,10 +52,7 @@ BeamModel::BeamModel()
 
 BeamModel::~BeamModel()
 {
-    delete m_colorMapPos;
-    delete m_colorMapNeg;
-    delete m_colorMapStd;
-    delete m_resultInfo;
+    //delete m_resultInfo;
 }
 
 void BeamModel::onInitialised()
@@ -94,7 +91,7 @@ void BeamModel::generateModel()
 
     // Temporary lists
 
-    vector<Node*> ivfNodes;
+    std::vector<Node*> ivfNodes;
 
     // Create nodes
 
@@ -199,12 +196,12 @@ void vfem::BeamModel::enumerate()
     }
 }
 
-void BeamModel::setScene(Composite* scene)
+void BeamModel::setScene(ivf::Composite* scene)
 {
     m_scene = scene;
 }
 
-Composite* BeamModel::getScene()
+ivf::Composite* BeamModel::getScene()
 {
     return m_scene;
 }
@@ -274,17 +271,17 @@ double BeamModel::getLineRadius()
     return m_lineRadius;
 }
 
-void BeamModel::setColorMaps(CColorMap* pos, CColorMap* neg, CColorMap* std)
+void BeamModel::setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std)
 {
     m_colorMapPos = pos;
     m_colorMapNeg = neg;
     m_colorMapStd = std;
 }
 
-void BeamModel::setResultInfo(CResultInfo* resultInfo)
-{
-    m_resultInfo = resultInfo;
-}
+//void BeamModel::setResultInfo(ResultInfo* resultInfo)
+//{
+//    m_resultInfo = resultInfo;
+//}
 
 void BeamModel::setBeamType(int type)
 {
@@ -346,22 +343,22 @@ int BeamModel::getResultType()
     return m_resultType;
 }
 
-CResultInfo* BeamModel::getResultInfo()
-{
-    return m_resultInfo;
-}
+//ResultInfo* BeamModel::getResultInfo()
+//{
+//    return m_resultInfo;
+//}
 
-CColorMap* BeamModel::getColorMapPos()
+ColorMapPtr BeamModel::getColorMapPos()
 {
     return m_colorMapPos;
 }
 
-CColorMap* BeamModel::getColorMapNeg()
+ColorMapPtr BeamModel::getColorMapNeg()
 {
     return m_colorMapNeg;
 }
 
-CColorMap* BeamModel::getColorMapStd()
+ColorMapPtr BeamModel::getColorMapStd()
 {
     return m_colorMapStd;
 }
@@ -393,3 +390,4 @@ void BeamModel::setPath(const std::string& path)
     m_colorMapNeg->setPath(m_colorMapPath);
     m_colorMapStd->setPath(m_colorMapPath);
 }
+

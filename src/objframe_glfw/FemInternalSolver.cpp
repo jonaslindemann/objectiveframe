@@ -1,8 +1,5 @@
 #include "FemInternalSolver.h"
 
-//#define WANT_STREAM
-//#define WANT_MATH
-
 #include <ofem/beam_load.h>
 
 #include <logger.h>
@@ -471,19 +468,15 @@ double min(RowVector& rowVector)
 }
 
 FrameSolver::FrameSolver()
+    : m_beamModel { nullptr }
+    , m_maxNodeValue { -1.0e300 }
+    , m_forceNode { nullptr }
+    , m_modelState { ModelState::Ok }
 {
-    m_beamModel = NULL;
-    m_maxNodeValue = -1.0e300;
-    m_X = NULL;
-    m_forceNode = NULL;
-    m_errorStatus = BS_NO_ERROR;
-    m_resultInfo = NULL;
 }
 
 FrameSolver::~FrameSolver()
 {
-    if (m_X != NULL)
-        delete m_X;
 }
 
 void FrameSolver::setBeamModel(ofem::BeamModel* model)
@@ -500,7 +493,7 @@ void FrameSolver::execute()
     // Reset error status
     //
 
-    m_errorStatus = BS_NO_ERROR;
+    m_modelState = ModelState::Ok;
 
     Logger::instance()->log(LogLevel::Error, "\nSimple 3D beam solver");
     Logger::instance()->log(LogLevel::Error, "---------------------\n");
@@ -514,7 +507,7 @@ void FrameSolver::execute()
     if (femModel == NULL)
     {
         Logger::instance()->log(LogLevel::Error, "Invalid model.");
-        m_errorStatus = BS_INVALID_MODEL;
+        m_modelState = ModelState::Invalid;
         return;
     }
 
@@ -536,28 +529,28 @@ void FrameSolver::execute()
     if (nodeSet->getSize() == 0)
     {
         Logger::instance()->log(LogLevel::Error, "No nodes defined.");
-        m_errorStatus = BS_NO_NODES;
+        m_modelState = ModelState::NoNodes;
         return;
     }
 
     if (elementSet->getSize() == 0)
     {
         Logger::instance()->log(LogLevel::Error, "No elements defined.");
-        m_errorStatus = BS_NO_ELEMENTS;
+        m_modelState = ModelState::NoElements;
         return;
     }
 
     if (bcSet->getSize() == 0)
     {
         Logger::instance()->log(LogLevel::Error, "No boundary conditions defined.");
-        m_errorStatus = BS_NO_BC;
+        m_modelState = ModelState::NoBC;
         return;
     }
 
     if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL))
     {
         Logger::instance()->log(LogLevel::Error, "No node loads defined.");
-        m_errorStatus = BS_NO_LOADS;
+        m_modelState = ModelState::NoLoads;
         return;
     }
 
@@ -739,14 +732,14 @@ void FrameSolver::execute()
         else
         {
             Logger::instance()->log(LogLevel::Error, "Element with undefined material.");
-            m_errorStatus = BS_UNDEFINED_MATERIAL;
+            m_modelState = ModelState::UndefinedMaterial;
         }
 
-        if (m_errorStatus != BS_NO_ERROR)
+        if (m_modelState != ModelState::Ok)
             break;
     }
 
-    if (m_errorStatus != BS_NO_ERROR)
+    if (m_modelState != ModelState::Ok)
         return;
 
     //
@@ -908,14 +901,11 @@ void FrameSolver::execute()
     if (fsys.IsZero())
     {
         Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
-        m_errorStatus = BS_NO_LOADS;
+        m_modelState = ModelState::NoLoads;
         return;
     }
 
     Logger::instance()->log(LogLevel::Info, "Solving system. Keeping LU factorisation.");
-
-    if (m_X != NULL)
-        delete m_X;
 
     auto logDetSign = Ksys.LogDeterminant().Sign();
 
@@ -924,18 +914,18 @@ void FrameSolver::execute()
     if (logDetSign < 0)
     {
         Logger::instance()->log(LogLevel::Error, "System unstable.");
-        m_errorStatus = BS_UNSTABLE;
+        m_modelState = ModelState::Unstable;
         return;
     }
 
     if (logDetSign == 0)
     {
         Logger::instance()->log(LogLevel::Error, "Matrix singular.");
-        m_errorStatus = BS_SINGULAR;
+        m_modelState = ModelState::Singular;
         return;
     }
 
-    m_X = new LinearEquationSolver(Ksys);
+    m_X = std::make_unique<LinearEquationSolver>(Ksys);
     m_a = m_X->i() * fsys;
 
     //
@@ -1122,7 +1112,7 @@ double FrameSolver::getMaxNodeValue()
 
 void FrameSolver::recompute()
 {
-    if (this->getLastError() == BS_NO_ERROR)
+    if (this->modelState() == ModelState::Ok)
     {
         int i, j;
 
@@ -1131,7 +1121,7 @@ void FrameSolver::recompute()
         if (femModel == NULL)
         {
             Logger::instance()->log(LogLevel::Error, "Invalid model.");
-            m_errorStatus = BS_INVALID_MODEL;
+            m_modelState = ModelState::Invalid;
             return;
         }
 
@@ -1183,7 +1173,7 @@ void FrameSolver::recompute()
         nodeSet->clearNodeValues();
 
         for (i = 0; i < nodeSet->getSize(); i++)
-        { 
+        {
             Node* node = nodeSet->getNode(i);
             node->setValueSize(3);
             for (j = 0; j < 3; j++)
@@ -1211,7 +1201,7 @@ void FrameSolver::update()
     if (femModel == NULL)
     {
         Logger::instance()->log(LogLevel::Error, "Invalid model.");
-        m_errorStatus = BS_INVALID_MODEL;
+        m_modelState = ModelState::Invalid;
         return;
     }
 
@@ -1482,11 +1472,6 @@ void FrameSolver::setFeedbackForce(Node* node, double fx, double fy, double fz)
     m_force[2] = fz;
 }
 
-int FrameSolver::getLastError()
-{
-    return m_errorStatus;
-}
-
 void FrameSolver::updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier)
 {
     double V, M;
@@ -1524,18 +1509,18 @@ void FrameSolver::updateMaxMin(double N, double T, double Vy, double Vz, double 
     if (fabs(Navier) < m_minNavier)
         m_minNavier = fabs(Navier);
 
-    if (m_resultInfo != NULL)
+    if (m_beamModel != nullptr)
     {
-        m_resultInfo->setMaxN(m_maxN);
-        m_resultInfo->setMaxT(m_maxT);
-        m_resultInfo->setMaxV(m_maxV);
-        m_resultInfo->setMaxM(m_maxM);
-        m_resultInfo->setMinN(m_minN);
-        m_resultInfo->setMinT(m_minT);
-        m_resultInfo->setMinV(m_minV);
-        m_resultInfo->setMinM(m_minM);
-        m_resultInfo->setMaxNavier(m_maxNavier);
-        m_resultInfo->setMinNavier(m_minNavier);
+        m_beamModel->setMaxN(m_maxN);
+        m_beamModel->setMaxT(m_maxT);
+        m_beamModel->setMaxV(m_maxV);
+        m_beamModel->setMaxM(m_maxM);
+        m_beamModel->setMinN(m_minN);
+        m_beamModel->setMinT(m_minT);
+        m_beamModel->setMinV(m_minV);
+        m_beamModel->setMinM(m_minM);
+        m_beamModel->setMaxNavier(m_maxNavier);
+        m_beamModel->setMinNavier(m_minNavier);
     }
 }
 
@@ -1552,18 +1537,18 @@ void FrameSolver::initMaxMin()
     m_maxNavier = -1.0e300;
     m_minNavier = 1.0e300;
 
-    if (m_resultInfo != NULL)
+    if (m_beamModel != nullptr)
     {
-        m_resultInfo->setMaxN(m_maxN);
-        m_resultInfo->setMaxT(m_maxT);
-        m_resultInfo->setMaxV(m_maxV);
-        m_resultInfo->setMaxM(m_maxM);
-        m_resultInfo->setMinN(m_minN);
-        m_resultInfo->setMinT(m_minT);
-        m_resultInfo->setMinV(m_minV);
-        m_resultInfo->setMinM(m_minM);
-        m_resultInfo->setMaxNavier(m_maxNavier);
-        m_resultInfo->setMinNavier(m_minNavier);
+        m_beamModel->setMaxN(m_maxN);
+        m_beamModel->setMaxT(m_maxT);
+        m_beamModel->setMaxV(m_maxV);
+        m_beamModel->setMaxM(m_maxM);
+        m_beamModel->setMinN(m_minN);
+        m_beamModel->setMinT(m_minT);
+        m_beamModel->setMinV(m_minV);
+        m_beamModel->setMinM(m_minM);
+        m_beamModel->setMaxNavier(m_maxNavier);
+        m_beamModel->setMinNavier(m_minNavier);
     }
 }
 
@@ -1578,9 +1563,9 @@ void FrameSolver::printMaxMin()
 #endif
 }
 
-void FrameSolver::setResultInfo(CResultInfo* resultInfo)
+ModelState FrameSolver::modelState()
 {
-    m_resultInfo = resultInfo;
+    return m_modelState;
 }
 
 double FrameSolver::calcNavier(double N, double My, double Mz, Beam* beam)

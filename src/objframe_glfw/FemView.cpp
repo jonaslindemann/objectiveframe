@@ -1,8 +1,8 @@
 #include "FemView.h"
 
-//#ifdef WIN32
-//#include "resource.h"
-//#endif
+// #ifdef WIN32
+// #include "resource.h"
+// #endif
 
 #include <filesystem>
 #include <functional>
@@ -308,9 +308,9 @@ std::string wstrtostr(const std::wstring& wstr)
 
 std::string openFileDialog()
 {
-    #ifdef WIN32
+#ifdef WIN32
 
-	COMDLG_FILTERSPEC fileTypes[] = {
+    COMDLG_FILTERSPEC fileTypes[] = {
         { L"ObjectiveFrame files", L"*.df3" },
         { L"All files", L"*.*" }
     };
@@ -345,7 +345,7 @@ std::string openFileDialog()
                     // Display the file name to the user.
                     if (SUCCEEDED(hr))
                     {
-                        //MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+                        // MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
                         filename = pszFilePath;
                         CoTaskMemFree(pszFilePath);
                     }
@@ -356,7 +356,7 @@ std::string openFileDialog()
         }
         CoUninitialize();
     }
-    #endif
+#endif
     return wstrtostr(filename);
 }
 
@@ -364,7 +364,7 @@ std::string saveFileDialog()
 {
 #ifdef WIN32
 
-	COMDLG_FILTERSPEC fileTypes[] = {
+    COMDLG_FILTERSPEC fileTypes[] = {
         { L"ObjectiveFrame files", L"*.df3" },
         { L"All files", L"*.*" }
     };
@@ -1444,7 +1444,7 @@ void FemViewWindow::newModel()
 
     auto colorTable = m_beamModel->getColorTable();
 
-    unsigned int c, red, green, blue;   
+    unsigned int c, red, green, blue;
 
     for (int i = 0; i < 256; i++)
     {
@@ -1455,7 +1455,7 @@ void FemViewWindow::newModel()
 
         red = uchar(c >> 24);
         green = uchar(c >> 16);
-        blue = uchar(c >> 8);        
+        blue = uchar(c >> 8);
 
         colorTable->setColor(i,
             (float)red / 255.0f,
@@ -2024,35 +2024,35 @@ void FemViewWindow::executeCalc()
 
     m_internalSolver = FrameSolver::create();
     m_internalSolver->setBeamModel(m_beamModel);
-    m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
+    // m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
     m_internalSolver->execute();
 
-    if (m_internalSolver->getLastError() != BS_NO_ERROR)
+    if (m_internalSolver->modelState() != ModelState::Ok)
     {
-        switch (m_internalSolver->getLastError())
+        switch (m_internalSolver->modelState())
         {
-        case BS_NO_NODES:
+        case ModelState::NoNodes:
             this->showMessage("No nodes defined. \nCalculation not executed.");
             break;
-        case BS_NO_ELEMENTS:
+        case ModelState::NoElements:
             this->showMessage("No elements defined. \nCalculation not executed.");
             break;
-        case BS_NO_BC:
+        case ModelState::NoBC:
             this->showMessage("No boundary conditions defined. \nCalculation not executed.");
             break;
-        case BS_NO_LOADS:
+        case ModelState::NoLoads:
             this->showMessage("No loads defined. \nCalculation not executed.");
             break;
-        case BS_UNSTABLE:
+        case ModelState::Unstable:
             this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
             break;
-        case BS_SINGULAR:
+        case ModelState::Singular:
             this->showMessage("System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
             break;
-        case BS_INVALID_MODEL:
+        case ModelState::Invalid:
             this->showMessage("This should not happen.\nCalculation not executed.");
             break;
-        case BS_UNDEFINED_MATERIAL:
+        case ModelState::UndefinedMaterial:
             this->showMessage("Beams without materials found.");
             break;
         default:
@@ -2117,7 +2117,7 @@ void FemViewWindow::doFeedback()
             double maxNodeValue = 0.0;
 
             m_internalSolver = FrameSolver::create();
-            m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
+            // m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
             m_internalSolver->setBeamModel(m_beamModel);
 
             double v[3];
@@ -2135,30 +2135,30 @@ void FemViewWindow::doFeedback()
 
             m_saneModel = false;
 
-            switch (m_internalSolver->getLastError())
+            switch (m_internalSolver->modelState())
             {
-            case BS_NO_NODES:
+            case ModelState::NoNodes:
                 this->showMessage("No nodes defined. \nCalculation not executed.");
                 break;
-            case BS_NO_ELEMENTS:
+            case ModelState::NoElements:
                 this->showMessage("No elements defined. \nCalculation not executed.");
                 break;
-            case BS_NO_BC:
+            case ModelState::NoBC:
                 this->showMessage("No boundary conditions defined. \nCalculation not executed.");
                 break;
-            case BS_NO_LOADS:
+            case ModelState::NoLoads:
                 this->showMessage("No loads defined. \nCalculation not executed.");
                 break;
-            case BS_UNSTABLE:
+            case ModelState::Unstable:
                 this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
                 break;
-            case BS_SINGULAR:
+            case ModelState::Singular:
                 this->showMessage("System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
                 break;
-            case BS_INVALID_MODEL:
+            case ModelState::Invalid:
                 this->showMessage("This should not happen.\nCalculation not executed.");
                 break;
-            case BS_UNDEFINED_MATERIAL:
+            case ModelState::UndefinedMaterial:
                 this->showMessage("Beams without materials found.");
                 break;
             default:
@@ -2236,8 +2236,8 @@ void FemViewWindow::doFeedback()
                 this->getScene()->getComposite()->refresh();
 
                 this->redraw(); // set damage(FL_DAMAGE_ALL)
-                //Fl::flush();
-                // Fl::check();
+                // Fl::flush();
+                //  Fl::check();
             }
         }
     }
@@ -2627,7 +2627,7 @@ void FemViewWindow::onInit()
     else
     {
         log("No font directory found.");
-        //this->disableRedrawTimer();
+        // this->disableRedrawTimer();
         this->quit();
     }
 
@@ -2674,7 +2674,7 @@ void FemViewWindow::onInit()
 
     if (!std::filesystem::is_directory(colorPath))
     {
-        //this->disableRedrawTimer();
+        // this->disableRedrawTimer();
         this->quit();
     }
 
@@ -2833,6 +2833,14 @@ void FemViewWindow::onInit()
     m_scaleWindow = ScaleWindow::create("Scaling");
     m_scaleWindow->setView(this);
     m_scaleWindow->setVisible(false);
+
+    m_aboutWindow = AboutWindow::create("About");
+    m_aboutWindow->setVersion(OBJFRAME_VERSION_STRING);
+    m_aboutWindow->setRelease(OBJFRAME_RELEASE);
+    m_aboutWindow->setCopyright(OBJFRAME_COPYRIGHT_STRING);
+    m_aboutWindow->setAuthor1(OBJFRAME_AUTHOR1);
+    m_aboutWindow->setAuthor2(OBJFRAME_AUTHOR2);
+    m_aboutWindow->setVisible(false);
 
     // Set initial edit mode
 
@@ -3607,17 +3615,17 @@ void FemViewWindow::onOverButton(int objectName, PlaneButton* button)
 
 void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 {
-    //if (key == FL_Delete)
-    //    this->deleteSelected();
+    // if (key == FL_Delete)
+    //     this->deleteSelected();
 
-    //if (key == FL_Escape)
+    // if (key == FL_Escape)
     //{
-    //    m_editButtons->clearChecked();
-    //    m_objectButtons->clearChecked();
-    //    m_editButtons->check(0);
-    //    this->setEditMode(WidgetMode::Select);
-    //    this->redraw();
-    //}
+    //     m_editButtons->clearChecked();
+    //     m_objectButtons->clearChecked();
+    //     m_editButtons->check(0);
+    //     this->setEditMode(WidgetMode::Select);
+    //     this->redraw();
+    // }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'O'))
         this->open();
@@ -3715,17 +3723,26 @@ void FemViewWindow::onKeyboard(int key)
 {
     if (key == 256)
     {
-         m_editButtons->clearChecked();
-         m_objectButtons->clearChecked();
-         m_editButtons->check(0);
-         this->setEditMode(WidgetMode::Select);
-         this->redraw();
+        m_editButtons->clearChecked();
+        m_objectButtons->clearChecked();
+        m_editButtons->check(0);
+        this->setEditMode(WidgetMode::Select);
+        this->redraw();
     }
+
+    if (key == 78)
+        this->setEditMode(WidgetMode::CreateNode);
+
+    if (key == 77)
+        this->setEditMode(WidgetMode::Move);
+
+    if (key == 66)
+        this->setEditMode(WidgetMode::CreateLine);
 
     // if (key == 122)
     //     this->setEditMode(WidgetMode::ViewPan);
 
-    if (key == ImGuiKey_Delete)
+    if (key == 261)
         this->deleteSelected();
 
     /*
@@ -3949,6 +3966,7 @@ void FemViewWindow::onDrawImGui()
         {
             if (ImGui::MenuItem("About...", ""))
             {
+                m_aboutWindow->show();
             }
             ImGui::EndMenu();
         }
@@ -3997,6 +4015,7 @@ void FemViewWindow::onDrawImGui()
     m_consoleWindow->draw();
     m_pluginWindow->draw();
     m_scaleWindow->draw();
+    m_aboutWindow->draw();
 
     ImGui::Render();
 

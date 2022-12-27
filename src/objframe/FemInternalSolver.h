@@ -58,11 +58,11 @@ private:
     double m_maxNavier;
     double m_minNavier;
 
-    CResultInfo* m_resultInfo;
+    ResultInfo* m_resultInfo;
 
 public:
     double calcNavier(double N, double My, double Mz, ofem::Beam* beam);
-    void setResultInfo(CResultInfo* resultInfo);
+    void setResultInfo(ResultInfo* resultInfo);
     FrameSolver();
     virtual ~FrameSolver();
 

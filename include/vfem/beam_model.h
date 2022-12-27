@@ -8,7 +8,7 @@
 #include <vfem/color_table.h>
 
 #include <ColorMap.h>
-#include <ResultInfo.h>
+//#include <ResultInfo.h>
 
 #define IVF_BEAM_N 0
 #define IVF_BEAM_T 1
@@ -52,12 +52,13 @@ private:
     ivf::MaterialPtr m_beamMaterial;
     ivf::BitmapFontPtr m_textFont;
     ivf::CameraPtr m_camera;
+
     ColorTablePtr m_colorTable;
 
-    CColorMap* m_colorMapPos;
-    CColorMap* m_colorMapNeg;
-    CColorMap* m_colorMapStd;
-    CResultInfo* m_resultInfo;
+    ColorMapPtr m_colorMapPos;
+    ColorMapPtr m_colorMapNeg;
+    ColorMapPtr m_colorMapStd;
+    //ResultInfo* m_resultInfo;
 
     std::string m_colorMapPath;
 
@@ -80,8 +81,8 @@ public:
     void setScene(ivf::Composite* scene);
     ivf::Composite* getScene();
 
-    void setResultInfo(CResultInfo* resultInfo);
-    void setColorMaps(CColorMap* pos, CColorMap* neg, CColorMap* std);
+    //void setResultInfo(ResultInfo* resultInfo);
+    void setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std);
 
     void setLineRadius(double radius);
     double getLineRadius();
@@ -111,10 +112,10 @@ public:
     void setScaleFactor(double factor);
     double getScaleFactor();
 
-    CColorMap* getColorMapStd();
-    CColorMap* getColorMapNeg();
-    CColorMap* getColorMapPos();
-    CResultInfo* getResultInfo();
+    ColorMapPtr getColorMapStd();
+    ColorMapPtr getColorMapNeg();
+    ColorMapPtr getColorMapPos();
+    //ResultInfo* getResultInfo();
 
     void setResultType(int type);
     int getResultType();

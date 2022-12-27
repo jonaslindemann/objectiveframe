@@ -14,6 +14,18 @@ SmartPointer(BeamModel);
 
 class BeamModel : public Model
 {
+private:
+    double m_maxN;
+    double m_minN;
+    double m_maxT;
+    double m_minT;
+    double m_maxM;
+    double m_minM;
+    double m_maxV;
+    double m_minV;
+    double m_maxNavier;
+    double m_minNavier;
+
 protected:
     virtual NodeBCSet* createBCSet() override;
     virtual ElementLoadSet* createElementLoadSet() override;
@@ -32,5 +44,27 @@ public:
 
     BeamMaterialSet* getMaterialSet();
     BeamSet* getElementSet();
+
+    void setMaxM(double maxM);
+    double maxV();
+    void setMaxV(double maxV);
+    double maxT();
+    void setMaxT(double maxT);
+    double maxN();
+    void setMaxN(double maxN);
+    double maxM();
+    void setMaxNavier(double maxNavier);
+    double maxNavier();
+
+    void setMinM(double minM);
+    double minV();
+    void setMinV(double minV);
+    double minT();
+    void setMinT(double minT);
+    double minN();
+    void setMinN(double minN);
+    double minM();
+    void setMinNavier(double minNavier);
+    double minNavier();
 };
 }

@@ -8,110 +8,110 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CResultInfo::CResultInfo()
+ResultInfo::ResultInfo()
 {
 }
 
-CResultInfo::~CResultInfo()
+ResultInfo::~ResultInfo()
 {
 }
 
-void CResultInfo::setMaxN(double maxN)
+void ResultInfo::setMaxN(double maxN)
 {
     m_maxN = maxN;
 }
 
-double CResultInfo::getMaxN()
+double ResultInfo::getMaxN()
 {
     return m_maxN;
 }
 
-void CResultInfo::setMaxT(double maxT)
+void ResultInfo::setMaxT(double maxT)
 {
     m_maxT = maxT;
 }
 
-double CResultInfo::getMaxT()
+double ResultInfo::getMaxT()
 {
     return m_maxT;
 }
 
-void CResultInfo::setMaxV(double maxV)
+void ResultInfo::setMaxV(double maxV)
 {
     m_maxV = maxV;
 }
 
-double CResultInfo::getMaxV()
+double ResultInfo::getMaxV()
 {
     return m_maxV;
 }
 
-void CResultInfo::setMaxM(double maxM)
+void ResultInfo::setMaxM(double maxM)
 {
     m_maxM = maxM;
 }
 
-double CResultInfo::getMaxM()
+double ResultInfo::getMaxM()
 {
     return m_maxM;
 }
 
-void CResultInfo::setMinN(double minN)
+void ResultInfo::setMinN(double minN)
 {
     m_minN = minN;
 }
 
-double CResultInfo::getMinN()
+double ResultInfo::getMinN()
 {
     return m_minN;
 }
 
-void CResultInfo::setMinT(double minT)
+void ResultInfo::setMinT(double minT)
 {
     m_minT = minT;
 }
 
-double CResultInfo::getMinT()
+double ResultInfo::getMinT()
 {
     return m_minT;
 }
 
-void CResultInfo::setMinV(double minV)
+void ResultInfo::setMinV(double minV)
 {
     m_minV = minV;
 }
 
-double CResultInfo::getMinV()
+double ResultInfo::getMinV()
 {
     return m_minV;
 }
 
-void CResultInfo::setMinM(double minM)
+void ResultInfo::setMinM(double minM)
 {
     m_minM = minM;
 }
 
-double CResultInfo::getMinM()
+double ResultInfo::getMinM()
 {
     return m_minM;
 }
 
-void CResultInfo::setMinNavier(double minNavier)
+void ResultInfo::setMinNavier(double minNavier)
 {
     m_minNavier = minNavier;
 }
 
-double CResultInfo::getMinNavier()
+double ResultInfo::getMinNavier()
 {
     return m_minNavier;
 }
 
-void CResultInfo::setMaxNavier(double maxNavier)
+void ResultInfo::setMaxNavier(double maxNavier)
 {
     m_maxNavier = maxNavier;
 }
 
-double CResultInfo::getMaxNavier()
+double ResultInfo::getMaxNavier()
 {
     return m_maxNavier;
 }

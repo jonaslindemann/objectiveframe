@@ -1,4 +1,4 @@
- #include "IvfViewWindow.h"
+#include "IvfViewWindow.h"
 
 #include <iostream>
 
@@ -16,40 +16,33 @@ std::shared_ptr<IvfViewWindow> IvfViewWindow::create(int width, int height, cons
 {
     return std::make_shared<IvfViewWindow>(width, height, title, monitor, shared);
 }
- 
+
 IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
-    :GLFWWindow(width, height, title, monitor, shared)
+    : GLFWWindow(width, height, title, monitor, shared)
+    , m_currentButton { ButtonState::bsNoButton }
+    , m_currentModifier { ButtonState::bsNoButton }
+    , m_angleX { 0.0f }
+    , m_angleY { 0.0f }
+    , m_moveX { 0.0f }
+    , m_moveY { 0.0f }
+    , m_zoomX { 0.0f }
+    , m_zoomY { 0.0f }
+    , m_snapToGrid { true }
+    , m_selectedShape { nullptr }
+    , m_editMode { WidgetMode::ViewPan }
+    , m_clickNumber { 0 }
+    , m_nNodes { 0 }
+    , m_nLines { 0 }
+    , m_doOverlay { false }
+    , m_doUnderlay { false }
+    , m_editEnabled { true }
+    , m_selectEnabled { true }
+    , m_lastShape { nullptr }
+    , m_initDone { false }
+    , m_mouseUpdate { false }
+    , m_workspaceSize { 10.0f }
+    , m_quit { false }
 {
-    // State variables
-
-    m_currentButton = ButtonState::bsNoButton;
-    m_currentModifier = ButtonState::bsNoButton;
-
-    m_angleX = 0.0f;
-    m_angleY = 0.0f;
-    m_moveX = 0.0f;
-    m_moveY = 0.0f;
-    m_zoomX = 0.0f;
-    m_zoomY = 0.0f;
-
-    m_snapToGrid = true;
-    m_selectedShape = NULL;
-    m_editMode = WidgetMode::ViewPan;
-    m_clickNumber = 0;
-    m_nNodes = 0;
-    m_nLines = 0;
-    m_doOverlay = false;
-    m_doUnderlay = false;
-    m_editEnabled = true;
-    m_selectEnabled = true;
-    m_lastShape = NULL;
-    m_initDone = false;
-    m_snapToGrid = true;
-
-    m_mouseUpdate = false;
-
-    m_workspaceSize = 10.0f;
-
     // Create default camera
 
     m_camera = Camera::create();
@@ -74,7 +67,8 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
 
     m_scene->addChild(m_volumeSelection);
 
-    m_quit = false;
+    m_xyPlane.setPlaneNormal(0.0, 0.0, 1.0);
+    m_yzPlane.setPlaneNormal(1.0, 0.0, 0.0);
 
     this->setEditMode(WidgetMode::CreateNode);
 }
@@ -86,7 +80,6 @@ IvfViewWindow::~IvfViewWindow()
 
 void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 {
-    cout << "onGlfwKey " << key << ", " << scancode << ", " << action << ", " << mods << "\n";
     m_currentModifier = ButtonState::bsNoButton;
 
     if (isShiftDown())
@@ -101,12 +94,17 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
         if (m_currentModifier == ButtonState::bsShift)
             doShortcut(ModifierKey::mkShift, key);
         if (m_currentModifier == ButtonState::bsCtrl)
-            doShortcut(ModifierKey::mkCtrl, key);
+            doShortcut(ModifierKey::mkCtrl, key); 
         if (m_currentModifier == ButtonState::bsAlt)
             doShortcut(ModifierKey::mkAlt, key);
     }
     else
-        doKeyboard(key);
+    {
+        if (action == GLFW_PRESS)
+            doKeyboard(key);
+        else
+            doKeyboardReleased(key);
+    }
 }
 
 void IvfViewWindow::onGlfwMousePosition(double x, double y)
@@ -146,7 +144,7 @@ void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 
 void IvfViewWindow::onGlfwResize(int width, int height)
 {
-    //m_camera->setViewPort(this->width(), this->height());
+    // m_camera->setViewPort(this->width(), this->height());
 }
 
 void IvfViewWindow::onGlfwDraw()
@@ -227,7 +225,6 @@ void IvfViewWindow::onGlfwDraw()
     }
 
     glPopMatrix();
-
 
     m_scene->render();
 
@@ -590,10 +587,51 @@ void IvfViewWindow::addSelection(ivf::Shape* shape)
     redraw();
 }
 
-
 Camera* IvfViewWindow::getCamera()
 {
     return m_camera;
+}
+
+void IvfViewWindow::updateCursor(int x, int y)
+{
+    ivf::Vec3d v = m_scene->getCamera()->pickVector(x, y);
+    ivf::Vec3d o = m_scene->getCamera()->getPosition();
+
+    if (isShiftDown())
+    {
+        double xx, yy, zz;
+        v.getComponents(xx, yy, zz);
+        glm::vec3 vv(xx, yy, zz);
+
+        float s1 = abs(glm::dot(vv, m_xyPlane.planeNormal()));
+        float s2 = abs(glm::dot(vv, m_yzPlane.planeNormal()));
+
+        ivf::Vec3d pos = m_scene->getCursorPosition();
+
+        glm::vec3 ip;
+
+        if (s1 > s2)
+        {
+            m_xyPlane.setPlaneOrigin(pos.getComponents());
+            m_xyPlane.setOrigin(o.getComponents());
+            ip = m_xyPlane.intersect(v.getComponents());
+        }
+        else
+        {
+            m_yzPlane.setPlaneOrigin(pos.getComponents());
+            m_yzPlane.setOrigin(o.getComponents());
+            ip = m_yzPlane.intersect(v.getComponents());        
+        }
+
+        m_scene->updateCursor(ip.x, ip.y, ip.z);
+    }
+    else
+    {
+        m_xzPlane.setOrigin(o.getComponents());
+        glm::vec3 ip = m_xzPlane.intersect(v.getComponents());
+
+        m_scene->updateCursor(ip.x, ip.y, ip.z);
+    }
 }
 
 void IvfViewWindow::setWorkspace(double size, bool resetCamera)
@@ -699,7 +737,6 @@ ButtonState IvfViewWindow::getCurrentModifier()
 
     return m_currentModifier;
 }
-
 
 void IvfViewWindow::redraw()
 {
@@ -837,7 +874,10 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    m_scene->updateCursor(x, y);
+    ofmath::GridPlane gp;
+
+    //m_scene->updateCursor(x, y);
+    this->updateCursor(x, y);
 
     if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled))
     {
@@ -872,7 +912,8 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     {
         double wx, wy, wz;
         Vec3d pos;
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(wx, wy, wz);
         onCoordinate(wx, wy, wz);
@@ -882,7 +923,8 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     if (getEditMode() == WidgetMode::Move)
     {
         double wx, wy, wz;
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(wx, wy, wz);
         onCoordinate(wx, wy, wz);
@@ -920,7 +962,8 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
     if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
     {
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         double vx, vy, vz;
         auto pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
@@ -945,7 +988,6 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
 void IvfViewWindow::doMotion(int x, int y)
 {
-    //cout << "doMotion()\n";
     m_angleX = 0.0f;
     m_angleY = 0.0f;
     m_moveX = 0.0f;
@@ -956,7 +998,7 @@ void IvfViewWindow::doMotion(int x, int y)
     this->getScene()->showCursor();
     // if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
     {
-        if ((mouseButton() == GLFW_MOUSE_BUTTON_RIGHT)&&(mouseAction() == GLFW_PRESS))
+        if ((mouseButton() == GLFW_MOUSE_BUTTON_RIGHT) && (mouseAction() == GLFW_PRESS))
         {
             // if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
             {
@@ -1023,7 +1065,8 @@ void IvfViewWindow::doMotion(int x, int y)
 
     if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         double x, y, z;
         double dx, dy, dz;
         bool doit = true;
@@ -1039,7 +1082,7 @@ void IvfViewWindow::doMotion(int x, int y)
 
         if (m_moveStart)
         {
-            //onMoveStart();
+            // onMoveStart();
             m_moveStart = false;
         }
 
@@ -1069,8 +1112,6 @@ void IvfViewWindow::doMotion(int x, int y)
 
 void IvfViewWindow::doMouse(int x, int y)
 {
-    //cout << "doMouse(" << x << ", " << y << ")" << endl;
-
     // Store mouse down position.
 
     Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
@@ -1111,7 +1152,8 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
 
@@ -1134,20 +1176,22 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
 
         onSelectPosition(vx, vy, vz);
     }
 
-    if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT) > 0)
+    if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
         double vx, vy, vz;
         Node* node = NULL;
         Vec3d pos;
 
-        m_scene->updateCursor(x, y);
+        //m_scene->updateCursor(x, y);
+        this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
 
@@ -1233,7 +1277,7 @@ void IvfViewWindow::doMouse(int x, int y)
 
 void IvfViewWindow::doKeyboard(int key)
 {
-    // Call onMouseUp event method
+    cout << "doKeyboard()" << key << "\n";
 
     if (isShiftDown())
         m_scene->lockCursor();
@@ -1241,7 +1285,14 @@ void IvfViewWindow::doKeyboard(int key)
         m_scene->unlockCursor();
 
     onKeyboard(key);
-    //cout << "IvfView::onKeyboard " << key << endl;
+}
+
+void IvfViewWindow::doKeyboardReleased(int key)
+{
+    if (isShiftDown())
+        m_scene->lockCursor();
+    else
+        m_scene->unlockCursor();
 }
 
 void IvfViewWindow::doShortcut(ModifierKey modifier, int key)
@@ -1267,12 +1318,10 @@ void IvfViewWindow::onHighlightFilter(ivf::Shape*, bool& highlight)
 
 void IvfViewWindow::onMotion(int x, int y)
 {
-    //cout << "IvfView::onMotion" << endl;
 }
 
 void IvfViewWindow::onPassiveMotion(int x, int y)
 {
-    //cout << "IvfView::onPassiveMotion" << endl;
 }
 
 void IvfViewWindow::onMouse(int x, int y)

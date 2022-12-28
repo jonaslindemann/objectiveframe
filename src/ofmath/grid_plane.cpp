@@ -47,16 +47,16 @@ void ofmath::GridPlane::setOrigin(glm::vec3 origin)
 
 void ofmath::GridPlane::setOrigin(double* v)
 {
-    m_origin.x = v[0];
-    m_origin.y = v[1];
-    m_origin.z = v[2];
+    m_origin.x = float(v[0]);
+    m_origin.y = float(v[1]);
+    m_origin.z = float(v[2]);
 }
 
 void ofmath::GridPlane::setOrigin(double x, double y, double z)
 {
-    m_origin.x = x;
-    m_origin.y = y;
-    m_origin.z = z;
+    m_origin.x = float(x);
+    m_origin.y = float(y);
+    m_origin.z = float(z);
 }
 
 void ofmath::GridPlane::setDirection(glm::vec3 direction)
@@ -66,16 +66,16 @@ void ofmath::GridPlane::setDirection(glm::vec3 direction)
 
 void ofmath::GridPlane::setDirection(double* v)
 {
-    m_direction.x = v[0];
-    m_direction.y = v[1];
-    m_direction.z = v[2];
+    m_direction.x = float(v[0]);
+    m_direction.y = float(v[1]);
+    m_direction.z = float(v[2]);
 }
 
 void ofmath::GridPlane::setDirection(double x, double y, double z)
 {
-    m_direction.x = x;
-    m_direction.y = y;
-    m_direction.z = z;
+    m_direction.x = float(x);
+    m_direction.y = float(y);
+    m_direction.z = float(z);
 }
 
 void ofmath::GridPlane::setPlaneOrigin(glm::vec3 planeOrigin)
@@ -85,16 +85,16 @@ void ofmath::GridPlane::setPlaneOrigin(glm::vec3 planeOrigin)
 
 void ofmath::GridPlane::setPlaneOrigin(double* v)
 {
-    m_planeOrig.x = v[0];
-    m_planeOrig.y = v[1];
-    m_planeOrig.z = v[2];
+    m_planeOrig.x = float(v[0]);
+    m_planeOrig.y = float(v[1]);
+    m_planeOrig.z = float(v[2]);
 }
 
 void ofmath::GridPlane::setPlaneOrigin(double x, double y, double z)
 {
-    m_planeOrig.x = x;
-    m_planeOrig.y = y;
-    m_planeOrig.z = z;
+    m_planeOrig.x = float(x);
+    m_planeOrig.y = float(y);
+    m_planeOrig.z = float(z);
 }
 
 void ofmath::GridPlane::setPlaneNormal(glm::vec3 planeNormal)
@@ -104,16 +104,16 @@ void ofmath::GridPlane::setPlaneNormal(glm::vec3 planeNormal)
 
 void ofmath::GridPlane::setPlaneNormal(double* v)
 {
-    m_planeNormal.x = v[0];
-    m_planeNormal.y = v[1];
-    m_planeNormal.z = v[2];
+    m_planeNormal.x = float(v[0]);
+    m_planeNormal.y = float(v[1]);
+    m_planeNormal.z = float(v[2]);
 }
 
 void ofmath::GridPlane::setPlaneNormal(double x, double y, double z)
 {
-    m_planeNormal.x = x;
-    m_planeNormal.y = y;
-    m_planeNormal.z = z;
+    m_planeNormal.x = float(x);
+    m_planeNormal.y = float(y);
+    m_planeNormal.z = float(z);
 }
 
 glm::vec3 ofmath::GridPlane::direction()

@@ -14,6 +14,7 @@ nav:
     - blog/2022/version_b2_released.md
 
 - Contact: contact.md
+- Privacy: privacy.md
 
 theme: 
   name: material

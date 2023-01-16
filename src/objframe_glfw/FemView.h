@@ -41,6 +41,8 @@ constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 #include <ofem/calfem_writer.h>
 #include <ofem/model_clip_board.h>
 
+#include <ofsolve/frame_solver.h>
+
 #include <ColorMap.h>
 #include <ResultInfo.h>
 
@@ -65,8 +67,6 @@ constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 #include "Area2D.h"
 #include "ButtonGroup.h"
 #include "PlaneButton.h"
-
-#include "FemInternalSolver.h"
 
 #include "script_plugin.h"
 
@@ -205,7 +205,7 @@ private:
     LeapInteraction* m_leapinteraction;
 #endif
 
-    FrameSolverPtr m_internalSolver;
+    ofsolver::FrameSolverPtr m_internalSolver;
 
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_lineMaterial;

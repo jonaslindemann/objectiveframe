@@ -29,6 +29,7 @@
 using namespace ivf;
 using namespace std;
 using namespace ofui;
+using namespace ofsolver;
 
 // FLTK colormap
 

@@ -268,6 +268,9 @@ private:
     bool m_showNodeBCsWindow;
     bool m_showBCPropPopup;
 
+    float m_uiScale;
+
+
     // Scripting
 
     bool m_pluginRunning;
@@ -295,6 +298,8 @@ private:
     void setupScript(chaiscript::ChaiScript& script);
     void setupOverlay();
     void setupPlugins();
+
+    void refreshUiStyle();
 
 public:
     FemViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
@@ -340,6 +345,9 @@ public:
     void setTactileForce(ivf::ExtrArrowPtr force);
     void setInteractionNode(vfem::Node* interactionNode);
     vfem::NodePtr getInteractionNode();
+
+    float uiScale();
+    void setUiScale(float scale);
 
     // Methods
 

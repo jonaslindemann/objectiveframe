@@ -227,8 +227,8 @@ void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 void GLFWWindow::doMousePosition(double x, double y)
 {
     //cout << "doMousePosition: " << x << ", " << y << endl;
-    m_mouseX = x;
-    m_mouseY = y;
+    m_mouseX = int(x);
+    m_mouseY = int(y);
     onGlfwMousePosition(x, y);
 }
 

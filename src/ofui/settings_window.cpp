@@ -20,6 +20,7 @@ SettingsWindow::SettingsWindow(const std::string name)
     , m_scaleFactor { 1.0f }
     , m_lockScaleFactor { false }
     , m_showNodeNumbers { false }
+    , m_uiScale { 1.0f }
 {
 }
 
@@ -37,6 +38,7 @@ void ofui::SettingsWindow::setFemView(FemViewWindow* view)
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
     m_scaleFactor = float(m_view->getScalefactor());
     m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_view->getModel())->showNodeNumbers();
+    m_uiScale = m_view->uiScale();
 }
 #else
 void SettingsWindow::setFemWidget(FemWidget* femWidget)
@@ -59,6 +61,7 @@ void SettingsWindow::update()
     m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
     m_scaleFactor = float(m_view->getScalefactor());
+    m_uiScale = m_view->uiScale();
 #ifndef USE_FEMVIEW
     m_offscreenRendering = m_view->offscreenRendering();
 #endif
@@ -91,7 +94,8 @@ void SettingsWindow::doDraw()
     ImGui::Separator();
 
     ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
-    ImGui::Checkbox("Offscreen rendering", &m_offscreenRendering);
+    //ImGui::Checkbox("Offscreen rendering", &m_offscreenRendering);
+    ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
@@ -113,6 +117,7 @@ void SettingsWindow::doDraw()
         if (m_offscreenRendering != m_view->offscreenRendering())
             m_view->setOffscreenRendering(m_offscreenRendering);
 #endif
+        m_view->setUiScale(m_uiScale);
 
         static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     }

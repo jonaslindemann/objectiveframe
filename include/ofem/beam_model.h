@@ -40,6 +40,8 @@ public:
 
     ClassInfo("BeamModel", Model);
 
+    static BeamModelPtr create();
+
     // Get/set methods
 
     BeamMaterialSet* getMaterialSet();

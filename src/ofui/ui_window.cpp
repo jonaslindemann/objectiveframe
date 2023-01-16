@@ -48,7 +48,7 @@ void UiWindow::draw()
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;
-            window_pos.x = work_size.x / 2.0;
+            window_pos.x = work_size.x / 2.0f;
             window_pos.y = work_size.y - PAD;
             window_pos_pivot.x = 0.5;
             window_pos_pivot.y = 1.0;

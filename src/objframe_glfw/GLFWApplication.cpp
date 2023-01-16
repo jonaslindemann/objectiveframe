@@ -70,7 +70,6 @@ void GLFWApplication::addWindow(GLFWWindowPtr window)
 void GLFWApplication::loop()
 {
     bool shouldClose = false;
-    int width, height;
 
     while (!shouldClose)
     {

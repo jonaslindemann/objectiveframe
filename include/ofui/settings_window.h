@@ -19,6 +19,7 @@ private:
     float m_lineRadius;
     float m_loadSize;
     float m_scaleFactor;
+    float m_uiScale;
     bool m_lockScaleFactor;
     bool m_showNodeNumbers;
     bool m_offscreenRendering;

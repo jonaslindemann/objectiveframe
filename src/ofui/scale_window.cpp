@@ -16,7 +16,7 @@ ScaleWindow::ScaleWindow(const std::string name)
     , m_scaleFactor { 1.0f }
     , m_lockScaleFactor { false }
     , m_animate { false }
-    , m_animationSpeed { 0.02 }
+    , m_animationSpeed { 0.02f }
 {
 }
 
@@ -55,12 +55,12 @@ void ScaleWindow::doDraw()
 
     this->update();
 
-    ImGui::DragFloat("Scale factor", &m_scaleFactor, m_view->autoScaleFactor() * 0.01, m_view->autoScaleFactor(), m_view->autoScaleFactor() * 2.0);
+    ImGui::DragFloat("Scale factor", &m_scaleFactor, float(m_view->autoScaleFactor() * 0.01f), float(m_view->autoScaleFactor()), float(m_view->autoScaleFactor() * 2.0f));
     ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
     ImGui::Checkbox("Animate", &m_animate);
     if (m_animate)
     {
-        ImGui::SliderFloat("Animation speed", &m_animationSpeed, 0.01, 0.2);
+        ImGui::SliderFloat("Animation speed", &m_animationSpeed, 0.01f, 0.2f);
     }
 
     if (m_view != nullptr)

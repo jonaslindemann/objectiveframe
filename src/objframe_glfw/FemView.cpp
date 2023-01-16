@@ -472,6 +472,7 @@ std::string saveAsCalfemFileDialog()
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
     : IvfViewWindow(width, height, title, monitor, shared)
+    , m_uiScale { 1.0f }
 {
     setUseEscQuit(false);
 
@@ -531,30 +532,6 @@ FemViewWindow::~FemViewWindow()
 
 void FemViewWindow::runScript(const std::string filename)
 {
-    /*
-    ScriptPlugin plugin(m_progPath + "/plugins/frame.chai");
-
-    plugin.param("floors", "4");
-    plugin.param("rows", "4");
-    plugin.param("cols", "4");
-    plugin.param("dx", "1.0");
-    plugin.param("dy", "1.0");
-    plugin.param("dz", "1.0");
-
-    cout << plugin.source();
-
-    chaiscript::ChaiScript::State s = m_chai.get_state(); // get initial state
-    try
-    {
-        m_chai.eval_file(filename);
-    }
-    catch (const chaiscript::exception::eval_error& e)
-    {
-        log(e.pretty_print());
-    }
-
-    m_chai.set_state(s);
-    */
 }
 
 void FemViewWindow::runPlugin(ScriptPlugin* plugin)
@@ -1958,6 +1935,30 @@ void FemViewWindow::setupPlugins()
         log("Couldn't find load any plugins...");
 }
 
+void FemViewWindow::refreshUiStyle()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGuiStyle newStyle;
+
+    newStyle.FrameRounding = 4;
+    newStyle.WindowRounding = 8;
+    newStyle.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.5f);
+    newStyle.Colors[ImGuiCol_TitleBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.8f);
+    newStyle.Colors[ImGuiCol_TitleBgActive] = ImVec4(
+        newStyle.Colors[ImGuiCol_TitleBgActive].x,
+        newStyle.Colors[ImGuiCol_TitleBgActive].y,
+        newStyle.Colors[ImGuiCol_TitleBgActive].z,
+        0.8f);
+
+    newStyle.ScaleAllSizes(m_uiScale);
+
+    io.FontGlobalScale = m_uiScale;
+
+    style = newStyle;
+}
+
 void FemViewWindow::assignNodeBCSelected()
 {
     // Assign a node load to selected nodes
@@ -2353,6 +2354,18 @@ void FemViewWindow::setTactileForce(ExtrArrowPtr force)
 vfem::NodePtr FemViewWindow::getInteractionNode()
 {
     return m_interactionNode;
+}
+
+float FemViewWindow::uiScale()
+{
+    return m_uiScale;
+}
+
+void FemViewWindow::setUiScale(float scale)
+{
+    m_uiScale = scale;
+
+    this->refreshUiStyle();
 }
 
 void FemViewWindow::setInteractionNode(vfem::Node* interactionNode)
@@ -4039,7 +4052,7 @@ void FemViewWindow::onDrawImGui()
 
     if (quitApplication)
     {
-        this->quit();
+    this->quit();
     }
 }
 
@@ -4054,19 +4067,7 @@ void FemViewWindow::onInitImGui()
 
     io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 22);
 
-    ImGuiStyle& style = ImGui::GetStyle();
-
-    style.FrameRounding = 4;
-    style.WindowRounding = 8;
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.5f);
-    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.8f);
-    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(
-        style.Colors[ImGuiCol_TitleBgActive].x,
-        style.Colors[ImGuiCol_TitleBgActive].y,
-        style.Colors[ImGuiCol_TitleBgActive].z,
-        0.8f);
-
-    style.ScaleAllSizes(1.0);
+    this->refreshUiStyle();
 }
 
 void FemViewWindow::onPostRender()

@@ -48,6 +48,27 @@ typedef Eigen::SparseMatrix<int> SpIntMatrix;
 typedef Eigen::Triplet<double> Triplet;
 typedef std::vector<Triplet> TripletList;
 
+void bar3e(
+    const RowVec& ex,
+    const RowVec& ey,
+    const RowVec& ez,
+    const RowVec& ep,
+    double eq,
+    Matrix& Ke,
+    ColVec& fe);
+
+void bar3s(
+    const RowVec& ex,
+    const RowVec& ey,
+    const RowVec& ez,
+    const RowVec& ep,
+    const RowVec& ed,
+    double eq,
+    int n,
+    ColVec& es,
+    ColVec& edi,
+    ColVec& eci);
+
 void beam3e(
     const RowVec& ex,
     const RowVec& ey,

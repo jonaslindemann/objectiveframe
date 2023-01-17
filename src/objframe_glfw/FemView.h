@@ -42,6 +42,8 @@ constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 #include <ofem/model_clip_board.h>
 
 #include <ofsolve/frame_solver.h>
+#include <ofsolve/beam_solver.h>
+#include <ofsolve/solver_interface.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
@@ -205,7 +207,9 @@ private:
     LeapInteraction* m_leapinteraction;
 #endif
 
-    ofsolver::FrameSolverPtr m_internalSolver;
+    ofsolver::FrameSolverPtr m_frameSolver;
+    ofsolver::BeamSolverPtr m_beamSolver;
+    ofsolver::SolverInterface* m_currentSolver;
 
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_lineMaterial;

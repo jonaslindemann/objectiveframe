@@ -216,8 +216,9 @@ void BeamSolver::execute()
 
     bool sparseSolve = false;
     
-    calfem::SpMatrix Ks(m_nDof, m_nDof);
-    Ks.setZero();
+    //calfem::SpMatrix Ks(m_nDof, m_nDof);
+    m_Ks.resize(m_nDof, m_nDof);
+    m_Ks.setZero();
 
     calfem::TripletList Ktriplets;
     Ktriplets.reserve(elementSet->getSize() * 144);    
@@ -285,7 +286,7 @@ void BeamSolver::execute()
 
                 double eq = 0.0;
 
-                // bar3e(Ex, Ey, Ez, Ep, eq, Ke_b, fe_b);
+                bar3e(Ex, Ey, Ez, Ep, eq, Ke_b, fe_b);
                 spassem(DofTopo_b, Ktriplets, Ke_b, m_f, fe_b);
                 //assem(DofTopo_b, Kf, Ke_b, m_f, fe_b);
             }
@@ -370,30 +371,35 @@ void BeamSolver::execute()
         }
     }
 
-    IntColVec bcDofs(bcMap.size());
-    ColVec bcVals(bcMap.size());
+    m_bcDofs.resize(bcMap.size());
+    m_bcDofs.setZero();
+    m_bcVals.resize(bcMap.size());
+    m_bcVals.setZero();
+
+    //IntColVec bcDofs(bcMap.size());
+    //ColVec bcVals(bcMap.size());
 
     int idx = 0;
 
     for (auto& kv : bcMap)
     {
-        bcDofs(idx) = kv.first;
-        bcVals(idx) = kv.second;
+        m_bcDofs(idx) = kv.first;
+        m_bcVals(idx) = kv.second;
         idx++;
     }
 
-    ColVec fsys = m_fsys;
+    ColVec f = m_f;
 
-    if (m_forceNode != NULL)
+    if (m_forceNode != nullptr)
     {
-        int ldof1 = (int)m_ldof(m_forceNode->getDof(0)->getNumber());
-        int ldof2 = (int)m_ldof(m_forceNode->getDof(1)->getNumber());
-        int ldof3 = (int)m_ldof(m_forceNode->getDof(2)->getNumber());
+        int ldof1 = m_forceNode->getDof(0)->getNumber();
+        int ldof2 = m_forceNode->getDof(1)->getNumber();
+        int ldof3 = m_forceNode->getDof(2)->getNumber();
         if ((ldof1 > 0) && (ldof2 > 0) && (ldof3 > 0))
         {
-            fsys(ldof1-1) += m_force[0];
-            fsys(ldof2-1) += m_force[1];
-            fsys(ldof3-1) += m_force[2];
+            f(ldof1 - 1) += m_force[0];
+            f(ldof2 - 1) += m_force[1];
+            f(ldof3 - 1) += m_force[2];
         }
         else
             Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
@@ -439,13 +445,13 @@ void BeamSolver::execute()
     m_globalA.resize(m_nDof,1);
     m_globalA.setZero();
 
-    Ks.setFromTriplets(Ktriplets.begin(), Ktriplets.end());
+    m_Ks.setFromTriplets(Ktriplets.begin(), Ktriplets.end());
 
 
     Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-    m_sparseSolver.setup(Ks, bcDofs, bcVals);
-    m_sparseSolver.solve(m_f, m_globalA, m_globalQ);
+    m_sparseSolver.setup(m_Ks, m_bcDofs, m_bcVals);
+    m_sparseSolver.solve(f, m_globalA, m_globalQ);
 
     Logger::instance()->log(LogLevel::Info, "solveq done..."); 
 
@@ -639,18 +645,18 @@ void BeamSolver::recompute()
 
         NodeSet* nodeSet = femModel->getNodeSet();
 
-        ColVec fsys = m_fsys;
+        ColVec f = m_f;
 
-        if (m_forceNode != NULL)
+        if (m_forceNode != nullptr)
         {
-            int ldof1 = (int)m_ldof(m_forceNode->getDof(0)->getNumber());
-            int ldof2 = (int)m_ldof(m_forceNode->getDof(1)->getNumber());
-            int ldof3 = (int)m_ldof(m_forceNode->getDof(2)->getNumber());
+            int ldof1 = m_forceNode->getDof(0)->getNumber();
+            int ldof2 = m_forceNode->getDof(1)->getNumber();
+            int ldof3 = m_forceNode->getDof(2)->getNumber();
             if ((ldof1 > 0) && (ldof2 > 0) && (ldof3 > 0))
             {
-                fsys(ldof1 - 1) += m_force[0];
-                fsys(ldof2 - 1) += m_force[1];
-                fsys(ldof3 - 1) += m_force[2];
+                f(ldof1 - 1) += m_force[0];
+                f(ldof2 - 1) += m_force[1];
+                f(ldof3 - 1) += m_force[2];
             }
             else
                 Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
@@ -698,7 +704,7 @@ void BeamSolver::recompute()
 
         Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-        m_sparseSolver.solve(m_f, m_globalA, m_globalQ);
+        m_sparseSolver.solve(f, m_globalA, m_globalQ);
 
         Logger::instance()->log(LogLevel::Info, "solveq done...");
 

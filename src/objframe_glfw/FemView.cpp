@@ -480,7 +480,7 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_width = width;
     m_height = height;
     m_tactileForce = nullptr;
-    m_internalSolver = nullptr;
+    m_currentSolver = nullptr;
     m_relNodeSize = 0.004;
     m_relLineRadius = 0.0015;
     m_relLoadSize = 0.07;
@@ -1129,7 +1129,7 @@ void FemViewWindow::restoreLastSnapShot()
 
     m_needRecalc = true;
 
-    m_internalSolver = nullptr;
+    m_currentSolver = nullptr;
 
     this->setEditMode(prevEditMode);
 }
@@ -1178,7 +1178,7 @@ void FemViewWindow::revertLastSnapShot()
 
     m_needRecalc = true;
 
-    m_internalSolver = nullptr;
+    m_currentSolver = nullptr;
 
     this->setEditMode(prevEditMode);
 }
@@ -1231,7 +1231,7 @@ void FemViewWindow::open(std::string filename)
 
     m_needRecalc = true;
 
-    m_internalSolver = nullptr;
+    m_currentSolver = nullptr;
 
     this->setEditMode(WidgetMode::Select);
 }
@@ -1466,7 +1466,7 @@ void FemViewWindow::newModel()
 
     m_needRecalc = true;
 
-    m_internalSolver = nullptr;
+    m_currentSolver = nullptr;
 
     this->setEditMode(WidgetMode::ViewZoom);
 
@@ -2024,14 +2024,18 @@ void FemViewWindow::executeCalc()
 {
     double maxNodeValue;
 
-    m_internalSolver = FrameSolver::create();
-    m_internalSolver->setBeamModel(m_beamModel);
-    // m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
-    m_internalSolver->execute();
+    //m_frameSolver = FrameSolver::create();
+    //m_currentSolver = m_frameSolver.get();
+    m_beamSolver = BeamSolver::create();
+    m_currentSolver = m_beamSolver.get();
 
-    if (m_internalSolver->modelState() != ModelState::Ok)
+    m_currentSolver->setBeamModel(m_beamModel);
+    // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
+    m_currentSolver->execute();
+
+    if (m_currentSolver->modelState() != ModelState::Ok)
     {
-        switch (m_internalSolver->modelState())
+        switch (m_currentSolver->modelState())
         {
         case ModelState::NoNodes:
             this->showMessage("No nodes defined. \nCalculation not executed.");
@@ -2066,7 +2070,7 @@ void FemViewWindow::executeCalc()
     else
         m_needRecalc = false;
 
-    maxNodeValue = m_internalSolver->getMaxNodeValue();
+    maxNodeValue = m_currentSolver->getMaxNodeValue();
 
     // Calculate default scalefactor
 
@@ -2118,26 +2122,30 @@ void FemViewWindow::doFeedback()
 
             double maxNodeValue = 0.0;
 
-            m_internalSolver = FrameSolver::create();
-            // m_internalSolver->setResultInfo(m_beamModel->getResultInfo());
-            m_internalSolver->setBeamModel(m_beamModel);
+            //m_frameSolver = FrameSolver::create();
+            //m_currentSolver = m_frameSolver.get();
+            m_beamSolver = BeamSolver::create();
+            m_currentSolver = m_beamSolver.get();
+
+            // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
+            m_currentSolver->setBeamModel(m_beamModel);
 
             double v[3];
 
             // Setup feedback force
 
             m_tactileForce->getDirection(v[0], v[1], v[2]);
-            m_internalSolver->setFeedbackForce(
+            m_currentSolver->setFeedbackForce(
                 m_interactionNode->getFemNode(),
                 m_tactileForceValue * v[0], m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
 
-            m_internalSolver->execute();
+            m_currentSolver->execute();
 
             // We assume the worst case
 
             m_saneModel = false;
 
-            switch (m_internalSolver->modelState())
+            switch (m_currentSolver->modelState())
             {
             case ModelState::NoNodes:
                 this->showMessage("No nodes defined. \nCalculation not executed.");
@@ -2168,7 +2176,7 @@ void FemViewWindow::doFeedback()
                 break;
             }
 
-            maxNodeValue = m_internalSolver->getMaxNodeValue();
+            maxNodeValue = m_currentSolver->getMaxNodeValue();
 
             // Only compute the scale factor at the first attempt
 
@@ -2176,7 +2184,7 @@ void FemViewWindow::doFeedback()
             {
                 if (!m_haveScaleFactor)
                 {
-                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_internalSolver->getMaxNodeValue());
+                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
                     m_haveScaleFactor = true;
                 }
             }
@@ -2196,7 +2204,7 @@ void FemViewWindow::doFeedback()
 
     if (m_saneModel)
     {
-        if (m_internalSolver != nullptr)
+        if (m_currentSolver != nullptr)
         {
             // Fl::check();
             if (m_interactionNode != nullptr)
@@ -2207,14 +2215,14 @@ void FemViewWindow::doFeedback()
                 // Setup feedback force
 
                 m_tactileForce->getDirection(v[0], v[1], v[2]);
-                m_internalSolver->setFeedbackForce(
+                m_currentSolver->setFeedbackForce(
                     m_interactionNode->getFemNode(),
                     m_tactileForceValue * v[0], m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
 
                 // Execute calculation
 
-                m_internalSolver->recompute();
-                m_internalSolver->update(); // NEW
+                m_currentSolver->recompute();
+                m_currentSolver->update(); // NEW
 
                 // Only compute the scale factor at the first attempt
 
@@ -2222,7 +2230,7 @@ void FemViewWindow::doFeedback()
                 {
                     if (!m_haveScaleFactor)
                     {
-                        m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_internalSolver->getMaxNodeValue());
+                        m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
                         m_haveScaleFactor = true;
                     }
                 }
@@ -2410,8 +2418,8 @@ bool FemViewWindow::isScaleFactorLocked()
 
 double FemViewWindow::autoScaleFactor()
 {
-    if (m_internalSolver != nullptr)
-        return this->getWorkspace() * 0.020 / m_internalSolver->getMaxNodeValue();
+    if (m_currentSolver != nullptr)
+        return this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue();
     else
         return 1.0;
 }
@@ -3292,7 +3300,7 @@ void FemViewWindow::onMouseDown(int x, int y)
         if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
             if (m_saneModel)
-                if (m_internalSolver != nullptr)
+                if (m_currentSolver != nullptr)
                     setRepresentation(RepresentationMode::Results);
         }
     }
@@ -3314,9 +3322,9 @@ void FemViewWindow::onMouseUp(int x, int y)
         if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
             if (m_saneModel)
-                if (m_internalSolver != nullptr)
+                if (m_currentSolver != nullptr)
                 {
-                    m_internalSolver->update();
+                    m_currentSolver->update();
                     setRepresentation(RepresentationMode::Results);
                 }
         }

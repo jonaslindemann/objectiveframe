@@ -1,4 +1,4 @@
- #pragma once
+#pragma once
 
 #include <ofem/beam_model.h>
 
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <memory>
 
-#include "calfem.h"
+#include <ofsolve/calfem.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
@@ -26,12 +26,16 @@ private:
     //std::unique_ptr<LinearEquationSolver> m_X;
     int m_nDof;
     int m_nVars;
+
+    calfem::SpMatrix m_Ks;
     calfem::ColVec m_f;
     calfem::ColVec m_fsys;
     calfem::ColVec m_gdof;
     calfem::ColVec m_ldof;
     calfem::ColVec m_globalA;
     calfem::ColVec m_globalQ;
+    calfem::IntColVec m_bcDofs;
+    calfem::ColVec m_bcVals;
 
     calfem::ColVec m_a;
     ModelState m_modelState;

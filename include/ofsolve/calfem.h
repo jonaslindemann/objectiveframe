@@ -45,7 +45,7 @@ typedef Eigen::MatrixXi IntMatrix;
 typedef Eigen::MatrixXi IntMat;
 typedef Eigen::SparseMatrix<int> SpIntMatrix;
 
-typedef Eigen::Triplet<double> Triplet;
+typedef Eigen::Triplet<double, std::ptrdiff_t> Triplet;
 typedef std::vector<Triplet> TripletList;
 
 void bar3e(
@@ -100,9 +100,9 @@ void print(T& A)
 
 void spy(const SpMatrix& matrix);
 
-std::vector<int> toZeroIndex(const std::vector<int>& vec);
+std::vector<Eigen::Index> toZeroIndex(const std::vector<Eigen::Index>& vec);
 
-void extractAllDofs(int nDofs, const std::vector<int>& bcDofs, std::vector<int>& freeDofs, std::vector<int>& allDofs);
+void extractAllDofs(Eigen::Index nDofs, const std::vector<Eigen::Index>& bcDofs, std::vector<Eigen::Index>& freeDofs, std::vector<Eigen::Index>& allDofs);
 
 void extractElDisp(const IntMatrix& edof, const ColVec& a, Matrix& ed);
 
@@ -119,8 +119,8 @@ void extractEdof(
     Matrix& ey,
     Matrix& ez);
 
-void solveq(const Matrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q);
-void spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q);
+bool solveq(const Matrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q);
+bool spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q);
 
 class SparseSolver
 {
@@ -129,8 +129,8 @@ private:
     SpMatrix m_Ksys;
     SpMatrix m_Ksysf;
 
-    int m_nFreeDofs;
-    int m_nDofs;
+    Eigen::Index m_nFreeDofs;
+    Eigen::Index m_nDofs;
 
     TripletList m_Ksyslist;
     TripletList m_Ksysflist;
@@ -138,12 +138,12 @@ private:
     Eigen::VectorXd m_asys;
     Eigen::VectorXd m_a;
 
-    std::vector<int> m_allDofsVec;
-    std::vector<int> m_freeDofsVec;
-    std::vector<int> m_bcDofsVec;
+    std::vector<Eigen::Index> m_allDofsVec;
+    std::vector<Eigen::Index> m_freeDofsVec;
+    std::vector<Eigen::Index> m_bcDofsVec;
 
-    std::vector<int> m_ind;
-    std::vector<int> m_pind;
+    std::vector<Eigen::Index> m_ind;
+    std::vector<Eigen::Index> m_pind;
 
     const SpMatrix* m_K;
     ColVec* m_f;
@@ -155,9 +155,9 @@ public:
 
     static std::shared_ptr<SparseSolver> create();
 
-    void setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVec& bcVals);
-    void solve(const ColVec& f, ColVec& a, ColVec& Q);
-    void recompute(const ColVec& f, ColVec& a, ColVec& Q);
+    bool setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVec& bcVals);
+    bool solve(const ColVec& f, ColVec& a, ColVec& Q);
+    bool recompute(const ColVec& f, ColVec& a, ColVec& Q);
 };
 
 typedef std::shared_ptr<SparseSolver> SparseSolverPtr;

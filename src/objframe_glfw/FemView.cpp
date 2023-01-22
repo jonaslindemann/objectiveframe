@@ -1770,7 +1770,7 @@ void FemViewWindow::setupOverlay()
     m_editArea->add(0, 0);
     m_editArea->add(65, 0);
     m_editArea->add(65, 600);
-    m_editArea->add(0, 520);
+    m_editArea->add(0, 600);
     m_editArea->setColor(0, 0.0f, 0.0f, 0.0f);
     m_editArea->setColor(1, 0.0f, 0.0f, 0.0f);
     m_editArea->setColor(2, 0.0f, 0.0f, 0.0f);
@@ -2061,6 +2061,15 @@ void FemViewWindow::executeCalc()
         case ModelState::UndefinedMaterial:
             this->showMessage("Beams without materials found.");
             break;
+        case ModelState::SolveFailed:
+            this->showMessage("Solver failed.");
+            break;
+        case ModelState::RecomputeFailed:
+            this->showMessage("Recomputation failed.");
+            break;
+        case ModelState::SetupFailed:
+            this->showMessage("Solver setup failed.");
+            break;
         default:
             this->showMessage("Unhandled error.\nCalculation not executed.");
             break;
@@ -2114,12 +2123,6 @@ void FemViewWindow::doFeedback()
     {
         if (m_interactionNode != nullptr)
         {
-            /*
-            CFeedbackDlg* dlg = new CFeedbackDlg();
-            dlg->show();
-            Fl::wait();
-            */
-
             double maxNodeValue = 0.0;
 
             //m_frameSolver = FrameSolver::create();
@@ -2170,6 +2173,15 @@ void FemViewWindow::doFeedback()
                 break;
             case ModelState::UndefinedMaterial:
                 this->showMessage("Beams without materials found.");
+                break;
+            case ModelState::SolveFailed:
+                this->showMessage("Solver failed.");
+                break;
+            case ModelState::RecomputeFailed:
+                this->showMessage("Recomputation failed.");
+                break;
+            case ModelState::SetupFailed:
+                this->showMessage("Solver setup failed.");
                 break;
             default:
                 m_saneModel = true;
@@ -3506,31 +3518,24 @@ void FemViewWindow::onButton(int objectName, PlaneButton* button)
     switch (objectName)
     {
     case ToolbarButton::Select:
-        // m_editButtons->check(0);
         this->setEditMode(WidgetMode::Select);
         break;
     case ToolbarButton::SelectBox:
-        // m_editButtons->check(1);
         this->setEditMode(WidgetMode::BoxSelection);
         break;
     case ToolbarButton::Move:
-        // m_editButtons->check(2);
         this->setEditMode(WidgetMode::Move);
         break;
     case ToolbarButton::CreateNode:
-        // m_objectButtons->check(0);
         this->setEditMode(WidgetMode::CreateNode);
         break;
     case ToolbarButton::CreateBeam:
-        // m_objectButtons->check(1);
         this->setEditMode(WidgetMode::CreateLine);
         break;
     case ToolbarButton::Feedback:
-        // m_editButtons->check(5);
         this->setCustomMode(CustomMode::Feedback);
         break;
     case ToolbarButton::Run:
-        // m_editButtons->check(5);
         this->executeCalc();
         break;
     case ToolbarButton::ViewZoom:
@@ -3561,15 +3566,11 @@ void FemViewWindow::onButton(int objectName, PlaneButton* button)
         m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet*)m_beamModel->getElementLoadSet());
         m_elementLoadsWindow->setVisible(true);
         this->setNeedRecalc(true);
-        // this->showBeamLoads();
-        // m_objectButtons->recheck();
         break;
     case ToolbarButton::Materials:
         m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet*)m_beamModel->getMaterialSet());
         m_materialsWindow->setVisible(true);
         this->setNeedRecalc(true);
-        // this->showMaterials();
-        // m_objectButtons->recheck();
         break;
     case ToolbarButton::NodeBC:
         m_nodeBCsWindow->setFemNodeBCSet((ofem::BeamNodeBCSet*)m_beamModel->getNodeBCSet());
@@ -3818,6 +3819,8 @@ void FemViewWindow::onDrawImGui()
     bool snapShot = false;
     bool restoreLastSnapShot = false;
 
+    m_consoleWindow->setPosition(0, 0);
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -3923,6 +3926,7 @@ void FemViewWindow::onDrawImGui()
 
             if (ImGui::MenuItem("Hints...", ""))
             {
+                m_consoleWindow->setPosition(0, 0);
                 m_consoleWindow->show();
             }
 

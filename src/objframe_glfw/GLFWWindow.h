@@ -42,6 +42,7 @@ public:
     int height();
     void getSize(int& width, int& height);
     void setWindowIcon(const std::string filename);
+    void maximize();
 
     void draw();
 

@@ -15,7 +15,10 @@ enum class ModelState
     Unstable,
     Invalid,
     Singular,
-    UndefinedMaterial
+    UndefinedMaterial,
+    SetupFailed,
+    SolveFailed,
+    RecomputeFailed
 };
 
 

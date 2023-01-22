@@ -173,50 +173,6 @@ void BeamSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Calculating bandwidth.");
 
-    /*
-    int maxBandwidth = 0;
-    int bandwidth;
-
-    for (i = 1; i <= elementSet->getSize(); i++)
-    {
-        auto beam = static_cast<ofem::Beam*>(elementSet->getElement(i - 1));
-
-        if (beam->beamType() == btBeam)
-        {
-            for (j = 0; j < 6; j++)
-                DofTopo(j) = beam->getNode(0)->getDof(j)->getNumber();
-
-            for (j = 0; j < 6; j++)
-                DofTopo(j+6) = beam->getNode(1)->getDof(j)->getNumber();
-
-            bandwidth = DofTopo.maxCoeff() - DofTopo.minCoeff();
-            if (bandwidth > maxBandwidth)
-                maxBandwidth = bandwidth;
-        }
-        else
-        {
-            for (j = 0; j < 3; j++)
-                DofTopo_b(j) = beam->getNode(0)->getDof(j)->getNumber();
-
-            for (j = 0; j < 3; j++)
-                DofTopo_b(j+3) = beam->getNode(1)->getDof(j)->getNumber();
-
-            bandwidth = DofTopo.maxCoeff() - DofTopo.minCoeff();
-            if (bandwidth > maxBandwidth)
-                maxBandwidth = bandwidth;
-        }
-    }
-    */
-
-    // so_print(endl << "\tBandwidth = " << maxBandwidth);
-    // so_print("\tDegrees of freedom = " << m_nDof << endl);
-
-    // BandMatrix K(m_nDof,maxBandwidth,maxBandwidth);
-    // SymmetricBandMatrix K(m_nDof, maxBandwidth);
-
-    bool sparseSolve = false;
-    
-    //calfem::SpMatrix Ks(m_nDof, m_nDof);
     m_Ks.resize(m_nDof, m_nDof);
     m_Ks.setZero();
 
@@ -288,7 +244,6 @@ void BeamSolver::execute()
 
                 bar3e(Ex, Ey, Ez, Ep, eq, Ke_b, fe_b);
                 spassem(DofTopo_b, Ktriplets, Ke_b, m_f, fe_b);
-                //assem(DofTopo_b, Kf, Ke_b, m_f, fe_b);
             }
         }
         else
@@ -359,10 +314,6 @@ void BeamSolver::execute()
                         if (node->getDof(k) != nullptr)
                         {
                             bcCount++;
-                            // Bc(bcCount-1, 0) = node->getDof(k)->getNumber();
-                            // Bc(bcCount-1, 1) = nodeBC->getPrescribedValue(k);
-                            //dofVec.push_back(node->getDof(k)->getNumber());
-                            //dofValVec.push_back(nodeBC->getPrescribedValue(k));
                             bcMap[node->getDof(k)->getNumber()] = nodeBC->getPrescribedValue(k);
                         }
                     }
@@ -375,9 +326,6 @@ void BeamSolver::execute()
     m_bcDofs.setZero();
     m_bcVals.resize(bcMap.size());
     m_bcVals.setZero();
-
-    //IntColVec bcDofs(bcMap.size());
-    //ColVec bcVals(bcMap.size());
 
     int idx = 0;
 
@@ -405,16 +353,16 @@ void BeamSolver::execute()
             Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
     }
 
-    /*
 
-    if (fsys.IsZero())
+    if (f.isZero())
     {
         Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
         m_modelState = ModelState::NoLoads;
         return;
     }
 
-    Logger::instance()->log(LogLevel::Info, "Solving system. Keeping LU factorisation.");
+    /*
+
 
     auto logDetSign = Ksys.LogDeterminant().Sign();
 
@@ -442,7 +390,9 @@ void BeamSolver::execute()
     // Create global displacement vector
     //
 
-    m_globalA.resize(m_nDof,1);
+    Logger::instance()->log(LogLevel::Info, "Solving system. ");
+
+    m_globalA.resize(m_nDof, 1);
     m_globalA.setZero();
 
     m_Ks.setFromTriplets(Ktriplets.begin(), Ktriplets.end());
@@ -450,8 +400,19 @@ void BeamSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-    m_sparseSolver.setup(m_Ks, m_bcDofs, m_bcVals);
-    m_sparseSolver.solve(f, m_globalA, m_globalQ);
+    if (!m_sparseSolver.setup(m_Ks, m_bcDofs, m_bcVals))
+    {
+        Logger::instance()->log(LogLevel::Error, "Solver setup failed...");
+        m_modelState = ModelState::SetupFailed;
+        return;
+    }
+
+    if (!m_sparseSolver.solve(f, m_globalA, m_globalQ))
+    {
+        Logger::instance()->log(LogLevel::Error, "Solve failed...");
+        m_modelState = ModelState::SolveFailed;
+        return;    
+    }
 
     Logger::instance()->log(LogLevel::Info, "solveq done..."); 
 
@@ -585,7 +546,7 @@ void BeamSolver::execute()
             Ep(0) = E;
             Ep(1) = A;
 
-            // bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci_b);
+            bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci_b);
 
             int pos = 0;
 
@@ -662,14 +623,16 @@ void BeamSolver::recompute()
                 Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
         }
 
-        /*
-
-        if (fsys.IsZero())
+        if (f.isZero())
         {
             Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
             m_modelState = ModelState::NoLoads;
             return;
         }
+
+
+
+        /*
 
         Logger::instance()->log(LogLevel::Info, "Solving system. Keeping LU factorisation.");
 
@@ -704,7 +667,12 @@ void BeamSolver::recompute()
 
         Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-        m_sparseSolver.solve(f, m_globalA, m_globalQ);
+        if (!m_sparseSolver.solve(f, m_globalA, m_globalQ))
+        {
+            Logger::instance()->log(LogLevel::Error, "Recompute solve failed");
+            m_modelState = ModelState::RecomputeFailed;
+            return;
+        }
 
         Logger::instance()->log(LogLevel::Info, "solveq done...");
 
@@ -875,7 +843,7 @@ void BeamSolver::update()
             Ep(0) = E;
             Ep(1) = A;
 
-            // bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci_b);
+            bar3s(Ex, Ey, Ez, Ep, Ed_b, eq, n, Es_b, Edi_b, Eci_b);
 
             int pos = 0;
 

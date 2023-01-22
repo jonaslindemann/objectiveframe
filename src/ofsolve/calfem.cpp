@@ -34,8 +34,8 @@ void bar3e(
     Matrix& Ke,
     ColVec& fe)
 {
-    double E = ep(1);
-    double A = ep(2);
+    double E = ep(0);
+    double A = ep(1);
 
     ColVec b(3);
     RowVec n(3);
@@ -115,17 +115,17 @@ void bar3s(
 
     for (int i = 1; i <= n; i++)
     {
-        eci(i) = (i - 1.0) * L / (n - 1.0);
-        double x = eci(i);
+        eci(i-1) = (i - 1.0) * L / (n - 1.0);
+        double x = eci(i-1);
         double up = -eq * (0.5 * pow(x, 2) - 0.5 * L * x) / E / A;
         double Np = -eq * (x - 0.5 * L);
 
         RowVec N(2);
         N << 1.0 - x / L, x / L;
 
-        edi(i) = N * ale + up; // [1 x 2] * [2 x 1]
-        es(i) = E * A * B * ale + Np;
-        eci(i) = x;
+        edi(i-1) = N * ale + up; // [1 x 2] * [2 x 1]
+        es(i-1) = E * A * B * ale + Np;
+        eci(i-1) = x;
     }
 }
 
@@ -346,9 +346,9 @@ void spy(const SpMatrix& matrix)
     }
 }
 
-std::vector<int> toZeroIndex(const std::vector<int>& vec)
+std::vector<Eigen::Index> toZeroIndex(const std::vector<Eigen::Index>& vec)
 {
-    std::vector<int> idx;
+    std::vector<Eigen::Index> idx;
 
     for (auto& dof : vec)
         idx.push_back(dof - 1);
@@ -356,7 +356,7 @@ std::vector<int> toZeroIndex(const std::vector<int>& vec)
     return idx;
 }
 
-void extractAllDofs(int nDofs, const std::vector<int>& bcDofs, std::vector<int>& freeDofs, std::vector<int>& allDofs)
+void extractAllDofs(Eigen::Index nDofs, const std::vector<Eigen::Index>& bcDofs, std::vector<Eigen::Index>& freeDofs, std::vector<Eigen::Index>& allDofs)
 {
     allDofs.clear();
     freeDofs.clear();
@@ -439,13 +439,13 @@ void assem(IntRowVec& Topo, Matrix& K, Matrix& Ke, ColVec& f, ColVec& fe)
     }
 }
 
-void solveq(const Matrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q)
+bool solveq(const Matrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q)
 {
     auto nDofs = K.rows();
 
-    std::vector<int> allDofsVec;
-    std::vector<int> freeDofsVec;
-    std::vector<int> bcDofsVec;
+    std::vector<Eigen::Index> allDofsVec;
+    std::vector<Eigen::Index> freeDofsVec;
+    std::vector<Eigen::Index> bcDofsVec;
 
     a.setZero();
 
@@ -472,6 +472,8 @@ void solveq(const Matrix& K, const ColVec& f, const IntColVec& bcDofs, const Col
     a(pind) = bcVals;
 
     Q = K * a - f;
+
+    return true;
 }
 
 void spassem(const IntRowVec& Topo, TripletList& Ktriplets, const Matrix& Ke, ColVec& f, const ColVec& fe)
@@ -494,13 +496,13 @@ void spassem(const IntRowVec& Topo, TripletList& Ktriplets, const Matrix& Ke, Co
     }
 }
 
-void spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q)
+bool spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q)
 {
     auto nDofs = K.rows();
 
-    std::vector<int> allDofsVec;
-    std::vector<int> freeDofsVec;
-    std::vector<int> bcDofsVec;
+    std::vector<Eigen::Index> allDofsVec;
+    std::vector<Eigen::Index> freeDofsVec;
+    std::vector<Eigen::Index> bcDofsVec;
 
     a.setZero();
 
@@ -530,13 +532,13 @@ void spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const
     auto ind = calfem::toZeroIndex(freeDofsVec);
     auto pind = calfem::toZeroIndex(bcDofsVec);
 
-    std::set<int> indSet(ind.begin(), ind.end());
-    std::set<int> pindSet(pind.begin(), pind.end());
+    std::set<Eigen::Index> indSet(ind.begin(), ind.end());
+    std::set<Eigen::Index> pindSet(pind.begin(), pind.end());
 
-    std::map<int, int> indMap;
-    std::map<int, int> pindMap;
+    std::map<Eigen::Index, Eigen::Index> indMap;
+    std::map<Eigen::Index, Eigen::Index> pindMap;
 
-    int i = 0;
+    Eigen::Index i = 0;
 
     for (auto& idx : ind)
         indMap[idx] = i++;
@@ -546,7 +548,7 @@ void spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const
     for (auto& idx : pind)
         pindMap[idx] = i++;
 
-    for (int k = 0; k < K.outerSize(); ++k)
+    for (Eigen::Index k = 0; k < K.outerSize(); ++k)
         for (SpMatrix::InnerIterator it(K, k); it; ++it)
         {
             auto v = it.value();
@@ -579,11 +581,13 @@ void spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const
 
     //Eigen::SparseLU<SpMatrix> solver; 
     Eigen::SimplicialLLT<SpMatrix> solver;
+
     solver.compute(Ksys);
+
     if (solver.info() != Eigen::Success)
     {
         std::cout << "Solver failed.\n";
-        return;
+        return false;
     }
     Eigen::VectorXd asys = solver.solve(fsys); 
 
@@ -599,6 +603,8 @@ void spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const
     a(pind) = bcVals;
 
     Q = K * a - f;
+
+    return true;
 }
 
 SparseSolver::SparseSolver()
@@ -610,7 +616,7 @@ std::shared_ptr<SparseSolver> SparseSolver::create()
     return std::make_shared<SparseSolver>();
 }
 
-void SparseSolver::setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVec& bcVals)
+bool SparseSolver::setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVec& bcVals)
 {
     m_K = &K;
     m_bcDofs = &bcDofs;
@@ -651,13 +657,13 @@ void SparseSolver::setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVe
     m_ind = calfem::toZeroIndex(m_freeDofsVec);
     m_pind = calfem::toZeroIndex(m_bcDofsVec);
 
-    std::set<int> indSet(m_ind.begin(), m_ind.end());
-    std::set<int> pindSet(m_pind.begin(), m_pind.end());
+    std::set<Eigen::Index> indSet(m_ind.begin(), m_ind.end());
+    std::set<Eigen::Index> pindSet(m_pind.begin(), m_pind.end());
 
-    std::map<int, int> indMap;
-    std::map<int, int> pindMap;
+    std::map<Eigen::Index, Eigen::Index> indMap;
+    std::map<Eigen::Index, Eigen::Index> pindMap;
 
-    int i = 0;
+    Eigen::Index i = 0;
 
     for (auto& idx : m_ind)
         indMap[idx] = i++;
@@ -690,14 +696,14 @@ void SparseSolver::setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVe
 
     std::cout << "Ksys non zeros = " << m_Ksys.nonZeros() << "\n";
     std::cout << "Ksys size = " << m_Ksys.rows() << "\n";
+
+    return true;
 }
 
-void SparseSolver::solve(const ColVec& f, ColVec& a, ColVec& Q)
+bool SparseSolver::solve(const ColVec& f, ColVec& a, ColVec& Q)
 {
     a.resize(m_nDofs);
     a.setZero();
-
-    
 
     for (auto i = 0; i < (*m_bcDofs).rows(); i++)
     {
@@ -718,7 +724,7 @@ void SparseSolver::solve(const ColVec& f, ColVec& a, ColVec& Q)
     if (m_solver.info() != Eigen::Success)
     {
         std::cout << "Solver failed.\n";
-        return;
+        return false;
     }
     m_asys = m_solver.solve(m_fsys);
 
@@ -726,9 +732,11 @@ void SparseSolver::solve(const ColVec& f, ColVec& a, ColVec& Q)
     a(m_pind) = (*m_bcVals);
 
     Q = (*m_K) * m_a - f;
+
+    return true;
 }
 
-void SparseSolver::recompute(const ColVec& f, ColVec& a, ColVec& Q)
+bool SparseSolver::recompute(const ColVec& f, ColVec& a, ColVec& Q)
 {
     a.resize(m_nDofs);
     a.setZero();
@@ -752,7 +760,7 @@ void SparseSolver::recompute(const ColVec& f, ColVec& a, ColVec& Q)
     if (m_solver.info() != Eigen::Success)
     {
         std::cout << "Solver failed.\n";
-        return;
+        return false;
     }
     m_asys = m_solver.solve(m_fsys);
 
@@ -760,6 +768,8 @@ void SparseSolver::recompute(const ColVec& f, ColVec& a, ColVec& Q)
     a(m_pind) = (*m_bcVals);
 
     Q = (*m_K) * m_a - f;
+
+    return true;
 }
 
 /*

@@ -6,9 +6,6 @@
 #include <filesystem>
 
 #include "GLFWApplication.h"
-#include "GLFWWindow.h"
-
-#include "IvfViewWindow.h"
 #include "FemView.h"
 
 static void error_callback(int error, const char* description)
@@ -33,8 +30,10 @@ int main(int argc, char** argv)
     std::string progPath = path.parent_path().string() + "\\";
 
     auto window = FemViewWindow::create(1280, 1024, "ObjectiveFrame");
+    window->setArguments(argc, argv);
     window->setProgramPath(progPath);
     window->setWindowIcon(progPath + "images\\logo.png");
+    window->maximize();
 
     app->addWindow(window);
 

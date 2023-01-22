@@ -188,6 +188,11 @@ void GLFWWindow::setWindowIcon(const std::string filename)
     stbi_image_free(images[0].pixels);
 }
 
+void GLFWWindow::maximize()
+{
+    glfwMaximizeWindow(m_window);
+}
+
 void GLFWWindow::draw()
 {
     this->makeCurrent();
@@ -197,8 +202,6 @@ void GLFWWindow::draw()
 
 void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 {
-    cout << "doKey: " << key << ", " << scancode << ", " << action << ", " << mods << endl;
-
     if (mods & GLFW_MOD_SHIFT)
         m_shiftDown = true;
     else
@@ -214,19 +217,11 @@ void GLFWWindow::doKey(int key, int scancode, int action, int mods)
     else
         m_altDown = false;
 
-    if (m_shiftDown)
-        cout << "Shift is pressed"
-             << "\n";
-    else
-        cout << "Shift is not pressed"
-             << "\n";
-
     onGlfwKey(key, scancode, action, mods);
 }
 
 void GLFWWindow::doMousePosition(double x, double y)
 {
-    //cout << "doMousePosition: " << x << ", " << y << endl;
     m_mouseX = int(x);
     m_mouseY = int(y);
     onGlfwMousePosition(x, y);
@@ -242,7 +237,6 @@ void GLFWWindow::doMouseButton(int button, int action, int mods)
 
 void GLFWWindow::doResize(int width, int height)
 {
-    cout << "doResize: " << width << ", " << height << endl;
     onGlfwResize(width, height);
 }
 

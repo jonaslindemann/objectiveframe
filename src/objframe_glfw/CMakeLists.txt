@@ -1,6 +1,8 @@
 file(GLOB SOURCE_FILES *.cpp)
 file(GLOB INCLUDE_FILES *.h) 
 
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include/ofui )
 	add_definitions(-DUSE_FEMVIEW)
@@ -8,7 +10,7 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 else()
 	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw)
 	add_definitions(-DUSE_FEMVIEW)
-	add_executable(objframe_glfw ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES})
+	add_executable(objframe_glfw WIN32 ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES} ${APP_ICON_RESOURCE_WINDOWS})
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)

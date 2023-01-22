@@ -11,7 +11,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "solver_interface.h"
+#include <ofsolve/solver_interface.h>
 
 namespace ofsolver
 {

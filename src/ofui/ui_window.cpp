@@ -121,7 +121,7 @@ void ofui::UiWindow::centerBottom()
 
 void ofui::UiWindow::setPosition(int x, int y)
 {
-
+    ImGui::SetNextWindowPos(ImVec2(float(x), float(y)));
 }
 
 void UiWindow::doPreDraw()

@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#undef GLAD_GL_IMPLEMENTATION
-#include <glad/glad.h>
+//#undef GLAD_GL_IMPLEMENTATION
+//#include <glad/glad.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -1277,8 +1277,6 @@ void IvfViewWindow::doMouse(int x, int y)
 
 void IvfViewWindow::doKeyboard(int key)
 {
-    cout << "doKeyboard()" << key << "\n";
-
     if (isShiftDown())
         m_scene->lockCursor();
     else

@@ -23,6 +23,8 @@ private:
     bool m_lockScaleFactor;
     bool m_showNodeNumbers;
     bool m_offscreenRendering;
+    bool m_sphereNodes;
+    int m_lineSides;
 
 #ifdef USE_FEMVIEW
     FemViewWindow* m_view;

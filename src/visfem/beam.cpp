@@ -1,6 +1,8 @@
 #include <vfem/beam.h>
 
 #include <ivfmath/Vec3d.h>
+#include <ivf/BlendState.h>
+#include <ivf/Blending.h>
 
 using namespace ivf;
 using namespace vfem;
@@ -21,10 +23,14 @@ Beam::Beam()
 
     // Set up the solid line
 
+    //auto blendState = ivf::BlendState::create();
+    //blendState->setFunction(GL_ONE, GL_ONE);
+
     m_solidLine = SolidLine::create();
     m_solidLine->setMaterial(m_beamMaterial);
     m_solidLine->setUseName(false);
     m_solidLine->setUseSelectShape(false);
+    //m_solidLine->setRenderState(blendState);
     this->addChild(m_solidLine);
 
     // Set up line set
@@ -144,7 +150,7 @@ void Beam::refresh()
                 if (m_femBeam->getMaterial() != nullptr)
                 {
                     m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
-                    m_beamMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+                    m_beamMaterial->setSpecularColor(0.0f, 0.0f, 0.0f, 0.0f);
                 }
                 else
                 {
@@ -191,6 +197,9 @@ void Beam::refresh()
                 m_solidLine->setOffsets(-m_beamModel->getNodeSize() * 2.0, -m_beamModel->getNodeSize() * 2.0);
                 m_solidLine->setStartOffsets(-m_beamModel->getNodeSize(), -m_beamModel->getNodeSize());
 
+                if (m_solidLine->getSides() != m_beamModel->getLineSides())
+                    m_solidLine->setSides(m_beamModel->getLineSides());
+
                 if (this->getBeam()->beamType() == ofem::btBar)
                 {
                     m_solidLine->setOffsets(-m_beamModel->getNodeSize() * 2.0, -m_beamModel->getNodeSize() * 2.0);
@@ -213,9 +222,19 @@ void Beam::refresh()
                         m_solidLine->setState(Shape::OS_ON);
                         m_beamTexture->activate();
                         m_beamTexture->setTextureModifier(1.0, 1.0 / m_solidLine->getLength(), 0.0);
-                        m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-                        m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
+                        if (m_beamModel->getUseBlending())
+                        {
+                            m_beamMaterial->setDiffuseColor(0.3f, 0.3f, 0.3f, 1.0f);
+                            m_beamMaterial->setAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+                        }
+                        else
+                        {
+                            m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+                            m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
+                        }
                         m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_VERTEX_MODEL_CYL);
+                        if (m_solidLine->getSides() != m_beamModel->getLineSides())
+                            m_solidLine->setSides(m_beamModel->getLineSides());
                         // m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_NORMAL_FLAT);
                         initResults();
                     }
@@ -251,7 +270,24 @@ void Beam::doCreateGeometry()
 {
     if (m_femBeam != nullptr)
     {
+        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT)&&(m_beamModel->getUseBlending()))
+        {
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glEnable(GL_BLEND);
+            glDisable(GL_LIGHTING);
+            glBlendFunc(GL_ONE, GL_ONE);
+            glDisable(GL_DEPTH_TEST);
+        }
+
         Composite::doCreateGeometry();
+
+        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending()))
+        {
+            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
+            glEnable(GL_LIGHTING);
+            glPopAttrib();
+        }
     }
 }
 
@@ -404,8 +440,19 @@ void Beam::initResults()
 {
     if (m_beamModel != nullptr)
     {
-        ColorMapPtr colorMapPos = m_beamModel->getColorMapPos();
-        ColorMapPtr colorMapNeg = m_beamModel->getColorMapNeg();
+        ColorMapPtr colorMapPos;
+        ColorMapPtr colorMapNeg;
+       
+        if (m_beamModel->getUseBlending())
+        {
+            colorMapPos = m_beamModel->getColorMapPosBlack();
+            colorMapNeg = m_beamModel->getColorMapNegBlack();        
+        }
+        else
+        {
+            colorMapPos = m_beamModel->getColorMapPos();
+            colorMapNeg = m_beamModel->getColorMapNeg();        
+        }
         ColorMapPtr colorMapStd = m_beamModel->getColorMapStd();
 
         if (m_femBeam != nullptr)

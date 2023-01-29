@@ -37,6 +37,11 @@ void ofem::CalfemWriter::beginArr(std::ostream& out, std::string name)
     out << name << " = np.array([\n";
 }
 
+void ofem::CalfemWriter::beginArr1D(std::ostream& out, std::string name)
+{
+    out << name << " = np.array(\n";
+}
+
 void ofem::CalfemWriter::arrRow(std::ostream& out, std::vector<float> v)
 {
     out << "\t" << fmt::format("{::g}", v) << ",\n";
@@ -57,6 +62,11 @@ void ofem::CalfemWriter::endArr(std::ostream& out)
     out << "])\n";
 }
 
+void ofem::CalfemWriter::endArr1D(std::ostream& out)
+{
+    out << ")\n";
+}
+
 void CalfemWriter::saveToStream(std::ostream& out)
 {
     writeHeader(out);
@@ -72,21 +82,23 @@ void CalfemWriter::saveToStream(std::ostream& out)
     if (femModel == NULL)
         return;
 
-    ElementSet* elementSet = femModel->getElementSet();
+    BeamSet* elementSet = femModel->getElementSet();
     NodeSet* nodeSet = femModel->getNodeSet();
     MaterialSet* materialSet = femModel->getMaterialSet();
     NodeBCSet* bcSet = femModel->getNodeBCSet();
     NodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
     ElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
 
-    /*
-    nodeSet->enumerateNodes(0);
-    materialSet->enumerateMaterials(0);
-    elementSet->enumerateElements(0);
-    nodeLoadSet->enumerateLoads(0);
-    elementLoadSet->enumerateLoads(0);
-    bcSet->enumerateBCs(0);
-    */
+    nodeSet->resetNodeKind(nkNotConnected);
+    elementSet->updateNodeKinds();
+
+    nodeSet->enumerateNodes();
+    materialSet->enumerateMaterials();
+    elementSet->enumerateElements();
+    nodeLoadSet->enumerateLoads();
+    elementLoadSet->enumerateLoads();
+    bcSet->enumerateBCs();
+    int nDofs = nodeSet->enumerateDofs() - 1;
 
     //
     // Write materials
@@ -110,33 +122,104 @@ void CalfemWriter::saveToStream(std::ostream& out)
     // Write elements
     //
 
-    out << "\n# ---- Elements\n"
+    out << "\n# ---- Beam material idx\n"
         << endl;
 
-    beginArr(out, "beam_topo");
+    std::vector<int> matIdx;
+
+    beginArr1D(out, "beam_mat_idx");
 
     for (i = 0; i < elementSet->getSize(); i++)
     {
         Beam* element = (Beam*)elementSet->getElement(i);
         if (element->beamType() == btBeam)
-            arrRow(out, vector<int> { element->getNode(0)->getNumber() - 1, element->getNode(1)->getNumber() - 1, element->getMaterial()->getNumber() - 1 });
+            matIdx.emplace_back(element->getMaterial()->getNumber() - 1);
     }
 
-    endArr(out);
+    arrRow(out, matIdx);
+
+    endArr1D(out);
     out << "\n";
 
-    beginArr(out, "bar_topo");
+    out << "\n# ---- Bar material idx\n"
+        << endl;
+
+    matIdx.clear();
+
+    beginArr1D(out, "bar_mat_idx");
 
     for (i = 0; i < elementSet->getSize(); i++)
     {
         Beam* element = (Beam*)elementSet->getElement(i);
         if (element->beamType() == btBar)
-            arrRow(out, vector<int> { element->getNode(0)->getNumber() - 1, element->getNode(1)->getNumber() - 1, element->getMaterial()->getNumber() - 1 });
+            matIdx.emplace_back(element->getMaterial()->getNumber() - 1);
+    }
+
+    arrRow(out, matIdx);
+
+    endArr1D(out);
+    out << "\n";
+
+    //
+    // Write Beam edof
+    //
+
+    vector<int> dofRow;
+
+    out << "\n# ---- Beam Edof\n"
+        << endl;
+
+    beginArr(out, "edof_beams");
+
+    for (i = 0; i < elementSet->getSize(); i++)
+    {
+        Beam* element = (Beam*)elementSet->getElement(i);
+        if (element->beamType() == btBeam)
+        {
+            dofRow.clear();
+
+            for (j = 0; j < 6; j++)
+                dofRow.emplace_back(element->getNode(0)->getDof(j)->getNumber());
+
+            for (j = 0; j < 6; j++)
+                dofRow.emplace_back(element->getNode(1)->getDof(j)->getNumber());
+
+            arrRow(out, dofRow);
+        }
+    }
+
+    endArr(out);
+    out << "\n";       
+
+    //
+    // Write Bar edof
+    //
+
+    out << "\n# ---- Bar Edof\n"
+        << endl;
+
+    beginArr(out, "edof_bars");
+
+    for (i = 0; i < elementSet->getSize(); i++)
+    {
+        Beam* element = (Beam*)elementSet->getElement(i);
+        if (element->beamType() == btBar)
+        {
+            dofRow.clear();
+
+            for (j = 0; j < 3; j++)
+                dofRow.emplace_back(element->getNode(0)->getDof(j)->getNumber());
+
+            for (j = 0; j < 3; j++)
+                dofRow.emplace_back(element->getNode(1)->getDof(j)->getNumber());
+
+            arrRow(out, dofRow);
+        }
     }
 
     endArr(out);
     out << "\n";
-
+   
     //
     // Write node coordinates
     //
@@ -144,7 +227,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
     out << "\n# ----- Nodes\n"
         << endl;
 
-    beginArr(out, "node_coords");
+    beginArr(out, "coords");
 
     for (i = 0; i < nodeSet->getSize(); i++)
     {
@@ -154,6 +237,51 @@ void CalfemWriter::saveToStream(std::ostream& out)
     }
 
     endArr(out);
+    out << "\n";
+
+    // 
+    // Write node dofs
+    //
+
+    beginArr(out, "dofs_beams");
+
+    std::vector<int> dofs;
+
+    for (i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+
+        dofs.clear();
+
+        for (j = 0; j < 6; j++)
+            dofs.emplace_back(node->getDof(j)->getNumber());
+
+        arrRow(out, dofs);
+    }
+
+    endArr(out);
+    out << "\n";
+
+    //
+    // Write node dofs
+    //
+
+    beginArr(out, "dofs_bars");
+
+    for (i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+
+        dofs.clear();
+
+        for (j = 0; j < 3; j++)
+            dofs.emplace_back(node->getDof(j)->getNumber());
+
+        arrRow(out, dofs);
+    }
+
+    endArr(out);
+    out << "\n";
 
     //
     // Write specified local z axis

@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-//#undef GLAD_GL_IMPLEMENTATION
-//#include <glad/glad.h>
+// #undef GLAD_GL_IMPLEMENTATION
+// #include <glad/glad.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -94,7 +94,7 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
         if (m_currentModifier == ButtonState::bsShift)
             doShortcut(ModifierKey::mkShift, key);
         if (m_currentModifier == ButtonState::bsCtrl)
-            doShortcut(ModifierKey::mkCtrl, key); 
+            doShortcut(ModifierKey::mkCtrl, key);
         if (m_currentModifier == ButtonState::bsAlt)
             doShortcut(ModifierKey::mkAlt, key);
     }
@@ -587,6 +587,26 @@ void IvfViewWindow::addSelection(ivf::Shape* shape)
     redraw();
 }
 
+bool IvfViewWindow::selectionContains(std::string shapeName)
+{
+    for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+        if (m_selectedShapes->getChild(i)->isClass(shapeName))
+            return true;
+
+    return false;
+}
+
+int IvfViewWindow::selectionShapeCount(std::string shapeName)
+{
+    int count = 0;
+
+    for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+        if (m_selectedShapes->getChild(i)->isClass(shapeName))
+            count++;
+
+    return count;
+}
+
 Camera* IvfViewWindow::getCamera()
 {
     return m_camera;
@@ -620,7 +640,7 @@ void IvfViewWindow::updateCursor(int x, int y)
         {
             m_yzPlane.setPlaneOrigin(pos.getComponents());
             m_yzPlane.setOrigin(o.getComponents());
-            ip = m_yzPlane.intersect(v.getComponents());        
+            ip = m_yzPlane.intersect(v.getComponents());
         }
 
         m_scene->updateCursor(ip.x, ip.y, ip.z);
@@ -876,7 +896,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
     ofmath::GridPlane gp;
 
-    //m_scene->updateCursor(x, y);
+    // m_scene->updateCursor(x, y);
     this->updateCursor(x, y);
 
     if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled))
@@ -912,7 +932,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     {
         double wx, wy, wz;
         Vec3d pos;
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(wx, wy, wz);
@@ -923,7 +943,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     if (getEditMode() == WidgetMode::Move)
     {
         double wx, wy, wz;
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(wx, wy, wz);
@@ -962,7 +982,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
     if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
     {
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         double vx, vy, vz;
         auto pos = m_scene->getCurrentPlane()->getCursorPosition();
@@ -1065,7 +1085,7 @@ void IvfViewWindow::doMotion(int x, int y)
 
     if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         double x, y, z;
         double dx, dy, dz;
@@ -1152,7 +1172,7 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
@@ -1176,7 +1196,7 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
@@ -1190,7 +1210,7 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        //m_scene->updateCursor(x, y);
+        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);

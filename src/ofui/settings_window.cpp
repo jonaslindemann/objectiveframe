@@ -19,8 +19,10 @@ SettingsWindow::SettingsWindow(const std::string name)
     , m_view { nullptr }
     , m_scaleFactor { 1.0f }
     , m_lockScaleFactor { false }
-    , m_showNodeNumbers { false }
+    , m_showNodeNumbers { true }
     , m_uiScale { 1.0f }
+    , m_lineSides { 6 }
+    , m_sphereNodes { true }
 {
 }
 
@@ -39,6 +41,11 @@ void ofui::SettingsWindow::setFemView(FemViewWindow* view)
     m_scaleFactor = float(m_view->getScalefactor());
     m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_view->getModel())->showNodeNumbers();
     m_uiScale = m_view->uiScale();
+    m_lineSides = static_cast<vfem::BeamModel*>(m_view->getModel())->getLineSides();
+    if (static_cast<vfem::BeamModel*>(m_view->getModel())->getNodeRepr() == ivf::Node::NT_SPHERE)
+        m_sphereNodes = true;
+    else
+        m_sphereNodes = false;
 }
 #else
 void SettingsWindow::setFemWidget(FemWidget* femWidget)
@@ -66,6 +73,18 @@ void SettingsWindow::update()
     m_offscreenRendering = m_view->offscreenRendering();
 #endif
     static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
+    static_cast<vfem::BeamModel*>(m_view->getModel())->setLineSides(m_lineSides);
+
+    if (m_sphereNodes)
+    {
+        static_cast<vfem::BeamModel*>(m_view->getModel())->setNodeRepr(ivf::Node::NT_SPHERE);
+        m_view->setSphereCursor(true);
+    }
+    else
+    {
+        static_cast<vfem::BeamModel*>(m_view->getModel())->setNodeRepr(ivf::Node::NT_CUBE);
+        m_view->setSphereCursor(false);
+    }
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
@@ -85,6 +104,8 @@ void SettingsWindow::doDraw()
     ImGui::SliderFloat("Node size (%)", &m_nodeSize, 0.1f, 2.0f);
     ImGui::SliderFloat("Line radius (%)", &m_lineRadius, 0.1f, 2.0f);
     ImGui::SliderFloat("Load size (%)", &m_loadSize, 1.0f, 10.0f);
+    ImGui::SliderInt("Line sides", &m_lineSides, 4, 12);
+    ImGui::Checkbox("Sphere nodes", &m_sphereNodes);
 
     ImGui::Separator();
 

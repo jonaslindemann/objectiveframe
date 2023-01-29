@@ -24,17 +24,22 @@ BeamModel::BeamModel()
     : ofem::BeamModel()
 {
     m_nodeSize = 1.0;
-    m_nodeType = ivf::Node::NT_CUBE;
+    m_nodeType = IVF_NODE_GEOMETRY;
     m_lineRadius = 1.0;
     m_loadSize = 1.0;
     m_beamLoadSize = 1.0;
     m_scaleFactor = 1.0;
+    m_lineSides = 6;
+    m_nodeRepr = ivf::Node::NT_CUBE;
 
     m_colorTable = new vfem::ColorTable();
 
     m_colorMapPos = ColorMap::create();
     m_colorMapNeg = ColorMap::create();
     m_colorMapStd = ColorMap::create();
+
+    m_colorMapPosBlack = ColorMap::create();
+    m_colorMapNegBlack = ColorMap::create();
 
     //m_resultInfo = new ResultInfo();
 
@@ -48,6 +53,8 @@ BeamModel::BeamModel()
     m_showNodeNumbers = false;
     m_showElementNumbers = false;
     m_camera = nullptr;
+
+    m_useBlending = false;
 }
 
 BeamModel::~BeamModel()
@@ -88,6 +95,10 @@ void BeamModel::generateModel()
     m_colorMapPos->open("red.map");
     m_colorMapNeg->open("blue.map");
     m_colorMapStd->open("colormap11.map");
+
+    m_colorMapPosBlack->open("red_black.map");
+    m_colorMapNegBlack->open("blue_black.map");
+
 
     // Temporary lists
 
@@ -226,6 +237,11 @@ void BeamModel::setLineSides(int sides)
     m_lineSides = sides;
 }
 
+int vfem::BeamModel::getLineSides()
+{
+    return m_lineSides;
+}
+
 void BeamModel::setNodeMaterial(ivf::Material* material)
 {
     m_nodeMaterial = material;
@@ -353,6 +369,16 @@ ColorMapPtr BeamModel::getColorMapPos()
     return m_colorMapPos;
 }
 
+ColorMapPtr vfem::BeamModel::getColorMapNegBlack()
+{
+    return m_colorMapNegBlack;
+}
+
+ColorMapPtr vfem::BeamModel::getColorMapPosBlack()
+{
+    return m_colorMapPosBlack;
+}
+
 ColorMapPtr BeamModel::getColorMapNeg()
 {
     return m_colorMapNeg;
@@ -373,6 +399,26 @@ double BeamModel::getScaleFactor()
     return m_scaleFactor;
 }
 
+void vfem::BeamModel::setNodeRepr(ivf::Node::TNodeType type)
+{
+    m_nodeRepr = type;
+}
+
+ivf::Node::TNodeType vfem::BeamModel::getNodeRepr()
+{
+    return m_nodeRepr;
+}
+
+void vfem::BeamModel::setUseBlending(bool flag)
+{
+    m_useBlending = flag;
+}
+
+bool vfem::BeamModel::getUseBlending()
+{
+    return m_useBlending;
+}
+
 double BeamModel::getBeamLoadSize()
 {
     return m_beamLoadSize;
@@ -389,5 +435,7 @@ void BeamModel::setPath(const std::string& path)
     m_colorMapPos->setPath(m_colorMapPath);
     m_colorMapNeg->setPath(m_colorMapPath);
     m_colorMapStd->setPath(m_colorMapPath);
+    m_colorMapPosBlack->setPath(m_colorMapPath);
+    m_colorMapNegBlack->setPath(m_colorMapPath);
 }
 

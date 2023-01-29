@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.0-rc3";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.0-rc4";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2023\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -65,6 +65,7 @@ constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 #include <ofui/plugin_prop_window.h>
 #include <ofui/scale_window.h>
 #include <ofui/about_window.h>
+#include <ofui/prop_window.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -221,7 +222,10 @@ private:
     ivf::SpherePtr m_sphere;
     ivf::ExtrArrowPtr m_tactileForce;
 
-    ivf::SpherePtr m_nodeCursor;
+    ivf::ShapePtr m_nodeCursor;
+
+    ivf::SpherePtr m_sphereCursor;
+    ivf::CubePtr m_cubeCursor;
 
     ivf::CompositePtr m_textLayer;
     ivf::BitmapFontPtr m_labelFont;
@@ -246,11 +250,13 @@ private:
     PlaneButton* m_prevButton;
 
     bool m_hintFinished;
+    bool m_useSphereCursor;
+    bool m_useBlending;
 
     // Dialogs
 
     ofui::CoordWindowPtr m_coordWindow;
-    ofui::NodePropWindowPtr m_nodePropWindow;
+    //ofui::NodePropWindowPtr m_nodePropWindow;
     ofui::NewModelPopupPtr m_newModelPopup;
     ofui::MessagePopupPtr m_messagePopup;
     ofui::NodeBCsWindowPtr m_nodeBCsWindow;
@@ -259,12 +265,13 @@ private:
     ofui::SettingsWindowPtr m_settingsWindow;
     ofui::ElementLoadsWindowPtr m_elementLoadsWindow;
     ofui::MaterialsWindowPtr m_materialsWindow;
-    ofui::ElementPropWindowPtr m_elementPropWindow;
+    //ofui::ElementPropWindowPtr m_elementPropWindow;
     ofui::LogWindowPtr m_logWindow;
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
     ofui::ScaleWindowPtr m_scaleWindow;
     ofui::AboutWindowPtr m_aboutWindow;
+    ofui::PropWindowPtr m_propWindow;
 
     bool m_showStyleEditor;
     bool m_showMetricsWindow;
@@ -349,6 +356,12 @@ public:
     void setTactileForce(ivf::ExtrArrowPtr force);
     void setInteractionNode(vfem::Node* interactionNode);
     vfem::NodePtr getInteractionNode();
+
+    void setSphereCursor(bool flag);
+    bool getSphereCursor();
+
+    void setUseBlending(bool flag);
+    bool getUseBlending();
 
     float uiScale();
     void setUiScale(float scale);

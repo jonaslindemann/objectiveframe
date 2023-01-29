@@ -26,10 +26,13 @@ public:
     void writeHeader(std::ostream& out);
     void writeImports(std::ostream& out);
     void beginArr(std::ostream& out, std::string name);
+    void beginArr1D(std::ostream& out, std::string name);
     void arrRow(std::ostream& out, std::vector<float> v);
     void arrRow(std::ostream& out, std::vector<int> v);
     void arrRow(std::ostream& out, std::vector<double> v);
     void endArr(std::ostream& out);
+    void endArr1D(std::ostream& out);
+
 
     virtual void saveToStream(std::ostream& out) override;
 };

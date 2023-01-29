@@ -15,3 +15,4 @@ src/fmt/
 bin/objframe
 
 build/
+*.pyc

@@ -1,9 +1,5 @@
 #include "FemView.h"
 
-// #ifdef WIN32
-// #include "resource.h"
-// #endif
-
 #include <filesystem>
 #include <functional>
 #include <sstream>
@@ -503,6 +499,9 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_selectedPos[0] = 0.0;
     m_selectedPos[1] = 0.0;
     m_selectedPos[2] = 0.0;
+
+    m_useSphereCursor = false;
+    m_useBlending = false;
 
     m_tactileForceValue = 1000.0;
 
@@ -1113,8 +1112,9 @@ void FemViewWindow::restoreLastSnapShot()
 
     // Update dialogs
 
-    m_nodePropWindow->setNode(nullptr);
-    m_elementPropWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setSelectedShapes(nullptr);
 
     // Add tactile force
 
@@ -1162,8 +1162,9 @@ void FemViewWindow::revertLastSnapShot()
 
     // Update dialogs
 
-    m_nodePropWindow->setNode(nullptr);
-    m_elementPropWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setSelectedShapes(nullptr);
 
     // Add tactile force
 
@@ -1215,8 +1216,9 @@ void FemViewWindow::open(std::string filename)
 
     // Update dialogs
 
-    m_nodePropWindow->setNode(nullptr);
-    m_elementPropWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setSelectedShapes(nullptr);
 
     // Add tactile force
 
@@ -1234,6 +1236,8 @@ void FemViewWindow::open(std::string filename)
     m_currentSolver = nullptr;
 
     this->setEditMode(WidgetMode::Select);
+
+    this->setUseBlending(false); 
 }
 
 void FemViewWindow::open()
@@ -1245,34 +1249,7 @@ void FemViewWindow::open()
     auto filename = openFileDialog();
 
     if (filename != "")
-    {
         this->open(filename);
-    }
-
-    // Prompt for a filename
-
-    /*
-
-    Fl_Native_File_Chooser fnfc;
-    fnfc.title("Open file");
-    fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
-    fnfc.filter("ObjectiveFrame\t*.df3\n");
-    fnfc.directory(""); // default directory to use
-
-    int result = fnfc.show();
-
-    // char* fname = fl_file_chooser("Open file", "*.df3", "");
-
-    // If we have a filename we try to open.
-
-    if (result == 0)
-    {
-        // Change filename and erase previous model/scene
-
-        std::string filename = fnfc.filename();
-        this->open(filename);
-    }
-    */
 }
 
 void FemViewWindow::openScript()
@@ -1347,28 +1324,15 @@ void FemViewWindow::showProperties()
     this->onSelect(this->getSelectedShapes());
 
     if (m_nodeSelection || m_singleNodeSelection)
-        m_nodePropWindow->show();
+    {
+        m_propWindow->show();
+    }
 
     if (m_elementSelection || m_singleElementSelection)
-        m_elementPropWindow->show();
-
-    /*
-    if (this->getSelectedShape() != nullptr)
     {
-            if (this->getSelectedShape()->isClass("vfem::Node"))
-            {
-                    m_nodePropWindow->align(3);
-                    m_nodePropWindow->setVisible(true);
-            }
-
-            if (this->getSelectedShape()->isClass("vfem::Beam"))
-            {
-                    m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(this->getSelectedShape()));
-                    m_elementPropWindow->setVisible(true);
-            }
+        m_propWindow->show();
     }
-    else
-    */
+
     if ((!m_nodeSelection) && (!m_elementSelection))
     {
         m_consoleWindow->clear();
@@ -1443,8 +1407,8 @@ void FemViewWindow::newModel()
 
     // Initialize dialogs
 
-    m_nodePropWindow->setNode(nullptr);
-    m_elementPropWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    m_propWindow->setBeam(nullptr);
 
     // Add tactile force
 
@@ -1457,9 +1421,19 @@ void FemViewWindow::newModel()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_nodeCursor = Sphere::create();
-    m_nodeCursor->setMaterial(m_nodeMaterial);
-    m_nodeCursor->setRadius(m_beamModel->getNodeSize());
+    m_sphereCursor = Sphere::create();
+    m_sphereCursor->setMaterial(m_nodeMaterial);
+    m_sphereCursor->setRadius(m_beamModel->getNodeSize());
+
+    m_cubeCursor = Cube::create();
+    m_cubeCursor->setMaterial(m_nodeMaterial);
+    m_cubeCursor->setSize(m_beamModel->getNodeSize() * 1.5);
+
+    if (m_useSphereCursor)
+        m_nodeCursor = m_sphereCursor;
+    else
+        m_nodeCursor = m_cubeCursor;
+
     this->getScene()->setCursorShape(m_nodeCursor);
 
     this->getScene()->addChild(m_tactileForce);
@@ -1469,6 +1443,8 @@ void FemViewWindow::newModel()
     m_currentSolver = nullptr;
 
     this->setEditMode(WidgetMode::ViewZoom);
+
+    this->setUseBlending(false);
 
     // Update screen
 
@@ -1549,9 +1525,9 @@ void FemViewWindow::deleteSelected()
 
     this->snapShot();
 
-    m_elementPropWindow->setBeam(nullptr);
-    m_nodePropWindow->setNode(nullptr);
-
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    
     setDeleteFilter(DeleteMode::Elements);
     deleteSelectedKeep();
     setDeleteFilter(DeleteMode::Nodes);
@@ -1888,19 +1864,6 @@ void FemViewWindow::setupOverlay()
 
 void FemViewWindow::setupScripting()
 {
-    /*
-    // Add math library to script environment
-
-    auto mathlib = chaiscript::extras::math::bootstrap();
-    m_chai.add(mathlib);
-
-    // Bind ObjectiveFrame specific functions
-
-    m_chai.add(chaiscript::fun(&FemView::addNode, this), "addNode");
-    m_chai.add(chaiscript::fun(&FemView::newModel, this), "newModel");
-    m_chai.add(chaiscript::fun(&FemView::addBeam, this), "addBeam");
-    m_chai.add(chaiscript::fun(&FemView::nodeCount, this), "nodeCount");
-    */
 }
 
 void FemViewWindow::setupScript(chaiscript::ChaiScript& script)
@@ -2377,6 +2340,56 @@ vfem::NodePtr FemViewWindow::getInteractionNode()
     return m_interactionNode;
 }
 
+void FemViewWindow::setSphereCursor(bool flag)
+{
+    m_useSphereCursor = flag;
+    if (m_useSphereCursor)
+    {
+        m_nodeCursor = m_sphereCursor;
+        m_beamModel->setNodeRepr(ivf::Node::NT_SPHERE);
+    }
+    else
+    {
+        m_nodeCursor = m_cubeCursor;
+        m_beamModel->setNodeRepr(ivf::Node::NT_CUBE);
+    }
+
+    this->getScene()->setCursorShape(m_nodeCursor); 
+}
+
+bool FemViewWindow::getSphereCursor()
+{
+    return m_useSphereCursor;
+}
+
+void FemViewWindow::setUseBlending(bool flag)
+{
+    m_useBlending = flag;
+
+    if (m_useBlending)
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    else
+        glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+
+    if (m_useBlending)
+    {
+        m_beamModel->setUseBlending(true);
+        this->getScene()->getCurrentPlane()->setState(ivf::Shape::OS_OFF);
+        this->getScene()->setRenderFlatShadow(false);
+    }
+    else
+    {
+        m_beamModel->setUseBlending(false);
+        this->getScene()->getCurrentPlane()->setState(ivf::Shape::OS_ON);
+        this->getScene()->setRenderFlatShadow(true);
+    }
+}
+
+bool FemViewWindow::getUseBlending()
+{
+    return m_useBlending;
+}
+
 float FemViewWindow::uiScale()
 {
     return m_uiScale;
@@ -2641,12 +2654,12 @@ void FemViewWindow::onInit()
     this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
     this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(false);
     this->getScene()->getCurrentPlane()->getGrid()->setUseOutline(true);
-    this->getScene()->getCurrentPlane()->getGrid()->setMajorColor(0.2f, 0.2f, 0.4f, 1.0f);
-    this->getScene()->getCurrentPlane()->getGrid()->setMinorColor(0.3f, 0.3f, 0.5f, 1.0f);
-    this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2f, 0.2f, 0.4f, 1.0f);
-    this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.4f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setMajorColor(0.2f, 0.2f, 0.2f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setMinorColor(0.3f, 0.3f, 0.3f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2f, 0.2f, 0.2f, 1.0f);
+    this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.2f, 1.0f);
     this->getScene()->setRenderFlatShadow(true);
-    this->getScene()->setShadowColor(0.2f, 0.2f, 0.4f);
+    this->getScene()->setShadowColor(0.2f, 0.2f, 0.2f);
     this->getScene()->setShadowPrePost(false, false);
 
     // Label rendering setup
@@ -2813,9 +2826,19 @@ void FemViewWindow::onInit()
     m_tactileForce->setState(Shape::OS_OFF);
     this->getScene()->addChild(m_tactileForce);
 
-    m_nodeCursor = Sphere::create();
-    m_nodeCursor->setMaterial(m_nodeMaterial);
-    m_nodeCursor->setRadius(m_beamModel->getNodeSize());
+    m_sphereCursor = Sphere::create();
+    m_sphereCursor->setMaterial(m_nodeMaterial);
+    m_sphereCursor->setRadius(m_beamModel->getNodeSize());
+
+    m_cubeCursor = Cube::create();
+    m_cubeCursor->setMaterial(m_nodeMaterial);
+    m_cubeCursor->setSize(m_beamModel->getNodeSize() * 1.5);
+
+    if (m_useSphereCursor)
+        m_nodeCursor = m_sphereCursor;
+    else
+        m_nodeCursor = m_cubeCursor;
+
     this->getScene()->setCursorShape(m_nodeCursor);
 
     // Create ImGui interface
@@ -2824,10 +2847,6 @@ void FemViewWindow::onInit()
     m_showMetricsWindow = false;
     m_showNewFileDlg = false;
     m_coordWindow = CoordWindow::create("Coord window");
-
-    m_nodePropWindow = NodePropWindow::create("Node properties");
-    m_nodePropWindow->setView(this);
-    m_nodePropWindow->setVisible(false);
 
     m_newModelPopup = NewModelPopup::create("Workspace", true);
     m_messagePopup = MessagePopup::create("Message", true);
@@ -2856,10 +2875,6 @@ void FemViewWindow::onInit()
     m_materialsWindow->setFemView(this);
     m_materialsWindow->setVisible(false);
 
-    m_elementPropWindow = ElementPropWindow::create("Element properties");
-    m_elementPropWindow->setView(this);
-    m_elementPropWindow->setVisible(false);
-
     m_pluginWindow = PluginPropWindow::create("Plugin properties");
     m_pluginWindow->setView(this);
     m_pluginWindow->setVisible(false);
@@ -2875,6 +2890,10 @@ void FemViewWindow::onInit()
     m_aboutWindow->setAuthor1(OBJFRAME_AUTHOR1);
     m_aboutWindow->setAuthor2(OBJFRAME_AUTHOR2);
     m_aboutWindow->setVisible(false);
+
+    m_propWindow = PropWindow::create("Properties");
+    m_propWindow->setView(this);
+    m_propWindow->setVisible(false);
 
     // Set initial edit mode
 
@@ -2997,10 +3016,9 @@ void FemViewWindow::onSelect(Composite* selectedShapes)
         m_singleNodeSelection = false;
         m_singleElementSelection = false;
 
-        m_nodePropWindow->setNode(nullptr);
-        m_nodePropWindow->setSelectedShapes(nullptr);
-
-        m_elementPropWindow->setBeam(nullptr);
+        m_propWindow->setNode(nullptr);
+        m_propWindow->setBeam(nullptr);
+        m_propWindow->setSelectedShapes(nullptr);
 
         // Update dialogs with new selection
 
@@ -3012,14 +3030,13 @@ void FemViewWindow::onSelect(Composite* selectedShapes)
                 m_selectedShape = firstShape;
                 if (firstShape->isClass("vfem::Node"))
                 {
-                    // m_dlgNodeProp->setNode(static_cast<VisFemNode*>(firstShape));
-                    m_nodePropWindow->setNode(static_cast<vfem::Node*>(firstShape));
+                    m_propWindow->setNode(static_cast<vfem::Node*>(firstShape));
                     m_singleNodeSelection = true;
                 }
                 if (firstShape->isClass("vfem::Beam"))
                 {
-                    m_elementPropWindow->setSelectedShapes(nullptr);
-                    m_elementPropWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
+                    m_propWindow->setSelectedShapes(nullptr);
+                    m_propWindow->setBeam(static_cast<vfem::Beam*>(firstShape));
 
                     m_singleElementSelection = true;
                 }
@@ -3035,9 +3052,9 @@ void FemViewWindow::onSelect(Composite* selectedShapes)
                         m_elementSelection = true;
                 }
 
-                m_nodePropWindow->setSelectedShapes(selectedShapes);
-                m_elementPropWindow->setSelectedShapes(selectedShapes);
-                m_elementPropWindow->setBeam(nullptr);
+                m_propWindow->setSelectedShapes(selectedShapes);
+                m_propWindow->setNode(nullptr);
+                m_propWindow->setBeam(nullptr);
 
                 m_mixedSelection = m_nodeSelection && m_elementSelection;
             }
@@ -3163,16 +3180,19 @@ void FemViewWindow::onMoveCompleted()
 
 void FemViewWindow::onUnderlay()
 {
-    glBegin(GL_QUADS);
-    glColor4f(0.6f, 0.6f, 0.7f, 1.0f);
-    glVertex2i(0, 0);
-    glColor4f(0.2f, 0.2f, 0.4f, 1.0f);
-    glVertex2f(0.0f, float(height()));
-    glColor4f(0.2f, 0.2f, 0.4f, 1.0f);
-    glVertex2f(float(width()), float(height()));
-    glColor4f(0.6f, 0.6f, 0.7f, 1.0f);
-    glVertex2f(float(width()), 0.0f);
-    glEnd();
+    if (!m_useBlending)
+    {
+        glBegin(GL_QUADS);
+        glColor4f(0.7f, 0.7f, 0.7f, 1.0f);
+        glVertex2i(0, 0);
+        glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+        glVertex2f(0.0f, float(height()));
+        glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+        glVertex2f(float(width()), float(height()));
+        glColor4f(0.7f, 0.7f, 0.7f, 1.0f);
+        glVertex2f(float(width()), 0.0f);
+        glEnd();
+    }
 }
 
 void FemViewWindow::onOverlay()
@@ -3210,7 +3230,10 @@ void FemViewWindow::onInitContext()
     IvfViewWindow::onInitContext();
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_LINE_SMOOTH);
-    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+    if (m_useBlending)
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    else
+        glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -3380,9 +3403,9 @@ void FemViewWindow::onDeSelect()
 {
     log("onDeSelect");
 
-    m_nodePropWindow->setNode(nullptr);
-    m_nodePropWindow->setSelectedShapes(nullptr);
-    m_elementPropWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setSelectedShapes(nullptr);
 
     if (m_customMode == CustomMode::Feedback)
     {
@@ -3638,18 +3661,6 @@ void FemViewWindow::onOverButton(int objectName, PlaneButton* button)
 
 void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 {
-    // if (key == FL_Delete)
-    //     this->deleteSelected();
-
-    // if (key == FL_Escape)
-    //{
-    //     m_editButtons->clearChecked();
-    //     m_objectButtons->clearChecked();
-    //     m_editButtons->check(0);
-    //     this->setEditMode(WidgetMode::Select);
-    //     this->redraw();
-    // }
-
     if ((modifier == ModifierKey::mkCtrl) && (key == 'O'))
         this->open();
 
@@ -3744,12 +3755,15 @@ void FemViewWindow::onHighlightFilter(Shape* shape, bool& highlight)
 
 void FemViewWindow::onKeyboard(int key)
 {
+    std::cout << "onKeyboard: " << key << "\n";
+
     if (key == 256)
     {
         m_editButtons->clearChecked();
         m_objectButtons->clearChecked();
         m_editButtons->check(0);
         this->setEditMode(WidgetMode::Select);
+        this->setUseBlending(false);
         this->redraw();
     }
 
@@ -3762,35 +3776,16 @@ void FemViewWindow::onKeyboard(int key)
     if (key == 66)
         this->setEditMode(WidgetMode::CreateLine);
 
-    // if (key == 122)
-    //     this->setEditMode(WidgetMode::ViewPan);
+    if (key == 88)
+    {
+        if (this->getUseBlending())
+            this->setUseBlending(false);
+        else
+            this->setUseBlending(true);
+    }
 
     if (key == 261)
         this->deleteSelected();
-
-    /*
-
-    case ToolbarButton::Select:
-            m_editButtons->check(0);
-            this->setEditMode(WidgetMode::Select);
-            break;
-    case ToolbarButton::Move:
-            m_editButtons->check(1);
-            this->setEditMode(WidgetMode::Move);
-            break;
-    case ToolbarButton::CreateNode:
-            m_editButtons->check(0);
-            this->setEditMode(WidgetMode::CreateNode);
-            break;
-    case ToolbarButton::CreateBeam:
-            m_objectButtons->check(1);
-            this->setEditMode(WidgetMode::CreateLine);
-            break;
-    case ToolbarButton::Feedback:
-            m_editButtons->check(4);
-            this->setCustomMode(CustomMode::Feedback);
-
-    */
 }
 
 void FemViewWindow::onClipboardCreateNode(double x, double y, double z)
@@ -3818,8 +3813,6 @@ void FemViewWindow::onDrawImGui()
     bool runScriptDialog = false;
     bool snapShot = false;
     bool restoreLastSnapShot = false;
-
-    m_consoleWindow->setPosition(0, 0);
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -3903,22 +3896,17 @@ void FemViewWindow::onDrawImGui()
         }
         if (ImGui::BeginMenu("View"))
         {
-            if (ImGui::MenuItem("Node properties...", ""))
+            if (ImGui::MenuItem("Properties...", ""))
             {
-                m_nodePropWindow->align(3);
-                m_nodePropWindow->setVisible(true);
-            }
-
-            if (ImGui::MenuItem("Element properties...", ""))
-            {
-                m_elementPropWindow->align(3);
-                m_elementPropWindow->setVisible(true);
+                m_propWindow->align(0);
+                m_propWindow->setVisible(true);
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Settings...", ""))
             {
+                m_settingsWindow->align(1);
                 m_settingsWindow->show();
             }
 
@@ -3958,6 +3946,7 @@ void FemViewWindow::onDrawImGui()
                 {
                     this->setCustomMode(CustomMode::Structure);
                     m_pluginWindow->setPlugin(p.get());
+                    m_pluginWindow->center();
                     m_pluginWindow->show();
                 }
             }
@@ -3986,12 +3975,32 @@ void FemViewWindow::onDrawImGui()
                 this->setResultType(IVF_BEAM_NAVIER);
             if (ImGui::MenuItem("No results", ""))
                 this->setResultType(IVF_BEAM_NO_RESULT);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("X-ray mode", "X"))
+            {
+                if (getUseBlending())
+                    this->setUseBlending(false);
+                else
+                    this->setUseBlending(true);
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Scaling settings...", ""))
+            {
+                m_scaleWindow->align(2);
+                m_scaleWindow->show();
+            }   
+
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help"))
         {
             if (ImGui::MenuItem("About...", ""))
             {
+                m_aboutWindow->center();
                 m_aboutWindow->show();
             }
             ImGui::EndMenu();
@@ -4030,13 +4039,12 @@ void FemViewWindow::onDrawImGui()
         ImGui::ShowMetricsWindow(&m_showMetricsWindow);
 
     m_coordWindow->draw();
-    m_nodePropWindow->draw();
+    m_propWindow->draw();
     m_nodeBCsWindow->draw();
     m_nodeLoadsWindow->draw();
     m_settingsWindow->draw();
     m_elementLoadsWindow->draw();
     m_materialsWindow->draw();
-    m_elementPropWindow->draw();
     m_logWindow->draw();
     m_consoleWindow->draw();
     m_pluginWindow->draw();
@@ -4074,6 +4082,8 @@ void FemViewWindow::onInitImGui()
     ImGui::StyleColorsDark();
 
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
 
     std::filesystem::path p1 = m_progPath / std::filesystem::path("fonts/RopaSans-Regular.ttf");
     std::string fontFilename = p1.string();

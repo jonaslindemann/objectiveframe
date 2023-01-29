@@ -16,7 +16,8 @@ private:
     ImGuiWindowFlags m_windowFlags;
     bool m_updatePos;
     bool m_centerBottom;
-
+    bool m_center;
+    bool m_setPos;
     int m_corner;
 
 public:
@@ -40,6 +41,7 @@ public:
    
     void align(int corner);
     void centerBottom();
+    void center();
 
     void setPosition(int x, int y);
 

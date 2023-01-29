@@ -44,8 +44,11 @@ private:
     int m_resultType;
     int m_nodeType;
 
+    ivf::Node::TNodeType m_nodeRepr;
+
     bool m_showNodeNumbers;
     bool m_showElementNumbers;
+    bool m_useBlending;
 
     ivf::CompositePtr m_scene;
     ivf::MaterialPtr m_nodeMaterial;
@@ -58,6 +61,10 @@ private:
     ColorMapPtr m_colorMapPos;
     ColorMapPtr m_colorMapNeg;
     ColorMapPtr m_colorMapStd;
+
+    ColorMapPtr m_colorMapPosBlack;
+    ColorMapPtr m_colorMapNegBlack;
+
     //ResultInfo* m_resultInfo;
 
     std::string m_colorMapPath;
@@ -104,6 +111,7 @@ public:
 
     void setBeamMaterial(ivf::Material* material);
     void setLineSides(int sides);
+    int getLineSides();
 
     ColorTable* getColorTable();
 
@@ -112,9 +120,20 @@ public:
     void setScaleFactor(double factor);
     double getScaleFactor();
 
+    void setNodeRepr(ivf::Node::TNodeType type);
+    ivf::Node::TNodeType getNodeRepr();
+
+    void setUseBlending(bool flag);
+    bool getUseBlending();
+
+
     ColorMapPtr getColorMapStd();
     ColorMapPtr getColorMapNeg();
     ColorMapPtr getColorMapPos();
+
+    ColorMapPtr getColorMapNegBlack();
+    ColorMapPtr getColorMapPosBlack();
+
     //ResultInfo* getResultInfo();
 
     void setResultType(int type);

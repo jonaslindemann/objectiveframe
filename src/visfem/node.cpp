@@ -90,7 +90,12 @@ void Node::refresh()
         scalefactor = 1.0;
 
     if (m_beamModel != nullptr)
-        this->setSize(m_beamModel->getNodeSize());
+    {
+        if (m_beamModel->getNodeRepr() == ivf::Node::NT_CUBE)
+            this->setSize(m_beamModel->getNodeSize() * 1.5);
+        else
+            this->setSize(m_beamModel->getNodeSize());
+    }
 
     if (m_femNode != nullptr)
     {
@@ -113,6 +118,8 @@ void Node::refresh()
 
     if (m_beamModel != nullptr)
     {
+        this->setType(m_beamModel->getNodeRepr());
+
         if (m_beamModel->getNodeType() == IVF_NODE_DISPLACEMENT)
         {
             if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT)
@@ -132,7 +139,7 @@ void Node::refresh()
         else
         {
             this->setState(ivf::Shape::OS_ON);
-            this->setSize(m_beamModel->getNodeSize());
+            //this->setSize(m_beamModel->getNodeSize());
             ivf::Shape::setPosition(x, y, z);
             if (m_beamModel->showNodeNumbers())
             {

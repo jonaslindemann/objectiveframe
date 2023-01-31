@@ -87,6 +87,3 @@ for elx, ely, elz, ed, epi in zip(ex_br, ey_br, ez_br, ed_bars, beam_mat_idx):
 
 print(beam_forces)
 print(bar_forces)
-    
-
-    

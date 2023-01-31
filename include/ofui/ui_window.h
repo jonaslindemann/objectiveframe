@@ -38,7 +38,7 @@ public:
     void setSize(int w, int h);
     int width();
     int height();
-   
+
     void align(int corner);
     void centerBottom();
     void center();

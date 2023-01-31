@@ -1,5 +1,6 @@
 #include <ofem/calfem_writer.h>
 
+#include <filesystem>
 #include <iostream>
 #include <map>
 
@@ -10,12 +11,129 @@
 #include <ofem/beam_load.h>
 #include <ofem/beam_model.h>
 
+#include <logger.h>
+
 using namespace ofem;
 using namespace std;
+
+namespace fs = std::filesystem;
+
+const std::string solver_template_part1 = R"CF(# -*- coding: iso-8859-15 -*-
+'''
+ObjectiveFrame generated CALFEM Python code.
+'''
+
+import numpy as np
+import calfem.core as cfc
+
+# --- Import model
+
+)CF";
+
+const std::string solver_template_part2 = R"CF(
+# --- Extract element coordinates
+
+ex_bm, ey_bm, ez_bm = cfc.coord_extract(edof_beams, coords, dofs_beams)
+ex_br, ey_br, ez_br = cfc.coord_extract(edof_bars, coords, dofs_bars)
+
+# --- Setup global matrices
+
+n_dofs = np.max(edof_beams)
+n_beams = ex_bm.shape[0]
+n_bars = ex_br.shape[0]
+
+K = np.zeros((n_dofs, n_dofs))
+f = np.zeros((n_dofs, 1))
+
+# --- Assemble beams
+
+for elx, ely, elz, dofs, epi, eo in zip(ex_bm, ey_bm, ez_bm, edof_beams, beam_mat_idx, beam_orientation):
+    Ke = cfc.beam3e(elx, ely, elz, eo, ep[epi])
+    K = cfc.assem(dofs, K, Ke)
+
+# --- Assemble bars
+
+for elx, ely, elz, dofs, epi in zip(ex_br, ey_br, ez_br, edof_bars, bar_mat_idx):
+    E = ep[epi][0]
+    A = ep[epi][2]
+    Ke = cfc.bar3e(elx, ely, elz, [E, A])
+    K = cfc.assem(dofs, K, Ke)
+
+# --- Setting up loads and boundary conds
+
+bc = []
+bc_vals = []
+
+for ni, bi in node_bc_idx:
+    bc_prescr_dofs = node_bc[bi]
+    bc_values = node_bc_val[bi]
+    bc_dofs = dofs_beams[ni-1]
+    for i, p_dof in enumerate(bc_prescr_dofs):
+        if p_dof == 1:
+            bc.append(bc_dofs[i])
+            bc_vals.append(bc_values[i])
+
+for ni, li in node_load_idx:
+    load_values = node_load[li]
+    load_dofs = dofs_beams[ni-1][0:3]
+    f[load_dofs-1, 0] += load_values
+
+bc = np.array(bc)
+bc_vals = np.array(bc_vals)
+
+# --- Solve equation system
+
+a, r = cfc.solveq(K, f, bc, bc_vals)
+
+# --- Extract element forces
+
+ed_beams = cfc.extract_ed(edof_beams, a)
+ed_bars = cfc.extract_ed(edof_bars, a)
+
+beam_forces = []
+bar_forces = np.zeros(n_bars)
+
+for elx, ely, elz, ed, epi, eo in zip(ex_bm, ey_bm, ez_bm, ed_beams, beam_mat_idx, beam_orientation):
+    es, edi, eci = cfc.beam3s(elx, ely, elz, eo, ep[epi], ed, n=10)
+    beam_forces.append([es, edi, eci])
+
+bi = 0
+
+for elx, ely, elz, ed, epi in zip(ex_br, ey_br, ez_br, ed_bars, beam_mat_idx):
+    E = ep[epi][0]
+    A = ep[epi][2]
+    N = cfc.bar3s(elx, ely, elz, [E, A], ed)
+    bar_forces[bi] = N
+    bi+=1
+
+print(beam_forces)
+print(bar_forces)
+)CF";
 
 CalfemWriter::CalfemWriter(const std::string fname)
     : InputFileWriter(fname)
 {
+}
+
+void ofem::CalfemWriter::doAfterSave()
+{
+    fs::path python_data_filename(this->filename());
+
+    std::string parent_path = python_data_filename.parent_path().string();
+    std::string base_filename = python_data_filename.stem().string();
+    std::string solver_filename = base_filename + "_solver.py";
+
+    fs::path solver_path = python_data_filename.parent_path() /= fs::path(solver_filename);
+
+    std::string full_solver_filename = solver_path.string();
+
+    fstream f;
+    f.open(full_solver_filename, ios::out);
+    f << solver_template_part1;
+    f << "from " << base_filename << " import *"
+      << "\n";
+    f << solver_template_part2;
+    f.close();
 }
 
 void ofem::CalfemWriter::writeHeader(std::ostream& out)
@@ -189,7 +307,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
     }
 
     endArr(out);
-    out << "\n";       
+    out << "\n";
 
     //
     // Write Bar edof
@@ -219,7 +337,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
 
     endArr(out);
     out << "\n";
-   
+
     //
     // Write node coordinates
     //
@@ -239,7 +357,7 @@ void CalfemWriter::saveToStream(std::ostream& out)
     endArr(out);
     out << "\n";
 
-    // 
+    //
     // Write node dofs
     //
 

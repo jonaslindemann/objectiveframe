@@ -221,7 +221,8 @@ void Beam::refresh()
                         m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                         m_solidLine->setState(Shape::OS_ON);
                         m_beamTexture->activate();
-                        m_beamTexture->setTextureModifier(1.0, 1.0 / m_solidLine->getLength(), 0.0);
+                        m_beamTexture->setTextureModifier(1.0, 0.8 / m_solidLine->getLength(), 0.0);
+                        //m_beamTexture->setTextureModifier(1.0, 1.0, 0.0);
                         if (m_beamModel->getUseBlending())
                         {
                             m_beamMaterial->setDiffuseColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -276,13 +277,14 @@ void Beam::doCreateGeometry()
             glEnable(GL_BLEND);
             glDisable(GL_LIGHTING);
             glBlendFunc(GL_ONE, GL_ONE);
-            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_DEPTH_TEST);            
         }
-
+       
         Composite::doCreateGeometry();
 
         if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending()))
         {
+
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_LIGHTING);
@@ -564,6 +566,7 @@ void Beam::initResults()
                 m_beamImage->setPixel(6, k, r, g, b);
                 m_beamImage->setPixel(7, k, r, g, b);
             }
+            m_beamTexture->setRepeat(GL_CLAMP, GL_CLAMP);
             m_beamTexture->bind();
         }
     }

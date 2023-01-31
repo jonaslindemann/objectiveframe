@@ -416,6 +416,9 @@ public:
     void deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad);
     void assignNodeLoadSelected();
     void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
+
+    void subdivideSelectedBeam();
+
     void doFeedback();
     void showMessage(std::string message);
     void updateAxisLabels();

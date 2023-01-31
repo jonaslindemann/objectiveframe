@@ -35,6 +35,7 @@ public:
 
 
     virtual void saveToStream(std::ostream& out) override;
+    virtual void doAfterSave() override;
 };
 
 }

@@ -122,6 +122,7 @@ void BeamModel::generateModel()
         m_scene->addChild(ivfNode);
         ivfNodes.push_back(ivfNode);
         nodeSet->getNode(i)->setNumber(i + 1);
+        nodeSet->getNode(i)->setUser(static_cast<void*>(ivfNode));
     }
 
     // Generate elements

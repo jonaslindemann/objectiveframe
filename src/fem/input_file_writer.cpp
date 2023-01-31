@@ -17,6 +17,10 @@ InputFileWriter::~InputFileWriter()
 {
 }
 
+void ofem::InputFileWriter::doAfterSave()
+{
+}
+
 void InputFileWriter::saveToStream(std::ostream& out)
 {
 }
@@ -44,5 +48,7 @@ void InputFileWriter::save()
         inputFile.open(m_filename, ios::out);
         this->saveToStream(inputFile);
         inputFile.close();
+
+        this->doAfterSave();
     }
 }

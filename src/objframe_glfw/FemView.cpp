@@ -1237,7 +1237,7 @@ void FemViewWindow::open(std::string filename)
 
     this->setEditMode(WidgetMode::Select);
 
-    this->setUseBlending(false); 
+    this->setUseBlending(false);
 }
 
 void FemViewWindow::open()
@@ -1527,7 +1527,7 @@ void FemViewWindow::deleteSelected()
 
     m_propWindow->setBeam(nullptr);
     m_propWindow->setNode(nullptr);
-    
+
     setDeleteFilter(DeleteMode::Elements);
     deleteSelectedKeep();
     setDeleteFilter(DeleteMode::Nodes);
@@ -1591,6 +1591,96 @@ void FemViewWindow::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
     m_needRecalc = true;
 
     this->addToScene(visNodeLoad);
+}
+
+void FemViewWindow::subdivideSelectedBeam()
+{
+    auto selectedShapes = this->getSelectedShapes();
+
+    for (auto i = 0; i < selectedShapes->getSize(); i++)
+    {
+        auto shape = selectedShapes->getChild(i);
+
+        if (shape->isClass("vfem::Beam"))
+        {
+            auto visBeam = static_cast<vfem::Beam*>(shape);
+
+            auto n0 = visBeam->getNode(0)->getFemNode();
+            auto n1 = visBeam->getNode(1)->getFemNode();
+
+            double x0, y0, z0;
+            double x1, y1, z1;
+            double x, y, z;
+
+            n0->getCoord(x0, y0, z0);
+            n1->getCoord(x1, y1, z1);
+
+            x = (x0 + x1) * 0.5;
+            y = (y0 + y1) * 0.5;
+            z = (z0 + z1) * 0.5;
+
+            auto n2 = new ofem::Node(x, y, z);
+
+            auto nodeSet = m_beamModel->getNodeSet();
+            auto beamSet = m_beamModel->getElementSet();
+
+            nodeSet->addNode(n2);
+
+            auto beam0 = new ofem::Beam();
+            beam0->addNode(n0);
+            beam0->addNode(n2);
+            beam0->setMaterial(visBeam->getBeam()->getMaterial());
+
+            auto beam1 = new ofem::Beam();
+            beam1->addNode(n2);
+            beam1->addNode(n1);
+            beam1->setMaterial(visBeam->getBeam()->getMaterial());
+
+            beamSet->addElement(beam0);
+            beamSet->addElement(beam1);
+
+            auto vn0 = static_cast<vfem::Node*>(n0->getUser());
+            auto vn1 = static_cast<vfem::Node*>(n1->getUser());
+
+            auto vn2 = new vfem::Node();
+            vn2->setBeamModel(m_beamModel);
+            vn2->setFemNode(n2);
+            vn2->setPosition(x, y, z);
+            vn2->setMaterial(m_nodeMaterial);
+            vn2->nodeLabel()->setSize(float(m_beamModel->getNodeSize() * 1.5));
+            vn2->setDirectRefresh(true);
+            n2->setUser(static_cast<void*>(vn2));
+
+            vfem::Beam* vbeam0 = new vfem::Beam();
+            vbeam0->setBeamModel(m_beamModel);
+            vbeam0->setBeam(beam0);
+            beam0->setUser(static_cast<void*>(vbeam0));
+
+            vfem::Beam* vbeam1 = new vfem::Beam();
+            vbeam1->setBeamModel(m_beamModel);
+            vbeam1->setBeam(beam1);
+            beam1->setUser(static_cast<void*>(vbeam1));
+
+            // Initialize the representation
+
+            vbeam0->setNodes(vn0, vn2);
+            vbeam0->refresh();
+
+            vbeam1->setNodes(vn2, vn1);
+            vbeam1->refresh();
+
+            // We need a recalc
+
+            m_needRecalc = true;
+
+            this->addToScene(vbeam0);
+            this->addToScene(vbeam1);
+            this->addToScene(vn2);
+        }
+    }
+    this->setDeleteFilter(DeleteMode::Elements);
+    this->deleteSelected();
+    this->setDeleteFilter(DeleteMode::All);
 }
 
 void FemViewWindow::addNodeBC(ofem::BeamNodeBC* bc)
@@ -1987,8 +2077,8 @@ void FemViewWindow::executeCalc()
 {
     double maxNodeValue;
 
-    //m_frameSolver = FrameSolver::create();
-    //m_currentSolver = m_frameSolver.get();
+    // m_frameSolver = FrameSolver::create();
+    // m_currentSolver = m_frameSolver.get();
     m_beamSolver = BeamSolver::create();
     m_currentSolver = m_beamSolver.get();
 
@@ -2088,8 +2178,8 @@ void FemViewWindow::doFeedback()
         {
             double maxNodeValue = 0.0;
 
-            //m_frameSolver = FrameSolver::create();
-            //m_currentSolver = m_frameSolver.get();
+            // m_frameSolver = FrameSolver::create();
+            // m_currentSolver = m_frameSolver.get();
             m_beamSolver = BeamSolver::create();
             m_currentSolver = m_beamSolver.get();
 
@@ -2354,7 +2444,7 @@ void FemViewWindow::setSphereCursor(bool flag)
         m_beamModel->setNodeRepr(ivf::Node::NT_CUBE);
     }
 
-    this->getScene()->setCursorShape(m_nodeCursor); 
+    this->getScene()->setCursorShape(m_nodeCursor);
 }
 
 bool FemViewWindow::getSphereCursor()
@@ -2942,6 +3032,8 @@ void FemViewWindow::onCreateNode(double x, double y, double z, ivf::Node*& newNo
     ivfNode->nodeLabel()->setSize(float(m_beamModel->getNodeSize() * 1.5));
     ivfNode->setDirectRefresh(true);
 
+    femNode->setUser(static_cast<void*>(ivfNode));
+
     // We need a recalc
 
     m_needRecalc = true;
@@ -2978,6 +3070,7 @@ void FemViewWindow::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& new
     // Set the material
 
     femBeam->setMaterial((ofem::BeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
+    femBeam->setUser(static_cast<void*>(visBeam));
     /*
     femBeam->setMaterial(
             m_dlgMaterials->getCurrentMaterial());
@@ -3671,7 +3764,10 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->save();
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'A'))
+    {
+        this->setSelectFilter(SelectMode::All);
         this->selectAll();
+    }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'C'))
         this->copy();
@@ -3685,11 +3781,17 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
     if ((modifier == ModifierKey::mkCtrl) && (key == 'Y'))
         this->revertLastSnapShot();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'D'))
+    if ((modifier == ModifierKey::mkAlt) && (key == 'D'))
         m_showMetricsWindow = !m_showMetricsWindow;
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'R'))
         this->executeCalc();
+
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'D'))
+        this->subdivideSelectedBeam();
+
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'D'))
+        this->subdivideSelectedBeam();
 
     if ((modifier == ModifierKey::mkAlt) && (key == 'S'))
     {
@@ -3866,13 +3968,18 @@ void FemViewWindow::onDrawImGui()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Copy", ""))
+            if (ImGui::MenuItem("Copy", "Ctrl-C"))
                 this->copy();
-            if (ImGui::MenuItem("Paste", ""))
+            if (ImGui::MenuItem("Paste", "Ctlr-V"))
                 this->paste();
 
             ImGui::Separator();
 
+            if (ImGui::MenuItem("Select all", "Ctrl-A"))
+            {
+                this->setSelectFilter(SelectMode::All);
+                this->selectAllNodes();
+            }
             if (ImGui::MenuItem("Select all nodes", ""))
                 this->selectAllNodes();
             if (ImGui::MenuItem("Select all elements", ""))
@@ -3891,6 +3998,11 @@ void FemViewWindow::onDrawImGui()
                 this->assignNodeFixedBCGround();
             if (ImGui::MenuItem("Fix position ground nodes", ""))
                 this->assignNodePosBCGround();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Subdivide element", "Ctrl-D"))
+                this->subdivideSelectedBeam();
 
             ImGui::EndMenu();
         }
@@ -3992,7 +4104,7 @@ void FemViewWindow::onDrawImGui()
             {
                 m_scaleWindow->align(2);
                 m_scaleWindow->show();
-            }   
+            }
 
             ImGui::EndMenu();
         }
@@ -4073,7 +4185,7 @@ void FemViewWindow::onDrawImGui()
 
     if (quitApplication)
     {
-    this->quit();
+        this->quit();
     }
 }
 

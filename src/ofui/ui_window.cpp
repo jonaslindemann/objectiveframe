@@ -11,7 +11,7 @@ UiWindow::UiWindow(const std::string name)
     , m_updatePos { false }
     , m_centerBottom { false }
     , m_corner { -1 }
-    , m_setPos { false } 
+    , m_setPos { false }
     , m_center { false }
 {
 }

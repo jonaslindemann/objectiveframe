@@ -3890,6 +3890,11 @@ void FemViewWindow::onKeyboard(int key)
         this->deleteSelected();
 }
 
+void FemViewWindow::onPick(int x, int y)
+{
+    auto shape = m_beamModel->pick(x, y);
+}
+
 void FemViewWindow::onClipboardCreateNode(double x, double y, double z)
 {
     log("CB: Create node x = " + to_string(x) + ", " + to_string(y) + ", " + to_string(z));

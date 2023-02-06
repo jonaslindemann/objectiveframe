@@ -470,6 +470,7 @@ public:
     virtual void onMouseUp(int x, int y);
     virtual void onKeyboard(int key);
     virtual void onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz);
+    virtual void onPick(int x, int y);
 
     virtual void onPostRender();
     virtual void onPreRender();

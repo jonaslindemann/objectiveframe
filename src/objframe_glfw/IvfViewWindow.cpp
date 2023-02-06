@@ -909,6 +909,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
         // Do pick
 
         m_scene->pick(x, y);
+        onPick(x, y);
 
         m_selectedShape = m_scene->getSelectedShape();
 
@@ -1360,6 +1361,11 @@ void IvfViewWindow::onKeyboard(int key)
 
 void IvfViewWindow::onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz)
 {
+}
+
+void IvfViewWindow::onPick(int x, int y)
+{
+
 }
 
 void IvfViewWindow::onPostRender()

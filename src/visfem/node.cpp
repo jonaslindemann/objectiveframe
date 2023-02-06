@@ -108,7 +108,8 @@ void Node::refresh()
         ss << m_femNode->getNumber();
         std::string s(ss.str());
 
-        m_nodeLabel->setText(s, float(m_beamModel->getNodeSize() * 1.5f));
+        if (m_nodeLabel->text()!=s)
+            m_nodeLabel->setText(s, float(m_beamModel->getNodeSize() * 1.5f));
     }
     else
     {

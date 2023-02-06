@@ -153,5 +153,7 @@ public:
 
     ofem::BeamNodeBC* defaultNodePosBC();
     ofem::BeamNodeBC* defaultNodeFixedBC();
+
+    ivf::Shape* pick(int sx, int sy);
 };
 }

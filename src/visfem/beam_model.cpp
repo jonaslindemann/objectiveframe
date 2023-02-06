@@ -13,8 +13,15 @@
 #include <ofem/node_set.h>
 #include <ofem/solid_pipe_section.h>
 
+#include <ofmath/ray_cylinder.h>
+
 #include <ColorMap.h>
 #include <ResultInfo.h>
+
+#include <glm/glm.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/intersect.hpp>
 
 // using namespace ivf;
 using namespace vfem;
@@ -140,6 +147,7 @@ void BeamModel::generateModel()
         ofem::Node* femNode2 = femBeam->getNode(1);
         ivfBeam->setNodes(ivfNodes[femNode1->getNumber() - 1], ivfNodes[femNode2->getNumber() - 1]);
         ivfBeam->refresh();
+        femBeam->setUser(static_cast<void*>(ivfBeam));
         m_scene->addChild(ivfBeam);
     }
 
@@ -439,4 +447,116 @@ void BeamModel::setPath(const std::string& path)
     m_colorMapPosBlack->setPath(m_colorMapPath);
     m_colorMapNegBlack->setPath(m_colorMapPath);
 }
+
+ivf::Shape* BeamModel::pick(int sx, int sy)
+{
+    if (m_camera != nullptr)
+    {
+        std::vector<ivf::Shape*> selectedShapes;
+        double x, y, z, r;
+        double vx, vy, vz;
+        double d;
+        double min_node_d = 1e300;
+        double min_beam_d = 1e300;
+        int selected_node_idx = -1;
+        int selected_beam_idx = -1;
+        ivf::Shape* min_node_shape = nullptr;
+        ivf::Shape* min_beam_shape = nullptr;
+
+        m_camera->getPosition(x, y, z);
+        m_camera->pickVector(sx, sy).getComponents(vx, vy, vz);
+
+        glm::vec3 p_orig { x, y, z };
+        glm::vec3 v_dir { vx, vy, vz };
+        v_dir = glm::normalize(v_dir);
+        glm::vec3 p_intersect;
+        glm::vec3 v_intersect_normal;
+        bool intersect;
+
+        r = this->getNodeSize();
+
+        auto nodeSet = this->getNodeSet();
+
+        for (int i = 0; i < nodeSet->getSize(); i++)
+        {
+            auto node = nodeSet->getNode(i);
+            node->getCoord(x, y, z);
+
+            if (glm::intersectRaySphere(p_orig, v_dir, glm::vec3(x, y, z), r, p_intersect, v_intersect_normal))
+            {
+                glm::vec3 v_orig_sphere = p_intersect - p_orig;
+                d = v_orig_sphere.length();
+                if (d < min_node_d)
+                {
+                    min_node_d = d;
+                    selected_node_idx = i;
+                    min_node_shape = static_cast<ivf::Shape*>(node->getUser());
+                }
+            }
+        }
+        if (min_node_shape!=nullptr)
+            std::cout << "node " << selected_node_idx << " found...\n";
+
+        // Check beam hits
+
+        r = this->getLineRadius();
+
+        auto elementSet = this->getElementSet();
+        
+        double x0, y0, z0;
+        double x1, y1, z1;
+
+        for (int i = 0; i < elementSet->getSize(); i++)
+        {
+            auto beam = elementSet->getElement(i);
+            auto n0 = beam->getNode(0);
+            auto n1 = beam->getNode(1);
+
+            n0->getCoord(x0, y0, z0);
+            n1->getCoord(x1, y1, z1);
+
+            glm::vec3 v_n0(x0, y0, z0);
+            glm::vec3 v_n1(x1, y1, z1);
+
+            glm::vec3 v_cyl = v_n1 - v_n0;
+
+            glm::vec3 v_normal;
+
+            double d = v_cyl.length();
+
+            if (ofmath::intersectRayOrientedCylinder(p_orig, v_dir, r, d, v_n0, v_cyl, p_intersect, v_normal))
+            {
+                glm::vec3 v_orig_sphere = p_intersect - p_orig;
+                d = v_orig_sphere.length();
+                if (d < min_beam_d)
+                {
+                    min_beam_d = d;
+                    selected_beam_idx = i;
+                    min_beam_shape = static_cast<ivf::Shape*>(beam->getUser());
+                }
+            }
+        }
+        if (min_beam_shape != nullptr)
+            std::cout << "beam " << selected_beam_idx << " found...\n";
+
+        if ((min_node_shape!=nullptr)&&(min_beam_shape!=nullptr))
+        {
+            if (min_node_d < min_beam_d)
+                return min_node_shape;
+            else
+                return min_beam_shape;
+        }
+
+        if ((min_node_shape != nullptr) && (min_beam_shape == nullptr))
+            return min_node_shape;
+
+        if ((min_node_shape == nullptr) && (min_beam_shape != nullptr))
+            return min_beam_shape;
+
+        return nullptr;
+    }
+    else
+        return nullptr;
+}
+
 

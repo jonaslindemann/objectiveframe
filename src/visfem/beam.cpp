@@ -175,7 +175,6 @@ void Beam::refresh()
             m_lineSet->setState(Shape::OS_OFF);
             m_extrusion->setState(Shape::OS_OFF);
             m_solidLine->setState(Shape::OS_OFF);
-            initExtrusion();
 
             switch (m_beamModel->getBeamType())
             {
@@ -255,6 +254,7 @@ void Beam::refresh()
                 {
                     if (m_femBeam->getMaterial() != nullptr)
                     {
+                        initExtrusion();
                         m_extrusion->setState(Shape::OS_ON);
                     }
                 }

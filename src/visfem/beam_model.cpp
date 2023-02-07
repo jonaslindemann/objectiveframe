@@ -517,17 +517,20 @@ ivf::Shape* BeamModel::pick(int sx, int sy)
 
             glm::vec3 v_n0(x0, y0, z0);
             glm::vec3 v_n1(x1, y1, z1);
+            glm::vec3 v_mid(0.5 * (x0 + x1), 0.5 * (y0 + y1), 0.5 * (z0 + z1));
 
             glm::vec3 v_cyl = v_n1 - v_n0;
 
             glm::vec3 v_normal;
 
-            double d = v_cyl.length();
+            double d = glm::length(v_cyl);
 
             if (ofmath::intersectRayOrientedCylinder(p_orig, v_dir, r, d, v_n0, v_cyl, p_intersect, v_normal))
             {
-                glm::vec3 v_orig_sphere = p_intersect - p_orig;
-                d = v_orig_sphere.length();
+                glm::vec3 v_orig_sphere = v_mid - p_orig;
+
+                d = glm::length(v_orig_sphere);
+
                 if (d < min_beam_d)
                 {
                     min_beam_d = d;
@@ -541,10 +544,7 @@ ivf::Shape* BeamModel::pick(int sx, int sy)
 
         if ((min_node_shape!=nullptr)&&(min_beam_shape!=nullptr))
         {
-            if (min_node_d < min_beam_d)
-                return min_node_shape;
-            else
-                return min_beam_shape;
+            return min_node_shape;
         }
 
         if ((min_node_shape != nullptr) && (min_beam_shape == nullptr))

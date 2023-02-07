@@ -127,6 +127,8 @@ private:
 
     bool m_offScreenRendering;
 
+    bool m_customPick;
+
     GLuint m_screenTexture;
     GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
 
@@ -295,10 +297,11 @@ public:
 
     ivf::Composite* getSelectedShapes();
 
-    bool isInitialized();
-
     void selectAllBox();
     bool isInsideVolume(ivf::Shape* shape);
+
+    void setUseCustomPick(bool flag);
+    bool useCustomPick();
 
 protected:
 
@@ -470,7 +473,7 @@ public:
     virtual void onMouseUp(int x, int y);
     virtual void onKeyboard(int key);
     virtual void onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz);
-    virtual void onPick(int x, int y);
+    virtual ivf::Shape* onPick(int x, int y);
 
     virtual void onPostRender();
     virtual void onPreRender();

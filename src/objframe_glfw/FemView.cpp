@@ -517,6 +517,8 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_elementSelection = false;
     m_mixedSelection = false;
 
+    this->setUseCustomPick(true);
+
     this->setupScripting();
 }
 
@@ -3890,9 +3892,9 @@ void FemViewWindow::onKeyboard(int key)
         this->deleteSelected();
 }
 
-void FemViewWindow::onPick(int x, int y)
+ivf::Shape* FemViewWindow::onPick(int x, int y)
 {
-    auto shape = m_beamModel->pick(x, y);
+    return m_beamModel->pick(x, y);
 }
 
 void FemViewWindow::onClipboardCreateNode(double x, double y, double z)

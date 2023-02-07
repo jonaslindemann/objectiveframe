@@ -1,6 +1,7 @@
 #include <ofmath/ray_cylinder.h>
 
 #include <cmath>
+#include <iostream>
 
 #include <glm/glm.hpp>
 
@@ -53,6 +54,7 @@ bool ofmath::intersectRayOrientedCylinder(glm::vec3 ray_origin, glm::vec3 direct
     pos = e + d * t;
     glm::vec3 intersection_to_cylinder_bottom = pos - cylinder_position;
     float distance_along_cylinder_axis = glm::dot(intersection_to_cylinder_bottom,cylinder_axis_normalized);
+
     if (distance_along_cylinder_axis < 0 || distance_along_cylinder_axis > height)
     {
         return false;

@@ -42,6 +42,7 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
     , m_mouseUpdate { false }
     , m_workspaceSize { 10.0f }
     , m_quit { false }
+    , m_customPick { false }
 {
     // Create default camera
 
@@ -482,6 +483,16 @@ bool IvfViewWindow::isInsideVolume(ivf::Shape* shape)
     }
 }
 
+void IvfViewWindow::setUseCustomPick(bool flag)
+{
+    m_customPick = flag;
+}
+
+bool IvfViewWindow::useCustomPick()
+{
+    return m_customPick;
+}
+
 // Get/set methods
 
 void IvfViewWindow::setEditMode(WidgetMode mode)
@@ -908,10 +919,14 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
         // Do pick
 
-        m_scene->pick(x, y);
-        onPick(x, y);
+        if (m_customPick)
+            m_selectedShape = onPick(x, y);
+        else
+        {
+            m_scene->pick(x, y);
+            m_selectedShape = m_scene->getSelectedShape();
+        }
 
-        m_selectedShape = m_scene->getSelectedShape();
 
         if (m_selectedShape != NULL)
         {
@@ -962,9 +977,13 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
             needInvalidate = true;
         }
 
-        m_scene->pick(x, y);
-
-        m_selectedShape = m_scene->getSelectedShape();
+        if (m_customPick)
+            m_selectedShape = onPick(x, y);
+        else
+        {
+            m_scene->pick(x, y);
+            m_selectedShape = m_scene->getSelectedShape();
+        }
 
         if (m_selectedShape != nullptr)
         {
@@ -1363,9 +1382,9 @@ void IvfViewWindow::onSelectVolume(double x0, double y0, double z0, double x1, d
 {
 }
 
-void IvfViewWindow::onPick(int x, int y)
+ivf::Shape* IvfViewWindow::onPick(int x, int y)
 {
-
+    return nullptr;
 }
 
 void IvfViewWindow::onPostRender()

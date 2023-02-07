@@ -465,7 +465,7 @@ public:
     virtual void onMotion(int x, int y) override;
     virtual void onDeSelect() override;
     virtual void onKeyboard(int key) override;
-    virtual void onPick(int x, int y) override;
+    virtual ivf::Shape* onPick(int x, int y) override;
 
     void onClipboardCreateNode(double x, double y, double z);
     void onClipboardCreateElement(int i0, int i1);

@@ -87,25 +87,19 @@ void NodeBC::readFromStream(std::istream& in)
 
 void NodeBC::addNode(Node* node)
 {
-    node->addReference();
-    m_nodes.push_back(node);
+    m_nodes.emplace_back(NodePtr(node));
 }
 
 
 void NodeBC::clearNodes()
 {
-    unsigned int i;
-
-    for (i = 0; i < m_nodes.size(); i++)
-        m_nodes[i]->deleteReference();
-
     m_nodes.clear();
 }
 
 
 bool NodeBC::removeNode(Node* node)
 {
-    std::vector<Node*>::iterator p = m_nodes.begin();
+    auto p = m_nodes.begin();
 
     while ((p != m_nodes.end()) && (*p != node))
         p++;
@@ -114,7 +108,6 @@ bool NodeBC::removeNode(Node* node)
     {
         if (*p == node)
         {
-            node->deleteReference();
             m_nodes.erase(p);
             return true;
         }

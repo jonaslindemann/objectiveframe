@@ -29,9 +29,19 @@ This version of the application has been given a large overhaul both with regard
  * The ImGui implementation still builds on the FLTK library as it has been a large effort to unbind the close ties to this library. The next iterations will base the implementation directly on the GLFW library. (COMPLETED)
  * User interface improvements. There is a still a lot of non-standard ways of interacting with the application, but these are also some things that will be worked out in upcoming versions. (ONGOING)
  * Interactions with the CALFEM for Python library. I would like to see the application as a pre-processor for generating CALFEM code that can be used by students in Structural Mechanics. (ONGOING)
- * An improved solver - Currently the newmat-based solver works OK, but lacks scalability as it is not very actively maintained. The eigen-library would be a candidate to replace newmat. (PLANNED)
+ * An improved solver - Currently the newmat-based solver works OK, but lacks scalability as it is not very actively maintained. The eigen-library would be a candidate to replace newmat. (COMPLETED)
  * More ways of extending the application with additional solvers, geometry generation and more. 
  * A richer scripting API.
+
+ ## References
+
+ The latest version of ObjectiveFrame uses TetGen (included as an executable - tetgen.exe) for meshing beams. See:
+ 
+ * ang Si. 2015. "TetGen, a Delaunay-Based Quality Tetrahedral Mesh Generator". ACM Trans. on Mathematical Software. 41 (2), Article 11 (February 2015), 36 pages. DOI=10.1145/2629697 http://doi.acm.org/10.1145/2629697
+
+ Solver is implemented using the Eigen matrix library:
+
+ * https://eigen.tuxfamily.org/
 
 Jonas Lindemann
 

@@ -518,8 +518,6 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_mixedSelection = false;
 
     this->setUseCustomPick(true);
-
-    this->setupScripting();
 }
 
 std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
@@ -530,10 +528,6 @@ std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, cons
 FemViewWindow::~FemViewWindow()
 {
     log("Destructor.");
-}
-
-void FemViewWindow::runScript(const std::string filename)
-{
 }
 
 void FemViewWindow::runPlugin(ScriptPlugin* plugin)
@@ -580,7 +574,6 @@ void FemViewWindow::updateAxisLabels()
     axisLabelPlusX->setCamera(this->getCamera());
     axisLabelPlusX->setFont(m_redFont);
     axisLabelPlusX->setText("+X", 0.5);
-    // axisLabelPlusX->setRotationQuat(1.0, 0.0, 0.0, 90.0);
     axisLabelPlusX->setAlignObject(IVF_ALIGN_CAMERA);
     axisLabelPlusX->setVector(0.0, 1.0, 0.0);
     axisLabelPlusX->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, 0.0);
@@ -591,7 +584,6 @@ void FemViewWindow::updateAxisLabels()
     axisLabelMinusX->setCamera(this->getCamera());
     axisLabelMinusX->setFont(m_redFont);
     axisLabelMinusX->setText("-X", 0.5);
-    // axisLabelMinusX->setRotationQuat(1.0, 0.0, 0.0, 90.0);
     axisLabelMinusX->setAlignObject(IVF_ALIGN_CAMERA);
     axisLabelMinusX->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, 0.0);
     axisLabelMinusX->setBillboardType(IVF_BILLBOARD_XY);
@@ -601,7 +593,6 @@ void FemViewWindow::updateAxisLabels()
     axisLabelPlusY->setCamera(this->getCamera());
     axisLabelPlusY->setFont(m_greenFont);
     axisLabelPlusY->setText("+Z", 0.5);
-    // axisLabelPlusY->setRotationQuat(1.0, 0.0, 0.0, -90.0);
     axisLabelPlusY->setAlignObject(IVF_ALIGN_CAMERA);
     axisLabelPlusY->setPosition(0.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
     axisLabelPlusY->setBillboardType(IVF_BILLBOARD_XY);
@@ -611,7 +602,6 @@ void FemViewWindow::updateAxisLabels()
     axisLabelMinusY->setCamera(this->getCamera());
     axisLabelMinusY->setFont(m_greenFont);
     axisLabelMinusY->setText("-Z", 0.5);
-    // axisLabelMinusY->setRotationQuat(1.0, 0.0, 0.0, -90.0);
     axisLabelMinusY->setAlignObject(IVF_ALIGN_CAMERA);
     axisLabelMinusY->setPosition(0.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
     axisLabelMinusY->setBillboardType(IVF_BILLBOARD_XY);
@@ -621,7 +611,6 @@ void FemViewWindow::updateAxisLabels()
     upperLeft->setCamera(this->getCamera());
     upperLeft->setFont(m_axisFont);
     upperLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), 0.5);
-    // upperLeft->setRotationQuat(1.0, 0.0, 0.0, -90.0);
     upperLeft->setAlignObject(IVF_ALIGN_CAMERA);
     upperLeft->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
     upperLeft->setBillboardType(IVF_BILLBOARD_XY);
@@ -631,7 +620,6 @@ void FemViewWindow::updateAxisLabels()
     upperRight->setCamera(this->getCamera());
     upperRight->setFont(m_axisFont);
     upperRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), 0.5);
-    // upperRight->setRotationQuat(1.0, 0.0, 0.0, -90.0);
     upperRight->setAlignObject(IVF_ALIGN_CAMERA);
     upperRight->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
     upperRight->setBillboardType(IVF_BILLBOARD_XY);
@@ -641,7 +629,6 @@ void FemViewWindow::updateAxisLabels()
     lowerLeft->setCamera(this->getCamera());
     lowerLeft->setFont(m_axisFont);
     lowerLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), 0.5);
-    // lowerLeft->setRotationQuat(1.0, 0.0, 0.0, -90.0);
     lowerLeft->setAlignObject(IVF_ALIGN_CAMERA);
     lowerLeft->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
     lowerLeft->setBillboardType(IVF_BILLBOARD_XY);
@@ -651,7 +638,6 @@ void FemViewWindow::updateAxisLabels()
     lowerRight->setCamera(this->getCamera());
     lowerRight->setFont(m_axisFont);
     lowerRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), 0.5);
-    // lowerRight->setRotationQuat(1.0, 0.0, 0.0, -90.0);
     lowerRight->setAlignObject(IVF_ALIGN_CAMERA);
     lowerRight->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
     lowerRight->setBillboardType(IVF_BILLBOARD_XY);
@@ -1254,36 +1240,6 @@ void FemViewWindow::open()
         this->open(filename);
 }
 
-void FemViewWindow::openScript()
-{
-    // Open model
-
-    this->hideAllDialogs();
-
-    // Prompt for a filename
-
-    /*
-
-    Fl_Native_File_Chooser fnfc;
-    fnfc.title("Open file");
-    fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
-    fnfc.filter("ObjectiveFrame\t*.chai\n");
-    fnfc.directory(""); // default directory to use
-
-    int result = fnfc.show();
-
-    // If we have a filename we try to open.
-
-    if (result == 0)
-    {
-        // Change filename and erase previous model/scene
-
-        std::string filename = fnfc.filename();
-        this->runScript(filename);
-    }
-    */
-}
-
 void FemViewWindow::copy()
 {
     auto selectedShapes = this->getSelectedShapes();
@@ -1685,6 +1641,52 @@ void FemViewWindow::subdivideSelectedBeam()
     this->setDeleteFilter(DeleteMode::All);
 }
 
+void FemViewWindow::meshSelectedNodes()
+{
+    this->snapShot();
+
+    m_tetMesher->clear();
+
+    double x, y, z;
+
+    auto selected = this->getSelectedShapes();
+    for (int i = 0; i < selected->getSize(); i++)
+    {
+        auto shape = selected->getChild(i);
+        if (shape->isClass("vfem::Node"))
+        {
+            vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+            ofem::Node* femNode = visNode->getFemNode();
+
+            femNode->getCoord(x, y, z);
+            m_tetMesher->addNode(femNode->getNumber(), x, y, z);
+        }
+    }
+
+    if (m_tetMesher->nodeCount() != 0)
+    {
+        m_tetMesher->generate();
+
+        m_tetMesher->edges();
+
+        for (auto i = 0; i < m_tetMesher->edges().count(); i++)
+        {
+            auto edge = m_tetMesher->edges().at(i);
+
+            std::cout << edge.index() << ", " << edge.i0() << ", " << edge.i1() << "\n";
+
+            this->addBeam(edge.i0()-1, edge.i1()-1);
+        }
+    }
+
+    // Shapes has to be refreshed to represent the
+    // the changes
+
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
 void FemViewWindow::addNodeBC(ofem::BeamNodeBC* bc)
 {
     // Add a node load
@@ -1954,10 +1956,6 @@ void FemViewWindow::setupOverlay()
     m_overlayScene->addChild(m_objectButtons);
 }
 
-void FemViewWindow::setupScripting()
-{
-}
-
 void FemViewWindow::setupScript(chaiscript::ChaiScript& script)
 {
     // Add math library to script environment
@@ -2138,20 +2136,18 @@ void FemViewWindow::executeCalc()
 
     // Calculate default scalefactor
 
-    // log("Max node value = " << maxNodeValue);
+    log("Max node value = " + std::to_string(maxNodeValue));
 
     if (!m_lockScaleFactor)
     {
         if (maxNodeValue > 0.0)
-            m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / maxNodeValue);
+            m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / maxNodeValue);
         else
             m_beamModel->setScaleFactor(1.0);
     }
 
     m_settingsWindow->update();
     m_scaleWindow->show();
-
-    // log("Scale factor = " << m_scalefactor);
 
     // Show displacements
 
@@ -2258,9 +2254,6 @@ void FemViewWindow::doFeedback()
 
             m_needRecalc = false;
 
-            // dlg->hide();
-            // delete dlg;
-
             // Show displacements
 
             this->setRepresentation(RepresentationMode::Results);
@@ -2311,10 +2304,7 @@ void FemViewWindow::doFeedback()
                 // Refresh scene (Solid lines must be updated)
 
                 this->getScene()->getComposite()->refresh();
-
                 this->redraw(); // set damage(FL_DAMAGE_ALL)
-                // Fl::flush();
-                //  Fl::check();
             }
         }
     }
@@ -2359,6 +2349,28 @@ vfem::Beam* FemViewWindow::addBeam(int i0, int i1)
 
     auto n0 = nodeSet->getNode(i0);
     auto n1 = nodeSet->getNode(i1);
+
+    // Check for existing beam
+
+    bool beam_exists = false;
+
+    for (auto i = 0; i < beamSet->getSize(); i++)
+    {
+        auto beam = beamSet->getElement(i);
+        auto check_n0 = beam->getNode(0);
+        auto check_n1 = beam->getNode(1);
+
+        if ((n0 == check_n0) && (n1 == check_n1))
+            beam_exists = true;
+        if ((n0 == check_n1) && (n1 == check_n0))
+            beam_exists = true;
+    }
+
+    if (beam_exists)
+    {
+        log("Beam already exists");
+        return nullptr;
+    }
 
     if ((n0 != nullptr) && (n1 != nullptr) && (n0 != n1))
     {
@@ -2499,30 +2511,6 @@ void FemViewWindow::setInteractionNode(vfem::Node* interactionNode)
     m_interactionNode = interactionNode;
 }
 
-//
-// void FemWidget::showStructureDlg()
-//{
-//	int size[3];
-//	double spacing[3];
-//
-//	m_dlgStructure->show();
-//	if (m_dlgStructure->getModalResult() == MR_OK)
-//	{
-//		m_dlgStructure->getSize(size[0], size[1], size[2]);
-//		m_dlgStructure->getSpacing(spacing[0], spacing[1], spacing[2]);
-//
-//		CStructureFactory* factory = new CStructureFactory();
-//		factory->setBeamModel(m_beamModel);
-//		factory->setCurrentMaterial(this->getCurrentMaterial());
-//		factory->setSize(size[0], size[1], size[2]);
-//		factory->setSpacing(spacing[0], spacing[1], spacing[2]);
-//		factory->create();
-//		delete factory;
-//
-//		this->redraw();
-//	}
-// }
-
 void FemViewWindow::lockScaleFactor()
 {
     m_lockScaleFactor = true;
@@ -2536,7 +2524,7 @@ bool FemViewWindow::isScaleFactorLocked()
 double FemViewWindow::autoScaleFactor()
 {
     if (m_currentSolver != nullptr)
-        return this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue();
+        return this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue();
     else
         return 1.0;
 }
@@ -2550,7 +2538,6 @@ void FemViewWindow::refreshToolbars()
 {
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
-    // m_viewButtons->clearChecked();
 
     switch (getEditMode())
     {
@@ -2565,12 +2552,6 @@ void FemViewWindow::refreshToolbars()
         break;
     case WidgetMode::CreateNode:
         m_objectButtons->check(0);
-        break;
-    case WidgetMode::ViewZoom:
-        // m_viewButtons->check(0);
-        break;
-    case WidgetMode::ViewPan:
-        // m_viewButtons->check(1);
         break;
     default:
 
@@ -2766,7 +2747,6 @@ void FemViewWindow::onInit()
     else
     {
         log("No font directory found.");
-        // this->disableRedrawTimer();
         this->quit();
     }
 
@@ -2957,8 +2937,6 @@ void FemViewWindow::onInit()
     m_settingsWindow->setFemView(this);
     m_settingsWindow->setVisible(false);
 
-    // m_nodeLoadPropPopup = NodeLoadPropPopup::create("Node Load", true);
-
     m_elementLoadsWindow = ElementLoadsWindow::create("Element Loads");
     m_elementLoadsWindow->setFemView(this);
     m_elementLoadsWindow->setVisible(false);
@@ -2987,11 +2965,15 @@ void FemViewWindow::onInit()
     m_propWindow->setView(this);
     m_propWindow->setVisible(false);
 
+    // Tetgen
+
+    m_tetMesher = ofsolver::TetgenBeamMesher::create();
+    m_tetMesher->setProgPath(m_progPath);
+
     // Set initial edit mode
 
     log("Setting initial edit mode.");
     this->setEditMode(WidgetMode::Select);
-    // this->setEditMode(WidgetMode::SelectVolume);
 
     this->setupPlugins();
 
@@ -3073,10 +3055,6 @@ void FemViewWindow::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& new
 
     femBeam->setMaterial((ofem::BeamMaterial*)m_beamModel->getMaterialSet()->currentMaterial());
     femBeam->setUser(static_cast<void*>(visBeam));
-    /*
-    femBeam->setMaterial(
-            m_dlgMaterials->getCurrentMaterial());
-    */
 
     // Add beam element to beam model
 
@@ -3324,7 +3302,6 @@ void FemViewWindow::onInitContext()
 {
     IvfViewWindow::onInitContext();
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_LINE_SMOOTH);
     if (m_useBlending)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     else
@@ -3351,7 +3328,6 @@ void FemViewWindow::onPassiveMotion(int x, int y)
 
     this->setEditEnabled(true);
 
-    // cursorState = getScene()->getCursor()->getState();
     m_overlaySelected = false;
     for (i = 0; i < m_areas.size(); i++)
     {
@@ -3359,15 +3335,11 @@ void FemViewWindow::onPassiveMotion(int x, int y)
         {
             inside = true;
 
-            // getScene()->getCursor()->setState(IVF_OBJECT_OFF);
             this->setEditEnabled(false);
             needInvalidate = false;
 
-            // PlaneButton* oldButton = m_selectedButton;
-
             if (m_selectedButton != nullptr)
             {
-                // m_selectedButton->setHighlight(Shape::HS_OFF);
                 m_selectedButton->setScale(1.0, 1.0, 1.0);
                 needInvalidate = true;
                 m_overlaySelected = false;
@@ -3379,7 +3351,6 @@ void FemViewWindow::onPassiveMotion(int x, int y)
 
             if (m_selectedButton != nullptr)
             {
-                // m_selectedButton->setHighlight(Shape::HS_ON);
                 m_selectedButton->setScale(1.1, 1.1, 1.1);
                 needInvalidate = true;
                 m_overlaySelected = true;
@@ -3795,6 +3766,9 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
     if ((modifier == ModifierKey::mkCtrl) && (key == 'D'))
         this->subdivideSelectedBeam();
 
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'M'))
+        this->meshSelectedNodes();
+
     if ((modifier == ModifierKey::mkAlt) && (key == 'S'))
     {
         m_editButtons->clearChecked();
@@ -3953,11 +3927,6 @@ void FemViewWindow::onDrawImGui()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Execute chai-script...", ""))
-                runScriptDialog = true;
-
-            ImGui::Separator();
-
             if (ImGui::MenuItem("Quit", "Alt+F4"))
             {
                 quitApplication = true;
@@ -3992,6 +3961,7 @@ void FemViewWindow::onDrawImGui()
             if (ImGui::MenuItem("Select all elements", ""))
                 this->selectAllElements();
 
+            /*
             ImGui::Separator();
 
             if (ImGui::MenuItem("Fix selected nodes", ""))
@@ -4005,11 +3975,17 @@ void FemViewWindow::onDrawImGui()
                 this->assignNodeFixedBCGround();
             if (ImGui::MenuItem("Fix position ground nodes", ""))
                 this->assignNodePosBCGround();
+            */
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Subdivide element", "Ctrl-D"))
                 this->subdivideSelectedBeam();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Mesh selected", "Ctrl-M"))
+                this->meshSelectedNodes();
 
             ImGui::EndMenu();
         }
@@ -4186,9 +4162,6 @@ void FemViewWindow::onDrawImGui()
 
     if (exportAsCalfem)
         this->exportAsCalfem();
-
-    if (runScriptDialog)
-        this->openScript();
 
     if (quitApplication)
     {

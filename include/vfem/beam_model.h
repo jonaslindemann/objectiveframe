@@ -69,8 +69,8 @@ private:
 
     std::string m_colorMapPath;
 
-    ofem::BeamNodeBC* m_defaultNodePosBC;
-    ofem::BeamNodeBC* m_defaultNodeFixedBC;
+    ofem::BeamNodeBCPtr m_defaultNodePosBC;
+    ofem::BeamNodeBCPtr m_defaultNodeFixedBC;
 
 protected:
     virtual void onInitialised() override;

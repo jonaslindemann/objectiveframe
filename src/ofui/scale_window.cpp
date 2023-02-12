@@ -17,6 +17,8 @@ ScaleWindow::ScaleWindow(const std::string name)
     , m_lockScaleFactor { false }
     , m_animate { false }
     , m_animationSpeed { 0.02f }
+    , m_maxScale { 1.0f }
+    , m_minScale { 1.0f }
 {
 }
 
@@ -40,8 +42,9 @@ void ScaleWindow::setWidget(FemWidget* femWidget)
 void ScaleWindow::update()
 {
     m_scaleFactor = float(m_view->getScalefactor());
-
     m_lockScaleFactor = m_view->isScaleFactorLocked();
+    m_maxScale = m_view->getModel()->maxScale();
+    m_minScale = m_view->getModel()->minScale();
 }
 
 std::shared_ptr<ScaleWindow> ScaleWindow::create(const std::string name)
@@ -57,6 +60,9 @@ void ScaleWindow::doDraw()
 
     ImGui::DragFloat("Scale factor", &m_scaleFactor, float(m_view->autoScaleFactor() * 0.01f), float(m_view->autoScaleFactor()), float(m_view->autoScaleFactor() * 2.0f));
     ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
+    ImGui::Separator();
+    ImGui::SliderFloat("Max value scale", &m_maxScale, 0.1, 10.0);
+    ImGui::SliderFloat("Min value scale", &m_minScale, 0.1, 10.0);
     ImGui::Checkbox("Animate", &m_animate);
     if (m_animate)
     {
@@ -74,5 +80,8 @@ void ScaleWindow::doDraw()
             m_view->lockScaleFactor();
         else
             m_view->unlockScaleFactor();
+
+        m_view->getModel()->setMaxScale(m_maxScale);
+        m_view->getModel()->setMinScale(m_minScale);
     }
 }

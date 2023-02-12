@@ -18,6 +18,8 @@ private:
     bool m_lockScaleFactor;
     bool m_animate;
     float m_animationSpeed;
+    float m_maxScale;
+    float m_minScale;
 
 
 #ifdef USE_FEMVIEW

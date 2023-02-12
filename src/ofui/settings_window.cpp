@@ -13,6 +13,7 @@ using namespace ofui;
 SettingsWindow::SettingsWindow(const std::string name)
     : UiWindow(name)
     , m_size { 20.0f }
+    , m_prevSize { 20.0f }
     , m_nodeSize { 0.4f }
     , m_lineRadius { 0.15f }
     , m_loadSize { 7.0f }
@@ -115,7 +116,6 @@ void SettingsWindow::doDraw()
     ImGui::Separator();
 
     ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
-    //ImGui::Checkbox("Offscreen rendering", &m_offscreenRendering);
     ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
@@ -126,7 +126,11 @@ void SettingsWindow::doDraw()
         m_view->setRelLineRadius(m_lineRadius / 100.0f);
         m_view->setRelLoadSize(m_loadSize / 100.0f);
 
-        m_view->setWorkspace(m_size, false);
+        if (m_size!=m_prevSize)
+        {
+            m_view->setWorkspace(m_size, false);
+            m_prevSize = m_size;
+        }
 
         m_view->setScalefactor(m_scaleFactor);
 

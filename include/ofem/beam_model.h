@@ -25,6 +25,8 @@ private:
     double m_minV;
     double m_maxNavier;
     double m_minNavier;
+    double m_maxScale;
+    double m_minScale;
 
 protected:
     virtual NodeBCSet* createBCSet() override;
@@ -68,5 +70,11 @@ public:
     double minM();
     void setMinNavier(double minNavier);
     double minNavier();
+
+    void setMaxScale(double scale);
+    void setMinScale(double scale);
+
+    double maxScale();
+    double minScale();
 };
 }

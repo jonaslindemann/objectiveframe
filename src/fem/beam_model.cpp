@@ -8,6 +8,8 @@ BeamModel::BeamModel()
     : Model()
 // TODO: check and complete member initialisation list!
 {
+    m_minScale = 1.0;
+    m_maxScale = 1.0;
 }
 
 
@@ -76,12 +78,12 @@ void BeamModel::setMaxM(double maxM)
 
 double BeamModel::maxM()
 {
-    return m_maxM;
+    return m_maxM*m_maxScale;
 }
 
 double BeamModel::maxV()
 {
-    return m_maxV;
+    return m_maxV*m_maxScale;
 }
 
 void BeamModel::setMaxV(double maxV)
@@ -91,7 +93,7 @@ void BeamModel::setMaxV(double maxV)
 
 double BeamModel::maxT()
 {
-    return m_maxT;
+    return m_maxT*m_maxScale;
 }
 
 void BeamModel::setMaxT(double maxT)
@@ -101,7 +103,7 @@ void BeamModel::setMaxT(double maxT)
 
 double BeamModel::maxN()
 {
-    return m_maxN;
+    return m_maxN*m_maxScale;
 }
 
 void BeamModel::setMaxN(double maxN)
@@ -116,7 +118,7 @@ void BeamModel::setMaxNavier(double maxNavier)
 
 double BeamModel::maxNavier()
 {
-    return m_maxNavier;
+    return m_maxNavier*m_maxScale;
 }
 
 void BeamModel::setMinM(double minM)
@@ -126,7 +128,7 @@ void BeamModel::setMinM(double minM)
 
 double BeamModel::minV()
 {
-    return m_minV;
+    return m_minV*m_minScale;
 }
 
 void BeamModel::setMinV(double minV)
@@ -136,7 +138,7 @@ void BeamModel::setMinV(double minV)
 
 double BeamModel::minT()
 {
-    return m_minT;
+    return m_minT*m_minScale;
 }
 
 void BeamModel::setMinT(double minT)
@@ -146,7 +148,7 @@ void BeamModel::setMinT(double minT)
 
 double BeamModel::minN()
 {
-    return m_minN;
+    return m_minN*m_minScale;
 }
 
 void BeamModel::setMinN(double minN)
@@ -156,7 +158,7 @@ void BeamModel::setMinN(double minN)
 
 double BeamModel::minM()
 {
-    return m_minM;
+    return m_minM*m_minScale;
 }
 
 void BeamModel::setMinNavier(double minNavier)
@@ -166,5 +168,25 @@ void BeamModel::setMinNavier(double minNavier)
 
 double BeamModel::minNavier()
 {
-    return m_minNavier;
+    return m_minNavier*m_minScale;
+}
+
+void BeamModel::setMaxScale(double scale)
+{
+    m_maxScale = scale;
+}
+
+void BeamModel::setMinScale(double scale)
+{
+    m_minScale = scale;
+}
+
+double BeamModel::maxScale()
+{
+    return m_maxScale;
+}
+
+double BeamModel::minScale()
+{
+    return m_minScale;
 }

@@ -26,7 +26,6 @@ void NodeSet::print(std::ostream& out)
 
 void NodeSet::addNode(Node* node)
 {
-    // node->addReference();
     m_nodes.push_back(node);
 }
 
@@ -62,10 +61,8 @@ Node* NodeSet::removeNode(long i)
     {
         if (m_nodes[i]->getRefCount() == 1)
         {
-            Node* node = m_nodes[i];
-            node->addReference();
+            NodePtr node = m_nodes[i];
             m_nodes.erase(m_nodes.begin() + i);
-            node->deleteReference();
             return node;
         }
         else

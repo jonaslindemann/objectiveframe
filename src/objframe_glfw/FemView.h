@@ -44,6 +44,7 @@ constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 #include <ofsolve/frame_solver.h>
 #include <ofsolve/beam_solver.h>
 #include <ofsolve/solver_interface.h>
+#include <ofsolve/tetgen_beam_mesher.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
@@ -212,6 +213,8 @@ private:
     ofsolver::BeamSolverPtr m_beamSolver;
     ofsolver::SolverInterface* m_currentSolver;
 
+    ofsolver::TetgenBeamMesherPtr m_tetMesher;
+
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_lineMaterial;
     ivf::ShapePtr m_selectedShape;
@@ -305,7 +308,6 @@ private:
 
     // Setup functions
 
-    void setupScripting();
     void setupScript(chaiscript::ChaiScript& script);
     void setupOverlay();
     void setupPlugins();
@@ -418,14 +420,12 @@ public:
     void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
 
     void subdivideSelectedBeam();
+    void meshSelectedNodes();
 
     void doFeedback();
     void showMessage(std::string message);
     void updateAxisLabels();
     void updateButtonState();
-
-    void runScript(const std::string filename);
-    void openScript();
 
     void copy();
     void paste();

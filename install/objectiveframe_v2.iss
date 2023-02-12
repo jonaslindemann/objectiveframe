@@ -50,6 +50,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "..\bin\*.df3"; DestDir: "{userdocs}\ObjectiveFrame Samples"; Flags: ignoreversion; Components: samples
 Source: "vc_redist\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Components: main
 Source: "D:\Users\Jonas\Development\objectiveframe\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "..\external\tetgen.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "D:\Users\Jonas\Development\objectiveframe\bin\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "D:\Users\Jonas\Development\objectiveframe\bin\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "D:\Users\Jonas\Development\objectiveframe\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main

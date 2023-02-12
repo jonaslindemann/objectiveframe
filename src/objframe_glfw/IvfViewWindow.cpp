@@ -751,21 +751,6 @@ ButtonState IvfViewWindow::getCurrentModifier()
     if (isAltDown())
         m_currentModifier = ButtonState::bsAlt;
 
-    /*
-    if (Fl::get_key(FL_Shift_L))
-        m_currentModifier = ButtonState::Shift;
-    if (Fl::get_key(FL_Shift_R))
-        m_currentModifier = ButtonState::Shift;
-    if (Fl::get_key(FL_Control_L))
-        m_currentModifier = ButtonState::Ctrl;
-    if (Fl::get_key(FL_Control_R))
-        m_currentModifier = ButtonState::Ctrl;
-    if (Fl::get_key(FL_Alt_R))
-        m_currentModifier = ButtonState::Alt;
-    if (Fl::get_key(FL_Alt_L))
-        m_currentModifier = ButtonState::Alt;
-    */
-
     return m_currentModifier;
 }
 
@@ -1066,41 +1051,6 @@ void IvfViewWindow::doMotion(int x, int y)
             redraw();
             draw();
         }
-
-#ifdef OLD_VIEW_HANDLING
-        if (Fl::event_state(FL_BUTTON1) > 0)
-        {
-            m_angleX = (x - m_beginX);
-            m_angleY = (y - m_beginY);
-            m_beginX = x;
-            m_beginY = y;
-
-            m_scene->updateSizes();
-
-            redraw();
-        }
-        if (Fl::event_state(FL_BUTTON3) > 0)
-        {
-            if ((getEditMode() == IVF_VIEW_ZOOM) || (getEditMode() == IVF_VIEW_PAN))
-            {
-                if (getCurrentModifier() == IVF_NO_BUTTON)
-                {
-                    m_zoomX = (x - m_beginX);
-                    m_zoomY = (y - m_beginY);
-                }
-                else if (getCurrentModifier() == IVF_SHIFT)
-                {
-                    m_moveX = (x - m_beginX);
-                    m_moveY = (y - m_beginY);
-                }
-            }
-            m_beginX = x;
-            m_beginY = y;
-
-            m_scene->updateSizes();
-            redraw();
-        }
-#endif
     }
 
     if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
@@ -1192,7 +1142,6 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
@@ -1216,7 +1165,6 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
@@ -1230,7 +1178,6 @@ void IvfViewWindow::doMouse(int x, int y)
         Node* node = NULL;
         Vec3d pos;
 
-        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
@@ -1273,8 +1220,6 @@ void IvfViewWindow::doMouse(int x, int y)
             m_volumeSelection->setState(Shape::OS_OFF);
             m_clickNumber = 0;
         }
-
-        // onSelectPosition(vx, vy, vz);
     }
 
     if (m_editMode == WidgetMode::CreateLine)

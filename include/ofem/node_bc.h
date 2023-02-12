@@ -11,7 +11,7 @@ SmartPointer(NodeBC);
 class NodeBC : public BC
 {
 private:
-    std::vector<Node*> m_nodes;
+    std::vector<NodePtr> m_nodes;
     std::vector<long> m_nodeIndex;
     bool m_prescribedDof[6];
     double m_prescribedValues[6];

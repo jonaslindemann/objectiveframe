@@ -1,0 +1,35 @@
+
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Node grid,string%%";
+var floors = %%floors,4,int%%;
+var rows = %%rows,4,int%%;
+var cols = %%cols,4,int%%;
+
+var dx = %%dx,1.0,float%%;
+var dy = %%dy,1.0,float%%;
+var dz = %%dz,1.0,float%%;
+
+// Nodes
+
+// o ---- o ---- o ---- o
+
+var startNodeIdx = nodeCount();
+
+var offsetX = (cols-1) * dx / 2.0;
+var offsetZ = (rows-1) * dz / 2.0;
+
+for (var k=0; k<floors; ++k)
+{
+	for (var j=0; j<rows; ++j)
+	{
+		for (var i=0; i<cols; ++i)
+		{
+			addNode(i*dx - offsetX, k*dy, j*dz - offsetZ);
+		}
+	}
+}
+
+}

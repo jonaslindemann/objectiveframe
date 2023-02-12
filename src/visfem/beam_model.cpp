@@ -23,9 +23,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/intersect.hpp>
 
-// using namespace ivf;
 using namespace vfem;
-// using namespace std;
 
 BeamModel::BeamModel()
     : ofem::BeamModel()
@@ -66,7 +64,6 @@ BeamModel::BeamModel()
 
 BeamModel::~BeamModel()
 {
-    //delete m_resultInfo;
 }
 
 void BeamModel::onInitialised()
@@ -96,7 +93,6 @@ void BeamModel::onInitialised()
 
 void BeamModel::generateModel()
 {
-
     // Open color maps
 
     m_colorMapPos->open("red.map");
@@ -105,7 +101,6 @@ void BeamModel::generateModel()
 
     m_colorMapPosBlack->open("red_black.map");
     m_colorMapNegBlack->open("blue_black.map");
-
 
     // Temporary lists
 
@@ -124,8 +119,6 @@ void BeamModel::generateModel()
         ivfNode->setDirectRefresh(true);
         ivfNode->nodeLabel()->setSize(float(m_nodeSize * 1.5f));
         ivfNode->refresh();
-        // if (m_pnodeSize!=nullptr)
-        //	ivfNode->setNodeSize(*m_pnodeSize);
         m_scene->addChild(ivfNode);
         ivfNodes.push_back(ivfNode);
         nodeSet->getNode(i)->setNumber(i + 1);
@@ -141,7 +134,6 @@ void BeamModel::generateModel()
         vfem::Beam* ivfBeam = new Beam();
         ofem::Beam* femBeam = (ofem::Beam*)beamSet->getElement(i);
         ivfBeam->setBeam(femBeam);
-        // ivfBeam->setMaterial(m_beamMaterial);
         ivfBeam->setBeamModel(this);
         ofem::Node* femNode1 = femBeam->getNode(0);
         ofem::Node* femNode2 = femBeam->getNode(1);
@@ -162,8 +154,6 @@ void BeamModel::generateModel()
         ivfBeamLoad->setBeamModel(this);
         ivfBeamLoad->setBeamLoad(femBeamLoad);
         femBeamLoad->setUser((void*)ivfBeamLoad);
-        // ivfBeamLoad->setLoadHeight(*m_pbeamLoadSize);
-        // ivfBeamLoad->setColorTable(this->getColorTable());
         ivfBeamLoad->refresh();
         m_scene->addChild(ivfBeamLoad);
     }
@@ -179,8 +169,6 @@ void BeamModel::generateModel()
         ivfNodeLoad->setBeamModel(this);
         ivfNodeLoad->setNodeLoad(femNodeLoad);
         femNodeLoad->setUser((void*)ivfNodeLoad);
-        // ivfNodeLoad->setColorTable(this->getColorTable());
-        // ivfNodeLoad->setLoadHeight(*m_ploadSize);
         ivfNodeLoad->refresh();
         m_scene->addChild(static_cast<ivf::Shape*>(ivfNodeLoad));
     }
@@ -194,8 +182,6 @@ void BeamModel::generateModel()
         vfem::NodeBC* ivfNodeBC = new vfem::NodeBC();
         ofem::BeamNodeBC* femNodeBC = (ofem::BeamNodeBC*)nodeBCSet->getBC(i);
         ivfNodeBC->setBeamModel(this);
-        // ivfNodeBC->setColorTable(this->getColorTable());
-        // ivfNodeBC->setNodeSize(*m_pnodeSize);
         ivfNodeBC->setNodeBC(femNodeBC);
         femNodeBC->setUser((void*)ivfNodeBC);
         ivfNodeBC->refresh();
@@ -303,11 +289,6 @@ void BeamModel::setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std)
     m_colorMapStd = std;
 }
 
-//void BeamModel::setResultInfo(ResultInfo* resultInfo)
-//{
-//    m_resultInfo = resultInfo;
-//}
-
 void BeamModel::setBeamType(int type)
 {
     m_beamType = type;
@@ -367,11 +348,6 @@ int BeamModel::getResultType()
 {
     return m_resultType;
 }
-
-//ResultInfo* BeamModel::getResultInfo()
-//{
-//    return m_resultInfo;
-//}
 
 ColorMapPtr BeamModel::getColorMapPos()
 {

@@ -15,6 +15,7 @@ class SettingsWindow : public UiWindow
 {
 private:
     float m_size;
+    float m_prevSize;
     float m_nodeSize;
     float m_lineRadius;
     float m_loadSize;

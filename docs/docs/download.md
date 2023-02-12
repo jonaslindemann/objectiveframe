@@ -5,7 +5,7 @@ hide:
 
 # Downloading ObjectiveFrame
 
-Latest release: [ObjectiveFrame-2.0.0-rc1](https://github.com/jonaslindemann/objectiveframe/releases/download/2.0.0-rc1/objectiveframe_setup.exe)
+[Latest release](https://github.com/jonaslindemann/objectiveframe/releases/latest)
 
 All releases of ObjectiveFrame can be downloaded from Github here:
 
@@ -17,9 +17,6 @@ As this is a beta version we need to know what issues and enhancements to fix in
 
 ## Known compatibility issues
 
-* ObjectiveFrame works best with a modern NVIDIA based graphics card (GTX 10xx, 20xx, 30xx). 
-* Offscreen rendering for antialiasing doesn't work correctly under Intel-based graphics cards.
-* ObjectiveFrame requires a graphics driver with an available compatibility profile available as the code uses the fixed function pipeline in OpenGL.
 * As ObjectiveFrame uses a immediate mode user interface toolkit the Window will be redrawn continously, leading to a more responsive application, but also uses more resources.
 
 

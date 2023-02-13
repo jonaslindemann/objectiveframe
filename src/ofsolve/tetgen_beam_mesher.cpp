@@ -236,7 +236,7 @@ void ofsolver::TetgenBeamMesher::generate()
 
     m_nodes.save(nodeFilename);
 
-    std::string tetgenExec = m_progPath + "tetgen.exe -e "+nodeFilename;
+    std::string tetgenExec = "\"" + m_progPath + "tetgen.exe\" -e " + nodeFilename;
 
     Logger::instance()->log(LogLevel::Info, tetgenExec);
 

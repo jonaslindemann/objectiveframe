@@ -56,6 +56,8 @@ void NodeBCsWindow::doPreDraw()
 
 void NodeBCsWindow::doDraw()
 {
+    std::string name;
+
     ImGui::BeginGroup();
 
     if (ImGui::BeginListBox("##empty", ImVec2(0.0f, -FLT_MIN)))
@@ -66,8 +68,13 @@ void NodeBCsWindow::doDraw()
             {
                 BeamNodeBC* nodeBC = static_cast<BeamNodeBC*>(m_femNodeBCSet->getBC(static_cast<long>(i)));
 
+                if (nodeBC->isReadOnly())
+                    name = nodeBC->getName() + " - (Default)";
+                else
+                    name = nodeBC->getName();
+
                 ImGui::PushID(static_cast<int>(i));
-                if (ImGui::Selectable(nodeBC->getName().c_str(), i == m_currentItemIdx))
+                if (ImGui::Selectable(name.c_str(), i == m_currentItemIdx))
                 {
                     m_currentItemIdx = static_cast<int>(i);
                     m_view->setCurrentNodeBC(nodeBC);
@@ -90,6 +97,7 @@ void NodeBCsWindow::doDraw()
             BeamNodeBC* bc = new BeamNodeBC();
             bc->setName("new bc");
             m_femNodeBCSet->addBC(bc);
+            m_view->addNodeBC(bc);
         }
     }
     if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f)))

@@ -163,6 +163,7 @@ void Model::saveToStream(std::ostream& out)
     out << endl
         << endl;
     m_bcSet->saveToStream(out);
+    this->onSaveComplete();
 }
 
 
@@ -181,6 +182,7 @@ void Model::readFromStream(std::istream& in)
     this->connectNodeLoads();
     this->connectElementLoads();
     this->connectNodeBCs();
+    this->onReadComplete();
 }
 
 
@@ -369,6 +371,14 @@ void Model::initialize()
 
 
 void Model::onInitialised()
+{
+}
+
+void ofem::Model::onReadComplete()
+{
+}
+
+void ofem::Model::onSaveComplete()
 {
 }
 

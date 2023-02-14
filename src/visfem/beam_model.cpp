@@ -91,6 +91,20 @@ void BeamModel::onInitialised()
     this->nodeBCSet()->addBC(m_defaultNodePosBC);
 }
 
+void vfem::BeamModel::onReadComplete()
+{
+    // Set the default node BCs after load
+
+    for (auto i = 0; i < this->nodeBCSet()->getSize(); i++)
+    {
+        auto nodeBC = static_cast<ofem::BeamNodeBC*>(this->nodeBCSet()->getBC(i));
+        if (nodeBC->getName() == "fixed pos/rot")
+            m_defaultNodeFixedBC = nodeBC;
+        if (nodeBC->getName() == "fixed pos")
+            m_defaultNodePosBC = nodeBC;
+    }
+}
+
 void BeamModel::generateModel()
 {
     // Open color maps
@@ -108,11 +122,11 @@ void BeamModel::generateModel()
 
     // Create nodes
 
-    ofem::NodeSet* nodeSet = this->getNodeSet();
+    auto nodeSet = this->getNodeSet();
 
     for (int i = 0; i < nodeSet->getSize(); i++)
     {
-        vfem::Node* ivfNode = new vfem::Node();
+        auto ivfNode = new vfem::Node();
         ivfNode->setBeamModel(this);
         ivfNode->setFemNode(nodeSet->getNode(i));
         ivfNode->setMaterial(m_nodeMaterial);
@@ -127,16 +141,16 @@ void BeamModel::generateModel()
 
     // Generate elements
 
-    ofem::BeamSet* beamSet = this->getElementSet();
+    auto beamSet = this->getElementSet();
 
     for (int i = 0; i < beamSet->getSize(); i++)
     {
-        vfem::Beam* ivfBeam = new Beam();
-        ofem::Beam* femBeam = (ofem::Beam*)beamSet->getElement(i);
+        auto ivfBeam = new Beam();
+        auto femBeam = (ofem::Beam*)beamSet->getElement(i);
         ivfBeam->setBeam(femBeam);
         ivfBeam->setBeamModel(this);
-        ofem::Node* femNode1 = femBeam->getNode(0);
-        ofem::Node* femNode2 = femBeam->getNode(1);
+        auto femNode1 = femBeam->getNode(0);
+        auto femNode2 = femBeam->getNode(1);
         ivfBeam->setNodes(ivfNodes[femNode1->getNumber() - 1], ivfNodes[femNode2->getNumber() - 1]);
         ivfBeam->refresh();
         femBeam->setUser(static_cast<void*>(ivfBeam));
@@ -145,12 +159,12 @@ void BeamModel::generateModel()
 
     // Generate beam loads
 
-    ofem::ElementLoadSet* elementLoadSet = this->getElementLoadSet();
+    auto elementLoadSet = this->getElementLoadSet();
 
     for (int i = 0; i < elementLoadSet->getSize(); i++)
     {
-        vfem::BeamLoad* ivfBeamLoad = new vfem::BeamLoad();
-        ofem::BeamLoad* femBeamLoad = (ofem::BeamLoad*)elementLoadSet->getLoad(i);
+        auto ivfBeamLoad = new vfem::BeamLoad();
+        auto femBeamLoad = (ofem::BeamLoad*)elementLoadSet->getLoad(i);
         ivfBeamLoad->setBeamModel(this);
         ivfBeamLoad->setBeamLoad(femBeamLoad);
         femBeamLoad->setUser((void*)ivfBeamLoad);
@@ -160,12 +174,12 @@ void BeamModel::generateModel()
 
     // Generate node loads
 
-    ofem::NodeLoadSet* nodeLoadSet = this->getNodeLoadSet();
+    auto nodeLoadSet = this->getNodeLoadSet();
 
     for (int i = 0; i < nodeLoadSet->getSize(); i++)
     {
-        vfem::NodeLoad* ivfNodeLoad = new vfem::NodeLoad();
-        ofem::BeamNodeLoad* femNodeLoad = (ofem::BeamNodeLoad*)nodeLoadSet->getLoad(i);
+        auto ivfNodeLoad = new vfem::NodeLoad();
+        auto femNodeLoad = (ofem::BeamNodeLoad*)nodeLoadSet->getLoad(i);
         ivfNodeLoad->setBeamModel(this);
         ivfNodeLoad->setNodeLoad(femNodeLoad);
         femNodeLoad->setUser((void*)ivfNodeLoad);
@@ -179,8 +193,8 @@ void BeamModel::generateModel()
 
     for (int i = 0; i < nodeBCSet->getSize(); i++)
     {
-        vfem::NodeBC* ivfNodeBC = new vfem::NodeBC();
-        ofem::BeamNodeBC* femNodeBC = (ofem::BeamNodeBC*)nodeBCSet->getBC(i);
+        auto ivfNodeBC = new vfem::NodeBC();
+        auto femNodeBC = (ofem::BeamNodeBC*)nodeBCSet->getBC(i);
         ivfNodeBC->setBeamModel(this);
         ivfNodeBC->setNodeBC(femNodeBC);
         femNodeBC->setUser((void*)ivfNodeBC);

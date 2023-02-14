@@ -70,12 +70,17 @@ BCPtr BCSet::removeBC(long i)
     if ((i >= 0) && (i < (long)m_bcs.size()))
     {
         BCPtr bc = m_bcs[i];
-        p += i;
-        m_bcs.erase(p);
-        return bc;
+        if (!bc->isReadOnly())
+        {
+            p += i;
+            m_bcs.erase(p);
+            return bc;
+        }
+        else
+            return nullptr;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 void BCSet::deleteAll()

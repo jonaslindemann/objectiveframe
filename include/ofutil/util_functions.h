@@ -15,5 +15,6 @@ std::string to_coord_string(double x, double y, double z);
 
 float to_float(std::string str);
 int to_int(std::string str);
+int run_process(std::string cmd);
 
 }

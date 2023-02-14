@@ -41,6 +41,8 @@ void BeamNodeBC::readFromStream(std::istream& in)
     in.getline(buffer, 255);
     in.getline(buffer, 255);
     this->setName(buffer);
+    if ((this->getName() == "fixed pos/rot") || (this->getName() == "fixed pos"))
+        this->setReadOnly(true);
     in >> m_color;
 }
 

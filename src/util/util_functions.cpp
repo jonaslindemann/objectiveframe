@@ -2,8 +2,57 @@
 
 #include <sstream>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 namespace ofutil
 {
+
+#ifdef WIN32
+
+int run_process(std::string cmd)
+{
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    LPSTR s = _strdup(cmd.c_str());
+
+    // Start the child process.
+    auto result = CreateProcessA(NULL, // No module name (use command line)
+        s, // Command line
+        NULL, // Process handle not inheritable
+        NULL, // Thread handle not inheritable
+        FALSE, // Set handle inheritance to FALSE
+        CREATE_NO_WINDOW, // No creation flags
+        NULL, // Use parent's environment block
+        NULL, // Use parent's starting directory
+        &si, // Pointer to STARTUPINFO structure
+        &pi); // Pointer to PROCESS_INFORMATION structure
+
+    if (result==0)
+    {
+        printf("CreateProcess failed (%d).\n", GetLastError());
+        return 1;
+    }
+
+    free(s);
+
+    // Wait until child process exits.
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    // Close process and thread handles.
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return 0;
+}
+
+#endif
 
 std::string to_string(float value)
 {

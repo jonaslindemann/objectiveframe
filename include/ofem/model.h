@@ -51,6 +51,8 @@ protected:
     virtual void connectElements();
     virtual void connectNodeBCs();
     virtual void onInitialised();
+    virtual void onReadComplete();
+    virtual void onSaveComplete();
 
 public:
     Model();

@@ -2635,12 +2635,15 @@ void FemViewWindow::removeBCsFromBC()
 {
     ofem::BeamNodeBC* nodeBC = this->getCurrentNodeBC();
 
-    if (nodeBC != nullptr)
-        nodeBC->clearNodes();
+    if (!nodeBC->isReadOnly())
+    {
+        if (nodeBC != nullptr)
+            nodeBC->clearNodes();
 
-    m_needRecalc = true;
-    this->set_changed();
-    this->redraw();
+        m_needRecalc = true;
+        this->set_changed();
+        this->redraw();
+    }
 }
 
 void FemViewWindow::removeBeamLoadsFromSelected()
@@ -3961,7 +3964,6 @@ void FemViewWindow::onDrawImGui()
             if (ImGui::MenuItem("Select all elements", ""))
                 this->selectAllElements();
 
-            /*
             ImGui::Separator();
 
             if (ImGui::MenuItem("Fix selected nodes", ""))
@@ -3975,7 +3977,6 @@ void FemViewWindow::onDrawImGui()
                 this->assignNodeFixedBCGround();
             if (ImGui::MenuItem("Fix position ground nodes", ""))
                 this->assignNodePosBCGround();
-            */
 
             ImGui::Separator();
 

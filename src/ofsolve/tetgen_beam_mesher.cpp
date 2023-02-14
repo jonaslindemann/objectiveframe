@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <cstdio>
 
+#include <ofutil/util_functions.h>
+
 using namespace ofem;
 using namespace ofsolver;
 
@@ -240,7 +242,11 @@ void ofsolver::TetgenBeamMesher::generate()
 
     Logger::instance()->log(LogLevel::Info, tetgenExec);
 
+#ifdef WIN32
+    auto result = ofutil::run_process(tetgenExec);
+#else
     auto result = std::system(tetgenExec.c_str());
+#endif
 
     if (result == 0)
     {

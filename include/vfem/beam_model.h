@@ -74,6 +74,7 @@ private:
 
 protected:
     virtual void onInitialised() override;
+    virtual void onReadComplete() override;
 
 public:
     BeamModel();

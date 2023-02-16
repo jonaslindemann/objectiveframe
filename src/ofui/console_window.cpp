@@ -4,9 +4,12 @@ using namespace ofui;
 
 ConsoleWindow::ConsoleWindow(const std::string name)
     : UiWindow(name)
-    , m_autoScroll { true }
+    , m_autoScroll { false }
 {
-    setWindowFlags(ImGuiWindowFlags_None);
+    //setWindowFlags(ImGuiWindowFlags_None);
+    this->setWindowFlags(
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+
     clear();
 }
 
@@ -33,32 +36,7 @@ void ofui::ConsoleWindow::log(const std::string message)
 
 void ofui::ConsoleWindow::doDraw()
 {
-    // Options menu
-    if (ImGui::BeginPopup("Options"))
-    {
-        ImGui::Checkbox("Auto-scroll", &m_autoScroll);
-        ImGui::EndPopup();
-    }
-
-    // Main window
-    /*
-    if (ImGui::Button("Options"))
-            ImGui::OpenPopup("Options");
-    ImGui::SameLine();
-    bool clear = ImGui::Button("Clear");
-    ImGui::SameLine();
-    bool copy = ImGui::Button("Copy");
-    ImGui::SameLine();
-    m_filter.Draw("Filter", -100.0f);
-
-    ImGui::Separator();
-    */
-    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-    // if (clear)
-    //	this->clear();
-    // if (copy)
-    //	ImGui::LogToClipboard();
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     const char* buf = m_buffer.begin();
@@ -90,13 +68,25 @@ void ofui::ConsoleWindow::doDraw()
     }
     ImGui::PopStyleVar();
 
-    if (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-        ImGui::SetScrollHereY(1.0f);
+    //if (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+    //    ImGui::SetScrollHereY(1.0f);
 
     ImGui::EndChild();
 }
 
 void ofui::ConsoleWindow::doPreDraw()
 {
-    ImGui::SetNextWindowSize(ImVec2(800, 200), 0); // ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(700, 40), 0); // ImGuiCond_FirstUseEver);
+
+    const int corner = 1;
+    const float PAD = 0.0f;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+    ImVec2 work_size = viewport->WorkSize;
+    ImVec2 window_pos, window_pos_pivot;
+    window_pos.x = work_pos.x + work_size.x / 2 - this->width()/2;
+    window_pos.y = work_size.y - this->height() - PAD;
+    window_pos_pivot.x = 0.5f;
+    window_pos_pivot.y = 1.0f;
+    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 }

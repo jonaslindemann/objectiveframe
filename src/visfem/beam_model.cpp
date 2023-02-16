@@ -5,6 +5,7 @@
 #include <vfem/node.h>
 #include <vfem/node_bc.h>
 #include <vfem/node_load.h>
+#include <vfem/preferences.h>
 
 #include <ofem/beam_load.h>
 #include <ofem/beam_set.h>
@@ -50,12 +51,16 @@ BeamModel::BeamModel()
 
     m_beamType = IVF_BEAM_SOLID;
     m_resultType = IVF_BEAM_NO_RESULT;
-    m_nodeType = ivf::Node::NT_CUBE;
+
+    if (vfem::Preferences::instance().useSphereNodes())
+        m_nodeType = ivf::Node::NT_SPHERE;
+    else
+        m_nodeType = ivf::Node::NT_CUBE;
 
     m_colorMapPath = "";
 
     m_textFont = nullptr;
-    m_showNodeNumbers = false;
+    m_showNodeNumbers = vfem::Preferences::instance().showNodeNumbers();
     m_showElementNumbers = false;
     m_camera = nullptr;
 
@@ -325,12 +330,13 @@ ivf::BitmapFont* vfem::BeamModel::textFont()
 
 void vfem::BeamModel::setShowNodeNumbers(bool flag)
 {
+    vfem::Preferences::instance().setShowNodeNumbers(flag);
     m_showNodeNumbers = flag;
 }
 
 bool vfem::BeamModel::showNodeNumbers()
 {
-    return m_showNodeNumbers;
+    return vfem::Preferences::instance().showNodeNumbers();
 }
 
 void vfem::BeamModel::setCamera(ivf::Camera* camera)
@@ -400,12 +406,20 @@ double BeamModel::getScaleFactor()
 
 void vfem::BeamModel::setNodeRepr(ivf::Node::TNodeType type)
 {
+    if (type == ivf::Node::NT_SPHERE)
+        vfem::Preferences::instance().setUseSphereNodes(true);
+    else
+        vfem::Preferences::instance().setUseSphereNodes(false);
+    
     m_nodeRepr = type;
 }
 
 ivf::Node::TNodeType vfem::BeamModel::getNodeRepr()
 {
-    return m_nodeRepr;
+    if (vfem::Preferences::instance().useSphereNodes())
+        return ivf::Node::NT_SPHERE;
+    else
+        return ivf::Node::NT_CUBE;
 }
 
 void vfem::BeamModel::setUseBlending(bool flag)

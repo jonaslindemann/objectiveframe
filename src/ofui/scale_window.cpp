@@ -59,15 +59,16 @@ void ScaleWindow::doDraw()
     this->update();
 
     ImGui::DragFloat("Scale factor", &m_scaleFactor, float(m_view->autoScaleFactor() * 0.01f), float(m_view->autoScaleFactor()), float(m_view->autoScaleFactor() * 2.0f));
-    ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
     ImGui::Separator();
-    ImGui::SliderFloat("Max value scale", &m_maxScale, 0.1, 10.0);
-    ImGui::SliderFloat("Min value scale", &m_minScale, 0.1, 10.0);
+    ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
     ImGui::Checkbox("Animate", &m_animate);
     if (m_animate)
     {
         ImGui::SliderFloat("Animation speed", &m_animationSpeed, 0.01f, 0.2f);
     }
+    ImGui::Separator();
+    ImGui::SliderFloat("Max value scale", &m_maxScale, 0.1, 10.0);
+    ImGui::SliderFloat("Min value scale", &m_minScale, 0.1, 10.0);
 
     if (m_view != nullptr)
     {

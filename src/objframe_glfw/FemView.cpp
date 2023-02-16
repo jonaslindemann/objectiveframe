@@ -22,6 +22,10 @@
 
 #include <logger.h>
 
+#ifdef WIN32
+#include <shellapi.h>
+#endif
+
 using namespace ivf;
 using namespace std;
 using namespace ofui;
@@ -1092,7 +1096,8 @@ void FemViewWindow::restoreLastSnapShot()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(false);
+
+    // m_beamModel->setShowNodeNumbers(false);
 
     // Generate a Ivf++ representation
 
@@ -1142,7 +1147,7 @@ void FemViewWindow::revertLastSnapShot()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(true);
+    // m_beamModel->setShowNodeNumbers(true);
 
     // Generate a Ivf++ representation
 
@@ -1196,7 +1201,7 @@ void FemViewWindow::open(std::string filename)
     m_beamModel->open();
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(true);
+    // m_beamModel->setShowNodeNumbers(true);
 
     // Generate a Ivf++ representation
 
@@ -1334,7 +1339,7 @@ void FemViewWindow::newModel()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(true);
+    // m_beamModel->setShowNodeNumbers(true);
 
     m_beamModel->generateModel();
 
@@ -1675,7 +1680,7 @@ void FemViewWindow::meshSelectedNodes()
 
             std::cout << edge.index() << ", " << edge.i0() << ", " << edge.i1() << "\n";
 
-            this->addBeam(edge.i0()-1, edge.i1()-1);
+            this->addBeam(edge.i0() - 1, edge.i1() - 1);
         }
     }
 
@@ -1984,6 +1989,12 @@ void FemViewWindow::setupPlugins()
             m_plugins.push_back(plugin);
             log("Loading plugin - " + filename.string() + " - " + plugin->name());
         }
+
+        std::sort(m_plugins.begin(), m_plugins.end(),
+            [](const ScriptPluginPtr a, const ScriptPluginPtr b) -> bool
+            {
+                return a->name() > b->name();
+            });
     }
     else
         log("Couldn't find load any plugins...");
@@ -2815,7 +2826,7 @@ void FemViewWindow::onInit()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    m_beamModel->setShowNodeNumbers(false);
+    // m_beamModel->setShowNodeNumbers(false);
 
     m_beamModel->generateModel();
 
@@ -3807,6 +3818,14 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->setEditMode(WidgetMode::CreateLine);
         this->redraw();
     }
+
+    if ((modifier == ModifierKey::mkAlt) && (key == 'X'))
+    {
+        if (this->getUseBlending())
+            this->setUseBlending(false);
+        else
+            this->setUseBlending(true);
+    }
 }
 
 void FemViewWindow::onHighlightFilter(Shape* shape, bool& highlight)
@@ -3836,7 +3855,7 @@ void FemViewWindow::onHighlightFilter(Shape* shape, bool& highlight)
 
 void FemViewWindow::onKeyboard(int key)
 {
-    std::cout << "onKeyboard: " << key << "\n";
+    log("onKeyboard: " + std::to_string(key));
 
     if (key == 256)
     {
@@ -3856,14 +3875,6 @@ void FemViewWindow::onKeyboard(int key)
 
     if (key == 66)
         this->setEditMode(WidgetMode::CreateLine);
-
-    if (key == 88)
-    {
-        if (this->getUseBlending())
-            this->setUseBlending(false);
-        else
-            this->setUseBlending(true);
-    }
 
     if (key == 261)
         this->deleteSelected();
@@ -3927,6 +3938,14 @@ void FemViewWindow::onDrawImGui()
 
             if (ImGui::MenuItem("Save as CALFEM...", ""))
                 exportAsCalfem = true;
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Preferences...", ""))
+            {
+                m_settingsWindow->align(1);
+                m_settingsWindow->show();
+            }
 
             ImGui::Separator();
 
@@ -4000,26 +4019,27 @@ void FemViewWindow::onDrawImGui()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Settings...", ""))
+            if (ImGui::MenuItem("Node loads...", ""))
             {
-                m_settingsWindow->align(1);
-                m_settingsWindow->show();
+                m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
+                m_nodeLoadsWindow->setVisible(true);
+                this->setNeedRecalc(true);
             }
 
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Hints...", ""))
+            if (ImGui::MenuItem("Element loads...", ""))
             {
-                m_consoleWindow->setPosition(0, 0);
-                m_consoleWindow->show();
+                m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet*)m_beamModel->getElementLoadSet());
+                m_elementLoadsWindow->setVisible(true);
+                this->setNeedRecalc(true);
             }
 
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Log...", ""))
+            if (ImGui::MenuItem("Materials...", ""))
             {
-                m_logWindow->show();
+                m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet*)m_beamModel->getMaterialSet());
+                m_materialsWindow->setVisible(true);
+                this->setNeedRecalc(true);
             }
+
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Mode"))
@@ -4034,7 +4054,7 @@ void FemViewWindow::onDrawImGui()
                 this->setCustomMode(CustomMode::Feedback);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Structure"))
+        if (ImGui::BeginMenu("Create"))
         {
             for (auto& p : m_plugins)
             {
@@ -4048,15 +4068,15 @@ void FemViewWindow::onDrawImGui()
             }
             ImGui::EndMenu();
         }
-        /*
-        if (ImGui::BeginMenu("Calculation"))
+
+        if (ImGui::BeginMenu("Calc"))
         {
-            if (ImGui::MenuItem("Execute", ""))
+            if (ImGui::MenuItem("Execute", "Ctrl-R"))
                 executeCalc = true;
 
             ImGui::EndMenu();
         }
-        */
+
         if (ImGui::BeginMenu("Results"))
         {
             if (ImGui::MenuItem("Normal", ""))
@@ -4074,7 +4094,7 @@ void FemViewWindow::onDrawImGui()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("X-ray mode", "X"))
+            if (ImGui::MenuItem("X-ray mode", "Alt-X"))
             {
                 if (getUseBlending())
                     this->setUseBlending(false);
@@ -4099,6 +4119,19 @@ void FemViewWindow::onDrawImGui()
                 m_aboutWindow->center();
                 m_aboutWindow->show();
             }
+            if (ImGui::MenuItem("Homepage...", ""))
+            {
+#ifdef WIN32
+                ShellExecuteW(0, 0, L"https://jonaslindemann.github.io/objectiveframe/", 0, 0, SW_SHOW);
+#endif
+            }
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Log...", ""))
+            {
+                m_logWindow->show();
+            }
+
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

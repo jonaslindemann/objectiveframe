@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     std::filesystem::path path(fullExePath);
     std::string progPath = path.parent_path().string() + "\\";
 
-    auto window = FemViewWindow::create(1280, 1024, "ObjectiveFrame");
+    auto window = FemViewWindow::create(1440, 900, "ObjectiveFrame");
     window->setArguments(argc, argv);
     window->setProgramPath(progPath);
     window->setWindowIcon(progPath + "images\\logo.png");

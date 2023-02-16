@@ -7,6 +7,7 @@
 #endif
 
 #include <vfem/beam_model.h>
+#include <vfem/preferences.h>
 
 using namespace ofui;
 
@@ -39,11 +40,12 @@ void ofui::SettingsWindow::setFemView(FemViewWindow* view)
     m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
     m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
-    m_scaleFactor = float(m_view->getScalefactor());
-    m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_view->getModel())->showNodeNumbers();
+    //m_scaleFactor = float(m_view->getScalefactor());
+    m_showNodeNumbers = vfem::Preferences::instance().showNodeNumbers();
     m_uiScale = m_view->uiScale();
     m_lineSides = static_cast<vfem::BeamModel*>(m_view->getModel())->getLineSides();
-    if (static_cast<vfem::BeamModel*>(m_view->getModel())->getNodeRepr() == ivf::Node::NT_SPHERE)
+
+    if (vfem::Preferences::instance().useSphereNodes())
         m_sphereNodes = true;
     else
         m_sphereNodes = false;
@@ -68,11 +70,9 @@ void SettingsWindow::update()
     m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
     m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
-    m_scaleFactor = float(m_view->getScalefactor());
+    //m_scaleFactor = float(m_view->getScalefactor());
     m_uiScale = m_view->uiScale();
-#ifndef USE_FEMVIEW
-    m_offscreenRendering = m_view->offscreenRendering();
-#endif
+
     static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     static_cast<vfem::BeamModel*>(m_view->getModel())->setLineSides(m_lineSides);
 
@@ -106,16 +106,14 @@ void SettingsWindow::doDraw()
     ImGui::SliderFloat("Line radius (%)", &m_lineRadius, 0.1f, 2.0f);
     ImGui::SliderFloat("Load size (%)", &m_loadSize, 1.0f, 10.0f);
     ImGui::SliderInt("Line sides", &m_lineSides, 4, 12);
+
+    ImGui::Separator();
+
     ImGui::Checkbox("Sphere nodes", &m_sphereNodes);
-
-    ImGui::Separator();
-
-    ImGui::DragFloat("Scale factor", &m_scaleFactor, 1.0f, 1000.0f);
-    ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
-
-    ImGui::Separator();
-
     ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
+
+    ImGui::Separator();
+
     ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
@@ -134,14 +132,6 @@ void SettingsWindow::doDraw()
 
         m_view->setScalefactor(m_scaleFactor);
 
-        if (m_lockScaleFactor)
-            m_view->lockScaleFactor();
-        else
-            m_view->unlockScaleFactor();
-#ifndef USE_FEMVIEW
-        if (m_offscreenRendering != m_view->offscreenRendering())
-            m_view->setOffscreenRendering(m_offscreenRendering);
-#endif
         m_view->setUiScale(m_uiScale);
 
         static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);

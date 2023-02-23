@@ -18,6 +18,8 @@
 #include <ofem/beam_load.h>
 #include <ofem/node.h>
 
+#include <vfem/preferences.h>
+
 #include <ofutil/util_functions.h>
 
 #include <logger.h>
@@ -973,16 +975,25 @@ void FemViewWindow::setNeedRecalc(bool flag)
 void FemViewWindow::setRelNodeSize(double size)
 {
     m_relNodeSize = size;
+
+    if (m_beamModel != nullptr)
+        m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
 }
 
 void FemViewWindow::setRelLineRadius(double radius)
 {
     m_relLineRadius = radius;
+
+    if (m_beamModel != nullptr)
+        m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
 }
 
 void FemViewWindow::setRelLoadSize(double size)
 {
     m_relLoadSize = size;
+
+    if (m_beamModel != nullptr)
+        m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
 }
 
 double FemViewWindow::getRelNodeSize()
@@ -1392,7 +1403,7 @@ void FemViewWindow::newModel()
     m_cubeCursor->setMaterial(m_nodeMaterial);
     m_cubeCursor->setSize(m_beamModel->getNodeSize() * 1.5);
 
-    if (m_useSphereCursor)
+    if (vfem::Preferences::instance().useSphereNodes())
         m_nodeCursor = m_sphereCursor;
     else
         m_nodeCursor = m_cubeCursor;
@@ -1672,8 +1683,6 @@ void FemViewWindow::meshSelectedNodes()
     {
         m_tetMesher->generate();
 
-        m_tetMesher->edges();
-
         for (auto i = 0; i < m_tetMesher->edges().count(); i++)
         {
             auto edge = m_tetMesher->edges().at(i);
@@ -1681,6 +1690,68 @@ void FemViewWindow::meshSelectedNodes()
             std::cout << edge.index() << ", " << edge.i0() << ", " << edge.i1() << "\n";
 
             this->addBeam(edge.i0() - 1, edge.i1() - 1);
+        }
+    }
+
+    // Shapes has to be refreshed to represent the
+    // the changes
+
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::surfaceSelectedNodes(bool groundElements)
+{
+    this->snapShot();
+
+    m_tetMesher->clear();
+
+    double x, y, z;
+
+    auto selected = this->getSelectedShapes();
+    for (int i = 0; i < selected->getSize(); i++)
+    {
+        auto shape = selected->getChild(i);
+        if (shape->isClass("vfem::Node"))
+        {
+            vfem::Node* visNode = static_cast<vfem::Node*>(shape);
+            ofem::Node* femNode = visNode->getFemNode();
+
+            femNode->getCoord(x, y, z);
+            m_tetMesher->addNode(femNode->getNumber(), x, y, z);
+        }
+    }
+
+    if (m_tetMesher->nodeCount() != 0)
+    {
+        m_tetMesher->generate();
+
+        for (auto i = 0; i < m_tetMesher->faces().count(); i++)
+        {
+            auto face = m_tetMesher->faces().at(i);
+
+            std::cout << face.index() << ", " << face.i0() << ", " << face.i1() << "\n";
+
+            if (groundElements)
+            {
+                this->addBeam(face.i0() - 1, face.i1() - 1);
+                this->addBeam(face.i1() - 1, face.i2() - 1);
+                this->addBeam(face.i2() - 1, face.i0() - 1);
+            }
+            else
+            {
+                auto n0 = m_tetMesher->nodes().at(face.i0() - 1);
+                auto n1 = m_tetMesher->nodes().at(face.i1() - 1);
+                auto n2 = m_tetMesher->nodes().at(face.i2() - 1);
+
+                if ( !(n0.yIsNear(0.0) && n1.yIsNear(0.0)) )
+                    this->addBeam(face.i0() - 1, face.i1() - 1);
+                if (!(n1.yIsNear(0.0) && n2.yIsNear(0.0)))
+                    this->addBeam(face.i1() - 1, face.i2() - 1);
+                if (!(n2.yIsNear(0.0) && n0.yIsNear(0.0)))
+                    this->addBeam(face.i2() - 1, face.i0() - 1);
+            }
         }
     }
 
@@ -2165,6 +2236,119 @@ void FemViewWindow::executeCalc()
     this->setRepresentation(RepresentationMode::Results);
 }
 
+void FemViewWindow::recompute()
+{
+    // Is there a calculation ?
+
+    if (m_needRecalc)
+    {
+        double maxNodeValue = 0.0;
+
+        // m_frameSolver = FrameSolver::create();
+        // m_currentSolver = m_frameSolver.get();
+        m_beamSolver = BeamSolver::create();
+        m_currentSolver = m_beamSolver.get();
+
+        // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
+        m_currentSolver->setBeamModel(m_beamModel);
+
+        double v[3];
+
+        // Setup feedback force
+
+        m_currentSolver->execute();
+
+        // We assume the worst case
+
+        m_saneModel = false;
+
+        switch (m_currentSolver->modelState())
+        {
+        case ModelState::NoNodes:
+            break;
+        case ModelState::NoElements:
+            break;
+        case ModelState::NoBC:
+            break;
+        case ModelState::NoLoads:
+            break;
+        case ModelState::Unstable:
+            break;
+        case ModelState::Singular:
+            break;
+        case ModelState::Invalid:
+            break;
+        case ModelState::UndefinedMaterial:
+            break;
+        case ModelState::SolveFailed:
+            break;
+        case ModelState::RecomputeFailed:
+            break;
+        case ModelState::SetupFailed:
+            break;
+        default:
+            m_saneModel = true;
+            break;
+        }
+
+        maxNodeValue = m_currentSolver->getMaxNodeValue();
+
+        // Only compute the scale factor at the first attempt
+
+        if (!m_lockScaleFactor)
+        {
+            if (!m_haveScaleFactor)
+            {
+                m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
+                m_haveScaleFactor = true;
+            }
+        }
+
+        m_needRecalc = false;
+
+        // Show displacements
+
+        this->setRepresentation(RepresentationMode::Results);
+    }
+
+    // Continuosly recompute solution
+
+    if (m_saneModel)
+    {
+        if (m_currentSolver != nullptr)
+        {
+
+            // Setup feedback force
+
+            // Execute calculation
+
+            m_currentSolver->recompute();
+            m_currentSolver->update(); // NEW
+
+            // Only compute the scale factor at the first attempt
+
+            if (!m_lockScaleFactor)
+            {
+                if (!m_haveScaleFactor)
+                {
+                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
+                    m_haveScaleFactor = true;
+                }
+            }
+
+            // Refresh scene (Solid lines must be updated)
+
+            this->getScene()->getComposite()->refresh();
+            this->redraw(); // set damage(FL_DAMAGE_ALL)
+        }
+    }
+    else
+    {
+        setEditMode(WidgetMode::Select);
+        refreshToolbars();
+    }
+}
+
 void FemViewWindow::selectAllNodes()
 {
     setSelectFilter(SelectMode::Nodes);
@@ -2457,7 +2641,9 @@ vfem::NodePtr FemViewWindow::getInteractionNode()
 
 void FemViewWindow::setSphereCursor(bool flag)
 {
-    m_useSphereCursor = flag;
+    vfem::Preferences::instance().setUseSphereNodes(flag);
+    m_useSphereCursor = vfem::Preferences::instance().useSphereNodes();
+
     if (m_useSphereCursor)
     {
         m_nodeCursor = m_sphereCursor;
@@ -2694,6 +2880,7 @@ void FemViewWindow::hideAllDialogs()
     m_nodeBCsWindow->hide();
     m_elementLoadsWindow->hide();
     m_materialsWindow->hide();
+    m_loadMixerWindow->hide();
 }
 
 // Widget events
@@ -2720,6 +2907,7 @@ void FemViewWindow::onInit()
     log(OBJFRAME_COPYRIGHT_STRING);
     log(OBJFRAME_AUTHOR1);
     log(OBJFRAME_AUTHOR2);
+    log(OBJFRAME_EXTRA1);
     log("---------------------------------------------");
 
     console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
@@ -2920,7 +3108,7 @@ void FemViewWindow::onInit()
     m_cubeCursor->setMaterial(m_nodeMaterial);
     m_cubeCursor->setSize(m_beamModel->getNodeSize() * 1.5);
 
-    if (m_useSphereCursor)
+    if (vfem::Preferences::instance().useSphereNodes())
         m_nodeCursor = m_sphereCursor;
     else
         m_nodeCursor = m_cubeCursor;
@@ -2973,11 +3161,16 @@ void FemViewWindow::onInit()
     m_aboutWindow->setCopyright(OBJFRAME_COPYRIGHT_STRING);
     m_aboutWindow->setAuthor1(OBJFRAME_AUTHOR1);
     m_aboutWindow->setAuthor2(OBJFRAME_AUTHOR2);
+    m_aboutWindow->setExtra1(OBJFRAME_EXTRA1);
     m_aboutWindow->setVisible(false);
 
     m_propWindow = PropWindow::create("Properties");
     m_propWindow->setView(this);
     m_propWindow->setVisible(false);
+
+    m_loadMixerWindow = LoadMixerWindow::create("Load mixer");
+    m_loadMixerWindow->setView(this);
+    m_loadMixerWindow->setVisible(false);
 
     // Tetgen
 
@@ -4006,6 +4199,10 @@ void FemViewWindow::onDrawImGui()
 
             if (ImGui::MenuItem("Mesh selected", "Ctrl-M"))
                 this->meshSelectedNodes();
+            if (ImGui::MenuItem("Surface selected no ground", ""))
+                this->surfaceSelectedNodes(false);
+            if (ImGui::MenuItem("Surface selected with ground", ""))
+                this->surfaceSelectedNodes(true);
 
             ImGui::EndMenu();
         }
@@ -4037,6 +4234,14 @@ void FemViewWindow::onDrawImGui()
             {
                 m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet*)m_beamModel->getMaterialSet());
                 m_materialsWindow->setVisible(true);
+                this->setNeedRecalc(true);
+            }
+
+            if (ImGui::MenuItem("Load Mixer...", ""))
+            {
+                m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
+                this->setCustomMode(CustomMode::Feedback);
+                m_loadMixerWindow->setVisible(true);
                 this->setNeedRecalc(true);
             }
 
@@ -4179,6 +4384,7 @@ void FemViewWindow::onDrawImGui()
     m_pluginWindow->draw();
     m_scaleWindow->draw();
     m_aboutWindow->draw();
+    m_loadMixerWindow->draw();
 
     ImGui::Render();
 

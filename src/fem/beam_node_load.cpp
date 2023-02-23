@@ -5,9 +5,10 @@ using namespace std;
 
 BeamNodeLoad::BeamNodeLoad()
     : NodeLoad()
+    , m_name { "Noname" }
+    , m_color { 1 }
+    , m_scale { 1.0 }
 {
-    m_name = "Noname";
-    m_color = 1;
 }
 
 BeamNodeLoad::~BeamNodeLoad()
@@ -22,6 +23,16 @@ void BeamNodeLoad::setName(const std::string& name)
 const std::string BeamNodeLoad::getName()
 {
     return m_name;
+}
+
+void ofem::BeamNodeLoad::setScale(double scale)
+{
+    m_scale = scale;
+}
+
+double ofem::BeamNodeLoad::getScale()
+{
+    return m_scale;
 }
 
 void BeamNodeLoad::saveToStream(std::ostream& out)

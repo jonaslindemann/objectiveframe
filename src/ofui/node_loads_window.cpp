@@ -2,11 +2,7 @@
 
 #include <imgui.h>
 
-#ifdef USE_FEMVIEW
 #include <FemView.h>
-#else
-#include <FemWidget.h>
-#endif
 
 using namespace ofem;
 using namespace ofui;

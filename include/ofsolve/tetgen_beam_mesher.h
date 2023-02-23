@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <limits>
 
 #include <Eigen/Dense>
 
@@ -25,6 +26,10 @@ public:
     double x();
     double y();
     double z();
+
+    bool xIsNear(double value, double eps = 1e-6);
+    bool yIsNear(double value, double eps = 1e-6);
+    bool zIsNear(double value, double eps = 1e-6);
 };
 
 class TetgenEdge
@@ -44,6 +49,26 @@ public:
     void setIndices(int i0, int i1);
 };
 
+class TetgenFace
+{
+private:
+    int m_idx;
+    int m_i0;
+    int m_i1;
+    int m_i2;
+
+public:
+    TetgenFace(int idx, int i0, int i1, int i2);
+    int index();
+    int i0();
+    int i1();
+    int i2();
+
+    void setIndex(int idx);
+    void setIndices(int i0, int i1, int i2);
+};
+
+
 class TetgenNodes
 {
 private:
@@ -59,6 +84,8 @@ public:
     const std::vector<int>& nodeIndices();
 
     size_t count();
+
+    TetgenNode at(int idx);
 
     void save(const std::string filename);
 };
@@ -81,12 +108,32 @@ public:
     TetgenEdge at(int idx);
 };
 
+class TetgenFaces
+{
+private:
+    std::vector<TetgenFace> m_faces;
+
+public:
+    TetgenFaces();
+
+    void clear();
+    size_t count();
+
+    void load(const std::string filename);
+
+    void updateIndices(const std::vector<int>& indices);
+
+    TetgenFace at(int idx);
+};
+
 
 class TetgenBeamMesher
 {
 private:
     TetgenNodes m_nodes;
     TetgenEdges m_edges;
+    TetgenFaces m_faces;
+
     std::string m_workDir;
     std::string m_progPath;
 
@@ -108,6 +155,7 @@ public:
 
     TetgenNodes& nodes();
     TetgenEdges& edges();
+    TetgenFaces& faces();
 };
 
 typedef std::shared_ptr<TetgenBeamMesher> TetgenBeamMesherPtr;

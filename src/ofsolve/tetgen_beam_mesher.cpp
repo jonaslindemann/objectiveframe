@@ -13,11 +13,9 @@ using namespace ofem;
 using namespace ofsolver;
 
 TetgenNode::TetgenNode(int idx, double x, double y, double z)
+    : m_idx { idx }
+    , m_pos { x, y, z }
 {
-    m_idx = idx;
-    m_pos[0] = x;
-    m_pos[1] = y;
-    m_pos[2] = z;
 }
 
 int TetgenNode::index()
@@ -40,11 +38,26 @@ double TetgenNode::z()
     return m_pos[2];
 }
 
-TetgenEdge::TetgenEdge(int idx, int i0, int i1)
+bool ofsolver::TetgenNode::xIsNear(double value, double eps)
 {
-    m_idx = idx;
-    m_i0 = i0;
-    m_i1 = i1;
+    return (fabs(m_pos[0] - value) <= eps * std::max(fabs(m_pos[0]), fabs(value)));
+}
+
+bool ofsolver::TetgenNode::yIsNear(double value, double eps)
+{
+    return (fabs(m_pos[1] - value) <= eps * std::max(fabs(m_pos[1]), fabs(value)));
+}
+
+bool ofsolver::TetgenNode::zIsNear(double value, double eps)
+{
+    return (fabs(m_pos[2] - value) <= eps * std::max(fabs(m_pos[2]), fabs(value)));
+}
+
+TetgenEdge::TetgenEdge(int idx, int i0, int i1)
+    : m_idx { idx }
+    , m_i0 { i0 }
+    , m_i1 { i1 }
+{
 }
 
 int TetgenEdge::index()
@@ -71,6 +84,46 @@ void ofsolver::TetgenEdge::setIndices(int i0, int i1)
 {
     m_i0 = i0;
     m_i1 = i1;
+}
+
+ofsolver::TetgenFace::TetgenFace(int idx, int i0, int i1, int i2)
+    : m_idx { idx }
+    , m_i0 { i0 }
+    , m_i1 { i1 }
+    , m_i2 { i2 }
+{
+}
+
+int ofsolver::TetgenFace::index()
+{
+    return m_idx;
+}
+
+int ofsolver::TetgenFace::i0()
+{
+    return m_i0;
+}
+
+int ofsolver::TetgenFace::i1()
+{
+    return m_i1;
+}
+
+int ofsolver::TetgenFace::i2()
+{
+    return m_i2;
+}
+
+void ofsolver::TetgenFace::setIndex(int idx)
+{
+    m_idx = idx;
+}
+
+void ofsolver::TetgenFace::setIndices(int i0, int i1, int i2)
+{
+    m_i0 = i0;
+    m_i1 = i1;
+    m_i2 = i2;
 }
 
 TetgenNodes::TetgenNodes(size_t preAllocate)
@@ -103,6 +156,16 @@ const std::vector<int>& ofsolver::TetgenNodes::nodeIndices()
 size_t ofsolver::TetgenNodes::count()
 {
     return m_nodes.size();
+}
+
+TetgenNode ofsolver::TetgenNodes::at(int idx)
+{
+    if ((idx >= 0) && (idx < m_nodes.size()))
+    {
+        return m_nodes[idx];
+    }
+    else
+        return TetgenNode(-1, 0.0, 0.0, 0.0);
 }
 
 void TetgenNodes::save(const std::string filename)
@@ -185,6 +248,68 @@ TetgenEdge ofsolver::TetgenEdges::at(int idx)
         return TetgenEdge(-1, -1, -1);
 }
 
+ofsolver::TetgenFaces::TetgenFaces()
+{
+}
+
+void ofsolver::TetgenFaces::clear()
+{
+    m_faces.clear();
+}
+
+size_t ofsolver::TetgenFaces::count()
+{
+    return m_faces.size();
+}
+
+void ofsolver::TetgenFaces::load(const std::string filename)
+{
+    std::ifstream faceFile;
+
+    faceFile.open(filename);
+
+    if (!faceFile.is_open())
+        return;
+
+    int n_faces;
+    int n_markers;
+
+    faceFile >> n_faces >> n_markers;
+
+    int idx, i0, i1, i2, marker;
+
+    m_faces.clear();
+
+    for (auto i = 0; i < n_faces; i++)
+    {
+        faceFile >> idx >> i0 >> i1 >> i2;
+        m_faces.emplace_back(TetgenFace(idx, i0, i1, i2));
+    }
+
+    faceFile.close();
+}
+
+void ofsolver::TetgenFaces::updateIndices(const std::vector<int>& indices)
+{
+    for (auto& face : m_faces)
+    {
+        auto i0 = face.i0();
+        auto i1 = face.i1();
+        auto i2 = face.i2();
+        face.setIndices(indices[i0], indices[i1], indices[i2]);
+    }
+}
+
+TetgenFace ofsolver::TetgenFaces::at(int idx)
+{
+    if ((idx >= 0) && (idx < m_faces.size()))
+    {
+        return m_faces[idx];
+    }
+    else
+        return TetgenFace(-1, -1, -1, -1);
+}
+
 
 TetgenBeamMesher::TetgenBeamMesher(const std::string workDir, size_t preAllocate)
     : m_nodes(preAllocate)
@@ -193,7 +318,7 @@ TetgenBeamMesher::TetgenBeamMesher(const std::string workDir, size_t preAllocate
 
 }
 
-TetgenBeamMesher::~TetgenBeamMesher()
+ofsolver::TetgenBeamMesher::~TetgenBeamMesher()
 {
 }
 
@@ -206,6 +331,7 @@ void ofsolver::TetgenBeamMesher::clear()
 {
     m_nodes.clear();
     m_edges.clear();
+    m_faces.clear();
 }
 
 void ofsolver::TetgenBeamMesher::addNode(int idx, double x, double y, double z)
@@ -259,6 +385,16 @@ void ofsolver::TetgenBeamMesher::generate()
         }
         else
             m_edges.clear();
+  
+        std::string faceFilename = workDir + "tetmesh.1.face";
+
+        if (std::filesystem::exists(faceFilename))
+        {
+            m_faces.load(faceFilename);
+            m_faces.updateIndices(m_nodes.nodeIndices());
+        }
+        else
+            m_faces.clear();
     }
     else
         m_edges.clear();
@@ -275,3 +411,7 @@ TetgenEdges& ofsolver::TetgenBeamMesher::edges()
     return m_edges;
 }
 
+TetgenFaces& ofsolver::TetgenBeamMesher::faces()
+{
+    return m_faces;
+}

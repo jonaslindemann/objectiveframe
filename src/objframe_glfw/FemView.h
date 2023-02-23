@@ -1,10 +1,11 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.0-rc7";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.0-rc8";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2023\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
+constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de/software/index.jsp?id=TetGen&lang=1";
 
 #ifdef WIN32
 #include <shobjidl.h>
@@ -67,6 +68,7 @@ constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 #include <ofui/scale_window.h>
 #include <ofui/about_window.h>
 #include <ofui/prop_window.h>
+#include <ofui/load_mixer_window.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -275,6 +277,7 @@ private:
     ofui::ScaleWindowPtr m_scaleWindow;
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
+    ofui::LoadMixerWindowPtr m_loadMixerWindow;
 
     bool m_showStyleEditor;
     bool m_showMetricsWindow;
@@ -408,6 +411,7 @@ public:
     void showMaterials();
     void showProperties();
     void executeCalc();
+    void recompute();
     void deleteNodeBC(ofem::BeamNodeBC* bc);
     void addNodeBC(ofem::BeamNodeBC* bc);
     void assignNodeBCSelected();
@@ -421,6 +425,7 @@ public:
 
     void subdivideSelectedBeam();
     void meshSelectedNodes();
+    void surfaceSelectedNodes(bool groundElements=true);
 
     void doFeedback();
     void showMessage(std::string message);

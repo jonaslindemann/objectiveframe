@@ -26,6 +26,7 @@ private:
     std::string m_copyright;
     std::string m_author1;
     std::string m_author2;
+    std::string m_extra1;
 
 public:
     AboutWindow(const std::string name);
@@ -38,6 +39,7 @@ public:
     void setCopyright(std::string text);
     void setAuthor1(std::string text);
     void setAuthor2(std::string text);
+    void setExtra1(std::string text);
 
 protected:
     virtual void doDraw();

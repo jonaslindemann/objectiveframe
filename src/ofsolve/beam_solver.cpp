@@ -269,18 +269,20 @@ void BeamSolver::execute()
     {
         double vx, vy, vz;
         double value;
+        double scale;
 
         BeamNodeLoad* nodeLoad = (BeamNodeLoad*)nodeLoadSet->getLoad(i);
 
         nodeLoad->getDirection(vx, vy, vz);
         value = nodeLoad->getValue();
+        scale = nodeLoad->getScale();
 
         for (j = 0; j < (int)nodeLoad->getNodeSize(); j++)
         {
             Node* node = nodeLoad->getNode(j);
-            m_f(node->getDof(0)->getNumber() - 1) = vx * value;
-            m_f(node->getDof(1)->getNumber() - 1) = vy * value;
-            m_f(node->getDof(2)->getNumber() - 1) = vz * value;
+            m_f(node->getDof(0)->getNumber() - 1) += vx * value * scale;
+            m_f(node->getDof(1)->getNumber() - 1) += vy * value * scale;
+            m_f(node->getDof(2)->getNumber() - 1) += vz * value * scale;
         }
     }
 
@@ -607,6 +609,7 @@ void BeamSolver::recompute()
         NodeSet* nodeSet = femModel->getNodeSet();
 
         ColVec f = m_f;
+        f.setZero();
 
         if (m_forceNode != nullptr)
         {
@@ -621,6 +624,31 @@ void BeamSolver::recompute()
             }
             else
                 Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
+        }
+
+        Logger::instance()->log(LogLevel::Info, "Defining load vector.");
+
+        auto nodeLoadSet = femModel->getNodeLoadSet();
+
+        for (i = 0; i < nodeLoadSet->getSize(); i++)
+        {
+            double vx, vy, vz;
+            double value;
+            double scale;
+
+            BeamNodeLoad* nodeLoad = (BeamNodeLoad*)nodeLoadSet->getLoad(i);
+
+            nodeLoad->getDirection(vx, vy, vz);
+            value = nodeLoad->getValue();
+            scale = nodeLoad->getScale();
+
+            for (j = 0; j < (int)nodeLoad->getNodeSize(); j++)
+            {
+                Node* node = nodeLoad->getNode(j);
+                f(node->getDof(0)->getNumber() - 1) += vx * value * scale;
+                f(node->getDof(1)->getNumber() - 1) += vy * value * scale;
+                f(node->getDof(2)->getNumber() - 1) += vz * value * scale;
+            }
         }
 
         if (f.isZero())

@@ -14,6 +14,8 @@
 namespace ofsolver
 {
 
+bool is_equal(double a, double b, double eps = 1e-7);
+
 class TetgenNode 
 {
 private:

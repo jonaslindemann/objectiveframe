@@ -1567,6 +1567,25 @@ void FemViewWindow::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
     this->addToScene(visNodeLoad);
 }
 
+void FemViewWindow::addLastNodeToSelection()
+{
+    int i;
+
+    auto scene = this->getScene()->getComposite();
+
+    for (i = scene->getSize()-1; i >=0; i--)
+    {
+        auto shape = scene->getChild(i);
+        if (shape->isClass("vfem::Node"))
+        {
+            this->getSelectedShapes()->addChild(shape);
+            break;
+        }
+    }
+
+    redraw();
+}
+
 void FemViewWindow::subdivideSelectedBeam()
 {
     auto selectedShapes = this->getSelectedShapes();
@@ -1727,11 +1746,12 @@ void FemViewWindow::surfaceSelectedNodes(bool groundElements)
     {
         m_tetMesher->generate();
 
+        double x, z;
+        double y0, y1, y2;
+
         for (auto i = 0; i < m_tetMesher->faces().count(); i++)
         {
             auto face = m_tetMesher->faces().at(i);
-
-            std::cout << face.index() << ", " << face.i0() << ", " << face.i1() << "\n";
 
             if (groundElements)
             {
@@ -1741,16 +1761,31 @@ void FemViewWindow::surfaceSelectedNodes(bool groundElements)
             }
             else
             {
-                auto n0 = m_tetMesher->nodes().at(face.i0() - 1);
-                auto n1 = m_tetMesher->nodes().at(face.i1() - 1);
-                auto n2 = m_tetMesher->nodes().at(face.i2() - 1);
+                auto n0 = m_beamModel->getNodeSet()->getNode(face.i0() - 1);
+                auto n1 = m_beamModel->getNodeSet()->getNode(face.i1() - 1);
+                auto n2 = m_beamModel->getNodeSet()->getNode(face.i2() - 1);
 
-                if ( !(n0.yIsNear(0.0) && n1.yIsNear(0.0)) )
+                n0->getCoord(x, y0, z);
+                n1->getCoord(x, y1, z);
+                n2->getCoord(x, y2, z);
+
+                std::cout << y0 << ", " << y1 << ", " << y2 << "\n";
+
+                if (!(is_equal(y0, 0.0) && is_equal(y1, 0.0)))
                     this->addBeam(face.i0() - 1, face.i1() - 1);
-                if (!(n1.yIsNear(0.0) && n2.yIsNear(0.0)))
+                else
+                    std::cout << "ground beam\n";
+
+                if (!(is_equal(y1, 0.0) && is_equal(y2, 0.0)))
                     this->addBeam(face.i1() - 1, face.i2() - 1);
-                if (!(n2.yIsNear(0.0) && n0.yIsNear(0.0)))
+                else
+                    std::cout << "ground beam\n";
+
+                if (!(is_equal(y2, 0.0) && is_equal(y0, 0.0)))
                     this->addBeam(face.i2() - 1, face.i0() - 1);
+                else
+                    std::cout << "ground beam\n";
+
             }
         }
     }
@@ -2045,6 +2080,14 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript& script)
     script.add(chaiscript::fun(&FemViewWindow::newModel, this), "newModel");
     script.add(chaiscript::fun(&FemViewWindow::addBeam, this), "addBeam");
     script.add(chaiscript::fun(&FemViewWindow::nodeCount, this), "nodeCount");
+    script.add(chaiscript::fun(&FemViewWindow::meshSelectedNodes, this), "meshSelectedNodes");
+    script.add(chaiscript::fun(&FemViewWindow::surfaceSelectedNodes, this), "surfaceSelectedNodes");
+    script.add(chaiscript::fun(&FemViewWindow::selectAll, this), "selectAll");
+    script.add(chaiscript::fun(&FemViewWindow::selectAllNodes, this), "selectAllNodes");
+    script.add(chaiscript::fun(&FemViewWindow::clearSelection, this), "clearSelection");
+    script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCGround, this), "assignNodeFixedBCGround");
+    script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCGround, this), "assignNodePosBCGround");
+    script.add(chaiscript::fun(&FemViewWindow::addLastNodeToSelection, this), "addLastNodeToSelection");
 }
 
 void FemViewWindow::setupPlugins()
@@ -2563,7 +2606,6 @@ vfem::Beam* FemViewWindow::addBeam(int i0, int i1)
 
     if (beam_exists)
     {
-        log("Beam already exists");
         return nullptr;
     }
 

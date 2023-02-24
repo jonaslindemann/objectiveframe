@@ -12,6 +12,11 @@
 using namespace ofem;
 using namespace ofsolver;
 
+bool ofsolver::is_equal(double a, double b, double eps)
+{
+    return fabs(a - b) <= eps;
+}
+
 TetgenNode::TetgenNode(int idx, double x, double y, double z)
     : m_idx { idx }
     , m_pos { x, y, z }

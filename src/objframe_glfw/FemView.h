@@ -422,6 +422,7 @@ public:
     void deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad);
     void assignNodeLoadSelected();
     void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
+    void addLastNodeToSelection();
 
     void subdivideSelectedBeam();
     void meshSelectedNodes();

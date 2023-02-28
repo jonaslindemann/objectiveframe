@@ -50,6 +50,11 @@ void ColorTable::assignColor(int idx, Material* material)
 }
 
 
+ColorTablePtr vfem::ColorTable::create()
+{
+    return ColorTablePtr(new vfem::ColorTable());
+}
+
 void ColorTable::setColor(int idx, float r, float g, float b)
 {
     if ((idx >= 0) && (idx < 256))

@@ -43,8 +43,8 @@ void ScaleWindow::update()
 {
     m_scaleFactor = float(m_view->getScalefactor());
     m_lockScaleFactor = m_view->isScaleFactorLocked();
-    m_maxScale = m_view->getModel()->maxScale();
-    m_minScale = m_view->getModel()->minScale();
+    m_maxScale = float(m_view->getModel()->maxScale());
+    m_minScale = float(m_view->getModel()->minScale());
 }
 
 std::shared_ptr<ScaleWindow> ScaleWindow::create(const std::string name)
@@ -67,8 +67,8 @@ void ScaleWindow::doDraw()
         ImGui::SliderFloat("Animation speed", &m_animationSpeed, 0.01f, 0.2f);
     }
     ImGui::Separator();
-    ImGui::SliderFloat("Max value scale", &m_maxScale, 0.1, 10.0);
-    ImGui::SliderFloat("Min value scale", &m_minScale, 0.1, 10.0);
+    ImGui::SliderFloat("Max value scale", &m_maxScale, 0.1f, 10.0f);
+    ImGui::SliderFloat("Min value scale", &m_minScale, 0.1f, 10.0f);
 
     if (m_view != nullptr)
     {

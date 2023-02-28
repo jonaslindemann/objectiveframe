@@ -115,6 +115,7 @@ void MaterialPropPopup::update()
 void MaterialPropPopup::updateMaterial()
 {
     auto material = m_view->getCurrentMaterial();
+   
     auto section = material->getSection();
 
     if (material != nullptr)
@@ -155,7 +156,20 @@ void MaterialPropPopup::doPopup()
                 if (ImGui::BeginTabItem("General"))
                 {
                     ImGui::InputText("Name", m_nameArr.data(), 255);
-                    ImGui::InputInt("Color", &m_color);
+                    ImGui::SliderInt("Color", &m_color, 0, 255);
+                    ImGui::SameLine();
+
+                    const ImVec2 posR = ImGui::GetCursorScreenPos();
+
+                    auto beamModel = m_view->getVisualBeamModel();
+                    auto colorTable = beamModel->getColorTable();
+
+                    float r, g, b;
+                    colorTable->getColor(m_color, r, g, b);
+                    auto drawList = ImGui::GetWindowDrawList();
+                    ImColor col(r, g, b);
+                    drawList->AddRectFilled(posR, ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeight()), col, 5.0f, ImDrawFlags_RoundCornersAll);
+                    ImGui::SetCursorScreenPos(ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeightWithSpacing()));
 
                     ImGui::Separator();
 
@@ -269,6 +283,7 @@ void MaterialPropPopup::doPopup()
                 material->assignPropFromSection();
 
                 m_view->set_changed();
+                m_view->redraw();
             }
         }
         ImGui::CloseCurrentPopup();

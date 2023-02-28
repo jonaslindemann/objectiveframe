@@ -19,6 +19,8 @@ public:
 
     IvfClassInfo("ColorTable", ivf::Base);
 
+    static ColorTablePtr create();
+
     void setColor(int idx, float r, float g, float b);
     void assignColor(int idx, ivf::Material* material);
     void getColor(int idx, float& r, float& g, float& b);

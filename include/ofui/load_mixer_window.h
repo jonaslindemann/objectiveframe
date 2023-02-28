@@ -20,6 +20,7 @@ private:
     float m_loadScaleFactors[255];
     float m_loadSum;
     float m_lastSum;
+    bool m_firstUpdate;
 
 
 #ifdef USE_FEMVIEW

@@ -95,8 +95,10 @@ void NodeLoadsWindow::doDraw()
         {
             if (m_currentItemIdx != -1)
             {
+                auto nodeLoad = static_cast<ofem::BeamNodeLoad*>(m_femNodeLoadSet->getLoad(m_currentItemIdx));
                 m_view->removeNodesFromNodeLoad();
-                m_femNodeLoadSet->removeLoad(m_currentItemIdx);
+                m_view->deleteNodeLoad(nodeLoad);
+                m_view->setNeedRecalc(true);
             }
         }
     }

@@ -38,7 +38,7 @@ BeamModel::BeamModel()
     m_lineSides = 6;
     m_nodeRepr = ivf::Node::NT_CUBE;
 
-    m_colorTable = new vfem::ColorTable();
+    m_colorTable = ColorTable::create();
 
     m_colorMapPos = ColorMap::create();
     m_colorMapNeg = ColorMap::create();
@@ -46,8 +46,6 @@ BeamModel::BeamModel()
 
     m_colorMapPosBlack = ColorMap::create();
     m_colorMapNegBlack = ColorMap::create();
-
-    //m_resultInfo = new ResultInfo();
 
     m_beamType = IVF_BEAM_SOLID;
     m_resultType = IVF_BEAM_NO_RESULT;
@@ -69,6 +67,11 @@ BeamModel::BeamModel()
 
 BeamModel::~BeamModel()
 {
+}
+
+vfem::BeamModelPtr vfem::BeamModel::create()
+{
+    return vfem::BeamModelPtr(new vfem::BeamModel());
 }
 
 void BeamModel::onInitialised()
@@ -475,7 +478,6 @@ ivf::Shape* BeamModel::pick(int sx, int sy)
         v_dir = glm::normalize(v_dir);
         glm::vec3 p_intersect;
         glm::vec3 v_intersect_normal;
-        bool intersect;
 
         r = this->getNodeSize();
 
@@ -486,7 +488,7 @@ ivf::Shape* BeamModel::pick(int sx, int sy)
             auto node = nodeSet->getNode(i);
             node->getCoord(x, y, z);
 
-            if (glm::intersectRaySphere(p_orig, v_dir, glm::vec3(x, y, z), r, p_intersect, v_intersect_normal))
+            if (glm::intersectRaySphere(p_orig, v_dir, glm::vec3(x, y, z), float(r), p_intersect, v_intersect_normal))
             {
                 glm::vec3 v_orig_sphere = p_intersect - p_orig;
                 d = v_orig_sphere.length();
@@ -529,7 +531,7 @@ ivf::Shape* BeamModel::pick(int sx, int sy)
 
             double d = glm::length(v_cyl);
 
-            if (ofmath::intersectRayOrientedCylinder(p_orig, v_dir, r, d, v_n0, v_cyl, p_intersect, v_normal))
+            if (ofmath::intersectRayOrientedCylinder(p_orig, v_dir, float(r), float(d), v_n0, v_cyl, p_intersect, v_normal))
             {
                 glm::vec3 v_orig_sphere = v_mid - p_orig;
 

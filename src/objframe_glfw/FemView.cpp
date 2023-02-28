@@ -300,6 +300,8 @@ unsigned int fl_cmap[256] = {
 
 std::string wstrtostr(const std::wstring& wstr)
 {
+    // Converts std::wstring to std::string (a bit of a hack).
+
     std::string strTo;
     char* szTo = new char[wstr.length() + 1];
     szTo[wstr.size()] = '\0';
@@ -311,6 +313,8 @@ std::string wstrtostr(const std::wstring& wstr)
 
 std::string openFileDialog()
 {
+    // WIN32 file dialog function.
+
 #ifdef WIN32
 
     COMDLG_FILTERSPEC fileTypes[] = {
@@ -365,6 +369,7 @@ std::string openFileDialog()
 
 std::string saveFileDialog()
 {
+    // WIN32 save file dialog function.
 #ifdef WIN32
 
     COMDLG_FILTERSPEC fileTypes[] = {
@@ -486,7 +491,7 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_relNodeSize = 0.004;
     m_relLineRadius = 0.0015;
     m_relLoadSize = 0.07;
-    m_customMode = CustomMode::Normal;
+    m_customMode = CustomMode::Feedback;
     m_customModeSet = false;
     m_alfa = 0.0;
     m_beta = 0.0;
@@ -843,14 +848,17 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         console("Feedback mode: Click on a node to apply interactive force. Move mouse with button down to move force.");
         setHighlightFilter(HighlightMode::Nodes);
         setSelectFilter(SelectMode::Nodes);
+        m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
+        m_loadMixerWindow->show();
     }
+    else
+        m_loadMixerWindow->hide();
 
     if (!m_customModeSet)
     {
         m_tactileForce->setState(Shape::OS_OFF);
         m_interactionNode = nullptr;
         m_customMode = CustomMode::Normal;
-        ;
         this->redraw();
     }
     else
@@ -940,7 +948,11 @@ void FemViewWindow::setCustomMode(CustomMode mode)
         m_beamModel->clearNodeValues();
         this->setResultType(IVF_BEAM_NO_RESULT);
         this->setEditMode(WidgetMode::Select);
+        m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
+        m_loadMixerWindow->show();
     }
+    else
+        m_loadMixerWindow->hide();
 
     if ((m_customMode == CustomMode::Structure) || (m_customMode == CustomMode::Paste))
     {
@@ -950,6 +962,7 @@ void FemViewWindow::setCustomMode(CustomMode mode)
     {
         m_pluginWindow->hide();
     }
+
 }
 
 void FemViewWindow::setSelectFilter(SelectMode filter)
@@ -1336,7 +1349,8 @@ void FemViewWindow::newModel()
 
     // Setup new beam model
 
-    m_beamModel = new vfem::BeamModel();
+    m_beamModel = vfem::BeamModel::create();
+  
     m_beamModel->initialize();
     m_beamModel->setPath(colorPath);
     m_beamModel->setScene(this->getScene()->getComposite());
@@ -1350,8 +1364,7 @@ void FemViewWindow::newModel()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    // m_beamModel->setShowNodeNumbers(true);
-
+ 
     m_beamModel->generateModel();
 
     m_currentMaterial = nullptr;
@@ -1484,8 +1497,7 @@ void FemViewWindow::deleteBeamLoad(ofem::BeamLoad* elementLoad)
 
     // Remove shape from scene and delete it
 
-    this->getScene()->getComposite()->removeShape(visBeamLoad);
-    delete visBeamLoad;
+    ivf::ShapePtr shape = this->getScene()->getComposite()->removeShape(visBeamLoad);
 
     // Remove load from beam model
 
@@ -1888,17 +1900,17 @@ void FemViewWindow::deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 
     // Get ivf representation from element load
 
-    vfem::NodeLoad* visNodeLoad = static_cast<vfem::NodeLoad*>(nodeLoad->getUser());
+    vfem::NodeLoadPtr visNodeLoad = static_cast<vfem::NodeLoad*>(nodeLoad->getUser());
 
     // Remove shape from scene and delete it
 
     this->getScene()->getComposite()->removeShape(visNodeLoad);
-    delete visNodeLoad;
 
     // Remove load from beam model
 
-    m_beamModel->getNodeLoadSet()->removeLoad(nodeLoad);
     setCurrentNodeLoad(nullptr);
+
+    m_beamModel->getNodeLoadSet()->removeLoad(nodeLoad);
 }
 
 void FemViewWindow::deleteNodeBC(ofem::BeamNodeBC* bc)
@@ -2292,10 +2304,7 @@ void FemViewWindow::recompute()
         m_beamSolver = BeamSolver::create();
         m_currentSolver = m_beamSolver.get();
 
-        // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
         m_currentSolver->setBeamModel(m_beamModel);
-
-        double v[3];
 
         // Setup feedback force
 
@@ -2387,8 +2396,8 @@ void FemViewWindow::recompute()
     }
     else
     {
-        setEditMode(WidgetMode::Select);
-        refreshToolbars();
+        //setEditMode(WidgetMode::Select);
+        //refreshToolbars();
     }
 }
 
@@ -2679,6 +2688,11 @@ void FemViewWindow::setTactileForce(ExtrArrowPtr force)
 vfem::NodePtr FemViewWindow::getInteractionNode()
 {
     return m_interactionNode;
+}
+
+vfem::BeamModel* FemViewWindow::getVisualBeamModel()
+{
+    return m_beamModel;
 }
 
 void FemViewWindow::setSphereCursor(bool flag)
@@ -4276,14 +4290,6 @@ void FemViewWindow::onDrawImGui()
             {
                 m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet*)m_beamModel->getMaterialSet());
                 m_materialsWindow->setVisible(true);
-                this->setNeedRecalc(true);
-            }
-
-            if (ImGui::MenuItem("Load Mixer...", ""))
-            {
-                m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet*)m_beamModel->getNodeLoadSet());
-                this->setCustomMode(CustomMode::Feedback);
-                m_loadMixerWindow->setVisible(true);
                 this->setNeedRecalc(true);
             }
 

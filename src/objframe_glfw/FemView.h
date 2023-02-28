@@ -89,7 +89,8 @@ enum class CustomMode
     Normal,
     Feedback,
     Structure,
-    Paste
+    Paste,
+    LoadMixer
 };
 
 enum class SelectMode
@@ -361,6 +362,7 @@ public:
     void setTactileForce(ivf::ExtrArrowPtr force);
     void setInteractionNode(vfem::Node* interactionNode);
     vfem::NodePtr getInteractionNode();
+    vfem::BeamModel* getVisualBeamModel();
 
     void setSphereCursor(bool flag);
     bool getSphereCursor();

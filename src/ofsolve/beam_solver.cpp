@@ -654,37 +654,9 @@ void BeamSolver::recompute()
         if (f.isZero())
         {
             Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
-            m_modelState = ModelState::NoLoads;
-            return;
+            //m_modelState = ModelState::NoLoads;
+            //return;
         }
-
-
-
-        /*
-
-        Logger::instance()->log(LogLevel::Info, "Solving system. Keeping LU factorisation.");
-
-        auto logDetSign = Ksys.LogDeterminant().Sign();
-
-        Logger::instance()->log(LogLevel::Info, "logDetSign = " + float2str(logDetSign));
-
-        if (logDetSign < 0)
-        {
-            Logger::instance()->log(LogLevel::Error, "System unstable.");
-            m_modelState = ModelState::Unstable;
-            return;
-        }
-
-        if (logDetSign == 0)
-        {
-            Logger::instance()->log(LogLevel::Error, "Matrix singular.");
-            m_modelState = ModelState::Singular;
-            return;
-        }
-
-        m_X = std::make_unique<LinearEquationSolver>(Ksys);
-        m_a = m_X->i() * fsys;
-        */
 
         //
         // Create global displacement vector

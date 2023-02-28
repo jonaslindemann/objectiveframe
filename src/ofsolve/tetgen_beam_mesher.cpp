@@ -281,7 +281,7 @@ void ofsolver::TetgenFaces::load(const std::string filename)
 
     faceFile >> n_faces >> n_markers;
 
-    int idx, i0, i1, i2, marker;
+    int idx, i0, i1, i2;
 
     m_faces.clear();
 

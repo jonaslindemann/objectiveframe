@@ -65,8 +65,6 @@ private:
     ColorMapPtr m_colorMapPosBlack;
     ColorMapPtr m_colorMapNegBlack;
 
-    //ResultInfo* m_resultInfo;
-
     std::string m_colorMapPath;
 
     ofem::BeamNodeBCPtr m_defaultNodePosBC;
@@ -82,6 +80,8 @@ public:
 
     ClassInfo("vfem::BeamModel", ofem::BeamModel);
 
+    static vfem::BeamModelPtr create();
+
     void generateModel();
 
     void enumerate();
@@ -89,7 +89,6 @@ public:
     void setScene(ivf::Composite* scene);
     ivf::Composite* getScene();
 
-    //void setResultInfo(ResultInfo* resultInfo);
     void setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std);
 
     void setLineRadius(double radius);
@@ -110,9 +109,10 @@ public:
     void setLoadSize(double size);
     double getLoadSize();
 
-    void setBeamMaterial(ivf::Material* material);
     void setLineSides(int sides);
     int getLineSides();
+
+    void setBeamMaterial(ivf::Material* material);
 
     ColorTable* getColorTable();
 

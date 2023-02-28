@@ -54,6 +54,8 @@ void BCPropPopup::update()
         m_nameArr.fill(0);
         std::copy(name.begin(), name.end(), m_nameArr.data());
 
+        m_color = bc->getColor();
+
         m_prescribedDofs[0] = bc->isPrescribed(1);
         m_prescribedDofs[1] = bc->isPrescribed(2);
         m_prescribedDofs[2] = bc->isPrescribed(3);
@@ -77,7 +79,19 @@ void BCPropPopup::doPopup()
         {
             auto bc = m_view->getCurrentNodeBC();
             ImGui::InputText("Name", m_nameArr.data(), 255);
-            ImGui::InputInt("Color", &m_color);
+            ImGui::InputInt("Color", &m_color); 
+            ImGui::SameLine();
+            
+            const ImVec2 posR = ImGui::GetCursorScreenPos();
+            auto beamModel = m_view->getVisualBeamModel();
+            auto colorTable = beamModel->getColorTable();
+            float r, g, b;
+            colorTable->getColor(m_color, r, g, b);
+            auto drawList = ImGui::GetWindowDrawList();
+            ImColor col(r, g, b);
+            drawList->AddRectFilled(posR, ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeight()), col, 5.0f, ImDrawFlags_RoundCornersAll);
+            ImGui::SetCursorScreenPos(ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeightWithSpacing()));
+
             ImGui::Separator();
 
             ImGui::Checkbox("Fixed pos X", m_prescribedDofs);
@@ -166,6 +180,7 @@ void BCPropPopup::doPopup()
                     bc->unprescribe(6);
 
                 m_view->set_changed();
+                m_view->redraw();
             }
         }
         ImGui::CloseCurrentPopup();

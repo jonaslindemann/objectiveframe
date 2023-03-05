@@ -219,6 +219,18 @@
 
 
   <li class="md-tabs__item">
+    <a href="../videos/" class="md-tabs__link">
+      Videos
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
     <a href="../develop/" class="md-tabs__link">
       Develop
     </a>
@@ -235,22 +247,6 @@
       Links
     </a>
   </li>
-
-      
-        
-  
-  
-
-
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../blog/" class="md-tabs__link">
-        Blog
-      </a>
-    </li>
-  
 
       
         
@@ -439,6 +435,21 @@
   
   
     <li class="md-nav__item">
+      <a href="../videos/" class="md-nav__link">
+        Videos
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../develop/" class="md-nav__link">
         Develop
       </a>
@@ -457,101 +468,6 @@
       <a href="../links/" class="md-nav__link">
         Links
       </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
-      
-      
-      
-      
-        <label class="md-nav__link" for="__nav_7">
-          Blog
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" aria-label="Blog" data-md-level="1">
-        <label class="md-nav__title" for="__nav_7">
-          <span class="md-nav__icon md-icon"></span>
-          Blog
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../blog/" class="md-nav__link">
-        Index
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_2" type="checkbox" id="__nav_7_2" >
-      
-      
-      
-      
-        <label class="md-nav__link" for="__nav_7_2">
-          2022
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" aria-label="2022" data-md-level="2">
-        <label class="md-nav__title" for="__nav_7_2">
-          <span class="md-nav__icon md-icon"></span>
-          2022
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../blog/2022/version_b2_released/" class="md-nav__link">
-        ObjectiveFrame 2.0.0-b2 released.
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
     </li>
   
 
@@ -663,15 +579,14 @@
 </ul>
 <p>Pierre Olsson developed routines and user interfaces for computing section properties.</p>
 <h2 id="implementation-details">Implementation details.</h2>
-<p>The application is implemented as a C++ application using OpenGL for hardware accelerated rendering. ObjectiveFrame uses a scene graph model implemented using the C++ library <a href="https://github.com/jonaslindemann/ivfplusplus">Interactive Visualisation Framework - Ivf++</a>. The solver is implemented using the matrix-library <a href="http://www.robertnz.net/nm11.htm">Newmat11</a>. </p>
-<p>This version of the application has been given a large overhaul both with regards to C++ and the user interface. To increase the interactive aspect of the application the user interface has been reimplemented using the <a href="https://github.com/ocornut/imgui">ImGui - library</a>. This is an immediate mode user interface library that provides a state-less user interface rendered directly in the OpenGL window. </p>
+<p>The application is implemented as a C++ application using OpenGL for hardware accelerated rendering. ObjectiveFrame uses a scene graph model implemented using the C++ library <a href="https://github.com/jonaslindemann/ivfplusplus">Interactive Visualisation Framework - Ivf++</a>. The solver is implemented using the matrix-library <a href="https://eigen.tuxfamily.org/">Eigen</a>. </p>
+<p>This version of the application has been given a large overhaul both with regards to C++ and the user interface. To increase the interactive aspect of the application the user interface has been reimplemented using the <a href="https://github.com/ocornut/imgui">ImGui - library</a>. This is an immediate mode user interface library that provides a state-less user interface rendered directly in the OpenGL window. The underlying framework for rendering OpenGL windows is the <a href="https://www.glfw.org/">GLFW library</a></p>
+<p>In the newest release ObjectiveFrame can also take advantage of the <a href="https://www.wias-berlin.de/software/index.jsp?id=TetGen&amp;lang=1">TetGen</a> mesh generator for quickly creating beam/truss-structures from points. </p>
 <h2 id="future-development">Future development</h2>
 <ul>
-<li>The ImGui implementation still builds on the FLTK library as it has been a large effort to unbind the close ties to this library. The next iterations will base the implementation directly on the GLFW library.</li>
 <li>User interface improvements. There is a still a lot of non-standard ways of interacting with the application, but these are also some things that will be worked out in upcoming versions.</li>
 <li>Interactions with the CALFEM for Python library. I would like to see the application as a pre-processor for generating CALFEM code that can be used by students in Structural Mechanics.</li>
-<li>An improved solver - Currently the newmat-based solver works OK, but lacks scalability as it is not very actively maintained. The eigen-library would be a candidate to replace newmat.</li>
-<li>Scripting interface (ChaiScript) for adding geometry creation plugins. </li>
+<li>More developed scripting interface for creating more interesting plugins for generating beam/truss-structures.</li>
 </ul>
 <p>Jonas Lindemann</p>
 

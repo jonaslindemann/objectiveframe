@@ -3,7 +3,7 @@ hide:
   - navigation
 ---
 
-# Welcome to the ObjectiveFrame web site
+# Welcome to the ObjectiveFrame website
 
 ObjectiveFrame is a finite element beam analysis application developed at Structural Mechanics at Lund university. The application focused on how to make finite element analysis real-time explorable with direct feedback methods.
 

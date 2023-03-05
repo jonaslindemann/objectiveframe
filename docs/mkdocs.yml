@@ -6,13 +6,9 @@ nav:
 - About: about.md
 - Download: download.md
 - Use: use.md
+- Videos: videos.md
 - Develop: develop.md
 - Links: links.md
-- Blog: 
-  - blog/index.md
-  - 2022:
-    - blog/2022/version_b2_released.md
-
 - Contact: contact.md
 - Privacy: privacy.md
 
@@ -52,6 +48,7 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
   - meta
+  - md_in_html
 
 extra:
   blog:

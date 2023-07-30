@@ -61,6 +61,7 @@ public:
     // Class info
 
     ClassInfo("Model", Base);
+    StdFactory(Model);
 
     // Methods
 

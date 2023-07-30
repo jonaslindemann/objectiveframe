@@ -29,128 +29,6 @@
 namespace ofem
 {
 
-/**
- * Smart pointer class
- *
- * CIvfPointer handles the Ivf++ reference counting scheme of
- * the CIvfBase class. To declare a Ivf++ smart pointer use the
- * IvfSmartPointer() macro. See the following example:
- *
- * \code
- * int main()
- * {
- *    CIvfPointer<CIvfMaterial> material = new CIvfMaterial(); // addReference() called.
- *    CIvfPointer<CIvfMaterial> material2;
- *    material2 = material; // addReference() called
- *    .
- *    .
- *
- *    return 0;
- * }
- * // material calls deleteReference()
- * // material2 calls deleteRefernce() and deletes CIvfMaterial object
- * \endcode
- */
-template <class T, class R>
-class PointerRefBase
-{
-private:
-    T* m_object;
-
-public:
-    PointerRefBase(T* object = 0)
-    {
-        m_object = object;
-        if (m_object)
-            m_object->R::addReference();
-    }
-
-    PointerRefBase(const PointerRefBase& femObject)
-    {
-        m_object = femObject.m_object;
-        if (m_object)
-            m_object->R::addReference();
-    }
-
-    virtual ~PointerRefBase()
-    {
-        if (m_object)
-        {
-            m_object->R::deleteReference();
-            if (!m_object->R::referenced())
-                delete m_object;
-        }
-    }
-
-    operator T*() const
-    {
-        return m_object;
-    }
-    T& operator*() const
-    {
-        return *m_object;
-    }
-    T* operator->() const
-    {
-        return m_object;
-    }
-
-    PointerRefBase& operator=(const PointerRefBase& FemPointerRefBase)
-    {
-        if (m_object != FemPointerRefBase.m_object)
-        {
-            if (m_object)
-            {
-                m_object->R::deleteReference();
-                if (!m_object->R::isReferenced())
-                    delete m_object;
-            }
-
-            m_object = FemPointerRefBase.m_object;
-
-            if (m_object)
-                m_object->R::addReference();
-        }
-        return *this;
-    }
-
-    PointerRefBase& operator=(T* femObject)
-    {
-        if (m_object != femObject)
-        {
-            if (m_object)
-            {
-                m_object->R::deleteReference();
-                if (!m_object->R::referenced())
-                    delete m_object;
-            }
-
-            m_object = femObject;
-
-            if (m_object)
-                m_object->R::addReference();
-        }
-        return *this;
-    }
-
-    bool operator==(T* femObject) const
-    {
-        return m_object == femObject;
-    }
-    bool operator!=(T* femObject) const
-    {
-        return m_object != femObject;
-    }
-    bool operator==(const PointerRefBase& FemPointerRefBase) const
-    {
-        return m_object == FemPointerRefBase.m_object;
-    }
-
-    bool operator!=(const PointerRefBase& FemPointerRefBase) const
-    {
-        return m_object != FemPointerRefBase.m_object;
-    }
-};
 
 template <class T>
 class Pointer
@@ -159,7 +37,7 @@ private:
     T* m_object;
 
 public:
-    Pointer(T* object = 0)
+    Pointer(T* object = nullptr)
     {
         m_object = object;
         if (m_object)
@@ -187,11 +65,18 @@ public:
     {
         return m_object;
     }
+
     T& operator*() const
     {
         return *m_object;
     }
+
     T* operator->() const
+    {
+        return m_object;
+    }
+
+    T* get() const
     {
         return m_object;
     }

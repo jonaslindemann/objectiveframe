@@ -21,11 +21,12 @@ public:
     // Class info
 
     ClassInfo("ElementSet", Base);
+    StdFactory(ElementSet);
 
     // Methods
 
     void deleteAll();
-    Element* removeElement(long i);
+    bool removeElement(long i);
     bool deleteElement(long i);
     Element* getElement(long i);
     void addElement(Element* element);

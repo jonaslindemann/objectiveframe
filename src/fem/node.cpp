@@ -124,14 +124,14 @@ void Node::setKind(NodeKind kind)
     case nk3Dof:
         for (i = 0; i < 3; i++)
         {
-            DofPtr dof = new Dof(static_cast<DofKind>(i));
+            DofPtr dof = Dof::create(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
     case nk6Dof:
         for (i = 0; i < 6; i++)
         {
-            DofPtr dof = new Dof(static_cast<DofKind>(i));
+            DofPtr dof = Dof::create(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
@@ -150,7 +150,7 @@ NodeKind Node::getKind()
 Dof* Node::getDof(unsigned int dof)
 {
     if (dof < m_dofs.size())
-        return m_dofs[dof];
+        return m_dofs[dof].get();
     else
         return NULL;
 }

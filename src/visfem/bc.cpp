@@ -149,6 +149,6 @@ void BC::unprescribeAll()
 
 void BC::setBeamModel(BeamModel* model)
 {
-    m_beamModel = model;
+    m_beamModel = BeamModelPtr(model);
     refresh();
 }

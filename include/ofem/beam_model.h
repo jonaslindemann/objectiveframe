@@ -41,8 +41,9 @@ public:
     virtual ~BeamModel();
 
     ClassInfo("BeamModel", Model);
+    StdFactory(BeamModel);
 
-    static BeamModelPtr create();
+    //static BeamModelPtr create();
 
     // Get/set methods
 

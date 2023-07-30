@@ -28,11 +28,11 @@ public:
     // Class info
 
     ClassInfo("MaterialSet", Base);
+    StdFactory(MaterialSet);
 
     // Methods
 
     void deleteAll();
-    Material* removeMaterial(long i);
     bool deleteMaterial(long i);
     Material* getMaterial(long i);
     void addMaterial(Material* material);

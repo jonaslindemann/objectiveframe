@@ -31,7 +31,8 @@ private:
 public:
     ModelClipBoard();
 
-    ClassInfo("Model", Base);
+    ClassInfo("ModelClipBoard", Base);
+    StdFactory(ModelClipBoard);
 
     void clear();
 
@@ -50,4 +51,4 @@ protected:
     std::function<void(int i0, int i1)> m_onCreateElement;
 };
 
-}
+};

@@ -31,6 +31,9 @@ public:
     // Class info
 
     ClassInfo("Dof", Base);
+    StdFactory(Dof);
+
+    static DofPtr create(DofKind kind, int number = -1);
 
     // Methods
 

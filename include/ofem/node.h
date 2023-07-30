@@ -34,6 +34,7 @@ public:
     // Class info
 
     ClassInfo("Node", Base);
+    StdFactory(Node);
 
     // Methods
 

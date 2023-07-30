@@ -20,6 +20,7 @@ public:
     virtual ~SLFFEAReader();
 
     ClassInfo("SLFFEAReader", OutputFileReader);
+    StdFactory(SLFFEAReader);
 
     void setFileName(const char* fileName);
     void load();

@@ -6,7 +6,7 @@
 namespace ofem
 {
 
-SmartPointer(CFemBeamNodeSetBCSet);
+SmartPointer(BeamNodeBCSet);
 
 class BeamNodeBCSet : public NodeBCSet
 {
@@ -16,6 +16,7 @@ public:
     virtual ~BeamNodeBCSet();
 
     ClassInfo("BeamNodeBCSet", NodeBCSet);
+    StdFactory(BeamNodeBCSet);
 
 protected:
     virtual BC* createBC() override;

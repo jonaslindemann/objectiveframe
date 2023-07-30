@@ -16,6 +16,7 @@ public:
     // Class info
 
     ClassInfo("ElementLoadSet", LoadSet);
+    StdFactory(ElementLoadSet);
 
 protected:
     virtual Load* createLoad() override;

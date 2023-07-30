@@ -45,7 +45,7 @@ void BCSet::addBC(BC* bc)
 BC* BCSet::getBC(long i)
 {
     if ((i >= 0) && (i < (long)m_bcs.size()))
-        return m_bcs[i];
+        return m_bcs[i].get();
     else
         return NULL;
 }
@@ -122,8 +122,8 @@ void BCSet::readFromStream(std::istream& in)
     deleteAll();
     for (auto i = 0; i < nBCs; i++)
     {
-        BC* bc = createBC();
-        bc->addReference();
+        BCPtr bc = BCPtr(createBC());
+        //bc->addReference();
         bc->readFromStream(in);
         m_bcs.push_back(bc);
     }
@@ -133,10 +133,10 @@ void BCSet::connectNodes(NodeSet* nodes)
 {
     for (unsigned int i = 0; i < m_bcs.size(); i++)
     {
-        BC* bc = m_bcs[i];
+        BCPtr bc = m_bcs[i];
         if (bc->isClass("NodeBC"))
         {
-            auto nodeBC = dynamic_cast<NodeBC*>(bc);
+            auto nodeBC = dynamic_cast<NodeBC*>(bc.get());
             // CFemNodeBC* nodeBC = (CFemNodeBC*) bc;
             nodeBC->clearNodes();
             for (auto j = 0; j < nodeBC->getNodeIndexSize(); j++)
@@ -157,7 +157,7 @@ bool BCSet::removeBC(BC* bc)
 {
     auto p = m_bcs.begin();
 
-    while ((*p != bc) && (p != m_bcs.end()))
+    while (((*p).get() != bc) && (p != m_bcs.end()))
         p++;
 
     if (p != m_bcs.end())

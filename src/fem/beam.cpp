@@ -65,12 +65,12 @@ void Beam::readFromStream(std::istream& in)
 
 void Beam::setMaterial(BeamMaterial* material)
 {
-    m_material = material;
+    m_material = BeamMaterialPtr(material);
 }
 
 BeamMaterial* Beam::getMaterial()
 {
-    return m_material;
+    return m_material.get();
 }
 
 long Beam::getMaterialIndex()

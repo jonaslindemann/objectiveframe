@@ -24,6 +24,7 @@ public:
     virtual ~InternalDofs();
 
     ClassInfo("InternalDofs", Base);
+    StdFactory(InternalDofs);
 
     // Get/set methods
 

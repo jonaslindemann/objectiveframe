@@ -23,6 +23,8 @@ public:
 
     ClassInfo("BC", Base);
 
+    StdFactory(BC);
+
     // Methods
 
     bool isPrescribed(Dof* dof);

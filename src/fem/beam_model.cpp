@@ -17,10 +17,10 @@ BeamModel::~BeamModel()
 {
 }
 
-BeamModelPtr ofem::BeamModel::create()
-{
-    return BeamModelPtr(new BeamModel());
-}
+//BeamModelPtr ofem::BeamModel::create()
+//{
+//    return BeamModelPtr(new BeamModel());
+//}
 
 
 void BeamModel::connectMaterials()

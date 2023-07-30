@@ -20,6 +20,8 @@ public:
 
     ClassInfo("InputFileWriter", Base);
 
+    static InputFileWriterPtr create(const std::string filename);
+
     void setFemModel(Model* model);
     Model* getFemModel();
 

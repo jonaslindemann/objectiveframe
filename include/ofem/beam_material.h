@@ -40,6 +40,7 @@ public:
     virtual ~BeamMaterial();
 
     ClassInfo("BeamMaterial", Material);
+    StdFactory(BeamMaterial);
 
     // Get/set methods
 

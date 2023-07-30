@@ -20,6 +20,11 @@ Dof::~Dof()
 {
 }
 
+DofPtr ofem::Dof::create(DofKind kind, int number)
+{
+    return DofPtr(new Dof(kind, number));
+}
+
 void Dof::print(std::ostream& out)
 {
     out << m_kind + 1 << " ";

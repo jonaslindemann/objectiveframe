@@ -25,6 +25,11 @@ void InputFileWriter::saveToStream(std::ostream& out)
 {
 }
 
+InputFileWriterPtr ofem::InputFileWriter::create(const std::string filename)
+{
+    return InputFileWriterPtr(new InputFileWriter(filename));
+}
+
 void InputFileWriter::setFemModel(Model* model)
 {
     m_femModel = model;

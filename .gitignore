@@ -16,3 +16,4 @@ bin/objframe
 
 build/
 *.pyc
+reference/html/

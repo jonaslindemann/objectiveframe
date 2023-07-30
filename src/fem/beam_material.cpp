@@ -121,28 +121,28 @@ void BeamMaterial::readFromStream(std::istream& in)
         switch (sectionType)
         {
         case FEM_I_SECTION:
-            m_section = new ISection();
+            m_section = ISection::create();
             break;
         case FEM_U_SECTION:
-            m_section = new USection();
+            m_section = USection::create();
             break;
         case FEM_L_SECTION:
-            m_section = new LSection();
+            m_section = LSection::create();
             break;
         case FEM_RHS_SECTION:
-            m_section = new RHSSection();
+            m_section = RHSSection::create();
             break;
         case FEM_PIPE_SECTION:
-            m_section = new PipeSection();
+            m_section = PipeSection::create();
             break;
         case FEM_SOLIDPIPE_SECTION:
-            m_section = new SolidPipeSection();
+            m_section = SolidPipeSection::create();
             break;
         case FEM_RECT_SECTION:
-            m_section = new RectSection();
+            m_section = RectSection::create();
             break;
         default:
-            m_section = new RectSection();
+            m_section = RectSection::create();
             break;
         }
         m_section->readFromStream(in);
@@ -154,14 +154,7 @@ void BeamMaterial::readFromStream(std::istream& in)
 
 void BeamMaterial::setSection(Section* section)
 {
-    if (m_section != NULL)
-    {
-        m_section->deleteReference();
-        if (!m_section->isReferenced())
-            delete m_section;
-    }
-    m_section = section;
-    section->addReference();
+    m_section = SectionPtr(section);
 }
 
 void BeamMaterial::assignPropFromSection()
@@ -183,35 +176,35 @@ void BeamMaterial::setSectionType(SectionType sectionType)
     switch (sectionType)
     {
     case ST_I:
-        m_section = new ISection();
+        m_section = ISection::create();
         break;
     case ST_U:
-        m_section = new USection();
+        m_section = USection::create();
         break;
     case ST_L:
-        m_section = new LSection();
+        m_section = LSection::create();
         break;
     case ST_RHS:
-        m_section = new RHSSection();
+        m_section = RHSSection::create();
         break;
     case ST_Pipe:
-        m_section = new PipeSection();
+        m_section = PipeSection::create();
         break;
     case ST_SolidPipe:
-        m_section = new SolidPipeSection();
+        m_section = SolidPipeSection::create();
         break;
     case ST_Rectangle:
-        m_section = new RectSection();
+        m_section = RectSection::create();
         break;
     default:
-        m_section = new RectSection();
+        m_section = RectSection::create();
         break;
     }
 }
 
 Section* BeamMaterial::getSection()
 {
-    return m_section;
+    return m_section.get();
 }
 
 void BeamMaterial::setName(const std::string& name)

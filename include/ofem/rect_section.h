@@ -33,6 +33,7 @@ public:
     virtual ~RectSection();
 
     ClassInfo("RectSection", Section);
+    StdFactory(RectSection);
 
     /**
      * Get section size

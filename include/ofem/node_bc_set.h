@@ -17,6 +17,7 @@ public:
     // Class info
 
     ClassInfo("NodeBCSet", BCSet);
+    StdFactory(NodeBCSet);
 
 protected:
     virtual BC* createBC() override;

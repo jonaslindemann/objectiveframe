@@ -25,67 +25,67 @@ Model::~Model()
 
 NodeSet* Model::getNodeSet()
 {
-    return m_nodeSet;
+    return m_nodeSet.get();
 }
 
 NodeSet* Model::nodeSet()
 {
-    return m_nodeSet;
+    return m_nodeSet.get();
 }
 
 
 ElementSet* Model::getElementSet()
 {
-    return m_elementSet;
+    return m_elementSet.get();
 }
 
 ElementSet* Model::elementSet()
 {
-    return m_elementSet;
+    return m_elementSet.get();
 }
 
 
 MaterialSet* Model::getMaterialSet()
 {
-    return m_materialSet;
+    return m_materialSet.get();
 }
 
 MaterialSet* Model::materialSet()
 {
-    return m_materialSet;
+    return m_materialSet.get();
 }
 
 
 NodeLoadSet* Model::getNodeLoadSet()
 {
-    return m_nodeLoadSet;
+    return m_nodeLoadSet.get();
 }
 
 NodeLoadSet* Model::nodeLoadSet()
 {
-    return m_nodeLoadSet;
+    return m_nodeLoadSet.get();
 }
 
 
 ElementLoadSet* Model::getElementLoadSet()
 {
-    return m_elementLoadSet;
+    return m_elementLoadSet.get();
 }
 
 ElementLoadSet* Model::elementLoadSet()
 {
-    return m_elementLoadSet;
+    return m_elementLoadSet.get();
 }
 
 
 NodeBCSet* Model::getBCSet()
 {
-    return m_bcSet;
+    return m_bcSet.get();
 }
 
 NodeBCSet* Model::BCSet()
 {
-    return m_bcSet;
+    return m_bcSet.get();
 }
 
 
@@ -188,7 +188,7 @@ void Model::readFromStream(std::istream& in)
 
 void Model::connectElements()
 {
-    m_elementSet->connectNodes(m_nodeSet);
+    m_elementSet->connectNodes(m_nodeSet.get());
 }
 
 
@@ -199,17 +199,17 @@ void Model::connectMaterials()
 
 void Model::connectNodeLoads()
 {
-    m_nodeLoadSet->connectNodes(m_nodeSet);
+    m_nodeLoadSet->connectNodes(m_nodeSet.get());
 }
 
 void Model::connectElementLoads()
 {
-    m_elementLoadSet->connectElements(m_elementSet);
+    m_elementLoadSet->connectElements(m_elementSet.get());
 }
 
 void Model::connectNodeBCs()
 {
-    m_bcSet->connectNodes(m_nodeSet);
+    m_bcSet->connectNodes(m_nodeSet.get());
 }
 
 void Model::deleteAll()
@@ -359,12 +359,12 @@ void Model::initialize()
 {
     // Create new sets
 
-    m_elementLoadSet = this->createElementLoadSet();
-    m_nodeSet = this->createNodeSet();
-    m_elementSet = this->createElementSet();
-    m_materialSet = this->createMaterialSet();
-    m_nodeLoadSet = this->createNodeLoadSet();
-    m_bcSet = this->createBCSet();
+    m_elementLoadSet = ElementLoadSetPtr(this->createElementLoadSet());
+    m_nodeSet = NodeSetPtr(this->createNodeSet());
+    m_elementSet = ElementSetPtr(this->createElementSet());
+    m_materialSet = MaterialSetPtr(this->createMaterialSet());
+    m_nodeLoadSet = NodeLoadSetPtr(this->createNodeLoadSet());
+    m_bcSet = NodeBCSetPtr(this->createBCSet());
 
     this->onInitialised();
 }
@@ -393,13 +393,12 @@ std::string ofem::Model::version()
     return m_version;
 }
 
-
 NodeBCSet* Model::getNodeBCSet()
 {
-    return m_bcSet;
+    return m_bcSet.get();
 }
 
 NodeBCSet* Model::nodeBCSet()
 {
-    return m_bcSet;
+    return m_bcSet.get();
 }

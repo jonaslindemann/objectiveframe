@@ -18,6 +18,7 @@ public:
     virtual ~OutputFileReader();
 
     ClassInfo("OutputFileReader", Base);
+    StdFactory(OutputFileReader);
 
     Model* getFemModel();
     void setFemModel(Model* model);

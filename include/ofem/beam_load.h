@@ -19,6 +19,7 @@ public:
     virtual ~BeamLoad();
 
     ClassInfo("BeamLoad", ElementLoad);
+    StdFactory(BeamLoad);
 
     const std::string getName();
     void setName(const std::string& name);

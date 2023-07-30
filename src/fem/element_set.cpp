@@ -28,7 +28,7 @@ void ElementSet::addElement(Element* element)
 Element* ElementSet::getElement(long i)
 {
     if ((i >= 0) && (i < (long)m_elements.size()))
-        return m_elements[i];
+        return m_elements[i].get();
     else
         return NULL;
 }
@@ -48,23 +48,21 @@ bool ElementSet::deleteElement(long i)
     return false;
 }
 
-Element* ElementSet::removeElement(long i)
+bool ElementSet::removeElement(long i)
 {
     if ((i >= 0) && (i < (long)m_elements.size()))
     {
         if (m_elements[i]->getRefCount() == 1)
         {
-            Element* element = m_elements[i];
-            element->addReference();
+            ElementPtr element = m_elements[i];
             m_elements.erase(m_elements.begin() + i);
-            element->deleteReference();
-            return element;
+            return true;
         }
         else
-            return NULL;
+            return false;
     }
     else
-        return NULL;
+        return false;
 }
 
 void ElementSet::deleteAll()
@@ -106,7 +104,7 @@ void ElementSet::readFromStream(std::istream& in)
     deleteAll();
     for (int i = 0; i < nElements; i++)
     {
-        ElementPtr element = createElement();
+        ElementPtr element = ElementPtr(createElement());
         element->readFromStream(in);
         m_elements.push_back(element);
     }
@@ -116,7 +114,7 @@ void ElementSet::connectNodes(NodeSet* nodes)
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)
     {
-        Element* element = m_elements[i];
+        ElementPtr element = m_elements[i];
         for (unsigned int j = 0; j < element->getIndexSize(); j++)
             element->addNode(nodes->getNode(element->getElementIndex(j) - 1));
     }
@@ -131,7 +129,7 @@ bool ElementSet::removeElement(Element* element)
 {
     for (unsigned int i = 0; i < m_elements.size(); i++)
     {
-        if (element == m_elements[i])
+        if (element == m_elements[i].get())
             return this->deleteElement(i);
     }
     return false;

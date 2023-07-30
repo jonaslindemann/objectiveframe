@@ -17,6 +17,7 @@ public:
     virtual ~Material();
 
     ClassInfo("Material", Base);
+    StdFactory(Material);
 
     // Get/set methods
 

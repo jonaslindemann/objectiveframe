@@ -24,6 +24,7 @@ public:
     // Class info
 
     ClassInfo("NodeLoad", Load);
+    StdFactory(NodeLoad);
 
     // Methods
 

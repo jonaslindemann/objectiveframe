@@ -19,6 +19,7 @@ public:
     virtual ~BeamSet();
 
     ClassInfo("BeamSet", ElementSet);
+    StdFactory(BeamSet);
 
     void updateNodeKinds();
 

@@ -13,7 +13,6 @@ NodeBC::NodeBC()
 
     m_bcMaterial = ivf::Material::create();
     m_bcMaterial->setDiffuseColor(1.0, 1.0, 1.0, 1.0);
-    m_bcMaterial->addReference();
 
     m_nodeBC = nullptr;
 

@@ -22,11 +22,12 @@ public:
     // Class info
 
     ClassInfo("NodeSet", Base);
+    StdFactory(NodeSet);
 
     // Methods
 
     void deleteAll();
-    Node* removeNode(long i);
+    bool removeNode(long i);
     bool removeNode(Node* node);
     bool deleteNode(long i);
     Node* getNode(long i);

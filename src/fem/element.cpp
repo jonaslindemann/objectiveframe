@@ -33,7 +33,7 @@ void Element::print(std::ostream& out)
 void Element::addNode(Node* node)
 {
     m_nodes.push_back(NodePtr(node));
-    InternalDofsPtr iDof = new InternalDofs();
+    InternalDofsPtr iDof = InternalDofs::create();
     m_internalDofs.push_back(iDof);
 }
 
@@ -115,7 +115,7 @@ void Element::readFromStream(std::istream& in)
 
     for (i = 0; i < nNodes; i++)
     {
-        InternalDofsPtr intDof = new InternalDofs();
+        InternalDofsPtr intDof = InternalDofs::create();
         m_internalDofs.push_back(intDof);
         intDof->readFromStream(in);
     }
@@ -146,7 +146,7 @@ size_t Element::getIndexSize()
 Node* Element::getNode(unsigned int index)
 {
     if (index < m_nodes.size())
-        return m_nodes[index];
+        return m_nodes[index].get();
     else
         return NULL;
 }

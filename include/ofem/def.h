@@ -1,42 +1,45 @@
 #pragma once
 
+#include <memory>
+
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
-#endif
-
-#ifndef BOOL
-typedef int BOOL;
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef NULL
-#ifdef __cplusplus
-#define NULL 0
-#else
-#define NULL ((void*)0)
-#endif
 #endif
 
 #define StdPointer(classname) \
     class classname;          \
     typedef classname* classname##Ptr
 
+#undef USE_SHARED_PTR
+
+#ifdef USE_SHARED_PTR
+
+#define SmartPointer(classname)                        \
+    class classname;                                   \
+    typedef std::shared_ptr<classname> classname##Ptr; \
+    typedef classname* classname##StdPtr;
+
+#define StdFactory(classname)                                 \
+    static classname##Ptr create()                            \
+    {                                                         \
+        return std::make_shared<classname>(); \
+    }
+
+#else
+
 #define SmartPointer(classname)                      \
     class classname;                                 \
     typedef ofem::Pointer<classname> classname##Ptr; \
     typedef classname* classname##StdPtr;
 
-#define SmartPointerRefBase(classname, refbase)                      \
-    class classname;                                                 \
-    typedef ofem::PointerRefBase<classname, refbase> classname##Ptr; \
-    typedef classname* classname##StdPtr;
+#define StdFactory(classname)                                 \
+    static classname##Ptr create()                            \
+    {                                                         \
+        return classname##Ptr(new classname()); \
+    }
+
+#endif
+
 
 #define ClassInfo(femclassname, femparent)                                     \
     const std::string getClassNameThis() { return femclassname; }              \

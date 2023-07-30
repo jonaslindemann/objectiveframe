@@ -696,21 +696,21 @@ void FemViewWindow::setCurrentMaterial(ofem::BeamMaterial* material)
 {
     // Set current material
 
-    m_currentMaterial = material;
+    m_currentMaterial = ofem::BeamMaterialPtr(material);
 }
 
 ofem::BeamMaterial* FemViewWindow::getCurrentMaterial()
 {
     // Return current material
 
-    return m_currentMaterial;
+    return m_currentMaterial.get();
 }
 
 void FemViewWindow::setCurrentBeamLoad(ofem::BeamLoad* elementLoad)
 {
     // Set current elementload
 
-    m_currentElementLoad = elementLoad;
+    m_currentElementLoad = ofem::BeamLoadPtr(elementLoad);
 }
 
 void FemViewWindow::setRepresentation(RepresentationMode repr)
@@ -760,7 +760,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
 
 ofem::BeamModel* FemViewWindow::getModel()
 {
-    return m_beamModel;
+    return m_beamModel.get();
 }
 
 Shape* FemViewWindow::getSelectedShape()
@@ -772,17 +772,17 @@ Shape* FemViewWindow::getSelectedShape()
 
 ofem::BeamLoad* FemViewWindow::getCurrentBeamLoad()
 {
-    return m_currentElementLoad;
+    return m_currentElementLoad.get();
 }
 
 void FemViewWindow::setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad)
 {
-    m_currentNodeLoad = nodeLoad;
+    m_currentNodeLoad = ofem::BeamNodeLoadPtr(nodeLoad);
 }
 
 ofem::BeamNodeLoad* FemViewWindow::getCurrentNodeLoad()
 {
-    return m_currentNodeLoad;
+    return m_currentNodeLoad.get();
 }
 
 void FemViewWindow::setEditMode(WidgetMode mode)
@@ -924,7 +924,7 @@ double FemViewWindow::getScalefactor()
 
 void FemViewWindow::setCurrentNodeBC(ofem::BeamNodeBC* bc)
 {
-    m_currentNodeBC = bc;
+    m_currentNodeBC = ofem::BeamNodeBCPtr(bc);
 }
 
 void FemViewWindow::setCustomMode(CustomMode mode)
@@ -1026,7 +1026,7 @@ double FemViewWindow::getRelLoadSize()
 
 ofem::BeamNodeBC* FemViewWindow::getCurrentNodeBC()
 {
-    return m_currentNodeBC;
+    return m_currentNodeBC.get();
 }
 
 void FemViewWindow::setResultType(int type)
@@ -1089,7 +1089,7 @@ void FemViewWindow::exportAsCalfem()
     if (filename != "")
     {
         auto writer = ofem::CalfemWriter::create(filename);
-        writer->setFemModel(m_beamModel);
+        writer->setFemModel(m_beamModel.get());
         writer->save();
     }
 }
@@ -1534,7 +1534,7 @@ void FemViewWindow::addBeamLoad(ofem::BeamLoad* elementLoad)
     // Create ivf represenation
 
     vfem::BeamLoad* visLoad = new vfem::BeamLoad();
-    visLoad->setBeamModel(m_beamModel);
+    visLoad->setBeamModel(m_beamModel.get());
     visLoad->setBeamLoad(elementLoad);
 
     // Set user property of element load to point to
@@ -1560,7 +1560,7 @@ void FemViewWindow::addNodeLoad(ofem::BeamNodeLoad* nodeLoad)
     // Create ivf represenation
 
     vfem::NodeLoad* visNodeLoad = new vfem::NodeLoad();
-    visNodeLoad->setBeamModel(m_beamModel);
+    visNodeLoad->setBeamModel(m_beamModel.get());
     visNodeLoad->setNodeLoad(nodeLoad);
 
     // Set user property of element load to point to
@@ -1648,7 +1648,7 @@ void FemViewWindow::subdivideSelectedBeam()
             auto vn1 = static_cast<vfem::Node*>(n1->getUser());
 
             auto vn2 = new vfem::Node();
-            vn2->setBeamModel(m_beamModel);
+            vn2->setBeamModel(m_beamModel.get());
             vn2->setFemNode(n2);
             vn2->setPosition(x, y, z);
             vn2->setMaterial(m_nodeMaterial);
@@ -1657,12 +1657,12 @@ void FemViewWindow::subdivideSelectedBeam()
             n2->setUser(static_cast<void*>(vn2));
 
             vfem::Beam* vbeam0 = new vfem::Beam();
-            vbeam0->setBeamModel(m_beamModel);
+            vbeam0->setBeamModel(m_beamModel.get());
             vbeam0->setBeam(beam0);
             beam0->setUser(static_cast<void*>(vbeam0));
 
             vfem::Beam* vbeam1 = new vfem::Beam();
-            vbeam1->setBeamModel(m_beamModel);
+            vbeam1->setBeamModel(m_beamModel.get());
             vbeam1->setBeam(beam1);
             beam1->setUser(static_cast<void*>(vbeam1));
 
@@ -1817,7 +1817,7 @@ void FemViewWindow::addNodeBC(ofem::BeamNodeBC* bc)
     // Create ivf represenation
 
     vfem::NodeBC* visNodeBC = new vfem::NodeBC();
-    visNodeBC->setBeamModel(m_beamModel);
+    visNodeBC->setBeamModel(m_beamModel.get());
     visNodeBC->setNodeBC(bc);
 
     // Set user property of element load to point to
@@ -2219,7 +2219,7 @@ void FemViewWindow::executeCalc()
     m_beamSolver = BeamSolver::create();
     m_currentSolver = m_beamSolver.get();
 
-    m_currentSolver->setBeamModel(m_beamModel);
+    m_currentSolver->setBeamModel(m_beamModel.get());
     // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
     m_currentSolver->execute();
 
@@ -2304,7 +2304,7 @@ void FemViewWindow::recompute()
         m_beamSolver = BeamSolver::create();
         m_currentSolver = m_beamSolver.get();
 
-        m_currentSolver->setBeamModel(m_beamModel);
+        m_currentSolver->setBeamModel(m_beamModel.get());
 
         // Setup feedback force
 
@@ -2429,7 +2429,7 @@ void FemViewWindow::doFeedback()
             m_currentSolver = m_beamSolver.get();
 
             // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
-            m_currentSolver->setBeamModel(m_beamModel);
+            m_currentSolver->setBeamModel(m_beamModel.get());
 
             double v[3];
 
@@ -2576,7 +2576,7 @@ vfem::Node* FemViewWindow::addNode(double x, double y, double z)
     // Create Ivf representation
 
     vfem::Node* ivfNode = new vfem::Node();
-    ivfNode->setBeamModel(m_beamModel);
+    ivfNode->setBeamModel(m_beamModel.get());
     ivfNode->setFemNode(femNode);
     ivfNode->setPosition(x + m_selectedPos[0], y + m_selectedPos[1], z + m_selectedPos[2]);
     ivfNode->setMaterial(m_nodeMaterial);
@@ -2631,7 +2631,7 @@ vfem::Beam* FemViewWindow::addBeam(int i0, int i1)
         auto vNode1 = static_cast<vfem::Node*>(n1->getUser());
 
         vfem::Beam* vBeam = new vfem::Beam();
-        vBeam->setBeamModel(m_beamModel);
+        vBeam->setBeamModel(m_beamModel.get());
         vBeam->setBeam(beam);
         beam->setUser(static_cast<void*>(vBeam));
 
@@ -2692,7 +2692,7 @@ vfem::NodePtr FemViewWindow::getInteractionNode()
 
 vfem::BeamModel* FemViewWindow::getVisualBeamModel()
 {
-    return m_beamModel;
+    return m_beamModel.get();
 }
 
 void FemViewWindow::setSphereCursor(bool flag)
@@ -3056,7 +3056,7 @@ void FemViewWindow::onInit()
     }
 
     log("Initializing beam model.");
-    m_beamModel = new vfem::BeamModel();
+    m_beamModel = vfem::BeamModel::create();
     m_beamModel->initialize();
     m_beamModel->setPath(colorPath);
     m_beamModel->setScene(this->getScene()->getComposite());
@@ -3076,7 +3076,7 @@ void FemViewWindow::onInit()
 
     // Initialise model clipboard
 
-    m_modelClipBoard = new ofem::ModelClipBoard();
+    m_modelClipBoard = ofem::ModelClipBoard::create();
 
     using namespace std::placeholders;
     ofem::ModelClipboardCreateNodeFunc onCreateNode = std::bind(&FemViewWindow::onClipboardCreateNode, this, _1, _2, _3);
@@ -3272,7 +3272,7 @@ void FemViewWindow::onCreateNode(double x, double y, double z, ivf::Node*& newNo
     // Create Ivf representation
 
     vfem::Node* ivfNode = new vfem::Node();
-    ivfNode->setBeamModel(m_beamModel);
+    ivfNode->setBeamModel(m_beamModel.get());
     ivfNode->setFemNode(femNode);
     ivfNode->setPosition(x, y, z);
     ivfNode->setMaterial(m_nodeMaterial);
@@ -3298,7 +3298,7 @@ void FemViewWindow::onCreateLine(ivf::Node* node1, ivf::Node* node2, Shape*& new
     // Create visual representation
 
     vfem::Beam* visBeam = new vfem::Beam();
-    visBeam->setBeamModel(m_beamModel);
+    visBeam->setBeamModel(m_beamModel.get());
 
     // Create model representation
 
@@ -3820,7 +3820,7 @@ void FemViewWindow::onSelectPosition(double x, double y, double z)
     if (m_customMode == CustomMode::Paste)
     {
         m_modelClipBoard->setOffset(x, y, z);
-        m_modelClipBoard->paste(m_beamModel);
+        m_modelClipBoard->paste(m_beamModel.get());
     }
 }
 

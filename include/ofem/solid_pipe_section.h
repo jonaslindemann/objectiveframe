@@ -32,6 +32,7 @@ public:
     virtual ~SolidPipeSection();
 
     ClassInfo("SolidPipeSection", Section);
+    StdFactory(SolidPipeSection);
 
     /**
      * Get section size

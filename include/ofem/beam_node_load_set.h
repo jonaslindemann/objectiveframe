@@ -6,7 +6,7 @@
 namespace ofem
 {
 
-SmartPointer(CFEmBeamNodeLoadSet);
+SmartPointer(BeamNodeLoadSet);
 
 class BeamNodeLoadSet : public NodeLoadSet
 {
@@ -16,6 +16,7 @@ public:
     virtual ~BeamNodeLoadSet();
 
     ClassInfo("BeamNodeLoadSet", NodeLoadSet);
+    StdFactory(BeamNodeLoadSet);
 
 protected:
     virtual Load* createLoad() override;

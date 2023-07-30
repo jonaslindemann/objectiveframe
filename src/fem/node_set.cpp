@@ -26,14 +26,14 @@ void NodeSet::print(std::ostream& out)
 
 void NodeSet::addNode(Node* node)
 {
-    m_nodes.push_back(node);
+    m_nodes.push_back(NodePtr(node));
 }
 
 
 Node* NodeSet::getNode(long i)
 {
     if ((i >= 0) && (i < (long)m_nodes.size()))
-        return m_nodes[i];
+        return m_nodes[i].get();
     else
         return nullptr;
 }
@@ -55,7 +55,7 @@ bool NodeSet::deleteNode(long i)
 }
 
 
-Node* NodeSet::removeNode(long i)
+bool NodeSet::removeNode(long i)
 {
     if ((i >= 0) && (i < (long)m_nodes.size()))
     {
@@ -63,13 +63,13 @@ Node* NodeSet::removeNode(long i)
         {
             NodePtr node = m_nodes[i];
             m_nodes.erase(m_nodes.begin() + i);
-            return node;
+            return true;
         }
         else
-            return 0;
+            return false;
     }
     else
-        return 0;
+        return false;
 }
 
 
@@ -77,7 +77,7 @@ bool NodeSet::removeNode(Node* node)
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
-        if (node == m_nodes[i])
+        if (node == m_nodes[i].get())
             return this->deleteNode(i);
     }
     return false;
@@ -99,7 +99,7 @@ void NodeSet::clearNodeValues()
 {
     for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
-        Node* node = m_nodes[i];
+        NodePtr node = m_nodes[i];
         node->clearValues();
     }
 }
@@ -140,7 +140,7 @@ void NodeSet::saveToStream(std::ostream& out)
     out << m_nodes.size() << endl;
     for (unsigned int i = 0; i < m_nodes.size(); i++)
     {
-        Node* node = m_nodes[i];
+        NodePtr node = m_nodes[i];
         node->saveToStream(out);
     }
 }
@@ -170,7 +170,7 @@ void NodeSet::readFromStream(std::istream& in)
     in >> nNodes;
     for (int i = 0; i < nNodes; i++)
     {
-        NodePtr node = new Node();
+        NodePtr node = Node::create();
         node->readFromStream(in);
         m_nodes.push_back(node);
     }

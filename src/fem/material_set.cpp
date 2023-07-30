@@ -34,7 +34,7 @@ void MaterialSet::addMaterial(Material* material)
 Material* MaterialSet::getMaterial(long i)
 {
     if ((i >= 0) && (i < (long)m_materials.size()))
-        return m_materials[i];
+        return m_materials[i].get();
     else
         return NULL;
 }
@@ -54,28 +54,6 @@ bool MaterialSet::deleteMaterial(long i)
     }
     return false;
 }
-
-
-Material* MaterialSet::removeMaterial(long i)
-{
-    if ((i >= 0) && (i < (long)m_materials.size()))
-    {
-        Material* material = m_materials[i];
-
-        if (material->getRefCount() == 1)
-        {
-            material->addReference();
-            m_materials.erase(m_materials.begin() + i);
-            material->deleteReference();
-            return material;
-        }
-        else
-            return NULL;
-    }
-    else
-        return NULL;
-}
-
 
 void MaterialSet::deleteAll()
 {
@@ -121,7 +99,7 @@ void MaterialSet::readFromStream(std::istream& in)
     deleteAll();
     for (int i = 0; i < nMaterials; i++)
     {
-        MaterialPtr material = createMaterial();
+        MaterialPtr material = MaterialPtr(createMaterial());
         material->readFromStream(in);
         m_materials.push_back(material);
         std::cout << "material ref count = " << material->getRefCount() << std::endl;
@@ -139,13 +117,16 @@ bool MaterialSet::removeMaterial(Material* material)
 {
     std::vector<MaterialPtr>::iterator p = m_materials.begin();
 
-    while ((p != m_materials.end()) && (*p != material))
+    while ((p != m_materials.end()) && ((*p).get() != material))
         p++;
 
     if (p != m_materials.end())
     {
-        Material* material = *p;
+        MaterialPtr material = *p;
+        m_materials.erase(p);
+        return true;
 
+        /*
         if (material->getRefCount() == 2)
         {
             m_materials.erase(p);
@@ -153,6 +134,7 @@ bool MaterialSet::removeMaterial(Material* material)
         }
         else
             return false;
+        */
     }
     return false;
 }
@@ -172,7 +154,7 @@ Material* MaterialSet::currentMaterial()
     if (m_currentMaterialIdx != -1)
     {
         if ((m_currentMaterialIdx >= 0) && (m_currentMaterialIdx < (long)m_materials.size()))
-            return m_materials[m_currentMaterialIdx];
+            return m_materials[m_currentMaterialIdx].get();
         else
             return 0;
     }

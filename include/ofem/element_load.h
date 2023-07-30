@@ -24,6 +24,7 @@ public:
     // Class info
 
     ClassInfo("ElementLoad", Load);
+    StdFactory(ElementLoad);
 
     bool removeElement(Element* element);
     void clearElements();

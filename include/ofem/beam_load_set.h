@@ -15,6 +15,7 @@ public:
     virtual ~BeamLoadSet();
 
     ClassInfo("BeamLoadSet", ElementLoadSet);
+    StdFactory(BeamLoadSet);
 
 protected:
     virtual Load* createLoad() override;

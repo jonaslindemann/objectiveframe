@@ -76,7 +76,7 @@ vfem::BeamModelPtr vfem::BeamModel::create()
 
 void BeamModel::onInitialised()
 {
-    ofem::BeamMaterialPtr material = new ofem::BeamMaterial();
+    ofem::BeamMaterial* material = new ofem::BeamMaterial();
     material->setProperties(2.1e9, 8.1e7, 1.0, 1.0, 1.0, 1.0);
     material->setSectionType(ofem::ST_SolidPipe);
     material->setName("default");
@@ -86,17 +86,17 @@ void BeamModel::onInitialised()
 
     // Create default Node BCs
 
-    m_defaultNodeFixedBC = new ofem::BeamNodeBC();
+    m_defaultNodeFixedBC = ofem::BeamNodeBC::create();
     m_defaultNodeFixedBC->setName("fixed pos/rot");
     m_defaultNodeFixedBC->fixed();
     m_defaultNodeFixedBC->setReadOnly();
-    this->nodeBCSet()->addBC(m_defaultNodeFixedBC);
+    this->nodeBCSet()->addBC(m_defaultNodeFixedBC.get());
 
-    m_defaultNodePosBC = new ofem::BeamNodeBC();
+    m_defaultNodePosBC = ofem::BeamNodeBC::create();
     m_defaultNodePosBC->setName("fixed pos");
     m_defaultNodePosBC->fixedPosition();
     m_defaultNodePosBC->setReadOnly();
-    this->nodeBCSet()->addBC(m_defaultNodePosBC);
+    this->nodeBCSet()->addBC(m_defaultNodePosBC.get());
 }
 
 void vfem::BeamModel::onReadComplete()
@@ -107,9 +107,9 @@ void vfem::BeamModel::onReadComplete()
     {
         auto nodeBC = static_cast<ofem::BeamNodeBC*>(this->nodeBCSet()->getBC(i));
         if (nodeBC->getName() == "fixed pos/rot")
-            m_defaultNodeFixedBC = nodeBC;
+            m_defaultNodeFixedBC = ofem::BeamNodeBCPtr(nodeBC);
         if (nodeBC->getName() == "fixed pos")
-            m_defaultNodePosBC = nodeBC;
+            m_defaultNodePosBC = ofem::BeamNodeBCPtr(nodeBC);
     }
 }
 
@@ -354,12 +354,12 @@ ivf::Camera* vfem::BeamModel::camera()
 
 ofem::BeamNodeBC* BeamModel::defaultNodePosBC()
 {
-    return m_defaultNodePosBC;
+    return m_defaultNodePosBC.get();
 }
 
 ofem::BeamNodeBC* BeamModel::defaultNodeFixedBC()
 {
-    return m_defaultNodeFixedBC;
+    return m_defaultNodeFixedBC.get();
 }
 
 void BeamModel::setResultType(int type)

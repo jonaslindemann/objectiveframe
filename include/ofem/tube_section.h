@@ -14,5 +14,6 @@ public:
     virtual ~TubeSection();
 
     ClassInfo("TubeSection", Section);
+    StdFactory(TubeSection);
 };
 }

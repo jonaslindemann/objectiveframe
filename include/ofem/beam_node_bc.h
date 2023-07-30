@@ -18,6 +18,7 @@ public:
     virtual ~BeamNodeBC();
 
     ClassInfo("BeamNodeBC", NodeBC);
+    StdFactory(BeamNodeBC);
 
     int getColor();
     void setColor(int color);

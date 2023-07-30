@@ -19,6 +19,7 @@ public:
     virtual ~BeamNodeLoad();
 
     ClassInfo("BeamNodeLoad", NodeLoad);
+    StdFactory(BeamNodeLoad);
 
     void setColor(int color);
     int getColor();

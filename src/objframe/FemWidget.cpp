@@ -2229,7 +2229,7 @@ void FemWidget::onInit()
 
     log("Defining node material.");
     m_nodeMaterial = ivf::Material::create();
-    m_nodeMaterial->addReference();
+    //m_nodeMaterial->addReference();
     m_nodeMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
     m_nodeMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_nodeMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -2238,7 +2238,7 @@ void FemWidget::onInit()
 
     log("Defining line material.");
     m_lineMaterial = ivf::Material::create();
-    m_lineMaterial->addReference();
+    //m_lineMaterial->addReference();
     m_lineMaterial->setDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
     m_lineMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
     m_lineMaterial->setSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -2343,7 +2343,7 @@ void FemWidget::onInit()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
     m_tactileForce->setMaterial(material);
-    m_tactileForce->addReference();
+    //m_tactileForce->addReference();
     m_tactileForce->setState(Shape::OS_OFF);
     this->getScene()->addChild(m_tactileForce);
 

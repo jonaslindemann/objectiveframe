@@ -101,12 +101,12 @@ bool NodeBC::removeNode(Node* node)
 {
     auto p = m_nodes.begin();
 
-    while ((p != m_nodes.end()) && (*p != node))
+    while ((p != m_nodes.end()) && ((*p).get() != node))
         p++;
 
     if (p != m_nodes.end())
     {
-        if (*p == node)
+        if ((*p).get() == node)
         {
             m_nodes.erase(p);
             return true;
@@ -122,7 +122,7 @@ bool NodeBC::removeNode(Node* node)
 Node* NodeBC::getNode(unsigned int idx)
 {
     if (idx < m_nodes.size())
-        return m_nodes[idx];
+        return m_nodes[idx].get();
     else
         return NULL;
 }

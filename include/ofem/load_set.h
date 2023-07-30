@@ -25,6 +25,7 @@ public:
     // Class info
 
     ClassInfo("LoadSet", Base);
+    StdFactory(LoadSet);
 
     // Methods
 

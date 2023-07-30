@@ -23,6 +23,7 @@ public:
     // Class info
 
     ClassInfo("NodeBC", BC);
+    StdFactory(NodeBC);
 
     // Methods
 

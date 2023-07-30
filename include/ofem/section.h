@@ -38,6 +38,7 @@ public:
     virtual ~Section();
 
     ClassInfo("Section", Base);
+    StdFactory(Section);
 
     void readFromStream(std::istream& in) override;
     int getSectionType();

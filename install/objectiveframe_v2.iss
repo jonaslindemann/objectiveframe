@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ObjectiveFrame"
-#define MyAppVersion "2.0.0-rc8"
+#define MyAppVersion "2.0.1"
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
 #define MyAppExeName "objframe_glfw.exe"
@@ -25,7 +25,7 @@ DefaultDirName={autopf}\Structural Mechanics\{#MyAppName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
+PrivilegesRequired=lowest
 OutputDir=D:\Users\Jonas\Development\objectiveframe\packages\windows
 OutputBaseFilename=objectiveframe_setup
 SetupIconFile=D:\Users\Jonas\Development\objectiveframe\images\logo.ico
@@ -69,6 +69,6 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /passive";
+Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /passive /quiet /norestart";
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 

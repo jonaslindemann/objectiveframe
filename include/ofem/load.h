@@ -18,6 +18,7 @@ public:
     virtual ~Load();
 
     ClassInfo("Load", Base);
+    StdFactory(Load);
 
     // Get/set methods
 

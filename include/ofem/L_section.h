@@ -36,6 +36,7 @@ public:
     virtual ~LSection();
 
     ClassInfo("LSection", Section);
+    StdFactory(LSection);
 
     /**
      * Get section size

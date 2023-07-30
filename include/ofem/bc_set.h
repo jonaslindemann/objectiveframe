@@ -21,6 +21,7 @@ public:
     virtual ~BCSet();
 
     ClassInfo("BCSet", Base);
+    StdFactory(BCSet);
 
     // Methods
 

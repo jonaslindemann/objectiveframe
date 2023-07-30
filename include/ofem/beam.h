@@ -33,6 +33,7 @@ public:
     virtual ~Beam();
 
     ClassInfo("Beam", Element);
+    StdFactory(Beam);
 
     // Methods
 

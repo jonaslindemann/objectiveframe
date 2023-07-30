@@ -17,6 +17,7 @@ public:
     virtual ~Coord();
 
     ClassInfo("Coord", Base);
+    StdFactory(Coord);
 
     void setCoord(double x, double y, double z);
     void getCoord(double& x, double& y, double& z);

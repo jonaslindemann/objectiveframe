@@ -29,6 +29,7 @@ public:
     // Class info
 
     ClassInfo("Element", Base);
+    StdFactory(Element);
 
     // Methods
 

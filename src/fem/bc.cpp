@@ -25,7 +25,7 @@ bool BC::isPrescribed(Dof* dof)
 
     while (p != lastDof)
     {
-        if (*p == dof)
+        if ((*p).get() == dof)
             return true;
         p++;
     }
@@ -51,7 +51,7 @@ void BC::unprescribeDof(Dof* dof)
 
     while (p != lastDof)
     {
-        if (*p == dof)
+        if ((*p).get() == dof)
         {
             m_prescribedDofs.erase(p);
             m_prescribedValues.erase(q);
@@ -89,7 +89,7 @@ void BC::saveToStream(std::ostream& out)
     auto q = m_prescribedValues.begin();
     auto lastDof = m_prescribedDofs.end();
 
-    Dof* dof;
+    DofPtr dof;
 
     out << m_prescribedDofs.size() << endl;
     while (p != lastDof)
@@ -133,13 +133,13 @@ void BC::readFromStream(std::istream& in)
     in >> nDofs;
     for (int i = 0; i < nDofs; i++)
     {
-        dof = new Dof();
+        dof = Dof::create();
         in >> kind;
         in >> number;
         in >> value;
         dof->setKind(static_cast<DofKind>(kind));
         dof->setNumber(number);
-        m_prescribedDofs.push_back(DofPtr(dof));
+        m_prescribedDofs.push_back(dof);
         m_prescribedValues.push_back(value);
     }
 }
@@ -153,7 +153,7 @@ void BC::print(std::ostream& out)
 Dof* BC::getDof(unsigned int idx)
 {
     if (idx < m_prescribedDofs.size())
-        return m_prescribedDofs[idx];
+        return m_prescribedDofs[idx].get();
     else
         return NULL;
 }

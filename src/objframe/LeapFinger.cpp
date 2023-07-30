@@ -23,7 +23,7 @@ LeapFinger::LeapFinger(CIvfFemWidget* widget)
     m_fingerShape->setRadius(0);
     m_fingerShape->setTopRadius(0.1);
     m_fingerShape->setHeight(0.7);
-    m_fingerShape->addReference();
+    //m_fingerShape->addReference();
     m_fingerShape->setState(CIvfShape::OS_OFF);
     m_widget->getScene()->getPostComposite()->addChild(m_fingerShape);
 

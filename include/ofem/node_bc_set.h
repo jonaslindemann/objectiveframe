@@ -3,13 +3,11 @@
 #include <ofem/bc.h>
 #include <ofem/bc_set.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(NodeBCSet);
 
-class NodeBCSet : public BCSet
-{
+class NodeBCSet : public BCSet {
 public:
     NodeBCSet();
     virtual ~NodeBCSet();
@@ -20,6 +18,6 @@ public:
     StdFactory(NodeBCSet);
 
 protected:
-    virtual BC* createBC() override;
+    virtual BC *createBC() override;
 };
-}
+} // namespace ofem

@@ -10,16 +10,14 @@ using json_nl = nlohmann::json;
 #include <ofem/def.h>
 #include <ofem/pointer.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(Base);
 
-class Base
-{
+class Base {
 private:
     int m_ref;
-    void* m_user;
+    void *m_user;
     bool m_readOnly;
 
 public:
@@ -34,7 +32,7 @@ public:
      * Returns true if name is equal to the name of the class.
      * @param name Class name to be queried.
      */
-    virtual bool isClass(const std::string& name);
+    virtual bool isClass(const std::string &name);
 
     /**
      * Returns the name of the class.
@@ -57,17 +55,17 @@ public:
     bool isReadOnly();
     void setReadOnly(bool flag = true);
 
-    virtual void saveToStream(std::ostream& out);
-    virtual void readFromStream(std::istream& in);
-    virtual void print(std::ostream& out);
+    virtual void saveToStream(std::ostream &out);
+    virtual void readFromStream(std::istream &in);
+    virtual void print(std::ostream &out);
 
     virtual json_nl toJson();
-    virtual void fromJson(json_nl& j);
+    virtual void fromJson(json_nl &j);
 
     // Get/set methods
 
-    void setUser(void* user);
-    void* getUser();
+    void setUser(void *user);
+    void *getUser();
 };
 
-}
+} // namespace ofem

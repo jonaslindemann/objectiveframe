@@ -4,8 +4,7 @@
 
 #define FEM_T_SECTION 7
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(TSection);
 
@@ -20,8 +19,7 @@ SmartPointer(TSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class TSection : public Section
-{
+class TSection : public Section {
 private:
     double m_Ytp;
     double m_Xtp;
@@ -41,7 +39,7 @@ public:
      * This function gives all measurements associated with the T-Section.
      *
      */
-    void getSectionSize(double& width, double& height, double& WT, double& UFT, double& ULFW);
+    void getSectionSize(double &width, double &height, double &WT, double &UFT, double &ULFW);
 
     /**
      * Set section size
@@ -59,15 +57,16 @@ public:
      */
     void setData();
 
-    virtual void getExcZ(double& emax, double& emin) override;
-    virtual void getExcY(double& emax, double& emin) override;
+    virtual void getExcZ(double &emax, double &emin) override;
+    virtual void getExcY(double &emax, double &emin) override;
 
     virtual void calcDataFromSection() override;
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius) override;
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                 double &innerRadius) override;
 };
-}
+} // namespace ofem

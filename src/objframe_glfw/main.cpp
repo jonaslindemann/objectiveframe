@@ -1,19 +1,19 @@
 #undef GLAD_GL_IMPLEMENTATION
 #include <glad/glad.h>
 
-#include <string>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+#include <string>
 
-#include "GLFWApplication.h"
 #include "FemView.h"
+#include "GLFWApplication.h"
 
-static void error_callback(int error, const char* description)
+static void error_callback(int error, const char *description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     glfwSetErrorCallback(error_callback);
 

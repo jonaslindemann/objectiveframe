@@ -10,17 +10,15 @@ class FemViewWindow;
 class FemWidget;
 #endif
 
-namespace ofui
-{
+namespace ofui {
 
-class PluginPropWindow : public UiWindow
-{
+class PluginPropWindow : public UiWindow {
 private:
-    ScriptPlugin* m_plugin;
+    ScriptPlugin *m_plugin;
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
 
 public:
@@ -29,13 +27,13 @@ public:
 
     static std::shared_ptr<PluginPropWindow> create(const std::string name);
 
-    void setPlugin(ScriptPlugin* plugin);
-    ScriptPlugin* plugin();
+    void setPlugin(ScriptPlugin *plugin);
+    ScriptPlugin *plugin();
 
 #ifdef USE_FEMVIEW
-    void setView(FemViewWindow* view);
+    void setView(FemViewWindow *view);
 #else
-    void setWidget(FemWidget* widget);
+    void setWidget(FemWidget *widget);
 #endif
 
 protected:
@@ -44,4 +42,4 @@ protected:
 
 typedef std::shared_ptr<PluginPropWindow> PluginPropWindowPtr;
 
-}
+} // namespace ofui

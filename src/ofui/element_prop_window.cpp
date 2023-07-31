@@ -11,13 +11,8 @@ using namespace ofui;
 const double PI = 2 * acos(0.0);
 
 ElementPropWindow::ElementPropWindow(const std::string name)
-    : UiWindow(name)
-    , m_beam { nullptr }
-    , m_beamRotation { 0.0f }
-    , m_oldBeamRotation { 0.0f }
-    , m_view { nullptr }
-    , m_beamType { 0 }
-    , m_selectedShapes { nullptr }
+    : UiWindow(name), m_beam{nullptr}, m_beamRotation{0.0f}, m_oldBeamRotation{0.0f}, m_view{nullptr}, m_beamType{0},
+      m_selectedShapes{nullptr}
 {
 }
 
@@ -25,11 +20,10 @@ ElementPropWindow::~ElementPropWindow()
 {
 }
 
-void ElementPropWindow::setBeam(vfem::Beam* beam)
+void ElementPropWindow::setBeam(vfem::Beam *beam)
 {
     m_beam = beam;
-    if (m_beam != nullptr)
-    {
+    if (m_beam != nullptr) {
         m_beamRotation = float(m_beam->getBeam()->getBeamRotation() * 2.0f * PI / 360.0f);
         m_oldBeamRotation = m_beamRotation;
 
@@ -40,18 +34,18 @@ void ElementPropWindow::setBeam(vfem::Beam* beam)
     }
 }
 
-void ofui::ElementPropWindow::setSelectedShapes(ivf::Composite* selected)
+void ofui::ElementPropWindow::setSelectedShapes(ivf::Composite *selected)
 {
     m_selectedShapes = selected;
 }
 
 #ifdef USE_FEMVIEW
-void ofui::ElementPropWindow::setView(FemViewWindow* view)
+void ofui::ElementPropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
 #else
-void ElementPropWindow::setWidget(FemWidget* widget)
+void ElementPropWindow::setWidget(FemWidget *widget)
 {
     m_view = widget;
 }
@@ -66,31 +60,25 @@ void ElementPropWindow::doDraw()
 {
     ImGui::Dummy(ImVec2(150.0, 0.0));
 
-    if (m_beam != nullptr)
-    {
+    if (m_beam != nullptr) {
         ImGui::SliderAngle("Rotation", &m_beamRotation, -180.0f, 180.0f);
 
         ImGui::RadioButton("Beam", &m_beamType, 0);
         ImGui::SameLine();
         ImGui::RadioButton("Bar", &m_beamType, 1);
 
-        if (m_beamType == 0)
-        {
+        if (m_beamType == 0) {
             m_beam->getBeam()->setBeamType(ofem::btBeam);
             m_beam->refresh();
         }
-        else
-        {
+        else {
             m_beam->getBeam()->setBeamType(ofem::btBar);
             m_beam->refresh();
         }
 
-        if (m_beam->getBeam()->getValueSize() > 0)
-        {
-            if (ImGui::BeginTabBar("Test"))
-            {
-                if (ImGui::BeginTabItem("Section forces"))
-                {
+        if (m_beam->getBeam()->getValueSize() > 0) {
+            if (ImGui::BeginTabBar("Test")) {
+                if (ImGui::BeginTabItem("Section forces")) {
                     int n = m_beam->getBeam()->getEvaluationPoints();
                     size_t k = m_beam->getBeam()->getValueSize();
 
@@ -113,11 +101,9 @@ void ElementPropWindow::doDraw()
                     ImGui::TableNextColumn();
                     ImGui::Text("Mz");
 
-                    for (auto i = 0; i < n; i++)
-                    {
+                    for (auto i = 0; i < n; i++) {
                         ImGui::TableNextRow();
-                        for (auto j = 0; j < 6; j++)
-                        {
+                        for (auto j = 0; j < 6; j++) {
                             ImGui::TableNextColumn();
                             ImGui::Text("%.4f", m_beam->getBeam()->getValue(pos++));
                         }
@@ -125,8 +111,7 @@ void ElementPropWindow::doDraw()
                     ImGui::EndTable();
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem("Displacements"))
-                {
+                if (ImGui::BeginTabItem("Displacements")) {
                     int n = m_beam->getBeam()->getEvaluationPoints();
                     size_t k = m_beam->getBeam()->getValueSize();
 
@@ -143,11 +128,9 @@ void ElementPropWindow::doDraw()
                     ImGui::TableNextColumn();
                     ImGui::Text("phi");
 
-                    for (auto i = 0; i < n; i++)
-                    {
+                    for (auto i = 0; i < n; i++) {
                         ImGui::TableNextRow();
-                        for (auto j = 0; j < 4; j++)
-                        {
+                        for (auto j = 0; j < 4; j++) {
                             ImGui::TableNextColumn();
                             ImGui::Text("%.4f", m_beam->getBeam()->getValue(pos++));
                         }
@@ -159,22 +142,18 @@ void ElementPropWindow::doDraw()
             ImGui::EndTabBar();
         }
     }
-    else
-    {
-        if (m_selectedShapes!=nullptr)
-        {
+    else {
+        if (m_selectedShapes != nullptr) {
             ImGui::SliderAngle("Rotation", &m_beamRotation, -180.0f, 180.0f);
 
             ImGui::RadioButton("Beam", &m_beamType, 0);
             ImGui::SameLine();
             ImGui::RadioButton("Bar", &m_beamType, 1);
 
-            for (auto i = 0; i < m_selectedShapes->getSize(); i++)
-            {
+            for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
                 auto shape = m_selectedShapes->getChild(i);
-                if (shape->isClass("vfem::Beam"))
-                {
-                    auto beam = static_cast<vfem::Beam*>(shape);
+                if (shape->isClass("vfem::Beam")) {
+                    auto beam = static_cast<vfem::Beam *>(shape);
                     if (m_beamType == 0)
                         beam->getBeam()->setBeamType(ofem::btBeam);
                     else
@@ -190,10 +169,8 @@ void ElementPropWindow::doDraw()
             ImGui::Text("Select an element to display element properties.");
     }
 
-    if (m_oldBeamRotation != m_beamRotation)
-    {
-        if (m_view != nullptr)
-        {
+    if (m_oldBeamRotation != m_beamRotation) {
+        if (m_view != nullptr) {
             m_view->setRotationSelected(double(m_beamRotation * 360.0f / 2.0f / PI));
         }
     }

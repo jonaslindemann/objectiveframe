@@ -11,19 +11,17 @@ class FemViewWindow;
 class FemWidget;
 #endif
 
-namespace ofui
-{
+namespace ofui {
 
-class NodePropWindow : public UiWindow
-{
+class NodePropWindow : public UiWindow {
 private:
     std::string m_name;
-    vfem::Node* m_node;
-    ivf::Composite* m_selectedShapes;
+    vfem::Node *m_node;
+    ivf::Composite *m_selectedShapes;
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
     float m_nodePos[3];
     float m_nodeDispl[3];
@@ -34,13 +32,13 @@ public:
     virtual ~NodePropWindow();
 
 #ifdef USE_FEMVIEW
-    void setView(FemViewWindow* view);
+    void setView(FemViewWindow *view);
 #else
-    void setWidget(FemWidget* widget);
+    void setWidget(FemWidget *widget);
 #endif
 
-    void setNode(vfem::Node* node);
-    void setSelectedShapes(ivf::Composite* selected);
+    void setNode(vfem::Node *node);
+    void setSelectedShapes(ivf::Composite *selected);
 
     static std::shared_ptr<NodePropWindow> create(const std::string name);
 
@@ -50,4 +48,4 @@ protected:
 
 typedef std::shared_ptr<NodePropWindow> NodePropWindowPtr;
 
-}
+} // namespace ofui

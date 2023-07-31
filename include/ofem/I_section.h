@@ -4,8 +4,7 @@
 
 #define FEM_I_SECTION 1
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(ISection);
 
@@ -20,8 +19,7 @@ SmartPointer(ISection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class ISection : public Section
-{
+class ISection : public Section {
 private:
     double m_Ytp;
     double m_Xtp;
@@ -30,8 +28,7 @@ public:
     ISection();
 
     /** CFemISection constructor */
-    ISection(double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW);
+    ISection(double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW);
 
     /** CFemISection destructor */
     virtual ~ISection();
@@ -45,8 +42,8 @@ public:
      * This function gives all measurements associated with the I-Section.
      *
      */
-    void getSectionSize(double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW);
+    void getSectionSize(double &height, double &UFW, double &LFW, double &WT, double &UFT, double &LFT, double &ULFW,
+                        double &LLFW);
 
     /**
      * Set section size
@@ -54,8 +51,8 @@ public:
      * This function sets all measurements associated with the I-Section.
      *
      */
-    void setSectionSize(double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW);
+    void setSectionSize(double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW,
+                        double LLFW);
 
     /**
      * Set data
@@ -65,15 +62,16 @@ public:
      */
     void setData();
 
-    virtual void getExcZ(double& emax, double& emin) override;
-    virtual void getExcY(double& emax, double& emin) override;
+    virtual void getExcZ(double &emax, double &emin) override;
+    virtual void getExcY(double &emax, double &emin) override;
 
     virtual void calcDataFromSection() override;
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius) override;
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                 double &innerRadius) override;
 };
-}
+} // namespace ofem

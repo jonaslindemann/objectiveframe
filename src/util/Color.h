@@ -5,8 +5,7 @@
 /**
  * Color class
  */
-class ColorEntry
-{
+class ColorEntry {
 private:
     float m_color[4];
 
@@ -23,13 +22,13 @@ public:
 
     /** Sets color value. */
     void setColor(float red, float green, float blue, float alpha);
-    void getColor(float& r, float& g, float& b, float& a);
+    void getColor(float &r, float &g, float &b, float &a);
 
     /** Set color alpha value. */
     void setAlpha(float alpha);
 
     /** Assigns array the current color value. */
-    void getColor(float* array);
+    void getColor(float *array);
 };
 
 typedef std::shared_ptr<ColorEntry> ColorEntryPtr;

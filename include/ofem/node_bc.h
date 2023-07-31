@@ -3,13 +3,11 @@
 #include <ofem/bc.h>
 #include <ofem/node.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(NodeBC);
 
-class NodeBC : public BC
-{
+class NodeBC : public BC {
 private:
     std::vector<NodePtr> m_nodes;
     std::vector<long> m_nodeIndex;
@@ -27,9 +25,9 @@ public:
 
     // Methods
 
-    bool removeNode(Node* node);
+    bool removeNode(Node *node);
     void clearNodes();
-    void addNode(Node* node);
+    void addNode(Node *node);
     bool isPrescribed(int dof);
     void unprescribe(int dof);
     void prescribe(int dof, double value);
@@ -43,20 +41,20 @@ public:
     // Get/set methods
 
     long getNodeIndex(unsigned int idx);
-    Node* getNode(unsigned int idx);
+    Node *getNode(unsigned int idx);
     size_t getNodeSize();
     size_t getNodeIndexSize();
     double getPrescribedValue(int dof);
 
-    bool* getPrescribedArr();
-    double* getPrescribedValueArr();
+    bool *getPrescribedArr();
+    double *getPrescribedValueArr();
 
     // IO Methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 
     virtual json_nl toJson() override;
 };
-}
+} // namespace ofem

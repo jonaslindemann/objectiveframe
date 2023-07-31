@@ -15,16 +15,14 @@ class FemViewWindow;
 class FemWidget;
 #endif
 
-namespace ofui
-{
+namespace ofui {
 
-class MaterialPropPopup : public PopupWindow
-{
+class MaterialPropPopup : public PopupWindow {
 private:
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
 
     std::array<char, 255> m_nameArr;
@@ -71,9 +69,9 @@ public:
     static std::shared_ptr<MaterialPropPopup> create(const std::string name, bool modal = true);
 
 #ifdef USE_FEMVIEW
-    void setFemView(FemViewWindow* view);
+    void setFemView(FemViewWindow *view);
 #else
-    void setFemWidget(FemWidget* widget);
+    void setFemWidget(FemWidget *widget);
 #endif
 
     void update();
@@ -86,4 +84,4 @@ protected:
 
 typedef std::shared_ptr<MaterialPropPopup> MatetrialPropPopupPtr;
 
-}
+} // namespace ofui

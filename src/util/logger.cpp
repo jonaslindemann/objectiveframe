@@ -6,7 +6,7 @@
 #include <ctime>
 
 const std::string Logger::m_filename = "log.txt";
-Logger* Logger::m_this = nullptr;
+Logger *Logger::m_this = nullptr;
 std::ofstream Logger::m_logFile;
 
 using namespace std;
@@ -38,20 +38,17 @@ const std::string logLevelText(LogLevel level)
     return "[INFO]";
 }
 
-Logger::Logger()
-    : m_logDest { LogDestination::StdOut }
+Logger::Logger() : m_logDest{LogDestination::StdOut}
 {
 }
 
-void Logger::log(LogLevel level, const std::string& message)
+void Logger::log(LogLevel level, const std::string &message)
 {
-    if (m_logDest == LogDestination::File)
-    {
+    if (m_logDest == LogDestination::File) {
         m_logFile << currentDateTime() << ": " << logLevelText(level) << ": ";
         m_logFile << message << "\n";
     }
-    else
-    {
+    else {
         cout << currentDateTime() << ": " << logLevelText(level) << ": ";
         cout << message << "\n";
 
@@ -63,33 +60,31 @@ void Logger::log(LogLevel level, const std::string& message)
 }
 
 #ifndef WIN32
-int _vscprintf(const char *format,va_list argptr)
+int _vscprintf(const char *format, va_list argptr)
 {
-   return(vsnprintf(0, 0, format, argptr));
+    return (vsnprintf(0, 0, format, argptr));
 }
 
-int _vscwprintf(const wchar_t *format,va_list argptr)
+int _vscwprintf(const wchar_t *format, va_list argptr)
 {
-   return(vswprintf(0, 0, format, argptr));
+    return (vswprintf(0, 0, format, argptr));
 }
 #endif
 
-void Logger::log(LogLevel level, const char* format, ...)
+void Logger::log(LogLevel level, const char *format, ...)
 {
-    char* message = nullptr;
+    char *message = nullptr;
     int length = 0;
     va_list args;
     va_start(args, format);
     length = _vscprintf(format, args) + 1;
     message = new char[length];
     vsnprintf(message, length, format, args);
-    if (m_logDest == LogDestination::File)
-    {
+    if (m_logDest == LogDestination::File) {
         m_logFile << currentDateTime() << ": " << logLevelText(level) << ": ";
         m_logFile << message << "\n";
     }
-    else
-    {
+    else {
         cout << currentDateTime() << ": " << logLevelText(level) << ": ";
         cout << message << "\n";
 
@@ -102,25 +97,22 @@ void Logger::log(LogLevel level, const char* format, ...)
     delete[] message;
 }
 
-Logger& Logger::operator<<(const std::string& message)
+Logger &Logger::operator<<(const std::string &message)
 {
-    if (m_logDest == LogDestination::File)
-    {
+    if (m_logDest == LogDestination::File) {
         m_logFile << currentDateTime() << ": ";
         m_logFile << message << "\n";
     }
-    else
-    {
+    else {
         cout << currentDateTime() << ": ";
         cout << message << "\n";
     }
     return *this;
 }
 
-Logger* Logger::instance(LogDestination dest)
+Logger *Logger::instance(LogDestination dest)
 {
-    if (m_this == nullptr)
-    {
+    if (m_this == nullptr) {
         m_this = new Logger();
 
         if (dest == LogDestination::File)
@@ -129,12 +121,12 @@ Logger* Logger::instance(LogDestination dest)
     return m_this;
 }
 
-void Logger::assignOnMessage(std::function<void(const std::string message)>& onMessageFunc)
+void Logger::assignOnMessage(std::function<void(const std::string message)> &onMessageFunc)
 {
     m_onMessage = onMessageFunc;
 }
 
-void Logger::assignOnMessageShort(std::function<void(const std::string message)>& onMessageFunc)
+void Logger::assignOnMessageShort(std::function<void(const std::string message)> &onMessageFunc)
 {
     m_onMessageShort = onMessageFunc;
 }

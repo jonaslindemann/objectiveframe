@@ -5,21 +5,18 @@
 #include <vector>
 
 #include <ofui/ui_window.h>
-namespace ofui
-{
+namespace ofui {
 
-class AboutWindow : public UiWindow
-{
+class AboutWindow : public UiWindow {
 private:
     /*
     constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
     constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.0-b12";
-    constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund university";
-    constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
-    constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
+    constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2022\nDivision of Structural Mechanics, Lund
+    university"; constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann"; constexpr auto OBJFRAME_AUTHOR2 =
+    "Contributors: Pierre Olsson, Daniel Akesson";
 
     */
-
 
     std::string m_versionString;
     std::string m_release;
@@ -47,4 +44,4 @@ protected:
 
 typedef std::shared_ptr<AboutWindow> AboutWindowPtr;
 
-}
+} // namespace ofui

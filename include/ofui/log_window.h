@@ -1,16 +1,14 @@
 #pragma once
 #include <ofui/ui_window.h>
 
-namespace ofui
-{
+namespace ofui {
 
-class LogWindow : public UiWindow
-{
+class LogWindow : public UiWindow {
 private:
     ImGuiTextBuffer m_buffer;
     ImGuiTextFilter m_filter;
     ImVector<int> m_lineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
-    bool m_autoScroll; // Keep scrolling if already at the bottom.
+    bool m_autoScroll;           // Keep scrolling if already at the bottom.
 public:
     LogWindow(const std::string name);
 
@@ -26,4 +24,4 @@ public:
 
 typedef std::shared_ptr<LogWindow> LogWindowPtr;
 
-}
+} // namespace ofui

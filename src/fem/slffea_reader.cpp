@@ -11,7 +11,7 @@ SLFFEAReader::~SLFFEAReader()
 {
 }
 
-void SLFFEAReader::readFromStream(std::istream& in)
+void SLFFEAReader::readFromStream(std::istream &in)
 {
     int i, j;
     int ival;
@@ -19,17 +19,17 @@ void SLFFEAReader::readFromStream(std::istream& in)
     double dvals[8];
     char buff[255];
 
-    Model* femModel = this->getFemModel();
+    Model *femModel = this->getFemModel();
 
     if (femModel == NULL)
         return;
 
-    ElementSet* elementSet = femModel->getElementSet();
-    NodeSet* nodeSet = femModel->getNodeSet();
-    MaterialSet* materialSet = femModel->getMaterialSet();
-    NodeBCSet* bcSet = femModel->getNodeBCSet();
-    NodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
-    ElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    ElementSet *elementSet = femModel->getElementSet();
+    NodeSet *nodeSet = femModel->getNodeSet();
+    MaterialSet *materialSet = femModel->getMaterialSet();
+    NodeBCSet *bcSet = femModel->getNodeBCSet();
+    NodeLoadSet *nodeLoadSet = femModel->getNodeLoadSet();
+    ElementLoadSet *elementLoadSet = femModel->getElementLoadSet();
 
     nodeSet->enumerateNodes();
     materialSet->enumerateMaterials();
@@ -77,10 +77,9 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         in >> ival >> dval;
-        Node* node = nodeSet->getNode(i);
+        Node *node = nodeSet->getNode(i);
         node->setValueSize(6);
         node->setValue(0, dval);
     }
@@ -92,10 +91,9 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         in >> ival >> dval;
-        Node* node = nodeSet->getNode(i);
+        Node *node = nodeSet->getNode(i);
         node->setValue(1, dval);
     }
     in.getline(buff, 255);
@@ -106,10 +104,9 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         in >> ival >> dval;
-        Node* node = nodeSet->getNode(i);
+        Node *node = nodeSet->getNode(i);
         node->setValue(2, dval);
     }
     in.getline(buff, 255);
@@ -120,10 +117,9 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         in >> ival >> dval;
-        Node* node = nodeSet->getNode(i);
+        Node *node = nodeSet->getNode(i);
         node->setValue(3, dval);
     }
     in.getline(buff, 255);
@@ -134,10 +130,9 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         in >> ival >> dval;
-        Node* node = nodeSet->getNode(i);
+        Node *node = nodeSet->getNode(i);
         node->setValue(4, dval);
     }
     in.getline(buff, 255);
@@ -148,10 +143,9 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         in >> ival >> dval;
-        Node* node = nodeSet->getNode(i);
+        Node *node = nodeSet->getNode(i);
         node->setValue(5, dval);
     }
     in.getline(buff, 255);
@@ -163,8 +157,7 @@ void SLFFEAReader::readFromStream(std::istream& in)
 
     in.getline(buff, 255);
     ival = 0;
-    while (ival != -10)
-    {
+    while (ival != -10) {
         in >> ival;
         if (ival != -10)
             in >> dval >> dval >> dval >> dval >> dval >> dval;
@@ -183,9 +176,8 @@ void SLFFEAReader::readFromStream(std::istream& in)
     //
 
     in.getline(buff, 255);
-    for (i = 0; i < elementSet->getSize(); i++)
-    {
-        Element* element = elementSet->getElement(i);
+    for (i = 0; i < elementSet->getSize(); i++) {
+        Element *element = elementSet->getElement(i);
         element->setValueSize(8);
         in >> ival >> ival;
         for (j = 0; j < 4; j++)
@@ -200,18 +192,16 @@ void SLFFEAReader::readFromStream(std::istream& in)
     }
 }
 
-void SLFFEAReader::setFileName(const char* fileName)
+void SLFFEAReader::setFileName(const char *fileName)
 {
     m_fileName = fileName;
 }
 
 void SLFFEAReader::load()
 {
-    if (m_fileName != "")
-    {
+    if (m_fileName != "") {
         m_outputFile.open(m_fileName.c_str(), ios::in);
-        if (!m_outputFile)
-        {
+        if (!m_outputFile) {
             cout << "\tCould not open outputfile." << endl;
             return;
         }

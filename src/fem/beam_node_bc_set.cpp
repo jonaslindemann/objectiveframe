@@ -10,7 +10,7 @@ BeamNodeBCSet::~BeamNodeBCSet()
 {
 }
 
-BC* BeamNodeBCSet::createBC()
+BC *BeamNodeBCSet::createBC()
 {
     return new BeamNodeBC();
 }

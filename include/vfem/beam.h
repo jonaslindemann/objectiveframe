@@ -19,25 +19,23 @@
 #include <vfem/color_table.h>
 #include <vfem/node.h>
 
-namespace vfem
-{
+namespace vfem {
 
 IvfSmartPointer(VisBeam);
 
-class Beam : public ivf::Composite
-{
+class Beam : public ivf::Composite {
 private:
-    ofem::Beam* m_femBeam;
+    ofem::Beam *m_femBeam;
     ivf::SimpleLineSetPtr m_lineSet;
     ivf::SolidLinePtr m_solidLine;
-    vfem::Node* m_nodes[2];
+    vfem::Node *m_nodes[2];
     ivf::MaterialPtr m_beamMaterial;
     ivf::ExtrusionPtr m_extrusion;
 
     ivf::TexturePtr m_beamTexture;
     ivf::ImagePtr m_beamImage;
 
-    vfem::BeamModel* m_beamModel;
+    vfem::BeamModel *m_beamModel;
 
     void initResults();
     double calcNavier(double N, double My, double Mz);
@@ -55,16 +53,16 @@ public:
 
     // Get/set methods
 
-    void setBeam(ofem::Beam* beam);
-    ofem::Beam* getBeam();
-    void setNodes(vfem::Node* node1, vfem::Node* node2);
+    void setBeam(ofem::Beam *beam);
+    ofem::Beam *getBeam();
+    void setNodes(vfem::Node *node1, vfem::Node *node2);
 
-    vfem::Node* getNode(int idx);
+    vfem::Node *getNode(int idx);
 
-    void setBeamModel(vfem::BeamModel* beamModel);
+    void setBeamModel(vfem::BeamModel *beamModel);
 
 protected:
     virtual void doCreateSelect() override;
     virtual void doCreateGeometry() override;
 };
-}
+} // namespace vfem

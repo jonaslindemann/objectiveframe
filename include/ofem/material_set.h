@@ -5,13 +5,11 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(MaterialSet);
 
-class MaterialSet : public Base
-{
+class MaterialSet : public Base {
 private:
     std::vector<MaterialPtr> m_materials;
     long m_currentMaterialIdx;
@@ -19,7 +17,7 @@ private:
 protected:
     // Allocators
 
-    virtual Material* createMaterial();
+    virtual Material *createMaterial();
 
 public:
     MaterialSet();
@@ -34,20 +32,20 @@ public:
 
     void deleteAll();
     bool deleteMaterial(long i);
-    Material* getMaterial(long i);
-    void addMaterial(Material* material);
+    Material *getMaterial(long i);
+    void addMaterial(Material *material);
     size_t getSize();
     void clear();
     long enumerateMaterials(long count = 1);
-    bool removeMaterial(Material* material);
+    bool removeMaterial(Material *material);
 
     void setCurrentMaterial(long i);
-    Material* currentMaterial();
+    Material *currentMaterial();
 
     // IO methods
 
-    void readFromStream(std::istream& in) override;
-    void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    void readFromStream(std::istream &in) override;
+    void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 };
-}
+} // namespace ofem

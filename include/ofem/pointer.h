@@ -26,25 +26,21 @@
 
 #include <ofem/def.h>
 
-namespace ofem
-{
+namespace ofem {
 
-
-template <class T>
-class Pointer
-{
+template <class T> class Pointer {
 private:
-    T* m_object;
+    T *m_object;
 
 public:
-    Pointer(T* object = nullptr)
+    Pointer(T *object = nullptr)
     {
         m_object = object;
         if (m_object)
             m_object->addReference();
     }
 
-    Pointer(const Pointer& femObject)
+    Pointer(const Pointer &femObject)
     {
         m_object = femObject.m_object;
         if (m_object)
@@ -53,40 +49,37 @@ public:
 
     virtual ~Pointer()
     {
-        if (m_object)
-        {
+        if (m_object) {
             m_object->deleteReference();
             if (!m_object->isReferenced())
                 delete m_object;
         }
     }
 
-    operator T*() const
+    operator T *() const
     {
         return m_object;
     }
 
-    T& operator*() const
+    T &operator*() const
     {
         return *m_object;
     }
 
-    T* operator->() const
+    T *operator->() const
     {
         return m_object;
     }
 
-    T* get() const
+    T *get() const
     {
         return m_object;
     }
 
-    Pointer& operator=(const Pointer& femPointer)
+    Pointer &operator=(const Pointer &femPointer)
     {
-        if (m_object != femPointer.m_object)
-        {
-            if (m_object)
-            {
+        if (m_object != femPointer.m_object) {
+            if (m_object) {
                 m_object->deleteReference();
                 if (!m_object->isReferenced())
                     delete m_object;
@@ -100,12 +93,10 @@ public:
         return *this;
     }
 
-    Pointer& operator=(T* femObject)
+    Pointer &operator=(T *femObject)
     {
-        if (m_object != femObject)
-        {
-            if (m_object)
-            {
+        if (m_object != femObject) {
+            if (m_object) {
                 m_object->deleteReference();
                 if (!m_object->isReferenced())
                     delete m_object;
@@ -119,22 +110,22 @@ public:
         return *this;
     }
 
-    bool operator==(T* femObject) const
+    bool operator==(T *femObject) const
     {
         return m_object == femObject;
     }
-    bool operator!=(T* femObject) const
+    bool operator!=(T *femObject) const
     {
         return m_object != femObject;
     }
-    bool operator==(const Pointer& femPointer) const
+    bool operator==(const Pointer &femPointer) const
     {
         return m_object == femPointer.m_object;
     }
 
-    bool operator!=(const Pointer& femPointer) const
+    bool operator!=(const Pointer &femPointer) const
     {
         return m_object != femPointer.m_object;
     }
 };
-}
+} // namespace ofem

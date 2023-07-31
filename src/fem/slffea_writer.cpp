@@ -3,36 +3,32 @@
 using namespace ofem;
 using namespace std;
 
-
-SLFFEAWriter::SLFFEAWriter(const std::string filename)
-    : InputFileWriter(filename)
+SLFFEAWriter::SLFFEAWriter(const std::string filename) : InputFileWriter(filename)
 {
 }
-
 
 SLFFEAWriter::~SLFFEAWriter()
 {
 }
 
-
-void SLFFEAWriter::saveToStream(std::ostream& out)
+void SLFFEAWriter::saveToStream(std::ostream &out)
 {
     long i, j;
     double E, G, A, Iy, Iz, Kv;
     double x, y, z;
     double ex, ey, ez;
 
-    BeamModel* femModel = (BeamModel*)this->getFemModel();
+    BeamModel *femModel = (BeamModel *)this->getFemModel();
 
     if (femModel == NULL)
         return;
 
-    ElementSet* elementSet = femModel->getElementSet();
-    NodeSet* nodeSet = femModel->getNodeSet();
-    MaterialSet* materialSet = femModel->getMaterialSet();
-    NodeBCSet* bcSet = femModel->getNodeBCSet();
-    NodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
-    ElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    ElementSet *elementSet = femModel->getElementSet();
+    NodeSet *nodeSet = femModel->getNodeSet();
+    MaterialSet *materialSet = femModel->getMaterialSet();
+    NodeBCSet *bcSet = femModel->getNodeBCSet();
+    NodeLoadSet *nodeLoadSet = femModel->getNodeLoadSet();
+    ElementLoadSet *elementLoadSet = femModel->getElementLoadSet();
 
     nodeSet->enumerateNodes();
     materialSet->enumerateMaterials();
@@ -56,9 +52,8 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Materials" << endl;
 
-    for (i = 0; i < materialSet->getSize(); i++)
-    {
-        BeamMaterial* material = (BeamMaterial*)materialSet->getMaterial(i);
+    for (i = 0; i < materialSet->getSize(); i++) {
+        BeamMaterial *material = (BeamMaterial *)materialSet->getMaterial(i);
         material->getProperties(E, G, A, Iy, Iz, Kv);
         out << i << " ";
         out << E << " ";
@@ -74,9 +69,8 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Elements" << endl;
 
-    for (i = 0; i < elementSet->getSize(); i++)
-    {
-        Beam* element = (Beam*)elementSet->getElement(i);
+    for (i = 0; i < elementSet->getSize(); i++) {
+        Beam *element = (Beam *)elementSet->getElement(i);
         out << i << " ";
         out << element->getNode(0)->getNumber() - 1 << " ";
         out << element->getNode(1)->getNumber() - 1 << " ";
@@ -89,9 +83,8 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Nodes" << endl;
 
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
-        Node* node = nodeSet->getNode(i);
+    for (i = 0; i < nodeSet->getSize(); i++) {
+        Node *node = nodeSet->getNode(i);
         out << i << " ";
         node->getCoord(x, y, z);
         out << x << " " << y << " " << z << endl;
@@ -103,9 +96,8 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Local z-axis" << endl;
 
-    for (i = 0; i < elementSet->getSize(); i++)
-    {
-        Beam* element = (Beam*)elementSet->getElement(i);
+    for (i = 0; i < elementSet->getSize(); i++) {
+        Beam *element = (Beam *)elementSet->getElement(i);
         out << i << " ";
         element->getOrientationZ(ex, ey, ez);
         out << ex << " ";
@@ -120,14 +112,11 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Prescribed displacement x" << endl;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        NodeBC* nodeBC = (NodeBC*)bcSet->getBC(i);
-        if (nodeBC->isPrescribed(1))
-        {
-            for (j = 0; j < nodeBC->getNodeSize(); j++)
-            {
-                Node* node = nodeBC->getNode(j);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        NodeBC *nodeBC = (NodeBC *)bcSet->getBC(i);
+        if (nodeBC->isPrescribed(1)) {
+            for (j = 0; j < nodeBC->getNodeSize(); j++) {
+                Node *node = nodeBC->getNode(j);
                 out << node->getNumber() - 1 << " ";
                 out << nodeBC->getPrescribedValue(1) << endl;
             }
@@ -141,14 +130,11 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Prescribed displacement y" << endl;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        NodeBC* nodeBC = (NodeBC*)bcSet->getBC(i);
-        if (nodeBC->isPrescribed(2))
-        {
-            for (j = 0; j < nodeBC->getNodeSize(); j++)
-            {
-                Node* node = nodeBC->getNode(j);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        NodeBC *nodeBC = (NodeBC *)bcSet->getBC(i);
+        if (nodeBC->isPrescribed(2)) {
+            for (j = 0; j < nodeBC->getNodeSize(); j++) {
+                Node *node = nodeBC->getNode(j);
                 out << node->getNumber() - 1 << " ";
                 out << nodeBC->getPrescribedValue(2) << endl;
             }
@@ -162,14 +148,11 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Prescribed displacement z" << endl;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        NodeBC* nodeBC = (NodeBC*)bcSet->getBC(i);
-        if (nodeBC->isPrescribed(3))
-        {
-            for (j = 0; j < nodeBC->getNodeSize(); j++)
-            {
-                Node* node = nodeBC->getNode(j);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        NodeBC *nodeBC = (NodeBC *)bcSet->getBC(i);
+        if (nodeBC->isPrescribed(3)) {
+            for (j = 0; j < nodeBC->getNodeSize(); j++) {
+                Node *node = nodeBC->getNode(j);
                 out << node->getNumber() - 1 << " ";
                 out << nodeBC->getPrescribedValue(3) << endl;
             }
@@ -183,14 +166,11 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Prescribed rotation x" << endl;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        NodeBC* nodeBC = (NodeBC*)bcSet->getBC(i);
-        if (nodeBC->isPrescribed(4))
-        {
-            for (j = 0; j < nodeBC->getNodeSize(); j++)
-            {
-                Node* node = nodeBC->getNode(j);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        NodeBC *nodeBC = (NodeBC *)bcSet->getBC(i);
+        if (nodeBC->isPrescribed(4)) {
+            for (j = 0; j < nodeBC->getNodeSize(); j++) {
+                Node *node = nodeBC->getNode(j);
                 out << node->getNumber() - 1 << " ";
                 out << nodeBC->getPrescribedValue(4) << endl;
             }
@@ -204,14 +184,11 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Prescribed rotation y" << endl;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        NodeBC* nodeBC = (NodeBC*)bcSet->getBC(i);
-        if (nodeBC->isPrescribed(5))
-        {
-            for (j = 0; j < nodeBC->getNodeSize(); j++)
-            {
-                Node* node = nodeBC->getNode(j);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        NodeBC *nodeBC = (NodeBC *)bcSet->getBC(i);
+        if (nodeBC->isPrescribed(5)) {
+            for (j = 0; j < nodeBC->getNodeSize(); j++) {
+                Node *node = nodeBC->getNode(j);
                 out << node->getNumber() - 1 << " ";
                 out << nodeBC->getPrescribedValue(5) << endl;
             }
@@ -225,14 +202,11 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Prescribed rotation z" << endl;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        NodeBC* nodeBC = (NodeBC*)bcSet->getBC(i);
-        if (nodeBC->isPrescribed(6))
-        {
-            for (j = 0; j < nodeBC->getNodeSize(); j++)
-            {
-                Node* node = nodeBC->getNode(j);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        NodeBC *nodeBC = (NodeBC *)bcSet->getBC(i);
+        if (nodeBC->isPrescribed(6)) {
+            for (j = 0; j < nodeBC->getNodeSize(); j++) {
+                Node *node = nodeBC->getNode(j);
                 out << node->getNumber() - 1 << " ";
                 out << nodeBC->getPrescribedValue(6) << endl;
             }
@@ -246,12 +220,10 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Nodal loads" << endl;
 
-    for (i = 0; i < nodeLoadSet->getSize(); i++)
-    {
-        NodeLoad* nodeLoad = (NodeLoad*)nodeLoadSet->getLoad(i);
-        for (j = 0; j < (long)nodeLoad->getNodeSize(); j++)
-        {
-            Node* node = nodeLoad->getNode(j);
+    for (i = 0; i < nodeLoadSet->getSize(); i++) {
+        NodeLoad *nodeLoad = (NodeLoad *)nodeLoadSet->getLoad(i);
+        for (j = 0; j < (long)nodeLoad->getNodeSize(); j++) {
+            Node *node = nodeLoad->getNode(j);
             out << node->getNumber() - 1 << " ";
             nodeLoad->getDirection(ex, ey, ez);
             out << nodeLoad->getValue() * ex << " ";
@@ -268,12 +240,10 @@ void SLFFEAWriter::saveToStream(std::ostream& out)
 
     out << "# Distributed loads" << endl;
 
-    for (i = 0; i < elementLoadSet->getSize(); i++)
-    {
-        BeamLoad* beamLoad = (BeamLoad*)elementLoadSet->getLoad(i);
-        for (j = 0; j < beamLoad->getElementsSize(); j++)
-        {
-            Beam* beam = (Beam*)beamLoad->getElement(j);
+    for (i = 0; i < elementLoadSet->getSize(); i++) {
+        BeamLoad *beamLoad = (BeamLoad *)elementLoadSet->getLoad(i);
+        for (j = 0; j < beamLoad->getElementsSize(); j++) {
+            Beam *beam = (Beam *)beamLoad->getElement(j);
             out << beam->getNumber() - 1 << " ";
             beamLoad->getLocalDirection(ex, ey, ez);
             out << -beamLoad->getValue() * ey << " ";

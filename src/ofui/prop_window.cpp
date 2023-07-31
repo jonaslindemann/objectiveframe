@@ -11,17 +11,10 @@ using namespace ofui;
 const double PI = 2 * acos(0.0);
 
 PropWindow::PropWindow(const std::string name)
-    : UiWindow(name)
-    , m_beam { nullptr }
-    , m_beamRotation { 0.0f }
-    , m_oldBeamRotation { 0.0f }
-    , m_view { nullptr }
-    , m_beamType { 0 }
-    , m_selectedShapes { nullptr }
-    , m_node { nullptr }
-    , m_nodePos { 0.0, 0.0, 0.0 }
-    , m_nodeDispl { 0.0, 0.0, 0.0 }
-    , m_nodeMove { 0.0, 0.0, 0.0 }
+    : UiWindow(name), m_beam{nullptr}, m_beamRotation{0.0f}, m_oldBeamRotation{0.0f}, m_view{nullptr}, m_beamType{0},
+      m_selectedShapes{nullptr}, m_node{nullptr}, m_nodePos{0.0, 0.0, 0.0}, m_nodeDispl{0.0, 0.0, 0.0}, m_nodeMove{0.0,
+                                                                                                                   0.0,
+                                                                                                                   0.0}
 {
 }
 
@@ -29,11 +22,10 @@ PropWindow::~PropWindow()
 {
 }
 
-void PropWindow::setBeam(vfem::Beam* beam)
+void PropWindow::setBeam(vfem::Beam *beam)
 {
     m_beam = beam;
-    if (m_beam != nullptr)
-    {
+    if (m_beam != nullptr) {
         m_beamRotation = float(m_beam->getBeam()->getBeamRotation() * 2.0f * PI / 360.0f);
         m_oldBeamRotation = m_beamRotation;
 
@@ -44,23 +36,23 @@ void PropWindow::setBeam(vfem::Beam* beam)
     }
 }
 
-void PropWindow::setNode(vfem::Node* node)
+void PropWindow::setNode(vfem::Node *node)
 {
     m_node = node;
 }
 
-void ofui::PropWindow::setSelectedShapes(ivf::Composite* selected)
+void ofui::PropWindow::setSelectedShapes(ivf::Composite *selected)
 {
     m_selectedShapes = selected;
 }
 
 #ifdef USE_FEMVIEW
-void ofui::PropWindow::setView(FemViewWindow* view)
+void ofui::PropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
 #else
-void PropWindow::setWidget(FemWidget* widget)
+void PropWindow::setWidget(FemWidget *widget)
 {
     m_view = widget;
 }
@@ -78,8 +70,7 @@ void PropWindow::doDraw()
     int nodeCount = 0;
     int beamCount = 0;
 
-    if (m_node != nullptr)
-    {
+    if (m_node != nullptr) {
         ImGui::Text("Node properties");
         ImGui::Separator();
 
@@ -101,12 +92,10 @@ void PropWindow::doDraw()
         m_nodeDispl[2] = float(dz);
         ImGui::InputFloat3("Displacement", m_nodeDispl, "%.4g", ImGuiInputTextFlags_ReadOnly);
     }
-    else if (m_selectedShapes != nullptr)
-    {
+    else if (m_selectedShapes != nullptr) {
         nodeCount = m_view->selectionShapeCount("vfem::Node");
 
-        if (nodeCount > 0)
-        {
+        if (nodeCount > 0) {
             ImGui::Text("Node properties");
             ImGui::Separator();
 
@@ -114,15 +103,12 @@ void PropWindow::doDraw()
 
             ImGui::Separator();
 
-            if (ImGui::Button("Move", ImVec2(120, 0)))
-            {
+            if (ImGui::Button("Move", ImVec2(120, 0))) {
                 m_view->snapShot();
 
-                for (auto i = 0; i < m_selectedShapes->getSize(); i++)
-                {
-                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
-                    {
-                        auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
+                for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
+                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node")) {
+                        auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                         double x, y, z;
                         node->getPosition(x, y, z);
                         node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
@@ -135,17 +121,14 @@ void PropWindow::doDraw()
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Copy", ImVec2(120, 0)))
-            {
-                std::vector<ivf::Shape*> newSelected;
+            if (ImGui::Button("Copy", ImVec2(120, 0))) {
+                std::vector<ivf::Shape *> newSelected;
 
                 m_view->snapShot();
 
-                for (auto i = 0; i < m_selectedShapes->getSize(); i++)
-                {
-                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
-                    {
-                        auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
+                for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
+                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node")) {
+                        auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                         double x, y, z;
                         node->getPosition(x, y, z);
                         auto newNode = m_view->addNode(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
@@ -164,8 +147,7 @@ void PropWindow::doDraw()
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Reset", ImVec2(120, 0)))
-            {
+            if (ImGui::Button("Reset", ImVec2(120, 0))) {
                 m_nodeMove[0] = 0.0;
                 m_nodeMove[1] = 0.0;
                 m_nodeMove[2] = 0.0;
@@ -175,8 +157,7 @@ void PropWindow::doDraw()
         }
     }
 
-    if (m_beam != nullptr)
-    {
+    if (m_beam != nullptr) {
         ImGui::Text("Beam properties");
         ImGui::Separator();
 
@@ -191,23 +172,18 @@ void PropWindow::doDraw()
         ImGui::SameLine();
         ImGui::RadioButton("Bar", &m_beamType, 1);
 
-        if (m_beamType == 0)
-        {
+        if (m_beamType == 0) {
             m_beam->getBeam()->setBeamType(ofem::btBeam);
             m_beam->refresh();
         }
-        else
-        {
+        else {
             m_beam->getBeam()->setBeamType(ofem::btBar);
             m_beam->refresh();
         }
 
-        if (m_beam->getBeam()->getValueSize() > 0)
-        {
-            if (ImGui::BeginTabBar("Test"))
-            {
-                if (ImGui::BeginTabItem("Section forces"))
-                {
+        if (m_beam->getBeam()->getValueSize() > 0) {
+            if (ImGui::BeginTabBar("Test")) {
+                if (ImGui::BeginTabItem("Section forces")) {
                     int n = m_beam->getBeam()->getEvaluationPoints();
                     size_t k = m_beam->getBeam()->getValueSize();
 
@@ -230,11 +206,9 @@ void PropWindow::doDraw()
                     ImGui::TableNextColumn();
                     ImGui::Text("Mz");
 
-                    for (auto i = 0; i < n; i++)
-                    {
+                    for (auto i = 0; i < n; i++) {
                         ImGui::TableNextRow();
-                        for (auto j = 0; j < 6; j++)
-                        {
+                        for (auto j = 0; j < 6; j++) {
                             ImGui::TableNextColumn();
                             ImGui::Text("%.4g", m_beam->getBeam()->getValue(pos++));
                         }
@@ -242,8 +216,7 @@ void PropWindow::doDraw()
                     ImGui::EndTable();
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem("Displacements"))
-                {
+                if (ImGui::BeginTabItem("Displacements")) {
                     int n = m_beam->getBeam()->getEvaluationPoints();
                     size_t k = m_beam->getBeam()->getValueSize();
 
@@ -260,11 +233,9 @@ void PropWindow::doDraw()
                     ImGui::TableNextColumn();
                     ImGui::Text("phi");
 
-                    for (auto i = 0; i < n; i++)
-                    {
+                    for (auto i = 0; i < n; i++) {
                         ImGui::TableNextRow();
-                        for (auto j = 0; j < 4; j++)
-                        {
+                        for (auto j = 0; j < 4; j++) {
                             ImGui::TableNextColumn();
                             ImGui::Text("%.4g", m_beam->getBeam()->getValue(pos++));
                         }
@@ -276,14 +247,11 @@ void PropWindow::doDraw()
             ImGui::EndTabBar();
         }
     }
-    else
-    {
-        if (m_selectedShapes!=nullptr)
-        {
+    else {
+        if (m_selectedShapes != nullptr) {
             beamCount = m_view->selectionShapeCount("vfem::Beam");
 
-            if (beamCount>0)
-            {
+            if (beamCount > 0) {
                 ImGui::Text("Beam properties");
                 ImGui::Separator();
 
@@ -293,12 +261,10 @@ void PropWindow::doDraw()
                 ImGui::SameLine();
                 ImGui::RadioButton("Bar", &m_beamType, 1);
 
-                for (auto i = 0; i < m_selectedShapes->getSize(); i++)
-                {
+                for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
                     auto shape = m_selectedShapes->getChild(i);
-                    if (shape->isClass("vfem::Beam"))
-                    {
-                        auto beam = static_cast<vfem::Beam*>(shape);
+                    if (shape->isClass("vfem::Beam")) {
+                        auto beam = static_cast<vfem::Beam *>(shape);
                         if (m_beamType == 0)
                             beam->getBeam()->setBeamType(ofem::btBeam);
                         else
@@ -308,20 +274,17 @@ void PropWindow::doDraw()
 
                         m_view->setNeedRecalc(true);
                     }
-                }            
+                }
             }
         }
     }
 
-    if ((m_beam == nullptr) && (m_node == nullptr) && (beamCount == 0) && (nodeCount == 0))
-    {
+    if ((m_beam == nullptr) && (m_node == nullptr) && (beamCount == 0) && (nodeCount == 0)) {
         ImGui::Text("Select an object to display properties.");
     }
 
-    if (m_oldBeamRotation != m_beamRotation)
-    {
-        if (m_view != nullptr)
-        {
+    if (m_oldBeamRotation != m_beamRotation) {
+        if (m_view != nullptr) {
             m_view->setRotationSelected(double(m_beamRotation * 360.0f / 2.0f / PI));
         }
     }

@@ -6,8 +6,7 @@
 
 IvfSmartPointer(Area2D);
 
-class Area2D : public ivf::Base
-{
+class Area2D : public ivf::Base {
 private:
     std::vector<int> m_xCoords;
     std::vector<int> m_yCoords;
@@ -28,7 +27,7 @@ public:
     int getSize();
 
     void setCoord(int idx, int x, int y);
-    void getCoord(int idx, int& x, int& y);
+    void getCoord(int idx, int &x, int &y);
     void setColor(int idx, float red, float green, float blue);
     void setVisible(bool flag);
 

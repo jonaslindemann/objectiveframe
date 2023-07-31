@@ -26,12 +26,11 @@
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
-namespace calfem
-{
+namespace calfem {
 
 typedef Eigen::Matrix<double, 1, Eigen::Dynamic> RowVec;
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> ColVec;
@@ -48,82 +47,42 @@ typedef Eigen::SparseMatrix<int> SpIntMatrix;
 typedef Eigen::Triplet<double, std::ptrdiff_t> Triplet;
 typedef std::vector<Triplet> TripletList;
 
-void bar3e(
-    const RowVec& ex,
-    const RowVec& ey,
-    const RowVec& ez,
-    const RowVec& ep,
-    double eq,
-    Matrix& Ke,
-    ColVec& fe);
+void bar3e(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &ep, double eq, Matrix &Ke, ColVec &fe);
 
-void bar3s(
-    const RowVec& ex,
-    const RowVec& ey,
-    const RowVec& ez,
-    const RowVec& ep,
-    const RowVec& ed,
-    double eq,
-    int n,
-    ColVec& es,
-    ColVec& edi,
-    ColVec& eci);
+void bar3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &ep, const RowVec &ed, double eq, int n,
+           ColVec &es, ColVec &edi, ColVec &eci);
 
-void beam3e(
-    const RowVec& ex,
-    const RowVec& ey,
-    const RowVec& ez,
-    const RowVec& eo,
-    const RowVec& ep,
-    const RowVec& eq,
-    Matrix& Ke,
-    ColVec& fe);
+void beam3e(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &eo, const RowVec &ep, const RowVec &eq,
+            Matrix &Ke, ColVec &fe);
 
-void beam3s(
-    const RowVec& ex,
-    const RowVec& ey,
-    const RowVec& ez,
-    const RowVec& eo,
-    const RowVec& ep,
-    const RowVec& ed,
-    const RowVec& eq,
-    const int n,
-    Matrix& es,
-    Matrix& edi,
-    ColVec& eci);
+void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &eo, const RowVec &ep, const RowVec &ed,
+            const RowVec &eq, const int n, Matrix &es, Matrix &edi, ColVec &eci);
 
-template <typename T>
-void print(T& A)
+template <typename T> void print(T &A)
 {
     std::cout << A.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ";\n", "[", "]", "[", "]")) << "\n";
 }
 
-void spy(const SpMatrix& matrix);
+void spy(const SpMatrix &matrix);
 
-std::vector<Eigen::Index> toZeroIndex(const std::vector<Eigen::Index>& vec);
+std::vector<Eigen::Index> toZeroIndex(const std::vector<Eigen::Index> &vec);
 
-void extractAllDofs(Eigen::Index nDofs, const std::vector<Eigen::Index>& bcDofs, std::vector<Eigen::Index>& freeDofs, std::vector<Eigen::Index>& allDofs);
+void extractAllDofs(Eigen::Index nDofs, const std::vector<Eigen::Index> &bcDofs, std::vector<Eigen::Index> &freeDofs,
+                    std::vector<Eigen::Index> &allDofs);
 
-void extractElDisp(const IntMatrix& edof, const ColVec& a, Matrix& ed);
+void extractElDisp(const IntMatrix &edof, const ColVec &a, Matrix &ed);
 
-void assem(IntRowVec& Topo, Matrix& K, Matrix& Ke, ColVec& f, ColVec& fe);
+void assem(IntRowVec &Topo, Matrix &K, Matrix &Ke, ColVec &f, ColVec &fe);
 
-void spassem(const IntRowVec& Topo, TripletList& Ktriplets, const Matrix& Ke, ColVec& f, const ColVec& fe);
+void spassem(const IntRowVec &Topo, TripletList &Ktriplets, const Matrix &Ke, ColVec &f, const ColVec &fe);
 
-void extractEdof(
-    const IntMatrix& dofs,
-    const Matrix& coords,
-    const IntMatrix& topo,
-    IntMatrix& edof,
-    Matrix& ex,
-    Matrix& ey,
-    Matrix& ez);
+void extractEdof(const IntMatrix &dofs, const Matrix &coords, const IntMatrix &topo, IntMatrix &edof, Matrix &ex,
+                 Matrix &ey, Matrix &ez);
 
-bool solveq(const Matrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q);
-bool spsolveq(const SpMatrix& K, const ColVec& f, const IntColVec& bcDofs, const ColVec& bcVals, ColVec& a, ColVec& Q);
+bool solveq(const Matrix &K, const ColVec &f, const IntColVec &bcDofs, const ColVec &bcVals, ColVec &a, ColVec &Q);
+bool spsolveq(const SpMatrix &K, const ColVec &f, const IntColVec &bcDofs, const ColVec &bcVals, ColVec &a, ColVec &Q);
 
-class SparseSolver
-{
+class SparseSolver {
 private:
     Eigen::SimplicialLLT<SpMatrix> m_solver;
     SpMatrix m_Ksys;
@@ -145,19 +104,19 @@ private:
     std::vector<Eigen::Index> m_ind;
     std::vector<Eigen::Index> m_pind;
 
-    const SpMatrix* m_K;
-    ColVec* m_f;
-    const IntColVec* m_bcDofs;
-    const ColVec* m_bcVals;
+    const SpMatrix *m_K;
+    ColVec *m_f;
+    const IntColVec *m_bcDofs;
+    const ColVec *m_bcVals;
 
 public:
     SparseSolver();
 
     static std::shared_ptr<SparseSolver> create();
 
-    bool setup(const SpMatrix& K, const IntColVec& bcDofs, const ColVec& bcVals);
-    bool solve(const ColVec& f, ColVec& a, ColVec& Q);
-    bool recompute(const ColVec& f, ColVec& a, ColVec& Q);
+    bool setup(const SpMatrix &K, const IntColVec &bcDofs, const ColVec &bcVals);
+    bool solve(const ColVec &f, ColVec &a, ColVec &Q);
+    bool recompute(const ColVec &f, ColVec &a, ColVec &Q);
 };
 
 typedef std::shared_ptr<SparseSolver> SparseSolverPtr;
@@ -169,4 +128,4 @@ void writeMatrix(const std::string& name, Matrix& m, std::ostream& out, bool mat
 // void writeMatrix(const std::string& name, SymmetricBandMatrix &m, std::ostream &out, bool matlab=true);
 */
 
-}
+} // namespace calfem

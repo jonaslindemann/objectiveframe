@@ -5,14 +5,8 @@
 using namespace ofui;
 
 UiWindow::UiWindow(const std::string name)
-    : m_name { name }
-    , m_visible { true }
-    , m_windowFlags { ImGuiWindowFlags_AlwaysAutoResize }
-    , m_updatePos { false }
-    , m_centerBottom { false }
-    , m_corner { -1 }
-    , m_setPos { false }
-    , m_center { false }
+    : m_name{name}, m_visible{true}, m_windowFlags{ImGuiWindowFlags_AlwaysAutoResize}, m_updatePos{false},
+      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false}
 {
 }
 
@@ -27,12 +21,10 @@ std::shared_ptr<UiWindow> UiWindow::create(const std::string name)
 
 void UiWindow::draw()
 {
-    if (m_visible)
-    {
-        if (m_setPos)
-        {
+    if (m_visible) {
+        if (m_setPos) {
             const float PAD = 50.0f;
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;
@@ -43,11 +35,10 @@ void UiWindow::draw()
             ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
             m_setPos = false;
         }
-        if (m_updatePos)
-        {
+        if (m_updatePos) {
             const float PAD_X = 100.0f;
             const float PAD_Y = 150.0f;
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;
@@ -58,10 +49,9 @@ void UiWindow::draw()
             ImGui::SetNextWindowPos(window_pos, ImGuiCond_Appearing, window_pos_pivot);
             m_updatePos = false;
         }
-        if (m_centerBottom)
-        {
+        if (m_centerBottom) {
             const float PAD = 50.0f;
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;
@@ -72,9 +62,8 @@ void UiWindow::draw()
             ImGui::SetNextWindowPos(window_pos, ImGuiCond_Appearing, window_pos_pivot);
             m_centerBottom = false;
         }
-        if (m_center)
-        {
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        if (m_center) {
+            const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;

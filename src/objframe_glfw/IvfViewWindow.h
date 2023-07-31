@@ -1,18 +1,17 @@
 #pragma once
 
-//#define GLFW_INCLUDE_NONE
-//#include <GLFW/glfw3.h>
+// #define GLFW_INCLUDE_NONE
+// #include <GLFW/glfw3.h>
 
-#include <string>
-#include <memory>
 #include <map>
+#include <memory>
+#include <string>
 
 #include <GLFWWindow.h>
 
 // Widget modes
 
-enum class WidgetMode
-{
+enum class WidgetMode {
     Select,
     SimpleSelect,
     View,
@@ -33,8 +32,7 @@ enum class WidgetMode
 
 // Mouse modes
 
-enum class ButtonState 
-{
+enum class ButtonState {
     bsButton1,
     bsButton2,
     bsButton3,
@@ -60,8 +58,7 @@ enum class ButtonState
 
 #include <ofmath/grid_plane.h>
 
-enum ModifierKey
-{
+enum ModifierKey {
     mkShift,
     mkCtrl,
     mkAlt,
@@ -149,10 +146,12 @@ private:
     ofmath::GridPlane m_yzPlane;
 
 public:
-    IvfViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
+    IvfViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
+                  GLFWwindow *shared = nullptr);
     virtual ~IvfViewWindow();
 
-    static std::shared_ptr<IvfViewWindow> create(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
+    static std::shared_ptr<IvfViewWindow> create(int width, int height, const std::string title,
+                                                 GLFWmonitor *monitor = nullptr, GLFWwindow *shared = nullptr);
 
 public:
     virtual void onGlfwKey(int key, int scancode, int action, int mods) override;
@@ -168,7 +167,7 @@ public:
     bool isOverWindow();
 
     /** Returns camera used by widget */
-    ivf::Camera* getCamera();
+    ivf::Camera *getCamera();
 
     void updateCursor(int x, int y);
 
@@ -179,7 +178,7 @@ public:
      * it to the scene, the shape is owned by the widget and will be
      * destroyed when not needed.
      */
-    void addToScene(ivf::Shape* shape);
+    void addToScene(ivf::Shape *shape);
 
     /**
      * Deletes selected shapes
@@ -200,7 +199,7 @@ public:
      * \param IVF_TRANS_MANIP translation manipulator
      * \param IVF_ROT_MANIP rotation manipulator
      */
-    //void manipulateSelected(int mode);
+    // void manipulateSelected(int mode);
 
     /** Returns manipulation mode */
     int getManipulatorMode();
@@ -229,7 +228,7 @@ public:
     void clearSelection();
     void selectAll();
 
-    void addSelection(ivf::Shape* shape);
+    void addSelection(ivf::Shape *shape);
 
     bool selectionContains(std::string shapeName);
 
@@ -267,7 +266,7 @@ public:
     double getWorkspace();
 
     /** Return the scene object used by the widget */
-    ivf::Workspace* getScene();
+    ivf::Workspace *getScene();
 
     /** Return overlay use */
     bool getUseOverlay();
@@ -295,16 +294,15 @@ public:
     ButtonState getCurrentMouseButton();
     ButtonState getCurrentModifier();
 
-    ivf::Composite* getSelectedShapes();
+    ivf::Composite *getSelectedShapes();
 
     void selectAllBox();
-    bool isInsideVolume(ivf::Shape* shape);
+    bool isInsideVolume(ivf::Shape *shape);
 
     void setUseCustomPick(bool flag);
     bool useCustomPick();
 
 protected:
-
     // Internal event handlers
 
     virtual void doMouseUp(int x, int y);       // Calls onMouseUp
@@ -320,7 +318,6 @@ protected:
     void doDrawImGui();
 
 public:
-
     /**
      * onInit event
      *
@@ -361,7 +358,7 @@ public:
      * @param newNode This parameter shoud be assigned if a new node has been created.
      *
      */
-    virtual void onCreateNode(double x, double y, double z, ivf::Node*& newNode);
+    virtual void onCreateNode(double x, double y, double z, ivf::Node *&newNode);
 
     /**
      * onCreateLine event
@@ -384,7 +381,7 @@ public:
      * @param node2 Second selected node
      * @param newLine This parameter should be assigned if a new line has been created.
      */
-    virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine);
+    virtual void onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape *&newLine);
 
     /**
      * onSelect event
@@ -392,9 +389,9 @@ public:
      * This method is called when a selection has occured.
      * @param selectedShapes Currently selected shapes.
      */
-    virtual void onSelect(ivf::Composite* selectedShapes);
+    virtual void onSelect(ivf::Composite *selectedShapes);
 
-    virtual bool onInsideVolume(ivf::Shape* shape);
+    virtual bool onInsideVolume(ivf::Shape *shape);
 
     virtual void onSelectPosition(double x, double y, double z);
 
@@ -421,7 +418,7 @@ public:
      * variable determines if the object can be deleted. If
      * \em doit is \em true the object will be deleted.
      */
-    virtual void onDeleteShape(ivf::Shape* shape, bool& doit);
+    virtual void onDeleteShape(ivf::Shape *shape, bool &doit);
 
     /**
      * onInitContext event
@@ -449,7 +446,7 @@ public:
      * This event is called when an object has been highlighted in
      * a select operation.
      */
-    virtual void onHighlightShape(ivf::Shape* shape);
+    virtual void onHighlightShape(ivf::Shape *shape);
 
     /**
      * onMove event
@@ -460,12 +457,12 @@ public:
      * must be set to true if the move operation should be performed or
      * not.
      */
-    virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit);
+    virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit);
 
     virtual void onMoveCompleted();
 
-    virtual void onSelectFilter(ivf::Shape* shape, bool& select);
-    virtual void onHighlightFilter(ivf::Shape*, bool& highlight);
+    virtual void onSelectFilter(ivf::Shape *shape, bool &select);
+    virtual void onHighlightFilter(ivf::Shape *, bool &highlight);
     virtual void onMotion(int x, int y);
     virtual void onPassiveMotion(int x, int y);
     virtual void onMouse(int x, int y);
@@ -473,7 +470,7 @@ public:
     virtual void onMouseUp(int x, int y);
     virtual void onKeyboard(int key);
     virtual void onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz);
-    virtual ivf::Shape* onPick(int x, int y);
+    virtual ivf::Shape *onPick(int x, int y);
 
     virtual void onPostRender();
     virtual void onPreRender();

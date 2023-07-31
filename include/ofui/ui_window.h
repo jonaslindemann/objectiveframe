@@ -5,11 +5,9 @@
 
 #include <imgui.h>
 
-namespace ofui
-{
+namespace ofui {
 
-class UiWindow
-{
+class UiWindow {
 private:
     std::string m_name;
     bool m_visible;
@@ -53,4 +51,4 @@ protected:
 
 typedef std::shared_ptr<UiWindow> UiWindowPtr;
 
-}
+} // namespace ofui

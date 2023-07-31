@@ -3,70 +3,58 @@
 
 using namespace ofem;
 
-
 BeamModel::BeamModel()
-    : Model()
-// TODO: check and complete member initialisation list!
+    : Model(), m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300}, m_minM{1e300},
+      m_maxV{-1e300}, m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_maxScale{1.0}, m_minScale{1.0}
 {
-    m_minScale = 1.0;
-    m_maxScale = 1.0;
 }
-
 
 BeamModel::~BeamModel()
 {
 }
 
-//BeamModelPtr ofem::BeamModel::create()
+// BeamModelPtr ofem::BeamModel::create()
 //{
-//    return BeamModelPtr(new BeamModel());
-//}
-
+//     return BeamModelPtr(new BeamModel());
+// }
 
 void BeamModel::connectMaterials()
 {
-    BeamSet* elementSet = this->getElementSet();
+    BeamSet *elementSet = this->getElementSet();
     elementSet->connectMaterials(this->getMaterialSet());
 }
 
-
-ElementSet* BeamModel::createElementSet()
+ElementSet *BeamModel::createElementSet()
 {
     return new BeamSet();
 }
 
-
-MaterialSet* BeamModel::createMaterialSet()
+MaterialSet *BeamModel::createMaterialSet()
 {
     return new BeamMaterialSet();
 }
 
-
-BeamSet* BeamModel::getElementSet()
+BeamSet *BeamModel::getElementSet()
 {
-    return (BeamSet*)(Model::getElementSet());
+    return (BeamSet *)(Model::getElementSet());
 }
 
-
-BeamMaterialSet* BeamModel::getMaterialSet()
+BeamMaterialSet *BeamModel::getMaterialSet()
 {
-    return (BeamMaterialSet*)(Model::getMaterialSet());
+    return (BeamMaterialSet *)(Model::getMaterialSet());
 }
 
-
-ElementLoadSet* BeamModel::createElementLoadSet()
+ElementLoadSet *BeamModel::createElementLoadSet()
 {
     return new BeamLoadSet();
 }
 
-
-NodeLoadSet* BeamModel::createNodeLoadSet()
+NodeLoadSet *BeamModel::createNodeLoadSet()
 {
     return new BeamNodeLoadSet();
 }
 
-
-NodeBCSet* BeamModel::createBCSet()
+NodeBCSet *BeamModel::createBCSet()
 {
     return new BeamNodeBCSet();
 }
@@ -78,12 +66,12 @@ void BeamModel::setMaxM(double maxM)
 
 double BeamModel::maxM()
 {
-    return m_maxM*m_maxScale;
+    return m_maxM * m_maxScale;
 }
 
 double BeamModel::maxV()
 {
-    return m_maxV*m_maxScale;
+    return m_maxV * m_maxScale;
 }
 
 void BeamModel::setMaxV(double maxV)
@@ -93,7 +81,7 @@ void BeamModel::setMaxV(double maxV)
 
 double BeamModel::maxT()
 {
-    return m_maxT*m_maxScale;
+    return m_maxT * m_maxScale;
 }
 
 void BeamModel::setMaxT(double maxT)
@@ -103,7 +91,7 @@ void BeamModel::setMaxT(double maxT)
 
 double BeamModel::maxN()
 {
-    return m_maxN*m_maxScale;
+    return m_maxN * m_maxScale;
 }
 
 void BeamModel::setMaxN(double maxN)
@@ -118,7 +106,7 @@ void BeamModel::setMaxNavier(double maxNavier)
 
 double BeamModel::maxNavier()
 {
-    return m_maxNavier*m_maxScale;
+    return m_maxNavier * m_maxScale;
 }
 
 void BeamModel::setMinM(double minM)
@@ -128,7 +116,7 @@ void BeamModel::setMinM(double minM)
 
 double BeamModel::minV()
 {
-    return m_minV*m_minScale;
+    return m_minV * m_minScale;
 }
 
 void BeamModel::setMinV(double minV)
@@ -138,7 +126,7 @@ void BeamModel::setMinV(double minV)
 
 double BeamModel::minT()
 {
-    return m_minT*m_minScale;
+    return m_minT * m_minScale;
 }
 
 void BeamModel::setMinT(double minT)
@@ -148,7 +136,7 @@ void BeamModel::setMinT(double minT)
 
 double BeamModel::minN()
 {
-    return m_minN*m_minScale;
+    return m_minN * m_minScale;
 }
 
 void BeamModel::setMinN(double minN)
@@ -158,7 +146,7 @@ void BeamModel::setMinN(double minN)
 
 double BeamModel::minM()
 {
-    return m_minM*m_minScale;
+    return m_minM * m_minScale;
 }
 
 void BeamModel::setMinNavier(double minNavier)
@@ -168,7 +156,7 @@ void BeamModel::setMinNavier(double minNavier)
 
 double BeamModel::minNavier()
 {
-    return m_minNavier*m_minScale;
+    return m_minNavier * m_minScale;
 }
 
 void BeamModel::setMaxScale(double scale)

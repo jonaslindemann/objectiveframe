@@ -46,12 +46,11 @@ const std::string Base::getClassName()
     return "FemObject";
 }
 
-bool Base::isClass(const std::string& name)
+bool Base::isClass(const std::string &name)
 {
     std::string className = this->getClassNameThis();
 
-    if (!className.empty())
-    {
+    if (!className.empty()) {
         if (className == name)
             return true;
         else
@@ -61,18 +60,18 @@ bool Base::isClass(const std::string& name)
         return false;
 }
 
-void Base::saveToStream(std::ostream& out)
+void Base::saveToStream(std::ostream &out)
 {
     // out << getClassId() << endl;
 }
 
-void Base::readFromStream(std::istream& in)
+void Base::readFromStream(std::istream &in)
 {
     // int classId;
     // in >> classId;
 }
 
-void Base::print(std::ostream& out)
+void Base::print(std::ostream &out)
 {
 }
 
@@ -82,16 +81,16 @@ json_nl Base::toJson()
     return j;
 }
 
-void Base::fromJson(json_nl& j)
+void Base::fromJson(json_nl &j)
 {
 }
 
-void Base::setUser(void* user)
+void Base::setUser(void *user)
 {
     m_user = user;
 }
 
-void* Base::getUser()
+void *Base::getUser()
 {
     return m_user;
 }

@@ -7,133 +7,113 @@
 using namespace ofem;
 using namespace std;
 
-
-Model::Model()
-    : Base()
-    , m_version { "2" }
-    , m_readVersion { "" }
-    , m_writeVersion { "" }
+Model::Model() : Base(), m_version{"2"}, m_readVersion{""}, m_writeVersion{""}
 {
     ModelStateInfo::getInstance().setVersion(m_version);
 }
-
 
 Model::~Model()
 {
 }
 
-
-NodeSet* Model::getNodeSet()
+NodeSet *Model::getNodeSet()
 {
     return m_nodeSet.get();
 }
 
-NodeSet* Model::nodeSet()
+NodeSet *Model::nodeSet()
 {
     return m_nodeSet.get();
 }
 
-
-ElementSet* Model::getElementSet()
+ElementSet *Model::getElementSet()
 {
     return m_elementSet.get();
 }
 
-ElementSet* Model::elementSet()
+ElementSet *Model::elementSet()
 {
     return m_elementSet.get();
 }
 
-
-MaterialSet* Model::getMaterialSet()
+MaterialSet *Model::getMaterialSet()
 {
     return m_materialSet.get();
 }
 
-MaterialSet* Model::materialSet()
+MaterialSet *Model::materialSet()
 {
     return m_materialSet.get();
 }
 
-
-NodeLoadSet* Model::getNodeLoadSet()
+NodeLoadSet *Model::getNodeLoadSet()
 {
     return m_nodeLoadSet.get();
 }
 
-NodeLoadSet* Model::nodeLoadSet()
+NodeLoadSet *Model::nodeLoadSet()
 {
     return m_nodeLoadSet.get();
 }
 
-
-ElementLoadSet* Model::getElementLoadSet()
+ElementLoadSet *Model::getElementLoadSet()
 {
     return m_elementLoadSet.get();
 }
 
-ElementLoadSet* Model::elementLoadSet()
+ElementLoadSet *Model::elementLoadSet()
 {
     return m_elementLoadSet.get();
 }
 
-
-NodeBCSet* Model::getBCSet()
+NodeBCSet *Model::getBCSet()
 {
     return m_bcSet.get();
 }
 
-NodeBCSet* Model::BCSet()
+NodeBCSet *Model::BCSet()
 {
     return m_bcSet.get();
 }
 
-
-NodeSet* Model::createNodeSet()
+NodeSet *Model::createNodeSet()
 {
     return new NodeSet();
 }
 
-
-ElementSet* Model::createElementSet()
+ElementSet *Model::createElementSet()
 {
     return new ElementSet();
 }
 
-
-MaterialSet* Model::createMaterialSet()
+MaterialSet *Model::createMaterialSet()
 {
     return new MaterialSet();
 }
 
-
-NodeLoadSet* Model::createNodeLoadSet()
+NodeLoadSet *Model::createNodeLoadSet()
 {
     return new NodeLoadSet();
 }
 
-
-ElementLoadSet* Model::createElementLoadSet()
+ElementLoadSet *Model::createElementLoadSet()
 {
     return new ElementLoadSet();
 }
 
-
-NodeBCSet* Model::createBCSet()
+NodeBCSet *Model::createBCSet()
 {
     return new NodeBCSet();
 }
 
-
-void Model::print(ostream& out)
+void Model::print(ostream &out)
 {
     m_materialSet->print(out);
     m_nodeSet->print(out);
     m_elementSet->print(out);
 }
 
-
-void Model::saveToStream(std::ostream& out)
+void Model::saveToStream(std::ostream &out)
 {
     // Enumerate model
 
@@ -148,26 +128,20 @@ void Model::saveToStream(std::ostream& out)
     // Save to stream
 
     m_materialSet->saveToStream(out);
-    out << endl
-        << endl;
+    out << endl << endl;
     m_nodeSet->saveToStream(out);
-    out << endl
-        << endl;
+    out << endl << endl;
     m_elementSet->saveToStream(out);
-    out << endl
-        << endl;
+    out << endl << endl;
     m_nodeLoadSet->saveToStream(out);
-    out << endl
-        << endl;
+    out << endl << endl;
     m_elementLoadSet->saveToStream(out);
-    out << endl
-        << endl;
+    out << endl << endl;
     m_bcSet->saveToStream(out);
     this->onSaveComplete();
 }
 
-
-void Model::readFromStream(std::istream& in)
+void Model::readFromStream(std::istream &in)
 {
     initialize();
     deleteAll();
@@ -185,17 +159,14 @@ void Model::readFromStream(std::istream& in)
     this->onReadComplete();
 }
 
-
 void Model::connectElements()
 {
     m_elementSet->connectNodes(m_nodeSet.get());
 }
 
-
 void Model::connectMaterials()
 {
 }
-
 
 void Model::connectNodeLoads()
 {
@@ -222,7 +193,7 @@ void Model::deleteAll()
     m_bcSet->deleteAll();
 }
 
-void Model::setFileName(const std::string& fname)
+void Model::setFileName(const std::string &fname)
 {
     m_fileName = fname;
 }
@@ -238,14 +209,12 @@ std::string ofem::Model::queryFileVersion(std::string filename)
     f.open(filename.c_str(), ios::in);
 
     std::string line;
-    if (f.is_open())
-    {
+    if (f.is_open()) {
         std::getline(f, line);
 
         f.close();
 
-        if (line.find("#OF_VERSION") != -1)
-        {
+        if (line.find("#OF_VERSION") != -1) {
             auto equalPos = line.find("=");
             auto versionStr = line.substr(equalPos + 1, line.length() - equalPos);
             return versionStr;
@@ -259,19 +228,16 @@ std::string ofem::Model::queryFileVersion(std::string filename)
 
 bool Model::open()
 {
-    if (m_fileName != "")
-    {
+    if (m_fileName != "") {
         std::string readVersion = queryFileVersion(m_fileName);
         ModelStateInfo::getInstance().setReadVersion(readVersion);
 
         fstream inputFile;
 
         inputFile.open(m_fileName.c_str(), ios::in);
-        if (inputFile.is_open())
-        {
+        if (inputFile.is_open()) {
             // Skip version line
-            if (readVersion != "0")
-            {
+            if (readVersion != "0") {
                 std::string line;
                 std::getline(inputFile, line);
             }
@@ -287,11 +253,9 @@ bool Model::open()
         return false;
 }
 
-
 void Model::save()
 {
-    if (m_fileName != "")
-    {
+    if (m_fileName != "") {
         ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
 
         fstream outputFile;
@@ -312,8 +276,7 @@ void Model::snapShot()
 
 void Model::restoreLastSnapShot()
 {
-    if (m_snapShots.size() > 0)
-    {
+    if (m_snapShots.size() > 0) {
         // Snapshot current model
 
         std::stringstream cs;
@@ -332,8 +295,7 @@ void Model::restoreLastSnapShot()
 
 void Model::revertLastSnapShot()
 {
-    if (m_restoredSnapShots.size() > 0)
-    {
+    if (m_restoredSnapShots.size() > 0) {
         // Current model to snapshot
 
         std::stringstream ss;
@@ -354,7 +316,6 @@ size_t Model::snapShotCount()
     return m_snapShots.size();
 }
 
-
 void Model::initialize()
 {
     // Create new sets
@@ -369,7 +330,6 @@ void Model::initialize()
     this->onInitialised();
 }
 
-
 void Model::onInitialised()
 {
 }
@@ -382,7 +342,6 @@ void ofem::Model::onSaveComplete()
 {
 }
 
-
 void Model::clearNodeValues()
 {
     m_nodeSet->clearNodeValues();
@@ -393,12 +352,12 @@ std::string ofem::Model::version()
     return m_version;
 }
 
-NodeBCSet* Model::getNodeBCSet()
+NodeBCSet *Model::getNodeBCSet()
 {
     return m_bcSet.get();
 }
 
-NodeBCSet* Model::nodeBCSet()
+NodeBCSet *Model::nodeBCSet()
 {
     return m_bcSet.get();
 }

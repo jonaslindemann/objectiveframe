@@ -4,13 +4,11 @@
 
 #include <string>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(SLFFEAReader);
 
-class SLFFEAReader : public OutputFileReader
-{
+class SLFFEAReader : public OutputFileReader {
 private:
     std::string m_fileName;
     std::fstream m_outputFile;
@@ -22,9 +20,9 @@ public:
     ClassInfo("SLFFEAReader", OutputFileReader);
     StdFactory(SLFFEAReader);
 
-    void setFileName(const char* fileName);
+    void setFileName(const char *fileName);
     void load();
 
-    virtual void readFromStream(std::istream& in) override;
+    virtual void readFromStream(std::istream &in) override;
 };
-}
+} // namespace ofem

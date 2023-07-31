@@ -4,8 +4,7 @@
 
 using namespace ofem;
 
-ISection::ISection(double height, double UFW, double LFW, double WT,
-    double UFT, double LFT, double ULFW, double LLFW)
+ISection::ISection(double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW)
     : Section()
 
 {
@@ -23,8 +22,8 @@ ISection::~ISection()
 {
 }
 
-void ISection::setSectionSize(double height, double UFW, double LFW, double WT,
-    double UFT, double LFT, double ULFW, double LLFW)
+void ISection::setSectionSize(double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW,
+                              double LLFW)
 {
     double X[13], Y[13];
     int i;
@@ -42,8 +41,12 @@ void ISection::setSectionSize(double height, double UFW, double LFW, double WT,
     m_prop[7] = ULFW;
     m_prop[8] = LLFW;
 
-    m_Ytp = (LFW * LFT * (LFT / 2) + WT * (height - LFT - UFT) * ((height - LFT - UFT) / 2 + LFT) + UFT * UFW * (height - UFT / 2)) / (LFW * LFT + WT * (height - LFT - UFT) + UFT * UFW);
-    m_Xtp = (LFW * LFT * (LFW / 2) + WT * (height - LFT - UFT) * (LLFW + WT / 2) + UFW * UFT * (LLFW - ULFW + UFW / 2)) / (LFW * LFT + WT * (height - LFT - UFT) + UFW * UFT);
+    m_Ytp = (LFW * LFT * (LFT / 2) + WT * (height - LFT - UFT) * ((height - LFT - UFT) / 2 + LFT) +
+             UFT * UFW * (height - UFT / 2)) /
+            (LFW * LFT + WT * (height - LFT - UFT) + UFT * UFW);
+    m_Xtp =
+        (LFW * LFT * (LFW / 2) + WT * (height - LFT - UFT) * (LLFW + WT / 2) + UFW * UFT * (LLFW - ULFW + UFW / 2)) /
+        (LFW * LFT + WT * (height - LFT - UFT) + UFW * UFT);
 
     X[0] = -m_Xtp;
     Y[0] = -m_Ytp;
@@ -78,8 +81,8 @@ void ISection::setSectionSize(double height, double UFW, double LFW, double WT,
     this->setData();
 }
 
-void ISection::getSectionSize(double& height, double& UFW, double& LFW, double& WT,
-    double& UFT, double& LFT, double& ULFW, double& LLFW)
+void ISection::getSectionSize(double &height, double &UFW, double &LFW, double &WT, double &UFT, double &LFT,
+                              double &ULFW, double &LLFW)
 {
     height = m_prop[0];
     UFW = m_prop[2];
@@ -104,14 +107,20 @@ void ISection::setData()
 
     m_data[1] = UFW * UFT + LFW * LFT + (height - UFT - LFT) * WT; // Area
 
-    m_data[3] = (UFT * pow(UFW, 3) / 12.0 + UFT * UFW * pow(LLFW - ULFW + UFW / 2.0 - m_Xtp, 2)) + (LFT * pow(LFW, 3) / 12.0 + LFT * LFW * pow(LFW / 2.0 - m_Xtp, 2)) + ((height - LFT - UFT) * pow(WT, 3) / 12.0 + (height - LFT - UFT) * WT * pow(LLFW + WT / 2.0 - m_Xtp, 2)); // Iy													//Iy
+    m_data[3] = (UFT * pow(UFW, 3) / 12.0 + UFT * UFW * pow(LLFW - ULFW + UFW / 2.0 - m_Xtp, 2)) +
+                (LFT * pow(LFW, 3) / 12.0 + LFT * LFW * pow(LFW / 2.0 - m_Xtp, 2)) +
+                ((height - LFT - UFT) * pow(WT, 3) / 12.0 +
+                 (height - LFT - UFT) * WT * pow(LLFW + WT / 2.0 - m_Xtp, 2)); // Iy //Iy
 
-    m_data[4] = (UFW * pow(UFT, 3) / 12.0 + UFW * UFT * pow(height - UFT / 2.0 - m_Ytp, 2)) + (LFW * pow(LFT, 3) / 12.0 + LFW * LFT * pow(LFT / 2.0 - m_Ytp, 2)) + (WT * pow(height - UFT - LFT, 3) / 12.0 + (height - UFT - LFT) * WT * pow(LFT + (height - UFT - LFT) / 2 - m_Ytp, 2)); // Iz
+    m_data[4] = (UFW * pow(UFT, 3) / 12.0 + UFW * UFT * pow(height - UFT / 2.0 - m_Ytp, 2)) +
+                (LFW * pow(LFT, 3) / 12.0 + LFW * LFT * pow(LFT / 2.0 - m_Ytp, 2)) +
+                (WT * pow(height - UFT - LFT, 3) / 12.0 +
+                 (height - UFT - LFT) * WT * pow(LFT + (height - UFT - LFT) / 2 - m_Ytp, 2)); // Iz
 
     m_data[5] = 1.15 / 3.0 * (pow(UFT, 3) * UFW + pow(LFT, 3) * LFW + pow(WT, 3) * height); // Kv
 }
 
-void ISection::getExcY(double& emax, double& emin)
+void ISection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[1] / 2.0;
     emin = emax;
@@ -122,30 +131,30 @@ void ISection::calcDataFromSection()
     this->setData();
 }
 
-void ISection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void ISection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                               double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     Section::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->setSectionSize(height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW);
 }
 
-void ISection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void ISection::getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                               double &LFT, double &ULFW, double &LLFW, double &outerRadius, double &innerRadius)
 {
     Section::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->getSectionSize(height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW);
 }
 
-void ISection::getExcZ(double& emax, double& emin)
+void ISection::getExcZ(double &emax, double &emin)
 {
     double e1 = m_prop[0] - m_Ytp;
     double e2 = m_Ytp;
 
-    if (e1 > e2)
-    {
+    if (e1 > e2) {
         emax = e1;
         emin = e2;
     }
-    else
-    {
+    else {
         emax = e2;
         emin = e1;
     }

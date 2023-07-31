@@ -6,9 +6,7 @@ using namespace std;
 using namespace ivf;
 using namespace vfem;
 
-
-NodeLoad::NodeLoad()
-    : Shape()
+NodeLoad::NodeLoad() : Shape()
 {
     m_beamModel = nullptr;
     m_nodeLoad = nullptr;
@@ -22,11 +20,9 @@ NodeLoad::NodeLoad()
     this->setUseSelectShape(false);
 }
 
-
 NodeLoad::~NodeLoad()
 {
 }
-
 
 void NodeLoad::doCreateGeometry()
 {
@@ -35,11 +31,9 @@ void NodeLoad::doCreateGeometry()
         m_arrow[i]->render();
 }
 
-
 void NodeLoad::doCreateSelect()
 {
 }
-
 
 void NodeLoad::initArrow()
 {
@@ -47,11 +41,9 @@ void NodeLoad::initArrow()
     double loadHeight;
     double l;
 
-    if (m_nodeLoad != nullptr)
-    {
+    if (m_nodeLoad != nullptr) {
 
-        for (int i = 0; i < m_arrow.size(); i++)
-        {
+        for (int i = 0; i < m_arrow.size(); i++) {
             if (m_beamModel != nullptr)
                 loadHeight = m_beamModel->getLoadSize();
             else
@@ -59,7 +51,7 @@ void NodeLoad::initArrow()
 
             // Set topolgy
 
-            ofem::Node* node = m_nodeLoad->getNode(i);
+            ofem::Node *node = m_nodeLoad->getNode(i);
 
             // Define arrow
 
@@ -84,10 +76,8 @@ void NodeLoad::initArrow()
                 sign = -1.0;
 
             m_arrow[i]->setDirection(sign * ex, sign * ey, sign * ez);
-            m_arrow[i]->setPosition(
-                x - sign * 0.7 * loadHeight * ex,
-                y - sign * 0.7 * loadHeight * ey,
-                z - sign * 0.7 * loadHeight * ez);
+            m_arrow[i]->setPosition(x - sign * 0.7 * loadHeight * ex, y - sign * 0.7 * loadHeight * ey,
+                                    z - sign * 0.7 * loadHeight * ez);
             m_arrow[i]->refresh();
             if (m_beamModel != nullptr)
                 m_beamModel->getColorTable()->assignColor(m_nodeLoad->getColor(), m_arrowMaterial);
@@ -95,24 +85,20 @@ void NodeLoad::initArrow()
     }
 }
 
-
 void NodeLoad::refresh()
 {
     setNodeLoad(m_nodeLoad);
     initArrow();
 }
 
-
-void NodeLoad::setNodeLoad(ofem::BeamNodeLoad* nodeLoad)
+void NodeLoad::setNodeLoad(ofem::BeamNodeLoad *nodeLoad)
 {
     m_arrow.clear();
 
     m_nodeLoad = nodeLoad;
 
-    if (m_nodeLoad != nullptr)
-    {
-        for (unsigned int i = 0; i < m_nodeLoad->getNodeSize(); i++)
-        {
+    if (m_nodeLoad != nullptr) {
+        for (unsigned int i = 0; i < m_nodeLoad->getNodeSize(); i++) {
             auto arrow = ExtrArrow::create();
             m_arrow.push_back(arrow);
             arrow->setMaterial(m_arrowMaterial);
@@ -120,7 +106,7 @@ void NodeLoad::setNodeLoad(ofem::BeamNodeLoad* nodeLoad)
     }
 }
 
-void NodeLoad::setBeamModel(BeamModel* model)
+void NodeLoad::setBeamModel(BeamModel *model)
 {
     m_beamModel = model;
 }

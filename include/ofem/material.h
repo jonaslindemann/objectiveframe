@@ -2,13 +2,11 @@
 
 #include <ofem/base.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(Material);
 
-class Material : public Base
-{
+class Material : public Base {
 private:
     long m_number;
 
@@ -26,8 +24,8 @@ public:
 
     // IO Methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 };
-}
+} // namespace ofem

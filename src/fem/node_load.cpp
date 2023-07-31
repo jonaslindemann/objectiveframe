@@ -3,28 +3,23 @@
 using namespace ofem;
 using namespace std;
 
-
-NodeLoad::NodeLoad()
-    : Load()
+NodeLoad::NodeLoad() : Load()
 {
     m_direction[0] = 0.0;
     m_direction[1] = 0.0;
     m_direction[2] = 1.0;
 }
 
-
 NodeLoad::~NodeLoad()
 {
     this->clearNodes();
 }
 
-
-void NodeLoad::print(ostream& out)
+void NodeLoad::print(ostream &out)
 {
 }
 
-
-void NodeLoad::saveToStream(std::ostream& out)
+void NodeLoad::saveToStream(std::ostream &out)
 {
     unsigned int i;
     Load::saveToStream(out);
@@ -37,15 +32,13 @@ void NodeLoad::saveToStream(std::ostream& out)
     out << endl;
 }
 
-
-void NodeLoad::readFromStream(std::istream& in)
+void NodeLoad::readFromStream(std::istream &in)
 {
     int nNodes, i;
     long idx;
     Load::readFromStream(in);
     in >> nNodes;
-    for (i = 0; i < nNodes; i++)
-    {
+    for (i = 0; i < nNodes; i++) {
         in >> idx;
         m_nodeIndex.push_back(idx);
     }
@@ -54,7 +47,6 @@ void NodeLoad::readFromStream(std::istream& in)
     in >> m_direction[2];
 }
 
-
 void NodeLoad::setDirection(double ex, double ey, double ez)
 {
     m_direction[0] = ex;
@@ -62,37 +54,32 @@ void NodeLoad::setDirection(double ex, double ey, double ez)
     m_direction[2] = ez;
 }
 
-
-void NodeLoad::getDirection(double& ex, double& ey, double& ez)
+void NodeLoad::getDirection(double &ex, double &ey, double &ez)
 {
     ex = m_direction[0];
     ey = m_direction[1];
     ez = m_direction[2];
 }
 
-
-void NodeLoad::setDirection(double* v)
+void NodeLoad::setDirection(double *v)
 {
     m_direction[0] = v[0];
     m_direction[1] = v[1];
     m_direction[2] = v[2];
 }
 
-
-void NodeLoad::getDirection(double* v)
+void NodeLoad::getDirection(double *v)
 {
     v[0] = m_direction[0];
     v[1] = m_direction[1];
     v[2] = m_direction[2];
 }
 
-
-void NodeLoad::addNode(Node* node)
+void NodeLoad::addNode(Node *node)
 {
     node->addReference();
     m_nodes.push_back(node);
 }
-
 
 void NodeLoad::clearNodes()
 {
@@ -104,18 +91,15 @@ void NodeLoad::clearNodes()
     m_nodes.clear();
 }
 
-
-bool NodeLoad::removeNode(Node* node)
+bool NodeLoad::removeNode(Node *node)
 {
-    std::vector<Node*>::iterator p = m_nodes.begin();
+    std::vector<Node *>::iterator p = m_nodes.begin();
 
     while ((p != m_nodes.end()) && (*p != node))
         p++;
 
-    if (p != m_nodes.end())
-    {
-        if (*p == node)
-        {
+    if (p != m_nodes.end()) {
+        if (*p == node) {
             node->deleteReference();
             m_nodes.erase(p);
             return true;
@@ -127,15 +111,13 @@ bool NodeLoad::removeNode(Node* node)
         return false;
 }
 
-
-Node* NodeLoad::getNode(unsigned int idx)
+Node *NodeLoad::getNode(unsigned int idx)
 {
     if (idx < m_nodes.size())
         return m_nodes[idx];
     else
         return NULL;
 }
-
 
 long NodeLoad::getNodeIndex(unsigned int idx)
 {
@@ -145,12 +127,10 @@ long NodeLoad::getNodeIndex(unsigned int idx)
         return -1;
 }
 
-
 size_t NodeLoad::getNodeIndexSize()
 {
     return m_nodeIndex.size();
 }
-
 
 size_t NodeLoad::getNodeSize()
 {

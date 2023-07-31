@@ -6,13 +6,11 @@
 
 #include <string>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(SLFFEAWriter);
 
-class SLFFEAWriter : public InputFileWriter
-{
+class SLFFEAWriter : public InputFileWriter {
 private:
 public:
     SLFFEAWriter(const std::string filename);
@@ -20,6 +18,6 @@ public:
 
     ClassInfo("SLFFEAWriter", InputFileWriter);
 
-    virtual void saveToStream(std::ostream& out) override;
+    virtual void saveToStream(std::ostream &out) override;
 };
-}
+} // namespace ofem

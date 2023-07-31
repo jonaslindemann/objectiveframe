@@ -7,21 +7,18 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
-enum BeamType
-{
+enum BeamType {
     btBeam,
     btBar
 };
 
 SmartPointer(Beam);
 
-class Beam : public Element
-{
+class Beam : public Element {
 private:
-    void eulrot(double* axis, double angle, double* u, double* v);
+    void eulrot(double *axis, double angle, double *u, double *v);
     BeamMaterialPtr m_material;
     long m_materialIndex;
     double m_beamRotation;
@@ -37,14 +34,14 @@ public:
 
     // Methods
 
-    virtual void addNode(Node* node) override;
+    virtual void addNode(Node *node) override;
 
     // Get/set methods
 
-    void getOrientationZ(double& ex, double& ey, double& ez);
-    void getOrientationY(double& ex, double& ey, double& ez);
-    BeamMaterial* getMaterial();
-    void setMaterial(BeamMaterial* material);
+    void getOrientationZ(double &ex, double &ey, double &ez);
+    void getOrientationY(double &ex, double &ey, double &ez);
+    BeamMaterial *getMaterial();
+    void setMaterial(BeamMaterial *material);
     long getMaterialIndex();
     double getBeamRotation();
     void setBeamRotation(double angle);
@@ -56,8 +53,8 @@ public:
 
     // IO Methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 };
-}
+} // namespace ofem

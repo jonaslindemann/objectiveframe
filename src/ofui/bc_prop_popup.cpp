@@ -12,12 +12,8 @@
 using namespace ofui;
 
 BCPropPopup::BCPropPopup(const std::string name, bool modal)
-    : PopupWindow(name, modal)
-    , m_view { nullptr }
-    , m_color { 0 }
-    , m_prescribedDofs { false, false, false, false, false, false }
-    , m_prescribedValues { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-    , m_nameArr {}
+    : PopupWindow(name, modal), m_view{nullptr}, m_color{0}, m_prescribedDofs{false, false, false, false, false, false},
+      m_prescribedValues{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, m_nameArr{}
 {
 }
 
@@ -31,13 +27,13 @@ std::shared_ptr<BCPropPopup> BCPropPopup::create(const std::string name, bool mo
 }
 
 #ifdef USE_FEMVIEW
-void BCPropPopup::setFemView(FemViewWindow* view)
+void BCPropPopup::setFemView(FemViewWindow *view)
 {
     m_view = view;
     this->update();
 }
 #else
-void BCPropPopup::setFemWidget(FemWidget* widget)
+void BCPropPopup::setFemWidget(FemWidget *widget)
 {
     m_view = widget;
     this->update();
@@ -48,8 +44,7 @@ void BCPropPopup::update()
 {
     auto bc = m_view->getCurrentNodeBC();
 
-    if (bc != nullptr)
-    {
+    if (bc != nullptr) {
         std::string name = bc->getName();
         m_nameArr.fill(0);
         std::copy(name.begin(), name.end(), m_nameArr.data());
@@ -73,15 +68,13 @@ void BCPropPopup::update()
 
 void BCPropPopup::doPopup()
 {
-    if (m_view != nullptr)
-    {
-        if (m_view->getCurrentNodeBC() != nullptr)
-        {
+    if (m_view != nullptr) {
+        if (m_view->getCurrentNodeBC() != nullptr) {
             auto bc = m_view->getCurrentNodeBC();
             ImGui::InputText("Name", m_nameArr.data(), 255);
-            ImGui::InputInt("Color", &m_color); 
+            ImGui::InputInt("Color", &m_color);
             ImGui::SameLine();
-            
+
             const ImVec2 posR = ImGui::GetCursorScreenPos();
             auto beamModel = m_view->getVisualBeamModel();
             auto colorTable = beamModel->getColorTable();
@@ -89,7 +82,8 @@ void BCPropPopup::doPopup()
             colorTable->getColor(m_color, r, g, b);
             auto drawList = ImGui::GetWindowDrawList();
             ImColor col(r, g, b);
-            drawList->AddRectFilled(posR, ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeight()), col, 5.0f, ImDrawFlags_RoundCornersAll);
+            drawList->AddRectFilled(posR, ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeight()), col, 5.0f,
+                                    ImDrawFlags_RoundCornersAll);
             ImGui::SetCursorScreenPos(ImVec2(posR.x + 200, posR.y + ImGui::GetFrameHeightWithSpacing()));
 
             ImGui::Separator();
@@ -118,33 +112,27 @@ void BCPropPopup::doPopup()
             if (m_prescribedDofs[5])
                 ImGui::InputDouble("Value rot Z", m_prescribedValues + 5);
         }
-        else
-        {
+        else {
             ImGui::Text("Select a BC first.");
         }
     }
 
-    ImVec2 button_size = ImGui::CalcItemSize(ImVec2 { 120, 0 }, 0.0f, 0.0f);
+    ImVec2 button_size = ImGui::CalcItemSize(ImVec2{120, 0}, 0.0f, 0.0f);
     ImVec2 winSize = ImGui::GetWindowSize();
 
-    ImVec2 centre_position_for_button {
+    ImVec2 centre_position_for_button{
         // we have two buttons, so twice the size - and we need to account for the spacing in the middle
-        (winSize.x - button_size.x * 2 - ImGui::GetStyle().ItemSpacing.x) / 2,
-        (winSize.y - button_size.y) / 2
-    };
+        (winSize.x - button_size.x * 2 - ImGui::GetStyle().ItemSpacing.x) / 2, (winSize.y - button_size.y) / 2};
 
     ImGui::NewLine();
 
     ImGui::SetCursorPosX(centre_position_for_button.x);
-    if (ImGui::Button("OK", ImVec2(120, 0)))
-    {
+    if (ImGui::Button("OK", ImVec2(120, 0))) {
         this->close(PopupResult::OK);
 
-        if (m_view != nullptr)
-        {
+        if (m_view != nullptr) {
             auto bc = m_view->getCurrentNodeBC();
-            if (bc != nullptr)
-            {
+            if (bc != nullptr) {
 
                 bc->setName(m_nameArr.data());
                 bc->setColor(m_color);
@@ -187,8 +175,7 @@ void BCPropPopup::doPopup()
     }
     ImGui::SetItemDefaultFocus();
     ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 0)))
-    {
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
         this->close(PopupResult::CANCEL);
         ImGui::CloseCurrentPopup();
     }

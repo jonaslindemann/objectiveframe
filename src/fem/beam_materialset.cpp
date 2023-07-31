@@ -2,19 +2,15 @@
 
 using namespace ofem;
 
-
-BeamMaterialSet::BeamMaterialSet()
-    : MaterialSet()
+BeamMaterialSet::BeamMaterialSet() : MaterialSet()
 {
 }
-
 
 BeamMaterialSet::~BeamMaterialSet()
 {
 }
 
-
-Material* BeamMaterialSet::createMaterial()
+Material *BeamMaterialSet::createMaterial()
 {
     return new BeamMaterial();
 }

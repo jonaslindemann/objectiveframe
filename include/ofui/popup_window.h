@@ -5,11 +5,9 @@
 
 #include <imgui.h>
 
-namespace ofui
-{
+namespace ofui {
 
-enum class PopupResult
-{
+enum class PopupResult {
     NONE,
     OK,
     CANCEL,
@@ -17,8 +15,7 @@ enum class PopupResult
     NO
 };
 
-class PopupWindow
-{
+class PopupWindow {
 public:
 private:
     std::string m_name;
@@ -64,4 +61,4 @@ protected:
 
 typedef std::shared_ptr<PopupWindow> PopupWindowPtr;
 
-}
+} // namespace ofui

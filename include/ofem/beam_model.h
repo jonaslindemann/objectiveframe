@@ -7,13 +7,11 @@
 #include <ofem/beam_set.h>
 #include <ofem/model.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BeamModel);
 
-class BeamModel : public Model
-{
+class BeamModel : public Model {
 private:
     double m_maxN;
     double m_minN;
@@ -29,11 +27,11 @@ private:
     double m_minScale;
 
 protected:
-    virtual NodeBCSet* createBCSet() override;
-    virtual ElementLoadSet* createElementLoadSet() override;
-    virtual NodeLoadSet* createNodeLoadSet() override;
-    virtual MaterialSet* createMaterialSet() override;
-    virtual ElementSet* createElementSet() override;
+    virtual NodeBCSet *createBCSet() override;
+    virtual ElementLoadSet *createElementLoadSet() override;
+    virtual NodeLoadSet *createNodeLoadSet() override;
+    virtual MaterialSet *createMaterialSet() override;
+    virtual ElementSet *createElementSet() override;
     virtual void connectMaterials() override;
 
 public:
@@ -43,12 +41,12 @@ public:
     ClassInfo("BeamModel", Model);
     StdFactory(BeamModel);
 
-    //static BeamModelPtr create();
+    // static BeamModelPtr create();
 
     // Get/set methods
 
-    BeamMaterialSet* getMaterialSet();
-    BeamSet* getElementSet();
+    BeamMaterialSet *getMaterialSet();
+    BeamSet *getElementSet();
 
     void setMaxM(double maxM);
     double maxV();
@@ -78,4 +76,4 @@ public:
     double maxScale();
     double minScale();
 };
-}
+} // namespace ofem

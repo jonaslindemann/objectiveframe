@@ -11,7 +11,6 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <shobjidl.h>
 #endif
 
-
 #include <chaiscript/chaiscript.hpp>
 
 #include <sstream>
@@ -24,10 +23,10 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ivf/ExtrArrow.h>
 #include <ivf/Material.h>
 #include <ivf/QuadPlane.h>
-#include <ivf/SelectOrtho.h>    
+#include <ivf/SelectOrtho.h>
 #include <ivf/Shape.h>
-#include <ivf/Sphere.h>
 #include <ivf/SolidLine.h>
+#include <ivf/Sphere.h>
 
 #include <vfem/beam.h>
 #include <vfem/beam_load.h>
@@ -42,19 +41,21 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofem/calfem_writer.h>
 #include <ofem/model_clip_board.h>
 
-#include <ofsolve/frame_solver.h>
 #include <ofsolve/beam_solver.h>
+#include <ofsolve/frame_solver.h>
 #include <ofsolve/solver_interface.h>
 #include <ofsolve/tetgen_beam_mesher.h>
 
 #include <ColorMap.h>
 #include <ResultInfo.h>
 
+#include <ofui/about_window.h>
 #include <ofui/bc_prop_popup.h>
 #include <ofui/console_window.h>
 #include <ofui/coord_window.h>
 #include <ofui/element_loads_window.h>
 #include <ofui/element_prop_window.h>
+#include <ofui/load_mixer_window.h>
 #include <ofui/log_window.h>
 #include <ofui/materials_window.h>
 #include <ofui/message_popup.h>
@@ -63,12 +64,10 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/node_load_prop_popup.h>
 #include <ofui/node_loads_window.h>
 #include <ofui/node_prop_window.h>
-#include <ofui/settings_window.h>
 #include <ofui/plugin_prop_window.h>
-#include <ofui/scale_window.h>
-#include <ofui/about_window.h>
 #include <ofui/prop_window.h>
-#include <ofui/load_mixer_window.h>
+#include <ofui/scale_window.h>
+#include <ofui/settings_window.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -76,16 +75,14 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 
 #include "script_plugin.h"
 
-enum class RepresentationMode
-{
+enum class RepresentationMode {
     Fem,
     Geometry,
     Displacements,
     Results
 };
 
-enum class CustomMode
-{
+enum class CustomMode {
     Normal,
     Feedback,
     Structure,
@@ -93,30 +90,26 @@ enum class CustomMode
     LoadMixer
 };
 
-enum class SelectMode
-{
+enum class SelectMode {
     All,
     Nodes,
     Elements,
     GroundNodes
 };
 
-enum class DeleteMode
-{
+enum class DeleteMode {
     All,
     Nodes,
     Elements
 };
 
-enum class HighlightMode
-{
+enum class HighlightMode {
     All,
     Nodes,
     Elements
 };
 
-enum ToolbarButton
-{
+enum ToolbarButton {
     Select,
     SelectBox,
     Move,
@@ -136,8 +129,7 @@ enum ToolbarButton
     Run
 };
 
-template <typename T>
-string to_string(T Number)
+template <typename T> string to_string(T Number)
 {
     ostringstream ss;
     ss << Number;
@@ -146,8 +138,7 @@ string to_string(T Number)
 
 #include "IvfViewWindow.h"
 
-class FemViewWindow : public IvfViewWindow
-{
+class FemViewWindow : public IvfViewWindow {
 private:
     std::string m_coordText;
     std::string m_modeDescr;
@@ -197,7 +188,7 @@ private:
     bool m_saneModel;
 
     int m_argc;
-    char** m_argv;
+    char **m_argv;
 
     double m_tactileForceValue;
 
@@ -209,19 +200,19 @@ private:
 
     vfem::NodePtr m_interactionNode;
 #ifdef USE_LEAP
-    LeapInteraction* m_leapinteraction;
+    LeapInteraction *m_leapinteraction;
 #endif
 
     ofsolver::FrameSolverPtr m_frameSolver;
     ofsolver::BeamSolverPtr m_beamSolver;
-    ofsolver::SolverInterface* m_currentSolver;
+    ofsolver::SolverInterface *m_currentSolver;
 
     ofsolver::TetgenBeamMesherPtr m_tetMesher;
 
     ivf::MaterialPtr m_nodeMaterial;
     ivf::MaterialPtr m_lineMaterial;
     ivf::ShapePtr m_selectedShape;
-    PlaneButton* m_selectedButton;
+    PlaneButton *m_selectedButton;
     ivf::CompositePtr m_beamLoads;
     vfem::BeamModelPtr m_beamModel;
     ivf::QuadPlanePtr m_plane;
@@ -251,9 +242,9 @@ private:
     Area2DPtr m_editArea;
     Area2DPtr m_objectArea;
 
-    PlaneButton* m_logoButton;
+    PlaneButton *m_logoButton;
 
-    PlaneButton* m_prevButton;
+    PlaneButton *m_prevButton;
 
     bool m_hintFinished;
     bool m_useSphereCursor;
@@ -262,7 +253,7 @@ private:
     // Dialogs
 
     ofui::CoordWindowPtr m_coordWindow;
-    //ofui::NodePropWindowPtr m_nodePropWindow;
+    // ofui::NodePropWindowPtr m_nodePropWindow;
     ofui::NewModelPopupPtr m_newModelPopup;
     ofui::MessagePopupPtr m_messagePopup;
     ofui::NodeBCsWindowPtr m_nodeBCsWindow;
@@ -271,7 +262,7 @@ private:
     ofui::SettingsWindowPtr m_settingsWindow;
     ofui::ElementLoadsWindowPtr m_elementLoadsWindow;
     ofui::MaterialsWindowPtr m_materialsWindow;
-    //ofui::ElementPropWindowPtr m_elementPropWindow;
+    // ofui::ElementPropWindowPtr m_elementPropWindow;
     ofui::LogWindowPtr m_logWindow;
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
@@ -288,11 +279,10 @@ private:
 
     float m_uiScale;
 
-
     // Scripting
 
     bool m_pluginRunning;
-    //chaiscript::ChaiScript m_chai;
+    // chaiscript::ChaiScript m_chai;
 
     // Plugins
 
@@ -312,24 +302,26 @@ private:
 
     // Setup functions
 
-    void setupScript(chaiscript::ChaiScript& script);
+    void setupScript(chaiscript::ChaiScript &script);
     void setupOverlay();
     void setupPlugins();
 
     void refreshUiStyle();
 
 public:
-    FemViewWindow(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
+    FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
+                  GLFWwindow *shared = nullptr);
     virtual ~FemViewWindow();
 
-    static std::shared_ptr<FemViewWindow> create(int width, int height, const std::string title, GLFWmonitor* monitor = nullptr, GLFWwindow* shared = nullptr);
+    static std::shared_ptr<FemViewWindow> create(int width, int height, const std::string title,
+                                                 GLFWmonitor *monitor = nullptr, GLFWwindow *shared = nullptr);
 
     // Get set methods
-    void setFileName(const std::string& name);
-    void setCurrentMaterial(ofem::BeamMaterial* material);
-    void setCurrentBeamLoad(ofem::BeamLoad* elementLoad);
-    ivf::Shape* getSelectedShape();
-    ofem::BeamMaterial* getCurrentMaterial();
+    void setFileName(const std::string &name);
+    void setCurrentMaterial(ofem::BeamMaterial *material);
+    void setCurrentBeamLoad(ofem::BeamLoad *elementLoad);
+    ivf::Shape *getSelectedShape();
+    ofem::BeamMaterial *getCurrentMaterial();
     const std::string getFileName();
     void setSelectFilter(SelectMode filter);
     void setBeamRefreshMode(ivf::LineRefreshMode mode);
@@ -337,16 +329,16 @@ public:
     void setCustomMode(CustomMode mode);
     void setScalefactor(double scalefactor);
     double getScalefactor();
-    void setArguments(int argc, char** argv);
-    void setCurrentNodeBC(ofem::BeamNodeBC* bc);
+    void setArguments(int argc, char **argv);
+    void setCurrentNodeBC(ofem::BeamNodeBC *bc);
     void setRotationSelected(double rotation);
-    void setCurrentNodeLoad(ofem::BeamNodeLoad* nodeLoad);
-    ofem::BeamNodeLoad* getCurrentNodeLoad();
-    ofem::BeamLoad* getCurrentBeamLoad();
-    void setProgramPath(const std::string& progPath);
+    void setCurrentNodeLoad(ofem::BeamNodeLoad *nodeLoad);
+    ofem::BeamNodeLoad *getCurrentNodeLoad();
+    ofem::BeamLoad *getCurrentBeamLoad();
+    void setProgramPath(const std::string &progPath);
     const std::string getProgPath();
     void setResultType(int type);
-    ofem::BeamNodeBC* getCurrentNodeBC();
+    ofem::BeamNodeBC *getCurrentNodeBC();
     void setRelLoadSize(double size);
     double getRelLoadSize();
     void setRelLineRadius(double radius);
@@ -357,12 +349,12 @@ public:
     void setHighlightFilter(HighlightMode filter);
     void setDeleteFilter(DeleteMode filter);
     void setRepresentation(RepresentationMode repr);
-    ofem::BeamModel* getModel();
+    ofem::BeamModel *getModel();
     ivf::ExtrArrowPtr getTactileForce();
     void setTactileForce(ivf::ExtrArrowPtr force);
-    void setInteractionNode(vfem::Node* interactionNode);
+    void setInteractionNode(vfem::Node *interactionNode);
     vfem::NodePtr getInteractionNode();
-    vfem::BeamModel* getVisualBeamModel();
+    vfem::BeamModel *getVisualBeamModel();
 
     void setSphereCursor(bool flag);
     bool getSphereCursor();
@@ -382,7 +374,7 @@ public:
     void removeNodesFromNodeLoad();
     void removeBCsFromBC();
     void refreshToolbars();
-    void onHighlightFilter(ivf::Shape* shape, bool& highlight);
+    void onHighlightFilter(ivf::Shape *shape, bool &highlight);
     void deleteSelected();
     void unlockScaleFactor();
     void lockScaleFactor();
@@ -405,8 +397,8 @@ public:
     void assignMaterialToSelected();
     void newModel();
     void showBeamLoads();
-    void addBeamLoad(ofem::BeamLoad* elementLoad);
-    void deleteBeamLoad(ofem::BeamLoad* elementLoad);
+    void addBeamLoad(ofem::BeamLoad *elementLoad);
+    void deleteBeamLoad(ofem::BeamLoad *elementLoad);
     void assignBeamLoadSelected();
     void selectAllElements();
     void selectAllNodes();
@@ -414,21 +406,21 @@ public:
     void showProperties();
     void executeCalc();
     void recompute();
-    void deleteNodeBC(ofem::BeamNodeBC* bc);
-    void addNodeBC(ofem::BeamNodeBC* bc);
+    void deleteNodeBC(ofem::BeamNodeBC *bc);
+    void addNodeBC(ofem::BeamNodeBC *bc);
     void assignNodeBCSelected();
     void assignNodeFixedBCSelected();
     void assignNodePosBCSelected();
     void assignNodeFixedBCGround();
     void assignNodePosBCGround();
-    void deleteNodeLoad(ofem::BeamNodeLoad* nodeLoad);
+    void deleteNodeLoad(ofem::BeamNodeLoad *nodeLoad);
     void assignNodeLoadSelected();
-    void addNodeLoad(ofem::BeamNodeLoad* nodeLoad);
+    void addNodeLoad(ofem::BeamNodeLoad *nodeLoad);
     void addLastNodeToSelection();
 
     void subdivideSelectedBeam();
     void meshSelectedNodes();
-    void surfaceSelectedNodes(bool groundElements=true);
+    void surfaceSelectedNodes(bool groundElements = true);
 
     void doFeedback();
     void showMessage(std::string message);
@@ -442,8 +434,8 @@ public:
 
     // Specific scripting interface methods
 
-    vfem::Node* addNode(double x, double y, double z);
-    vfem::Beam* addBeam(int i0, int i1);
+    vfem::Node *addNode(double x, double y, double z);
+    vfem::Beam *addBeam(int i0, int i1);
     size_t nodeCount();
 
     // Implemented FltkWidget events
@@ -454,26 +446,26 @@ public:
     virtual void onUnderlay();
     virtual void onPostRender() override;
 
-    virtual void onCreateNode(double x, double y, double z, ivf::Node*& newNode) override;
-    virtual void onCreateLine(ivf::Node* node1, ivf::Node* node2, ivf::Shape*& newLine) override;
-    virtual void onSelect(ivf::Composite* selectedShapes) override;
-    virtual bool onInsideVolume(ivf::Shape* shape) override;
+    virtual void onCreateNode(double x, double y, double z, ivf::Node *&newNode) override;
+    virtual void onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape *&newLine) override;
+    virtual void onSelect(ivf::Composite *selectedShapes) override;
+    virtual bool onInsideVolume(ivf::Shape *shape) override;
     virtual void onCoordinate(double x, double y, double z) override;
-    virtual void onDeleteShape(ivf::Shape* shape, bool& doit) override;
-    virtual void onHighlightShape(ivf::Shape* shape) override;
+    virtual void onDeleteShape(ivf::Shape *shape, bool &doit) override;
+    virtual void onHighlightShape(ivf::Shape *shape) override;
     virtual void onMouse(int x, int y) override;
     virtual void onMouseDown(int x, int y) override;
     virtual void onMouseUp(int x, int y) override;
     virtual void onPassiveMotion(int x, int y) override;
-    virtual void onSelectFilter(ivf::Shape* shape, bool& select) override;
+    virtual void onSelectFilter(ivf::Shape *shape, bool &select) override;
     virtual void onSelectPosition(double x, double y, double z);
     virtual void onMoveStart();
-    virtual void onMove(ivf::Composite* selectedShapes, double& dx, double& dy, double& dz, bool& doit) override;
+    virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit) override;
     virtual void onMoveCompleted() override;
     virtual void onMotion(int x, int y) override;
     virtual void onDeSelect() override;
     virtual void onKeyboard(int key) override;
-    virtual ivf::Shape* onPick(int x, int y) override;
+    virtual ivf::Shape *onPick(int x, int y) override;
 
     void onClipboardCreateNode(double x, double y, double z);
     void onClipboardCreateElement(int i0, int i1);
@@ -485,11 +477,11 @@ public:
 
     // FemWidget events
 
-    virtual void onButton(int objectName, PlaneButton* button);
-    virtual void onOverButton(int objectName, PlaneButton* button);
+    virtual void onButton(int objectName, PlaneButton *button);
+    virtual void onOverButton(int objectName, PlaneButton *button);
     virtual void onShortcut(ModifierKey modifier, int key) override;
 
     // Plugin handling
 
-    void runPlugin(ScriptPlugin* plugin);
+    void runPlugin(ScriptPlugin *plugin);
 };

@@ -5,13 +5,11 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(NodeSet);
 
-class NodeSet : public Base
-{
+class NodeSet : public Base {
 private:
     std::vector<NodePtr> m_nodes;
 
@@ -28,10 +26,10 @@ public:
 
     void deleteAll();
     bool removeNode(long i);
-    bool removeNode(Node* node);
+    bool removeNode(Node *node);
     bool deleteNode(long i);
-    Node* getNode(long i);
-    void addNode(Node* node);
+    Node *getNode(long i);
+    void addNode(Node *node);
     void clear();
 
     void clearNodeValues();
@@ -45,10 +43,10 @@ public:
 
     size_t getSize();
 
-    virtual void print(std::ostream& out) override;
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
+    virtual void print(std::ostream &out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
 
     virtual json_nl toJson() override;
 };
-}
+} // namespace ofem

@@ -11,20 +11,18 @@
 #include <vfem/beam_model.h>
 #include <vfem/color_table.h>
 
-namespace vfem
-{
+namespace vfem {
 
 IvfSmartPointer(CIVfFemNodeBC);
 
 // public class: VisFemNodeBC
-class NodeBC : public ivf::Shape
-{
+class NodeBC : public ivf::Shape {
 private:
-    ofem::BeamNodeBC* m_nodeBC;
-    std::vector<vfem::BC*> m_bc;
+    ofem::BeamNodeBC *m_nodeBC;
+    std::vector<vfem::BC *> m_bc;
     ivf::MaterialPtr m_bcMaterial;
 
-    vfem::BeamModel* m_beamModel;
+    vfem::BeamModel *m_beamModel;
 
 public:
     NodeBC();
@@ -34,11 +32,11 @@ public:
 
     virtual void refresh() override;
 
-    void setNodeBC(ofem::BeamNodeBC* bc);
-    void setBeamModel(vfem::BeamModel* model);
+    void setNodeBC(ofem::BeamNodeBC *bc);
+    void setBeamModel(vfem::BeamModel *model);
 
 protected:
     virtual void doCreateGeometry() override;
 };
 
-}
+} // namespace vfem

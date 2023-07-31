@@ -6,13 +6,11 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BCSet);
 
-class BCSet : public Base
-{
+class BCSet : public Base {
 private:
     std::vector<BCPtr> m_bcs;
 
@@ -28,25 +26,25 @@ public:
     void deleteAll();
     BCPtr removeBC(long i);
     bool deleteBC(long i);
-    void addBC(BC* element);
+    void addBC(BC *element);
     void clear();
     long enumerateBCs(long count = 1);
-    bool removeBC(BC* bc);
-    void connectNodes(NodeSet* nodes);
+    bool removeBC(BC *bc);
+    void connectNodes(NodeSet *nodes);
 
     // Get/set methods
 
-    BC* getBC(long i);
+    BC *getBC(long i);
     size_t getSize();
 
     // IO methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
     virtual json_nl toJson() override;
 
 protected:
-    virtual BC* createBC();
+    virtual BC *createBC();
 };
-}
+} // namespace ofem

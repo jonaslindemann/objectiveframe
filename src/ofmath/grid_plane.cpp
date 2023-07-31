@@ -1,8 +1,6 @@
 #include <ofmath/grid_plane.h>
 
-ofmath::GridPlane::GridPlane()
-    : m_snap { true }
-    , m_snapDistance { 0.2 }
+ofmath::GridPlane::GridPlane() : m_snap{true}, m_snapDistance{0.2}
 {
     m_origin.x = 0.0;
     m_origin.y = 0.0;
@@ -45,7 +43,7 @@ void ofmath::GridPlane::setOrigin(glm::vec3 origin)
     m_origin = origin;
 }
 
-void ofmath::GridPlane::setOrigin(double* v)
+void ofmath::GridPlane::setOrigin(double *v)
 {
     m_origin.x = float(v[0]);
     m_origin.y = float(v[1]);
@@ -64,7 +62,7 @@ void ofmath::GridPlane::setDirection(glm::vec3 direction)
     m_direction = direction;
 }
 
-void ofmath::GridPlane::setDirection(double* v)
+void ofmath::GridPlane::setDirection(double *v)
 {
     m_direction.x = float(v[0]);
     m_direction.y = float(v[1]);
@@ -83,7 +81,7 @@ void ofmath::GridPlane::setPlaneOrigin(glm::vec3 planeOrigin)
     m_planeOrig = planeOrigin;
 }
 
-void ofmath::GridPlane::setPlaneOrigin(double* v)
+void ofmath::GridPlane::setPlaneOrigin(double *v)
 {
     m_planeOrig.x = float(v[0]);
     m_planeOrig.y = float(v[1]);
@@ -102,7 +100,7 @@ void ofmath::GridPlane::setPlaneNormal(glm::vec3 planeNormal)
     m_planeNormal = planeNormal;
 }
 
-void ofmath::GridPlane::setPlaneNormal(double* v)
+void ofmath::GridPlane::setPlaneNormal(double *v)
 {
     m_planeNormal.x = float(v[0]);
     m_planeNormal.y = float(v[1]);
@@ -170,16 +168,15 @@ glm::vec3 ofmath::GridPlane::intersect(glm::vec3 v)
 {
     float d;
 
-    if (glm::intersectRayPlane(m_origin, v, m_planeOrig, m_planeNormal, d))
-    {
+    if (glm::intersectRayPlane(m_origin, v, m_planeOrig, m_planeNormal, d)) {
         glm::vec3 ip = m_origin + v * d;
-        return snap(ip);   
+        return snap(ip);
     }
     else
         return glm::vec3();
 }
 
-glm::vec3 ofmath::GridPlane::intersect(double* v)
+glm::vec3 ofmath::GridPlane::intersect(double *v)
 {
     glm::vec3 vv(v[0], v[1], v[2]);
     return intersect(vv);

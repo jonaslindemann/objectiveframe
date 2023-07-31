@@ -4,8 +4,7 @@
 
 using namespace ofui;
 
-AboutWindow::AboutWindow(const std::string name)
-    : UiWindow(name)
+AboutWindow::AboutWindow(const std::string name) : UiWindow(name)
 {
 }
 

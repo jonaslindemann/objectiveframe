@@ -2,11 +2,9 @@
 
 #include <ofem/base.h>
 
-namespace ofem
-{
+namespace ofem {
 
-enum DofKind
-{
+enum DofKind {
     DisplX,
     DisplY,
     DisplZ,
@@ -17,8 +15,7 @@ enum DofKind
 
 SmartPointer(Dof);
 
-class Dof : public Base
-{
+class Dof : public Base {
 private:
     DofKind m_kind;
     long m_number;
@@ -37,9 +34,9 @@ public:
 
     // Methods
 
-    virtual void print(std::ostream& out) override;
+    virtual void print(std::ostream &out) override;
     virtual json_nl toJson() override;
-    virtual void fromJson(json_nl& j) override;
+    virtual void fromJson(json_nl &j) override;
 
     // Get/Set methods
 
@@ -48,4 +45,4 @@ public:
     void setNumber(long number);
     long getNumber();
 };
-}
+} // namespace ofem

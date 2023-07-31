@@ -3,11 +3,7 @@
 using namespace ofem;
 using namespace std;
 
-BeamNodeLoad::BeamNodeLoad()
-    : NodeLoad()
-    , m_name { "Noname" }
-    , m_color { 1 }
-    , m_scale { 1.0 }
+BeamNodeLoad::BeamNodeLoad() : NodeLoad(), m_name{"Noname"}, m_color{1}, m_scale{1.0}
 {
 }
 
@@ -15,7 +11,7 @@ BeamNodeLoad::~BeamNodeLoad()
 {
 }
 
-void BeamNodeLoad::setName(const std::string& name)
+void BeamNodeLoad::setName(const std::string &name)
 {
     m_name = name;
 }
@@ -35,7 +31,7 @@ double ofem::BeamNodeLoad::getScale()
     return m_scale;
 }
 
-void BeamNodeLoad::saveToStream(std::ostream& out)
+void BeamNodeLoad::saveToStream(std::ostream &out)
 {
     NodeLoad::saveToStream(out);
     if (m_name == "")
@@ -45,7 +41,7 @@ void BeamNodeLoad::saveToStream(std::ostream& out)
     out << m_color << endl;
 }
 
-void BeamNodeLoad::readFromStream(std::istream& in)
+void BeamNodeLoad::readFromStream(std::istream &in)
 {
     char buffer[255];
     NodeLoad::readFromStream(in);

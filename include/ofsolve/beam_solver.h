@@ -7,23 +7,21 @@
 #include <iostream>
 #include <memory>
 
-#include <ofsolve/calfem.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <ofsolve/calfem.h>
 
 #include <ofsolve/solver_interface.h>
 
-namespace ofsolver
-{
+namespace ofsolver {
 
-class BeamSolver : public SolverInterface
-{
+class BeamSolver : public SolverInterface {
 private:
-    ofem::BeamModel* m_beamModel;
+    ofem::BeamModel *m_beamModel;
     double m_maxNodeValue;
-    ofem::Node* m_forceNode;
+    ofem::Node *m_forceNode;
     double m_force[3];
-    //std::unique_ptr<LinearEquationSolver> m_X;
+    // std::unique_ptr<LinearEquationSolver> m_X;
     int m_nDof;
     int m_nVars;
 
@@ -61,7 +59,7 @@ public:
     {
         return std::make_shared<BeamSolver>();
     }
-    
+
     virtual void execute() override;
     virtual void recompute() override;
     virtual void update() override;
@@ -69,10 +67,10 @@ public:
     virtual void initMaxMin() override;
     virtual void printMaxMin() override;
     virtual void updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier) override;
-    virtual double calcNavier(double N, double My, double Mz, ofem::Beam* beam) override;
+    virtual double calcNavier(double N, double My, double Mz, ofem::Beam *beam) override;
 
-    virtual void setBeamModel(ofem::BeamModel* model) override;
-    virtual void setFeedbackForce(ofem::Node* node, double fx, double fy, double fz) override;
+    virtual void setBeamModel(ofem::BeamModel *model) override;
+    virtual void setFeedbackForce(ofem::Node *node, double fx, double fy, double fz) override;
     virtual double getMaxNodeValue() override;
 
     virtual ModelState modelState() override;
@@ -80,4 +78,4 @@ public:
 
 typedef std::shared_ptr<BeamSolver> BeamSolverPtr;
 
-}
+} // namespace ofsolver

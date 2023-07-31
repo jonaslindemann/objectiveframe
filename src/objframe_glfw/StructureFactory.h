@@ -7,16 +7,15 @@
 #include <vfem/beam_model.h>
 #include <vfem/node.h>
 
-class StructureFactory
-{
+class StructureFactory {
 private:
     int m_size[3];
     double m_spacing[3];
-    vfem::BeamModel* m_beamModel;
-    ofem::BeamMaterial* m_currentMaterial;
+    vfem::BeamModel *m_beamModel;
+    ofem::BeamMaterial *m_currentMaterial;
 
 public:
-    void setCurrentMaterial(ofem::BeamMaterial* material);
+    void setCurrentMaterial(ofem::BeamMaterial *material);
     StructureFactory();
     virtual ~StructureFactory();
 
@@ -27,11 +26,11 @@ public:
     // Get/set methods
 
     void setSize(int rows, int cols, int stacks);
-    void getSize(int& rows, int& cols, int& stacks);
+    void getSize(int &rows, int &cols, int &stacks);
     void setSpacing(double xSpacing, double ySpacing, double zSpacing);
-    void getSpacing(double& xSpacing, double& ySpacing, double& zSpacing);
-    void setBeamModel(vfem::BeamModel* model);
-    vfem::BeamModel* getBeamModel();
+    void getSpacing(double &xSpacing, double &ySpacing, double &zSpacing);
+    void setBeamModel(vfem::BeamModel *model);
+    vfem::BeamModel *getBeamModel();
 };
 
 #endif

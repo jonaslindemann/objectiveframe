@@ -8,33 +8,30 @@
 class FemViewWindow;
 #else
 class FemWidget;
-#endif 
+#endif
 
-namespace ofui
-{
+namespace ofui {
 
-class LoadMixerWindow : public UiWindow
-{
+class LoadMixerWindow : public UiWindow {
 private:
-    ofem::BeamNodeLoadSet* m_femNodeLoadSet;
+    ofem::BeamNodeLoadSet *m_femNodeLoadSet;
     float m_loadScaleFactors[255];
     float m_loadSum;
     float m_lastSum;
     bool m_firstUpdate;
 
-
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
 
 public:
     LoadMixerWindow(const std::string name);
     virtual ~LoadMixerWindow();
 
-    void setView(FemViewWindow* view);
-    void setFemNodeLoadSet(ofem::BeamNodeLoadSet* bcSet);
+    void setView(FemViewWindow *view);
+    void setFemNodeLoadSet(ofem::BeamNodeLoadSet *bcSet);
 
     void update();
 
@@ -46,4 +43,4 @@ protected:
 
 typedef std::shared_ptr<LoadMixerWindow> LoadMixerWindowPtr;
 
-}
+} // namespace ofui

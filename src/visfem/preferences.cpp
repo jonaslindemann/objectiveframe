@@ -1,8 +1,6 @@
 #include "preferences.h"
 
-vfem::Preferences::Preferences()
-    : m_showNodeNumbers { true }
-    , m_useSphereNodes { true }
+vfem::Preferences::Preferences() : m_showNodeNumbers{true}, m_useSphereNodes{true}
 {
 }
 

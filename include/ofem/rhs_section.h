@@ -4,8 +4,7 @@
 
 #define FEM_RHS_SECTION 5
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(RHSSection);
 
@@ -20,8 +19,7 @@ SmartPointer(RHSSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class RHSSection : public Section
-{
+class RHSSection : public Section {
 public:
     RHSSection();
 
@@ -40,7 +38,7 @@ public:
      * This function gives all measurements associated with the RHS-Section.
      *
      */
-    void getSectionSize(double& height, double& width, double& WT);
+    void getSectionSize(double &height, double &width, double &WT);
 
     /**
      * Set section size
@@ -58,15 +56,16 @@ public:
      */
     void setData();
 
-    virtual void getExcZ(double& emax, double& emin) override;
-    virtual void getExcY(double& emax, double& emin) override;
+    virtual void getExcZ(double &emax, double &emin) override;
+    virtual void getExcY(double &emax, double &emin) override;
 
     virtual void calcDataFromSection() override;
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius) override;
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                 double &innerRadius) override;
 };
-}
+} // namespace ofem

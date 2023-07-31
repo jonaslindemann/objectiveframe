@@ -2,8 +2,7 @@
 
 using namespace ofem;
 
-Load::Load()
-    : Base()
+Load::Load() : Base()
 {
     m_number = -1;
     m_value = 0.0;
@@ -23,17 +22,17 @@ long Load::getNumber()
     return m_number;
 }
 
-void Load::print(std::ostream& out)
+void Load::print(std::ostream &out)
 {
 }
 
-void Load::saveToStream(std::ostream& out)
+void Load::saveToStream(std::ostream &out)
 {
     using namespace std;
     out << m_number << " " << m_value << endl;
 }
 
-void Load::readFromStream(std::istream& in)
+void Load::readFromStream(std::istream &in)
 {
     in >> m_number;
     in >> m_value;

@@ -2,9 +2,7 @@
 
 using namespace ofui;
 
-LogWindow::LogWindow(const std::string name)
-    : UiWindow(name)
-    , m_autoScroll { true }
+LogWindow::LogWindow(const std::string name) : UiWindow(name), m_autoScroll{true}
 {
     setWindowFlags(ImGuiWindowFlags_None);
     clear();
@@ -46,8 +44,7 @@ void ofui::LogWindow::log(const std::string message)
 void ofui::LogWindow::doDraw()
 {
     // Options menu
-    if (ImGui::BeginPopup("Options"))
-    {
+    if (ImGui::BeginPopup("Options")) {
         ImGui::Checkbox("Auto-scroll", &m_autoScroll);
         ImGui::EndPopup();
     }
@@ -71,28 +68,25 @@ void ofui::LogWindow::doDraw()
         ImGui::LogToClipboard();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    const char* buf = m_buffer.begin();
-    const char* buf_end = m_buffer.end();
-    if (m_filter.IsActive())
-    {
-        for (int line_no = 0; line_no < m_lineOffsets.Size; line_no++)
-        {
-            const char* line_start = buf + m_lineOffsets[line_no];
-            const char* line_end = (line_no + 1 < m_lineOffsets.Size) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
+    const char *buf = m_buffer.begin();
+    const char *buf_end = m_buffer.end();
+    if (m_filter.IsActive()) {
+        for (int line_no = 0; line_no < m_lineOffsets.Size; line_no++) {
+            const char *line_start = buf + m_lineOffsets[line_no];
+            const char *line_end =
+                (line_no + 1 < m_lineOffsets.Size) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
             if (m_filter.PassFilter(line_start, line_end))
                 ImGui::TextUnformatted(line_start, line_end);
         }
     }
-    else
-    {
+    else {
         ImGuiListClipper clipper;
         clipper.Begin(m_lineOffsets.Size);
-        while (clipper.Step())
-        {
-            for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-            {
-                const char* line_start = buf + m_lineOffsets[line_no];
-                const char* line_end = (line_no + 1 < m_lineOffsets.Size) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
+        while (clipper.Step()) {
+            for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
+                const char *line_start = buf + m_lineOffsets[line_no];
+                const char *line_end =
+                    (line_no + 1 < m_lineOffsets.Size) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
                 ImGui::TextUnformatted(line_start, line_end);
             }
         }

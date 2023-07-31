@@ -6,13 +6,11 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(Element);
 
-class Element : public Base
-{
+class Element : public Base {
 private:
     std::vector<NodePtr> m_nodes;
     std::vector<InternalDofsPtr> m_internalDofs;
@@ -33,7 +31,7 @@ public:
 
     // Methods
 
-    virtual void addNode(Node* node);
+    virtual void addNode(Node *node);
     void addProperty(double value);
     void clearProperties();
     void deleteAll();
@@ -53,13 +51,13 @@ public:
 
     // Get/set methods
 
-    Node* getNode(unsigned int index);
+    Node *getNode(unsigned int index);
     size_t getIndexSize();
     size_t getSize();
     long getElementIndex(unsigned int node);
     long getNumber();
     void setNumber(long number);
-    void getElementLoad(double& fx, double& fy, double& fz);
+    void getElementLoad(double &fx, double &fy, double &fz);
     void setElementLoad(double fx, double fy, double fz);
     double getProperty(unsigned int idx);
     void setPropertySize(unsigned int size);
@@ -67,8 +65,8 @@ public:
 
     // IO Methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 };
-}
+} // namespace ofem

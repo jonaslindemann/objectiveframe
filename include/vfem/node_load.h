@@ -8,19 +8,17 @@
 #include <vfem/beam_model.h>
 #include <vfem/color_table.h>
 
-namespace vfem
-{
+namespace vfem {
 
 IvfSmartPointer(NodeLoad);
 
 // public class: VisFemNodeLoad
-class NodeLoad : public ivf::Shape
-{
+class NodeLoad : public ivf::Shape {
 private:
-    ofem::BeamNodeLoad* m_nodeLoad;
+    ofem::BeamNodeLoad *m_nodeLoad;
     std::vector<ivf::ExtrArrowPtr> m_arrow;
     ivf::MaterialPtr m_arrowMaterial;
-    vfem::BeamModel* m_beamModel;
+    vfem::BeamModel *m_beamModel;
 
     void initArrow();
 
@@ -34,8 +32,8 @@ public:
 
     // Get/set methods
 
-    void setBeamModel(vfem::BeamModel* model);
-    void setNodeLoad(ofem::BeamNodeLoad* nodeLoad);
+    void setBeamModel(vfem::BeamModel *model);
+    void setNodeLoad(ofem::BeamNodeLoad *nodeLoad);
 
     // Methods
 
@@ -45,4 +43,4 @@ protected:
     virtual void doCreateSelect() override;
     virtual void doCreateGeometry() override;
 };
-}
+} // namespace vfem

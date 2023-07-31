@@ -8,10 +8,7 @@
 
 using namespace ofui;
 
-PluginPropWindow::PluginPropWindow(const std::string name)
-    : UiWindow(name)
-    , m_plugin { nullptr }
-    , m_view { nullptr }
+PluginPropWindow::PluginPropWindow(const std::string name) : UiWindow(name), m_plugin{nullptr}, m_view{nullptr}
 {
 }
 
@@ -24,23 +21,23 @@ std::shared_ptr<PluginPropWindow> PluginPropWindow::create(const std::string nam
     return std::make_shared<PluginPropWindow>(name);
 }
 
-void ofui::PluginPropWindow::setPlugin(ScriptPlugin* plugin)
+void ofui::PluginPropWindow::setPlugin(ScriptPlugin *plugin)
 {
     m_plugin = plugin;
 }
 
-ScriptPlugin* ofui::PluginPropWindow::plugin()
+ScriptPlugin *ofui::PluginPropWindow::plugin()
 {
     return m_plugin;
 }
 
 #ifdef USE_FEMVIEW
-void ofui::PluginPropWindow::setView(FemViewWindow* view)
+void ofui::PluginPropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
 #else
-void ofui::PluginPropWindow::setWidget(FemWidget* widget)
+void ofui::PluginPropWindow::setWidget(FemWidget *widget)
 {
     m_view = widget;
 }
@@ -49,12 +46,9 @@ void ofui::PluginPropWindow::setWidget(FemWidget* widget)
 void PluginPropWindow::doDraw()
 {
     ImGui::Dummy(ImVec2(150.0, 0.0));
-    if (m_plugin != nullptr)
-    {
-        for (auto& name : m_plugin->paramNames())
-        {
-            if (name != "pluginName")
-            {
+    if (m_plugin != nullptr) {
+        for (auto &name : m_plugin->paramNames()) {
+            if (name != "pluginName") {
                 if (m_plugin->paramType(name) == "float")
                     ImGui::InputFloat(name.c_str(), m_plugin->floatParamRef(name));
                 else if (m_plugin->paramType(name) == "int")

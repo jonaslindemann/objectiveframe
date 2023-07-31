@@ -10,30 +10,20 @@
 
 using namespace std;
 
-std::shared_ptr<GLFWWindow> GLFWWindow::create(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
+std::shared_ptr<GLFWWindow> GLFWWindow::create(int width, int height, const std::string title, GLFWmonitor *monitor,
+                                               GLFWwindow *shared)
 {
     return GLFWWindowPtr(new GLFWWindow(width, height, title, monitor, shared));
 }
 
-GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonitor* monitor, GLFWwindow* shared)
-    : m_width(width)
-    , m_height(height)
-    , m_title(title)
-    , m_mouseButton(-1)
-    , m_mouseAction(-1)
-    , m_mouseMods(-1)
-    , m_mouseX(-1)
-    , m_mouseY(-1)
-    , m_currentKey(-1)
-    , m_altDown(false)
-    , m_ctrlDown(false)
-    , m_shiftDown(false)
-    , m_escQuit(true)
+GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
+    : m_width(width), m_height(height), m_title(title), m_mouseButton(-1), m_mouseAction(-1), m_mouseMods(-1),
+      m_mouseX(-1), m_mouseY(-1), m_currentKey(-1), m_altDown(false), m_ctrlDown(false), m_shiftDown(false),
+      m_escQuit(true)
 {
     m_window = glfwCreateWindow(width, height, title.c_str(), monitor, shared);
 
-    if (!m_window)
-    {
+    if (!m_window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -47,8 +37,7 @@ GLFWWindow::~GLFWWindow()
 
 void GLFWWindow::makeCurrent()
 {
-    if (m_window)
-    {
+    if (m_window) {
         glfwMakeContextCurrent(m_window);
         gladLoadGL();
         glfwSwapInterval(1);
@@ -76,14 +65,13 @@ void GLFWWindow::swapBuffers()
 
 void GLFWWindow::destroy()
 {
-    if (m_window)
-    {
+    if (m_window) {
         glfwDestroyWindow(m_window);
         m_window = nullptr;
     }
 }
 
-GLFWwindow* GLFWWindow::ref()
+GLFWwindow *GLFWWindow::ref()
 {
     return m_window;
 }
@@ -115,7 +103,9 @@ int GLFWWindow::mouseY()
 
 bool GLFWWindow::isAnyMouseButtonDown()
 {
-    return ((m_mouseButton == GLFW_MOUSE_BUTTON_1) || (m_mouseButton == GLFW_MOUSE_BUTTON_2) || (m_mouseButton == GLFW_MOUSE_BUTTON_3)) && (m_mouseAction == GLFW_PRESS);
+    return ((m_mouseButton == GLFW_MOUSE_BUTTON_1) || (m_mouseButton == GLFW_MOUSE_BUTTON_2) ||
+            (m_mouseButton == GLFW_MOUSE_BUTTON_3)) &&
+           (m_mouseAction == GLFW_PRESS);
 }
 
 bool GLFWWindow::isShiftDown()
@@ -145,8 +135,7 @@ void GLFWWindow::setUseEscQuit(bool flag)
 
 int GLFWWindow::width()
 {
-    if (m_window)
-    {
+    if (m_window) {
         glfwGetFramebufferSize(m_window, &m_width, &m_height);
         return m_width;
     }
@@ -156,8 +145,7 @@ int GLFWWindow::width()
 
 int GLFWWindow::height()
 {
-    if (m_window)
-    {
+    if (m_window) {
         glfwGetFramebufferSize(m_window, &m_width, &m_height);
         return m_height;
     }
@@ -165,16 +153,14 @@ int GLFWWindow::height()
         return -1;
 }
 
-void GLFWWindow::getSize(int& width, int& height)
+void GLFWWindow::getSize(int &width, int &height)
 {
-    if (m_window)
-    {
+    if (m_window) {
         glfwGetFramebufferSize(m_window, &m_width, &m_height);
         width = m_width;
         height = m_height;
     }
-    else
-    {
+    else {
         width = -1;
         height = -1;
     }
@@ -273,4 +259,3 @@ void GLFWWindow::onGlfwDraw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 }
-

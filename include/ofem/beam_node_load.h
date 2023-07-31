@@ -2,13 +2,11 @@
 
 #include <ofem/node_load.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BeamNodeLoad);
 
-class BeamNodeLoad : public NodeLoad
-{
+class BeamNodeLoad : public NodeLoad {
 private:
     int m_color;
     std::string m_name;
@@ -24,13 +22,13 @@ public:
     void setColor(int color);
     int getColor();
 
-    void setName(const std::string& name);
+    void setName(const std::string &name);
     const std::string getName();
 
     void setScale(double scale);
     double getScale();
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
 };
-}
+} // namespace ofem

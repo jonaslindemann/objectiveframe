@@ -8,7 +8,7 @@
 #include <vfem/color_table.h>
 
 #include <ColorMap.h>
-//#include <ResultInfo.h>
+// #include <ResultInfo.h>
 
 #define IVF_BEAM_N 0
 #define IVF_BEAM_T 1
@@ -25,13 +25,11 @@
 #define IVF_NODE_GEOMETRY 0
 #define IVF_NODE_DISPLACEMENT 1
 
-namespace vfem
-{
+namespace vfem {
 
 SmartPointer(BeamModel);
 
-class BeamModel : public ofem::BeamModel
-{
+class BeamModel : public ofem::BeamModel {
 private:
     double m_nodeSize;
     double m_lineRadius;
@@ -86,8 +84,8 @@ public:
 
     void enumerate();
 
-    void setScene(ivf::Composite* scene);
-    ivf::Composite* getScene();
+    void setScene(ivf::Composite *scene);
+    ivf::Composite *getScene();
 
     void setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std);
 
@@ -97,8 +95,8 @@ public:
     void setNodeSize(double size);
     double getNodeSize();
 
-    void setNodeMaterial(ivf::Material* material);
-    ivf::Material* getNodeMaterial();
+    void setNodeMaterial(ivf::Material *material);
+    ivf::Material *getNodeMaterial();
 
     int getNodeType();
     void setNodeType(int type);
@@ -112,11 +110,11 @@ public:
     void setLineSides(int sides);
     int getLineSides();
 
-    void setBeamMaterial(ivf::Material* material);
+    void setBeamMaterial(ivf::Material *material);
 
-    ColorTable* getColorTable();
+    ColorTable *getColorTable();
 
-    void setPath(const std::string& path);
+    void setPath(const std::string &path);
 
     void setScaleFactor(double factor);
     double getScaleFactor();
@@ -127,7 +125,6 @@ public:
     void setUseBlending(bool flag);
     bool getUseBlending();
 
-
     ColorMapPtr getColorMapStd();
     ColorMapPtr getColorMapNeg();
     ColorMapPtr getColorMapPos();
@@ -135,7 +132,7 @@ public:
     ColorMapPtr getColorMapNegBlack();
     ColorMapPtr getColorMapPosBlack();
 
-    //ResultInfo* getResultInfo();
+    // ResultInfo* getResultInfo();
 
     void setResultType(int type);
     int getResultType();
@@ -143,18 +140,18 @@ public:
     void setBeamType(int type);
     int getBeamType();
 
-    void setTextFont(ivf::BitmapFont* font);
-    ivf::BitmapFont* textFont();
+    void setTextFont(ivf::BitmapFont *font);
+    ivf::BitmapFont *textFont();
 
     void setShowNodeNumbers(bool flag);
     bool showNodeNumbers();
 
-    void setCamera(ivf::Camera* camera);
-    ivf::Camera* camera();
+    void setCamera(ivf::Camera *camera);
+    ivf::Camera *camera();
 
-    ofem::BeamNodeBC* defaultNodePosBC();
-    ofem::BeamNodeBC* defaultNodeFixedBC();
+    ofem::BeamNodeBC *defaultNodePosBC();
+    ofem::BeamNodeBC *defaultNodeFixedBC();
 
-    ivf::Shape* pick(int sx, int sy);
+    ivf::Shape *pick(int sx, int sy);
 };
-}
+} // namespace vfem

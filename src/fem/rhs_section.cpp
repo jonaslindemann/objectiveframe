@@ -4,15 +4,12 @@
 
 using namespace ofem;
 
-
-RHSSection::RHSSection(double height, double width, double WT)
-    : Section()
+RHSSection::RHSSection(double height, double width, double WT) : Section()
 // TODO: check and complete member initialisation list!
 {
     this->setSectionType(FEM_RHS_SECTION);
     this->setSectionSize(height, width, WT);
 }
-
 
 RHSSection::RHSSection()
 {
@@ -22,11 +19,9 @@ RHSSection::RHSSection()
     this->setSectionSize(0.1, 0.1, 0.01);
 }
 
-
 RHSSection::~RHSSection()
 {
 }
-
 
 void RHSSection::setSectionSize(double height, double width, double WT)
 {
@@ -66,14 +61,12 @@ void RHSSection::setSectionSize(double height, double width, double WT)
     this->setData();
 }
 
-
-void RHSSection::getSectionSize(double& height, double& width, double& WT)
+void RHSSection::getSectionSize(double &height, double &width, double &WT)
 {
     height = m_prop[0];
     width = m_prop[1];
     WT = m_prop[4];
 }
-
 
 void RHSSection::setData()
 {
@@ -99,8 +92,7 @@ void RHSSection::setData()
     m_data[5] = 0;
 }
 
-
-void RHSSection::getExcY(double& emax, double& emin)
+void RHSSection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[1] / 2.0;
     emin = emax;
@@ -111,20 +103,21 @@ void RHSSection::calcDataFromSection()
     this->setData();
 }
 
-void RHSSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void RHSSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     Section::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->setSectionSize(height, width, WT);
 }
 
-void RHSSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void RHSSection::getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius, double &innerRadius)
 {
     Section::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->getSectionSize(height, width, WT);
 }
 
-
-void RHSSection::getExcZ(double& emax, double& emin)
+void RHSSection::getExcZ(double &emax, double &emin)
 {
     emax = m_prop[0] / 2.0;
     emin = emax;

@@ -7,11 +7,9 @@
 
 #include <ofui/popup_window.h>
 
-namespace ofui
-{
+namespace ofui {
 
-class NewModelPopup : public PopupWindow
-{
+class NewModelPopup : public PopupWindow {
 private:
     float m_modelSize;
     float m_nodeSize;
@@ -40,4 +38,4 @@ protected:
 
 typedef std::shared_ptr<NewModelPopup> NewModelPopupPtr;
 
-}
+} // namespace ofui

@@ -4,14 +4,11 @@
 
 using namespace ofem;
 
-
-PipeSection::PipeSection(double outerRadius, double innerRadius)
-    : Section()
+PipeSection::PipeSection(double outerRadius, double innerRadius) : Section()
 {
     this->setSectionType(FEM_PIPE_SECTION);
     this->setSectionSize(outerRadius, innerRadius);
 }
-
 
 PipeSection::PipeSection()
 {
@@ -19,11 +16,9 @@ PipeSection::PipeSection()
     this->setSectionSize(0.1, 0.09);
 }
 
-
 PipeSection::~PipeSection()
 {
 }
-
 
 void PipeSection::setSectionSize(double outerRadius, double innerRadius)
 {
@@ -94,7 +89,6 @@ void PipeSection::setSectionSize(double outerRadius, double innerRadius)
     this->setData();
 }
 
-
 void PipeSection::setData()
 {
     double d1 = 2.0 * m_prop[9];
@@ -110,15 +104,13 @@ void PipeSection::setData()
     m_data[5] = pi * (pow(d1, 4) - pow(d2, 4)) / 32.0; // Kv
 }
 
-
-void PipeSection::getSectionSize(double& outerRadius, double& innerRadius)
+void PipeSection::getSectionSize(double &outerRadius, double &innerRadius)
 {
     outerRadius = m_prop[9];
     innerRadius = m_prop[10];
 }
 
-
-void PipeSection::getExcY(double& emax, double& emin)
+void PipeSection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[9] / 2.0;
     emin = emax;
@@ -129,20 +121,21 @@ void PipeSection::calcDataFromSection()
     this->setData();
 }
 
-void PipeSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void PipeSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT,
+                                  double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     Section::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->setSectionSize(outerRadius, innerRadius);
 }
 
-void PipeSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void PipeSection::getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                  double &LFT, double &ULFW, double &LLFW, double &outerRadius, double &innerRadius)
 {
     Section::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->getSectionSize(outerRadius, innerRadius);
 }
 
-
-void PipeSection::getExcZ(double& emax, double& emin)
+void PipeSection::getExcZ(double &emax, double &emin)
 {
     emax = m_prop[9] / 2.0;
     emin = emax;

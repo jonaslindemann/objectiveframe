@@ -9,13 +9,8 @@
 using namespace ofui;
 
 NodePropWindow::NodePropWindow(const std::string name)
-    : UiWindow(name)
-    , m_node { nullptr }
-    , m_nodePos { 0.0, 0.0, 0.0 }
-    , m_nodeDispl { 0.0, 0.0, 0.0 }
-    , m_nodeMove { 0.0, 0.0, 0.0 }
-    , m_selectedShapes { nullptr }
-    , m_view { nullptr }
+    : UiWindow(name), m_node{nullptr}, m_nodePos{0.0, 0.0, 0.0}, m_nodeDispl{0.0, 0.0, 0.0}, m_nodeMove{0.0, 0.0, 0.0},
+      m_selectedShapes{nullptr}, m_view{nullptr}
 {
 }
 
@@ -24,23 +19,23 @@ NodePropWindow::~NodePropWindow()
 }
 
 #ifdef USE_FEMVIEW
-void ofui::NodePropWindow::setView(FemViewWindow* view)
+void ofui::NodePropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
 #else
-void ofui::NodePropWindow::setWidget(FemWidget* widget)
+void ofui::NodePropWindow::setWidget(FemWidget *widget)
 {
     m_view = widget;
 }
 #endif
 
-void NodePropWindow::setNode(vfem::Node* node)
+void NodePropWindow::setNode(vfem::Node *node)
 {
     m_node = node;
 }
 
-void NodePropWindow::setSelectedShapes(ivf::Composite* selected)
+void NodePropWindow::setSelectedShapes(ivf::Composite *selected)
 {
     m_selectedShapes = selected;
 }
@@ -52,10 +47,9 @@ std::shared_ptr<NodePropWindow> NodePropWindow::create(const std::string name)
 
 void NodePropWindow::doDraw()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO &io = ImGui::GetIO();
     ImGui::Dummy(ImVec2(150.0, 0.0));
-    if (m_node != nullptr)
-    {
+    if (m_node != nullptr) {
         double x, y, z;
         m_node->getPosition(x, y, z);
         m_nodePos[0] = float(x);
@@ -74,21 +68,17 @@ void NodePropWindow::doDraw()
         m_nodeDispl[2] = float(dz);
         ImGui::InputFloat3("Displacement", m_nodeDispl, "%.3f", ImGuiInputTextFlags_ReadOnly);
     }
-    else if (m_selectedShapes != nullptr)
-    {
+    else if (m_selectedShapes != nullptr) {
         ImGui::InputFloat3("Offset", m_nodeMove, "%.3f");
 
         ImGui::Separator();
 
-        if (ImGui::Button("Move", ImVec2(120, 0)))
-        {
+        if (ImGui::Button("Move", ImVec2(120, 0))) {
             m_view->snapShot();
 
-            for (auto i = 0; i < m_selectedShapes->getSize(); i++)
-            {
-                if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
-                {
-                    auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
+            for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
+                if (m_selectedShapes->getChild(i)->isClass("vfem::Node")) {
+                    auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                     double x, y, z;
                     node->getPosition(x, y, z);
                     node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
@@ -101,17 +91,14 @@ void NodePropWindow::doDraw()
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Copy", ImVec2(120, 0)))
-        {
-            std::vector<ivf::Shape*> newSelected;
+        if (ImGui::Button("Copy", ImVec2(120, 0))) {
+            std::vector<ivf::Shape *> newSelected;
 
             m_view->snapShot();
 
-            for (auto i = 0; i < m_selectedShapes->getSize(); i++)
-            {
-                if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
-                {
-                    auto node = static_cast<vfem::Node*>(m_selectedShapes->getChild(i));
+            for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
+                if (m_selectedShapes->getChild(i)->isClass("vfem::Node")) {
+                    auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                     double x, y, z;
                     node->getPosition(x, y, z);
                     auto newNode = m_view->addNode(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
@@ -130,8 +117,7 @@ void NodePropWindow::doDraw()
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Reset", ImVec2(120, 0)))
-        {
+        if (ImGui::Button("Reset", ImVec2(120, 0))) {
             m_nodeMove[0] = 0.0;
             m_nodeMove[1] = 0.0;
             m_nodeMove[2] = 0.0;
@@ -178,8 +164,7 @@ void NodePropWindow::doDraw()
 
         */
     }
-    else
-    {
+    else {
         ImGui::Text("Select a node(s) to display node properties.");
     }
 }

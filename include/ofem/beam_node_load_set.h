@@ -3,13 +3,11 @@
 #include <ofem/beam_node_load.h>
 #include <ofem/node_load_set.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BeamNodeLoadSet);
 
-class BeamNodeLoadSet : public NodeLoadSet
-{
+class BeamNodeLoadSet : public NodeLoadSet {
 private:
 public:
     BeamNodeLoadSet();
@@ -19,6 +17,6 @@ public:
     StdFactory(BeamNodeLoadSet);
 
 protected:
-    virtual Load* createLoad() override;
+    virtual Load *createLoad() override;
 };
-}
+} // namespace ofem

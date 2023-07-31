@@ -5,15 +5,8 @@
 using namespace ofem;
 using namespace std;
 
-
 Section::Section()
-    : Base()
-    , m_nbrOfProps { 0 }
-    , m_nbrOfData { 0 }
-    , m_sectionType { -1 }
-    , m_autoCalc { false }
-    , m_prop { nullptr }
-    , m_data { nullptr }
+    : Base(), m_nbrOfProps{0}, m_nbrOfData{0}, m_sectionType{-1}, m_autoCalc{false}, m_prop{nullptr}, m_data{nullptr}
 {
     this->setPropSize(11);
     this->setDataSize(6);
@@ -21,20 +14,17 @@ Section::Section()
     this->setSectionProps(0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.09);
 }
 
-
 Section::~Section()
 {
     this->clear();
 }
 
-
 void Section::addPoint(double x, double y)
 {
-    Coord* coord = new Coord();
+    Coord *coord = new Coord();
     coord->setCoord(x, y, 0.0);
     m_coords.push_back(coord);
 }
-
 
 void Section::clear()
 {
@@ -43,47 +33,40 @@ void Section::clear()
     m_coords.clear();
 }
 
-
-void Section::getCoord(unsigned int idx, double& x, double& y)
+void Section::getCoord(unsigned int idx, double &x, double &y)
 {
     double z;
     if (idx < m_coords.size())
         m_coords[idx]->getCoord(x, y, z);
 }
 
-
 size_t Section::getSize()
 {
     return m_coords.size();
 }
 
-
-void Section::getNormal(unsigned int idx, double& ex, double& ey)
+void Section::getNormal(unsigned int idx, double &ex, double &ey)
 {
     double x1, y1, z;
     double x2, y2, l;
-    if (idx < m_coords.size() - 1)
-    {
+    if (idx < m_coords.size() - 1) {
         m_coords[idx]->getCoord(x1, y1, z);
         m_coords[idx + 1]->getCoord(x2, y2, z);
-        if (y1 == y2)
-        {
+        if (y1 == y2) {
             ex = 0.0;
             if (x2 >= x1)
                 ey = 1.0;
             else
                 ey = -1.0;
         }
-        else if (x1 == x2)
-        {
+        else if (x1 == x2) {
             ey = 0.0;
             if (y2 < y1)
                 ex = 1.0;
             else
                 ex = -1.0;
         }
-        else
-        {
+        else {
             ex = -(y2 - y1);
             ey = x2 - x1;
             l = sqrt(pow(ex, 2) + pow(ey, 2));
@@ -95,7 +78,6 @@ void Section::getNormal(unsigned int idx, double& ex, double& ey)
     }
 }
 
-
 void Section::setPropSize(int size)
 {
     m_nbrOfProps = size;
@@ -106,18 +88,15 @@ void Section::setPropSize(int size)
         m_prop[i] = 0;
 }
 
-
-void Section::getPropSize(int& size)
+void Section::getPropSize(int &size)
 {
     size = m_nbrOfProps;
 }
 
-
-void Section::getAllProps(double*& props)
+void Section::getAllProps(double *&props)
 {
     props = m_prop;
 }
-
 
 void Section::setDataSize(int size)
 {
@@ -129,24 +108,20 @@ void Section::setDataSize(int size)
         m_data[i] = 0;
 }
 
-
-void Section::getDataSize(int& size)
+void Section::getDataSize(int &size)
 {
     size = m_nbrOfData;
 }
 
-
-void Section::getAllData(double*& data)
+void Section::getAllData(double *&data)
 {
     data = m_data;
 }
-
 
 void Section::setAutoCalc(bool mode)
 {
     m_autoCalc = mode;
 }
-
 
 bool Section::autoCalc()
 {
@@ -157,7 +132,7 @@ void Section::calcDataFromSection()
 {
 }
 
-void Section::saveToStream(std::ostream& out)
+void Section::saveToStream(std::ostream &out)
 {
     unsigned int i;
 
@@ -195,7 +170,7 @@ int Section::getSectionType()
     return m_sectionType;
 }
 
-void Section::readFromStream(std::istream& in)
+void Section::readFromStream(std::istream &in)
 {
     int i, propSize, dataSize, coordSize;
 
@@ -219,15 +194,14 @@ void Section::readFromStream(std::istream& in)
 
     in >> coordSize;
     this->clear();
-    for (i = 0; i < coordSize; i++)
-    {
-        Coord* coord = new Coord();
+    for (i = 0; i < coordSize; i++) {
+        Coord *coord = new Coord();
         coord->readFromStream(in);
         m_coords.push_back(coord);
     }
 }
 
-void Section::getExcY(double& emax, double& emin)
+void Section::getExcY(double &emax, double &emin)
 {
     emax = -1.0;
     emin = -1.0;
@@ -319,7 +293,8 @@ void Section::setSectionData(double E, double A, double G, double Iy, double Iz,
     m_data[5] = Kv;
 }
 
-void Section::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void Section::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                              double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     m_prop[0] = height;
     m_prop[1] = width;
@@ -334,7 +309,8 @@ void Section::setSectionProps(double width, double height, double UFW, double LF
     m_prop[10] = innerRadius;
 }
 
-void Section::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void Section::getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                              double &LFT, double &ULFW, double &LLFW, double &outerRadius, double &innerRadius)
 {
     height = m_prop[0];
     width = m_prop[1];
@@ -349,7 +325,7 @@ void Section::getSectionProps(double& width, double& height, double& UFW, double
     innerRadius = m_prop[10];
 }
 
-void Section::getExcZ(double& emax, double& emin)
+void Section::getExcZ(double &emax, double &emin)
 {
     emax = -1.0;
     emin = -1.0;

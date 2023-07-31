@@ -35,8 +35,7 @@ void InternalDofs::setKind(int kind)
 
     // Create an empty list of dofs
 
-    switch (m_kind)
-    {
+    switch (m_kind) {
     case FEM_DISPL_ROT_DOFS:
         for (i = 0; i < 6; i++)
             m_dofs.push_back(NULL);
@@ -61,9 +60,8 @@ void InternalDofs::add(unsigned int localDof)
 {
     // Add an extra dof to a specified local dof
 
-    if (localDof < m_dofs.size())
-    {
-        Dof* dof = new Dof();
+    if (localDof < m_dofs.size()) {
+        Dof *dof = new Dof();
         if (m_dofs[localDof] != NULL)
             delete m_dofs[localDof];
         m_dofs[localDof] = dof;
@@ -74,8 +72,7 @@ void InternalDofs::clear(unsigned int localDof)
 {
     // Clear extra dof at local dof
 
-    if (localDof < m_dofs.size())
-    {
+    if (localDof < m_dofs.size()) {
         if (m_dofs[localDof] != NULL)
             delete m_dofs[localDof];
         m_dofs[localDof] = NULL;
@@ -86,8 +83,7 @@ long InternalDofs::enumerateDofs(long count)
 {
     // Enumerate dofs
 
-    for (long i = 0; i < (long)m_dofs.size(); i++)
-    {
+    for (long i = 0; i < (long)m_dofs.size(); i++) {
         if (m_dofs[i] != NULL)
             m_dofs[i]->setNumber(count++);
     }
@@ -96,25 +92,23 @@ long InternalDofs::enumerateDofs(long count)
 
 bool InternalDofs::isAssigned(unsigned int localDof)
 {
-    if (localDof < m_dofs.size())
-    {
+    if (localDof < m_dofs.size()) {
         if (m_dofs[localDof] != NULL)
             return true;
     }
     return false;
 }
 
-Dof* InternalDofs::getDof(unsigned int localDof)
+Dof *InternalDofs::getDof(unsigned int localDof)
 {
-    if (localDof < m_dofs.size())
-    {
+    if (localDof < m_dofs.size()) {
         if (m_dofs[localDof] != NULL)
             return m_dofs[localDof];
     }
     return NULL;
 }
 
-void InternalDofs::readFromStream(std::istream& in)
+void InternalDofs::readFromStream(std::istream &in)
 {
     unsigned int i;
     int kind;
@@ -122,25 +116,22 @@ void InternalDofs::readFromStream(std::istream& in)
     Base::readFromStream(in);
     in >> kind;
     this->setKind(kind);
-    for (i = 0; i < m_dofs.size(); i++)
-    {
+    for (i = 0; i < m_dofs.size(); i++) {
         in >> idof;
-        if (idof != 0)
-        {
-            Dof* dof = new Dof();
+        if (idof != 0) {
+            Dof *dof = new Dof();
             m_dofs[i] = dof;
         }
     }
 }
 
-void InternalDofs::saveToStream(std::ostream& out)
+void InternalDofs::saveToStream(std::ostream &out)
 {
     using namespace std;
     unsigned int i;
     Base::saveToStream(out);
     out << m_kind << endl;
-    for (i = 0; i < m_dofs.size(); i++)
-    {
+    for (i = 0; i < m_dofs.size(); i++) {
         if (m_dofs[i] == NULL)
             out << 0 << " ";
         else

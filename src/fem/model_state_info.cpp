@@ -1,11 +1,7 @@
 #include <ofem/model_state_info.h>
 
-ofem::ModelStateInfo::ModelStateInfo::ModelStateInfo()
-    : m_version { "1" }
-    , m_readVersion { "" }
-    , m_writeVersion { "" }
+ofem::ModelStateInfo::ModelStateInfo::ModelStateInfo() : m_version{"1"}, m_readVersion{""}, m_writeVersion{""}
 {
-
 }
 
 void ofem::ModelStateInfo::setVersion(std::string version)

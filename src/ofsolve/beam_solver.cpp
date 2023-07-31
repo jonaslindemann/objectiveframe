@@ -18,10 +18,7 @@ std::string float2str(double value)
 }
 
 BeamSolver::BeamSolver()
-    : m_beamModel { nullptr }
-    , m_maxNodeValue { -1.0e300 }
-    , m_forceNode { nullptr }
-    , m_modelState { ModelState::Ok }
+    : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr}, m_modelState{ModelState::Ok}
 {
 }
 
@@ -29,7 +26,7 @@ BeamSolver::~BeamSolver()
 {
 }
 
-void BeamSolver::setBeamModel(ofem::BeamModel* model)
+void BeamSolver::setBeamModel(ofem::BeamModel *model)
 {
     m_beamModel = model;
 }
@@ -52,10 +49,9 @@ void BeamSolver::execute()
     // Retrieve fem model
     //
 
-    BeamModel* femModel = m_beamModel;
+    BeamModel *femModel = m_beamModel;
 
-    if (femModel == NULL)
-    {
+    if (femModel == NULL) {
         Logger::instance()->log(LogLevel::Error, "Invalid model.");
         m_modelState = ModelState::Invalid;
         return;
@@ -65,40 +61,36 @@ void BeamSolver::execute()
     // Retrieve individual parts of fem model
     //
 
-    BeamSet* elementSet = static_cast<BeamSet*>(femModel->getElementSet());
-    NodeSet* nodeSet = femModel->getNodeSet();
-    MaterialSet* materialSet = femModel->getMaterialSet();
-    NodeBCSet* bcSet = femModel->getNodeBCSet();
-    NodeLoadSet* nodeLoadSet = femModel->getNodeLoadSet();
-    ElementLoadSet* elementLoadSet = femModel->getElementLoadSet();
+    BeamSet *elementSet = static_cast<BeamSet *>(femModel->getElementSet());
+    NodeSet *nodeSet = femModel->getNodeSet();
+    MaterialSet *materialSet = femModel->getMaterialSet();
+    NodeBCSet *bcSet = femModel->getNodeBCSet();
+    NodeLoadSet *nodeLoadSet = femModel->getNodeLoadSet();
+    ElementLoadSet *elementLoadSet = femModel->getElementLoadSet();
 
     //
     // Check if we have a valid model
     //
 
-    if (nodeSet->getSize() == 0)
-    {
+    if (nodeSet->getSize() == 0) {
         Logger::instance()->log(LogLevel::Error, "No nodes defined.");
         m_modelState = ModelState::NoNodes;
         return;
     }
 
-    if (elementSet->getSize() == 0)
-    {
+    if (elementSet->getSize() == 0) {
         Logger::instance()->log(LogLevel::Error, "No elements defined.");
         m_modelState = ModelState::NoElements;
         return;
     }
 
-    if (bcSet->getSize() == 0)
-    {
+    if (bcSet->getSize() == 0) {
         Logger::instance()->log(LogLevel::Error, "No boundary conditions defined.");
         m_modelState = ModelState::NoBC;
         return;
     }
 
-    if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL))
-    {
+    if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL)) {
         Logger::instance()->log(LogLevel::Error, "No node loads defined.");
         m_modelState = ModelState::NoLoads;
         return;
@@ -146,19 +138,17 @@ void BeamSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Setting up element loads.");
 
-    for (i = 0; i < elementLoadSet->getSize(); i++)
-    {
+    for (i = 0; i < elementLoadSet->getSize(); i++) {
         double vx, vy, vz;
         double value;
 
-        BeamLoad* elementLoad = (BeamLoad*)elementLoadSet->getLoad(i);
+        BeamLoad *elementLoad = (BeamLoad *)elementLoadSet->getLoad(i);
 
         elementLoad->getLocalDirection(vx, vy, vz);
         value = -elementLoad->getValue();
 
-        for (j = 0; j < elementLoad->getElementsSize(); j++)
-        {
-            Element* element = elementLoad->getElement(j);
+        for (j = 0; j < elementLoad->getElementsSize(); j++) {
+            Element *element = elementLoad->getElement(j);
 
             Eq(element->getNumber(), 1) = Eq(element->getNumber(), 1) + vx * value;
             Eq(element->getNumber(), 2) = Eq(element->getNumber(), 2) + vy * value;
@@ -177,17 +167,16 @@ void BeamSolver::execute()
     m_Ks.setZero();
 
     calfem::TripletList Ktriplets;
-    Ktriplets.reserve(elementSet->getSize() * 144);    
+    Ktriplets.reserve(elementSet->getSize() * 144);
 
     Logger::instance()->log(LogLevel::Info, "Assembling system matrix.");
 
-    for (i = 1; i <= elementSet->getSize(); i++)
-    {
+    for (i = 1; i <= elementSet->getSize(); i++) {
         double x1, y1, z1;
         double x2, y2, z2;
         double ex, ey, ez;
 
-        Beam* beam = (Beam*)elementSet->getElement(i - 1);
+        Beam *beam = (Beam *)elementSet->getElement(i - 1);
 
         beam->getNode(0)->getCoord(x1, y1, z1);
         beam->getNode(1)->getCoord(x2, y2, z2);
@@ -204,8 +193,7 @@ void BeamSolver::execute()
         Eo(1) = ey;
         Eo(2) = ez;
 
-        if (beam->getMaterial() != NULL)
-        {
+        if (beam->getMaterial() != NULL) {
             beam->getMaterial()->getProperties(E, G, A, Iy, Iz, Kv);
             Ep(0) = E;
             Ep(1) = G;
@@ -214,8 +202,7 @@ void BeamSolver::execute()
             Ep(4) = Iz;
             Ep(5) = Kv;
 
-            if (beam->beamType() == ofem::btBeam)
-            {
+            if (beam->beamType() == ofem::btBeam) {
                 for (j = 0; j < 6; j++)
                     DofTopo(j) = beam->getNode(0)->getDof(j)->getNumber();
 
@@ -227,10 +214,9 @@ void BeamSolver::execute()
 
                 beam3e(Ex, Ey, Ez, Eo, Ep, RowEq, Ke, fe);
                 spassem(DofTopo, Ktriplets, Ke, m_f, fe);
-                //assem(DofTopo, Kf, Ke, m_f, fe);
+                // assem(DofTopo, Kf, Ke, m_f, fe);
             }
-            else
-            {
+            else {
                 Ep(0) = E;
                 Ep(1) = A;
 
@@ -246,8 +232,7 @@ void BeamSolver::execute()
                 spassem(DofTopo_b, Ktriplets, Ke_b, m_f, fe_b);
             }
         }
-        else
-        {
+        else {
             Logger::instance()->log(LogLevel::Error, "Element with undefined material.");
             m_modelState = ModelState::UndefinedMaterial;
         }
@@ -265,21 +250,19 @@ void BeamSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Defining load vector.");
 
-    for (i = 0; i < nodeLoadSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeLoadSet->getSize(); i++) {
         double vx, vy, vz;
         double value;
         double scale;
 
-        BeamNodeLoad* nodeLoad = (BeamNodeLoad*)nodeLoadSet->getLoad(i);
+        BeamNodeLoad *nodeLoad = (BeamNodeLoad *)nodeLoadSet->getLoad(i);
 
         nodeLoad->getDirection(vx, vy, vz);
         value = nodeLoad->getValue();
         scale = nodeLoad->getScale();
 
-        for (j = 0; j < (int)nodeLoad->getNodeSize(); j++)
-        {
-            Node* node = nodeLoad->getNode(j);
+        for (j = 0; j < (int)nodeLoad->getNodeSize(); j++) {
+            Node *node = nodeLoad->getNode(j);
             m_f(node->getDof(0)->getNumber() - 1) += vx * value * scale;
             m_f(node->getDof(1)->getNumber() - 1) += vy * value * scale;
             m_f(node->getDof(2)->getNumber() - 1) += vz * value * scale;
@@ -299,22 +282,16 @@ void BeamSolver::execute()
 
     int bcCount = 0;
 
-    for (i = 0; i < bcSet->getSize(); i++)
-    {
-        BeamNodeBC* nodeBC = (BeamNodeBC*)bcSet->getBC(i);
+    for (i = 0; i < bcSet->getSize(); i++) {
+        BeamNodeBC *nodeBC = (BeamNodeBC *)bcSet->getBC(i);
 
-        for (j = 0; j < nodeBC->getNodeSize(); j++)
-        {
-            Node* node = nodeBC->getNode(j);
+        for (j = 0; j < nodeBC->getNodeSize(); j++) {
+            Node *node = nodeBC->getNode(j);
 
-            if (node->getKind() != nkNotConnected)
-            {
-                for (k = 0; k < 6; k++)
-                {
-                    if (nodeBC->isPrescribed(k + 1))
-                    {
-                        if (node->getDof(k) != nullptr)
-                        {
+            if (node->getKind() != nkNotConnected) {
+                for (k = 0; k < 6; k++) {
+                    if (nodeBC->isPrescribed(k + 1)) {
+                        if (node->getDof(k) != nullptr) {
                             bcCount++;
                             bcMap[node->getDof(k)->getNumber()] = nodeBC->getPrescribedValue(k);
                         }
@@ -331,8 +308,7 @@ void BeamSolver::execute()
 
     int idx = 0;
 
-    for (auto& kv : bcMap)
-    {
+    for (auto &kv : bcMap) {
         m_bcDofs(idx) = kv.first;
         m_bcVals(idx) = kv.second;
         idx++;
@@ -340,13 +316,11 @@ void BeamSolver::execute()
 
     ColVec f = m_f;
 
-    if (m_forceNode != nullptr)
-    {
+    if (m_forceNode != nullptr) {
         int ldof1 = m_forceNode->getDof(0)->getNumber();
         int ldof2 = m_forceNode->getDof(1)->getNumber();
         int ldof3 = m_forceNode->getDof(2)->getNumber();
-        if ((ldof1 > 0) && (ldof2 > 0) && (ldof3 > 0))
-        {
+        if ((ldof1 > 0) && (ldof2 > 0) && (ldof3 > 0)) {
             f(ldof1 - 1) += m_force[0];
             f(ldof2 - 1) += m_force[1];
             f(ldof3 - 1) += m_force[2];
@@ -355,9 +329,7 @@ void BeamSolver::execute()
             Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
     }
 
-
-    if (f.isZero())
-    {
+    if (f.isZero()) {
         Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
         m_modelState = ModelState::NoLoads;
         return;
@@ -399,24 +371,21 @@ void BeamSolver::execute()
 
     m_Ks.setFromTriplets(Ktriplets.begin(), Ktriplets.end());
 
-
     Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-    if (!m_sparseSolver.setup(m_Ks, m_bcDofs, m_bcVals))
-    {
+    if (!m_sparseSolver.setup(m_Ks, m_bcDofs, m_bcVals)) {
         Logger::instance()->log(LogLevel::Error, "Solver setup failed...");
         m_modelState = ModelState::SetupFailed;
         return;
     }
 
-    if (!m_sparseSolver.solve(f, m_globalA, m_globalQ))
-    {
+    if (!m_sparseSolver.solve(f, m_globalA, m_globalQ)) {
         Logger::instance()->log(LogLevel::Error, "Solve failed...");
         m_modelState = ModelState::SolveFailed;
-        return;    
+        return;
     }
 
-    Logger::instance()->log(LogLevel::Info, "solveq done..."); 
+    Logger::instance()->log(LogLevel::Info, "solveq done...");
 
     m_maxNodeValue = m_globalA.maxCoeff();
 
@@ -430,15 +399,12 @@ void BeamSolver::execute()
 
     double nodeValue;
 
-    for (i = 0; i < nodeSet->getSize(); i++)
-    {
+    for (i = 0; i < nodeSet->getSize(); i++) {
         auto node = nodeSet->getNode(i);
 
-        if (node->getKind() != nkNotConnected)
-        {
+        if (node->getKind() != nkNotConnected) {
             node->setValueSize(3);
-            for (j = 0; j < 3; j++)
-            {
+            for (j = 0; j < 3; j++) {
                 nodeValue = m_globalA(node->getDof(j)->getNumber() - 1);
                 node->setValue(j, nodeValue);
             }
@@ -459,14 +425,13 @@ void BeamSolver::execute()
 
     initMaxMin();
 
-    for (i = 1; i <= elementSet->getSize(); i++)
-    {
+    for (i = 1; i <= elementSet->getSize(); i++) {
 
         double x1, y1, z1;
         double x2, y2, z2;
         double ex, ey, ez;
 
-        Beam* beam = (Beam*)elementSet->getElement(i - 1);
+        Beam *beam = (Beam *)elementSet->getElement(i - 1);
         n = beam->getEvaluationPoints();
         beam->setValueSize(n * 11);
 
@@ -493,24 +458,21 @@ void BeamSolver::execute()
         Ep(4) = Iz;
         Ep(5) = Kv;
 
-        if (beam->beamType() == btBeam)
-        {
-            for (j = 0; j < 6; j++)
-            {
+        if (beam->beamType() == btBeam) {
+            for (j = 0; j < 6; j++) {
                 DofTopo(j) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo(j + 6) = beam->getNode(1)->getDof(j)->getNumber();
-                Ed(j) = m_globalA(DofTopo(j)-1);
-                Ed(j + 6) = m_globalA(DofTopo(j + 6)-1);
+                Ed(j) = m_globalA(DofTopo(j) - 1);
+                Ed(j + 6) = m_globalA(DofTopo(j + 6) - 1);
             }
 
             RowVec RowEq(4);
-            RowEq = Eq.row(i-1);
+            RowEq = Eq.row(i - 1);
             beam3s(Ex, Ey, Ez, Eo, Ep, Ed, RowEq, n, Es, Edi, Eci);
 
             int pos = 0;
 
-            for (k = 0; k < n; k++)
-            {
+            for (k = 0; k < n; k++) {
                 N = Es(k, 0);
                 T = Es(k, 1);
                 Vy = Es(k, 2);
@@ -529,14 +491,12 @@ void BeamSolver::execute()
                 for (j = 0; j < 4; j++)
                     beam->setValue(pos++, Edi(k, j));
         }
-        else
-        {
-            for (j = 0; j < 3; j++)
-            {
+        else {
+            for (j = 0; j < 3; j++) {
                 DofTopo_b(j) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo_b(j + 3) = beam->getNode(1)->getDof(j)->getNumber();
-                Ed_b(j) = m_globalA(DofTopo_b(j)-1);
-                Ed_b(j + 3) = m_globalA(DofTopo_b(j + 3)-1);
+                Ed_b(j) = m_globalA(DofTopo_b(j) - 1);
+                Ed_b(j + 3) = m_globalA(DofTopo_b(j + 3) - 1);
             }
 
             double eq = 0.0;
@@ -552,8 +512,7 @@ void BeamSolver::execute()
 
             int pos = 0;
 
-            for (k = 0; k < n; k++)
-            {
+            for (k = 0; k < n; k++) {
                 N = Es_b(k);
                 T = 0.0;
                 Vy = 0.0;
@@ -589,14 +548,12 @@ double BeamSolver::getMaxNodeValue()
 
 void BeamSolver::recompute()
 {
-    if (this->modelState() == ModelState::Ok)
-    {
+    if (this->modelState() == ModelState::Ok) {
         int i, j;
 
-        BeamModel* femModel = m_beamModel;
+        BeamModel *femModel = m_beamModel;
 
-        if (femModel == NULL)
-        {
+        if (femModel == NULL) {
             Logger::instance()->log(LogLevel::Error, "Invalid model.");
             m_modelState = ModelState::Invalid;
             return;
@@ -606,18 +563,16 @@ void BeamSolver::recompute()
         // Retrieve individual parts of fem model
         //
 
-        NodeSet* nodeSet = femModel->getNodeSet();
+        NodeSet *nodeSet = femModel->getNodeSet();
 
         ColVec f = m_f;
         f.setZero();
 
-        if (m_forceNode != nullptr)
-        {
+        if (m_forceNode != nullptr) {
             int ldof1 = m_forceNode->getDof(0)->getNumber();
             int ldof2 = m_forceNode->getDof(1)->getNumber();
             int ldof3 = m_forceNode->getDof(2)->getNumber();
-            if ((ldof1 > 0) && (ldof2 > 0) && (ldof3 > 0))
-            {
+            if ((ldof1 > 0) && (ldof2 > 0) && (ldof3 > 0)) {
                 f(ldof1 - 1) += m_force[0];
                 f(ldof2 - 1) += m_force[1];
                 f(ldof3 - 1) += m_force[2];
@@ -630,32 +585,29 @@ void BeamSolver::recompute()
 
         auto nodeLoadSet = femModel->getNodeLoadSet();
 
-        for (i = 0; i < nodeLoadSet->getSize(); i++)
-        {
+        for (i = 0; i < nodeLoadSet->getSize(); i++) {
             double vx, vy, vz;
             double value;
             double scale;
 
-            BeamNodeLoad* nodeLoad = (BeamNodeLoad*)nodeLoadSet->getLoad(i);
+            BeamNodeLoad *nodeLoad = (BeamNodeLoad *)nodeLoadSet->getLoad(i);
 
             nodeLoad->getDirection(vx, vy, vz);
             value = nodeLoad->getValue();
             scale = nodeLoad->getScale();
 
-            for (j = 0; j < (int)nodeLoad->getNodeSize(); j++)
-            {
-                Node* node = nodeLoad->getNode(j);
+            for (j = 0; j < (int)nodeLoad->getNodeSize(); j++) {
+                Node *node = nodeLoad->getNode(j);
                 f(node->getDof(0)->getNumber() - 1) += vx * value * scale;
                 f(node->getDof(1)->getNumber() - 1) += vy * value * scale;
                 f(node->getDof(2)->getNumber() - 1) += vz * value * scale;
             }
         }
 
-        if (f.isZero())
-        {
+        if (f.isZero()) {
             Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
-            //m_modelState = ModelState::NoLoads;
-            //return;
+            // m_modelState = ModelState::NoLoads;
+            // return;
         }
 
         //
@@ -667,8 +619,7 @@ void BeamSolver::recompute()
 
         Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-        if (!m_sparseSolver.solve(f, m_globalA, m_globalQ))
-        {
+        if (!m_sparseSolver.solve(f, m_globalA, m_globalQ)) {
             Logger::instance()->log(LogLevel::Error, "Recompute solve failed");
             m_modelState = ModelState::RecomputeFailed;
             return;
@@ -688,15 +639,12 @@ void BeamSolver::recompute()
 
         double nodeValue;
 
-        for (i = 0; i < nodeSet->getSize(); i++)
-        {
+        for (i = 0; i < nodeSet->getSize(); i++) {
             auto node = nodeSet->getNode(i);
 
-            if (node->getKind() != nkNotConnected)
-            {
+            if (node->getKind() != nkNotConnected) {
                 node->setValueSize(3);
-                for (j = 0; j < 3; j++)
-                {
+                for (j = 0; j < 3; j++) {
                     nodeValue = m_globalA(node->getDof(j)->getNumber() - 1);
                     node->setValue(j, nodeValue);
                 }
@@ -713,8 +661,7 @@ void BeamSolver::update()
 
     auto femModel = m_beamModel;
 
-    if (femModel == nullptr)
-    {
+    if (femModel == nullptr) {
         Logger::instance()->log(LogLevel::Error, "Invalid model.");
         m_modelState = ModelState::Invalid;
         return;
@@ -754,14 +701,13 @@ void BeamSolver::update()
 
     initMaxMin();
 
-    for (i = 1; i <= elementSet->getSize(); i++)
-    {
+    for (i = 1; i <= elementSet->getSize(); i++) {
 
         double x1, y1, z1;
         double x2, y2, z2;
         double ex, ey, ez;
 
-        Beam* beam = (Beam*)elementSet->getElement(i - 1);
+        Beam *beam = (Beam *)elementSet->getElement(i - 1);
         n = beam->getEvaluationPoints();
         beam->setValueSize(n * 11);
 
@@ -788,10 +734,8 @@ void BeamSolver::update()
         Ep(4) = Iz;
         Ep(5) = Kv;
 
-        if (beam->beamType() == btBeam)
-        {
-            for (j = 0; j < 6; j++)
-            {
+        if (beam->beamType() == btBeam) {
+            for (j = 0; j < 6; j++) {
                 DofTopo(j) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo(j + 6) = beam->getNode(1)->getDof(j)->getNumber();
                 Ed(j) = m_globalA(DofTopo(j) - 1);
@@ -804,8 +748,7 @@ void BeamSolver::update()
 
             int pos = 0;
 
-            for (k = 0; k < n; k++)
-            {
+            for (k = 0; k < n; k++) {
                 N = Es(k, 0);
                 T = Es(k, 1);
                 Vy = Es(k, 2);
@@ -824,10 +767,8 @@ void BeamSolver::update()
                 for (j = 0; j < 4; j++)
                     beam->setValue(pos++, Edi(k, j));
         }
-        else
-        {
-            for (j = 0; j < 3; j++)
-            {
+        else {
+            for (j = 0; j < 3; j++) {
                 DofTopo_b(j) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo_b(j + 3) = beam->getNode(1)->getDof(j)->getNumber();
                 Ed_b(j) = m_globalA(DofTopo_b(j) - 1);
@@ -847,8 +788,7 @@ void BeamSolver::update()
 
             int pos = 0;
 
-            for (k = 0; k < n; k++)
-            {
+            for (k = 0; k < n; k++) {
                 N = Es_b(k);
                 T = 0.0;
                 Vy = 0.0;
@@ -877,7 +817,7 @@ void BeamSolver::update()
     Logger::instance()->log(LogLevel::Info, "Update completed.");
 }
 
-void BeamSolver::setFeedbackForce(Node* node, double fx, double fy, double fz)
+void BeamSolver::setFeedbackForce(Node *node, double fx, double fy, double fz)
 {
     m_forceNode = node;
     m_force[0] = fx;
@@ -922,8 +862,7 @@ void BeamSolver::updateMaxMin(double N, double T, double Vy, double Vz, double M
     if (fabs(Navier) < m_minNavier)
         m_minNavier = fabs(Navier);
 
-    if (m_beamModel != nullptr)
-    {
+    if (m_beamModel != nullptr) {
         m_beamModel->setMaxN(m_maxN);
         m_beamModel->setMaxT(m_maxT);
         m_beamModel->setMaxV(m_maxV);
@@ -950,8 +889,7 @@ void BeamSolver::initMaxMin()
     m_maxNavier = -1.0e300;
     m_minNavier = 1.0e300;
 
-    if (m_beamModel != nullptr)
-    {
+    if (m_beamModel != nullptr) {
         m_beamModel->setMaxN(m_maxN);
         m_beamModel->setMaxT(m_maxT);
         m_beamModel->setMaxV(m_maxV);
@@ -981,7 +919,7 @@ ModelState BeamSolver::modelState()
     return m_modelState;
 }
 
-double BeamSolver::calcNavier(double N, double My, double Mz, Beam* beam)
+double BeamSolver::calcNavier(double N, double My, double Mz, Beam *beam)
 {
     double E, G, A, Iy, Iz, Kv;
     double eyMax, eyMin, ezMax, ezMin;

@@ -15,17 +15,15 @@ class FemViewWindow;
 class FemWidget;
 #endif
 
-namespace ofui
-{
+namespace ofui {
 
-class ElementLoadsWindow : public UiWindow
-{
+class ElementLoadsWindow : public UiWindow {
 private:
-    ofem::BeamLoadSet* m_femBeamLoadSet;
+    ofem::BeamLoadSet *m_femBeamLoadSet;
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
     std::vector<bool> m_selected;
     int m_currentItemIdx;
@@ -37,12 +35,12 @@ public:
 
     static std::shared_ptr<ElementLoadsWindow> create(const std::string name);
 
-    void setFemLoadSet(ofem::BeamLoadSet* bcSet);
+    void setFemLoadSet(ofem::BeamLoadSet *bcSet);
 #ifdef USE_FEMVIEW
-    void setFemView(FemViewWindow* view);
+    void setFemView(FemViewWindow *view);
 #else
-    void setFemWidget(FemWidget* widget);
-#endif 
+    void setFemWidget(FemWidget *widget);
+#endif
 
 protected:
     virtual void doPreDraw();
@@ -52,4 +50,4 @@ protected:
 
 typedef std::shared_ptr<ElementLoadsWindow> ElementLoadsWindowPtr;
 
-}
+} // namespace ofui

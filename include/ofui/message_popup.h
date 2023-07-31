@@ -7,11 +7,9 @@
 
 #include <ofui/popup_window.h>
 
-namespace ofui
-{
+namespace ofui {
 
-class MessagePopup : public PopupWindow
-{
+class MessagePopup : public PopupWindow {
 private:
     std::string m_message;
 
@@ -29,4 +27,4 @@ protected:
 
 typedef std::shared_ptr<MessagePopup> MessagePopupPtr;
 
-}
+} // namespace ofui

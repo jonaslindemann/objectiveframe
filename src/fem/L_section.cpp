@@ -4,27 +4,21 @@
 
 using namespace ofem;
 
-
-LSection::LSection(double height, double width, double WT, double LFT)
-    : Section()
+LSection::LSection(double height, double width, double WT, double LFT) : Section()
 {
     this->setSectionType(FEM_L_SECTION);
     this->setSectionSize(height, width, WT, LFT);
 }
 
-
-LSection::LSection()
-    : Section()
+LSection::LSection() : Section()
 {
     this->setSectionType(FEM_L_SECTION);
     this->setSectionSize(0.1, 0.1, 0.01, 0.01);
 }
 
-
 LSection::~LSection()
 {
 }
-
 
 void LSection::setSectionSize(double width, double height, double WT, double LFT)
 {
@@ -40,7 +34,8 @@ void LSection::setSectionSize(double width, double height, double WT, double LFT
 
     m_Xtp = (width * LFT * (width / 2) + (height - LFT) * WT * (WT / 2)) / (width * LFT + (height - LFT) * WT);
 
-    m_Ytp = (width * LFT * (LFT / 2) + WT * (height - LFT) * ((height - LFT) / 2 + LFT)) / (width * LFT + WT * (height - LFT));
+    m_Ytp = (width * LFT * (LFT / 2) + WT * (height - LFT) * ((height - LFT) / 2 + LFT)) /
+            (width * LFT + WT * (height - LFT));
 
     X[0] = -m_Xtp;
     Y[0] = -m_Ytp;
@@ -63,15 +58,13 @@ void LSection::setSectionSize(double width, double height, double WT, double LFT
     this->setData();
 }
 
-
-void LSection::getSectionSize(double& width, double& height, double& WT, double& LFT)
+void LSection::getSectionSize(double &width, double &height, double &WT, double &LFT)
 {
     height = m_prop[0];
     width = m_prop[1];
     WT = m_prop[4];
     LFT = m_prop[6];
 }
-
 
 void LSection::setData()
 {
@@ -91,10 +84,13 @@ void LSection::setData()
     m_data[1] = height * WT + (width - WT) * LFT; // Area
     // printf("\n\nArea: %e",m_data[1]);
 
-    m_data[3] = (LFT * pow(width, 3) / 12.0 + width * LFT * pow(width / 2.0 - m_Xtp, 2)) + ((height - LFT) * pow(WT, 3) / 12.0 + WT * (height - LFT) * pow(WT / 2.0 - m_Xtp, 2)); // Iy
+    m_data[3] = (LFT * pow(width, 3) / 12.0 + width * LFT * pow(width / 2.0 - m_Xtp, 2)) +
+                ((height - LFT) * pow(WT, 3) / 12.0 + WT * (height - LFT) * pow(WT / 2.0 - m_Xtp, 2)); // Iy
     // printf("\nIy: %e",m_data[3]);
 
-    m_data[4] = (width * pow(LFT, 3) / 12.0 + LFT * width * pow(LFT / 2.0 - m_Ytp, 2)) + (WT * pow(height - LFT, 3) / 12.0 + (height - LFT) * WT * pow(LFT + (height - LFT) / 2.0 - m_Ytp, 2)); // Iz
+    m_data[4] =
+        (width * pow(LFT, 3) / 12.0 + LFT * width * pow(LFT / 2.0 - m_Ytp, 2)) +
+        (WT * pow(height - LFT, 3) / 12.0 + (height - LFT) * WT * pow(LFT + (height - LFT) / 2.0 - m_Ytp, 2)); // Iz
     // printf("\nIz: %e",m_data[4]);
 
     m_data[5] = 1.0 / 3.0 * (pow(WT, 3) * height + pow(LFT, 3) * width); // Kv
@@ -106,13 +102,15 @@ void LSection::calcDataFromSection()
     this->setData();
 }
 
-void LSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void LSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                               double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     Section::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->setSectionSize(width, height, WT, LFT);
 }
 
-void LSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void LSection::getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                               double &LFT, double &ULFW, double &LLFW, double &outerRadius, double &innerRadius)
 {
     Section::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->getSectionSize(width, height, WT, LFT);

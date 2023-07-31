@@ -9,12 +9,7 @@
 using namespace ofem;
 using namespace std;
 
-Beam::Beam()
-    : Element()
-    , m_materialIndex { -1 }
-    , m_beamRotation { 0.0 }
-    , m_evaluationPoints { 8 }
-    , m_beamType { btBeam }
+Beam::Beam() : Element(), m_materialIndex{-1}, m_beamRotation{0.0}, m_evaluationPoints{8}, m_beamType{btBeam}
 {
 }
 
@@ -22,12 +17,12 @@ Beam::~Beam()
 {
 }
 
-void Beam::print(std::ostream& out)
+void Beam::print(std::ostream &out)
 {
     Element::print(out);
 }
 
-void Beam::saveToStream(std::ostream& out)
+void Beam::saveToStream(std::ostream &out)
 {
     Element::saveToStream(out);
     out << m_beamRotation << " ";
@@ -36,8 +31,7 @@ void Beam::saveToStream(std::ostream& out)
     else
         out << -1 << endl;
 
-    if (ModelStateInfo::getInstance().writeVersion() == "2")
-    {
+    if (ModelStateInfo::getInstance().writeVersion() == "2") {
         if (m_beamType == btBeam)
             out << 0 << "\n";
         else
@@ -45,14 +39,13 @@ void Beam::saveToStream(std::ostream& out)
     }
 }
 
-void Beam::readFromStream(std::istream& in)
+void Beam::readFromStream(std::istream &in)
 {
     Element::readFromStream(in);
     in >> m_beamRotation;
     in >> m_materialIndex;
 
-    if (ModelStateInfo::getInstance().readVersion() == "2")
-    {
+    if (ModelStateInfo::getInstance().readVersion() == "2") {
         int beamType;
         in >> beamType;
 
@@ -63,12 +56,12 @@ void Beam::readFromStream(std::istream& in)
     }
 }
 
-void Beam::setMaterial(BeamMaterial* material)
+void Beam::setMaterial(BeamMaterial *material)
 {
     m_material = BeamMaterialPtr(material);
 }
 
-BeamMaterial* Beam::getMaterial()
+BeamMaterial *Beam::getMaterial()
 {
     return m_material.get();
 }
@@ -88,12 +81,11 @@ double Beam::getBeamRotation()
     return m_beamRotation;
 }
 
-void ofem::Beam::addNode(Node* node)
+void ofem::Beam::addNode(Node *node)
 {
     ofem::Element::addNode(node);
 
-    switch (m_beamType)
-    {
+    switch (m_beamType) {
     case btBeam:
         if (node->getKind() == ofem::nkNotConnected)
             node->setKind(ofem::nk6Dof);
@@ -109,7 +101,7 @@ void ofem::Beam::addNode(Node* node)
     }
 }
 
-void Beam::getOrientationZ(double& ex, double& ey, double& ez)
+void Beam::getOrientationZ(double &ex, double &ey, double &ez)
 {
     double x1, y1, z1, x2, y2, z2;
     double dx, dy, dz;
@@ -162,7 +154,7 @@ void Beam::getOrientationZ(double& ex, double& ey, double& ez)
     ez = v[2];
 }
 
-void Beam::getOrientationY(double& ex, double& ey, double& ez)
+void Beam::getOrientationY(double &ex, double &ey, double &ez)
 {
     double x1, y1, z1, x2, y2, z2;
     double dx, dy, dz;
@@ -215,7 +207,7 @@ void Beam::getOrientationY(double& ex, double& ey, double& ez)
     ez = v[2];
 }
 
-void Beam::eulrot(double* axis, double angle, double* u, double* v)
+void Beam::eulrot(double *axis, double angle, double *u, double *v)
 {
     double c, s, a;
     double n1, n2, n3;

@@ -2,8 +2,7 @@
 
 using namespace ofem;
 
-ModelClipBoard::ModelClipBoard()
-    : m_center {0.0, 0.0, 0.0}, m_offset {0.0, 0.0, 0.0}
+ModelClipBoard::ModelClipBoard() : m_center{0.0, 0.0, 0.0}, m_offset{0.0, 0.0, 0.0}
 {
 }
 
@@ -15,8 +14,7 @@ void ModelClipBoard::calcCenter()
     m_center[1] = 0.0;
     m_center[2] = 0.0;
 
-    for (auto node : m_nodes)
-    {
+    for (auto node : m_nodes) {
         node->getCoord(x, y, z);
 
         m_center[0] += x;
@@ -46,17 +44,17 @@ void ModelClipBoard::clear()
     m_center[2] = 0.0;
 }
 
-void ModelClipBoard::addNode(ofem::Node* node)
+void ModelClipBoard::addNode(ofem::Node *node)
 {
     m_nodes.push_back(node);
 }
 
-void ModelClipBoard::addElement(ofem::Element* element)
+void ModelClipBoard::addElement(ofem::Element *element)
 {
     m_elements.push_back(element);
 }
 
-void ModelClipBoard::paste(ofem::Model* model)
+void ModelClipBoard::paste(ofem::Model *model)
 {
     auto startNodeIdx = model->getNodeSet()->enumerateNodes();
     auto startElementIdx = model->getElementSet()->enumerateElements();
@@ -69,22 +67,19 @@ void ModelClipBoard::paste(ofem::Model* model)
 
     this->calcCenter();
 
-    for (auto node : m_nodes)
-    {
+    for (auto node : m_nodes) {
         node->getCoord(x, y, z);
 
-        if (m_onCreateNode)
-        {
+        if (m_onCreateNode) {
             nx = (x - m_center[0]) + m_offset[0];
             ny = y + m_offset[1];
             nz = (z - m_center[2]) + m_offset[2];
 
-            m_onCreateNode(nx, ny, nz);        
+            m_onCreateNode(nx, ny, nz);
         }
     }
 
-    for (auto element : m_elements)
-    {
+    for (auto element : m_elements) {
         auto n0 = element->getNode(0);
         auto n1 = element->getNode(1);
 
@@ -93,12 +88,12 @@ void ModelClipBoard::paste(ofem::Model* model)
     }
 }
 
-void ModelClipBoard::assignOnCreateNode(std::function<void(double x, double y, double z)>& onCreateNode)
+void ModelClipBoard::assignOnCreateNode(std::function<void(double x, double y, double z)> &onCreateNode)
 {
     m_onCreateNode = onCreateNode;
 }
 
-void ModelClipBoard::assignOnCreateElement(std::function<void(int i0, int i1)>& onCreateElement)
+void ModelClipBoard::assignOnCreateElement(std::function<void(int i0, int i1)> &onCreateElement)
 {
     m_onCreateElement = onCreateElement;
 }

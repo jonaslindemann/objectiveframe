@@ -3,13 +3,11 @@
 #include <ofem/beam_node_bc.h>
 #include <ofem/node_bc_set.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BeamNodeBCSet);
 
-class BeamNodeBCSet : public NodeBCSet
-{
+class BeamNodeBCSet : public NodeBCSet {
 private:
 public:
     BeamNodeBCSet();
@@ -19,6 +17,6 @@ public:
     StdFactory(BeamNodeBCSet);
 
 protected:
-    virtual BC* createBC() override;
+    virtual BC *createBC() override;
 };
-}
+} // namespace ofem

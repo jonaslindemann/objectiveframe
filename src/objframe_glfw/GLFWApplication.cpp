@@ -4,12 +4,11 @@
 
 #include <iostream>
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     auto win = GLFWWindowTracker::instance()->get(window);
 
-    if (win->useEscQuit())
-    {
+    if (win->useEscQuit()) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             win->close();
     }
@@ -17,24 +16,23 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     win->doKey(key, scancode, action, mods);
 }
 
-static void mouse_callback(GLFWwindow* window, int button, int action, int mods)
+static void mouse_callback(GLFWwindow *window, int button, int action, int mods)
 {
     auto win = GLFWWindowTracker::instance()->get(window);
     win->doMouseButton(button, action, mods);
 }
 
-static void mouse_pos_callback(GLFWwindow* window, double x, double y)
+static void mouse_pos_callback(GLFWwindow *window, double x, double y)
 {
     auto win = GLFWWindowTracker::instance()->get(window);
     win->doMousePosition(x, y);
 }
 
-static void window_resize_callback(GLFWwindow* window, int width, int height)
+static void window_resize_callback(GLFWwindow *window, int width, int height)
 {
     auto win = GLFWWindowTracker::instance()->get(window);
     win->doResize(width, height);
 }
-
 
 GLFWApplication::GLFWApplication()
 {
@@ -71,12 +69,9 @@ void GLFWApplication::loop()
 {
     bool shouldClose = false;
 
-    while (!shouldClose)
-    {
-        for (auto window : m_windows)
-        {
-            if (!window->isClosing())
-            {
+    while (!shouldClose) {
+        for (auto window : m_windows) {
+            if (!window->isClosing()) {
                 window->makeCurrent();
                 window->doDraw();
                 window->swapBuffers();
@@ -101,13 +96,12 @@ void GLFWApplication::hint(int hint, int value)
     glfwWindowHint(hint, value);
 }
 
-
 void GLFWWindowTracker::addWindow(GLFWWindowPtr window)
 {
     m_windowMap[window->ref()] = window;
 }
 
-GLFWWindowPtr GLFWWindowTracker::get(GLFWwindow* window)
+GLFWWindowPtr GLFWWindowTracker::get(GLFWwindow *window)
 {
     return m_windowMap[window];
 }

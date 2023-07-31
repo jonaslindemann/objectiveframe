@@ -38,14 +38,14 @@ void ColorEntry::setAlpha(float alpha)
     m_color[3] = alpha;
 }
 
-void ColorEntry::getColor(float* array)
+void ColorEntry::getColor(float *array)
 {
     array[0] = m_color[0];
     array[1] = m_color[1];
     array[2] = m_color[2];
 }
 
-void ColorEntry::getColor(float& r, float& g, float& b, float& a)
+void ColorEntry::getColor(float &r, float &g, float &b, float &a)
 {
     r = m_color[0];
     g = m_color[1];

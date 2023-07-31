@@ -3,8 +3,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "GLFWWindow.h"
@@ -12,6 +12,7 @@
 class GLFWApplication {
 private:
     std::vector<GLFWWindowPtr> m_windows;
+
 public:
     GLFWApplication();
     virtual ~GLFWApplication();
@@ -21,25 +22,24 @@ public:
     void addWindow(GLFWWindowPtr window);
     void loop();
     void pollEvents();
-    void hint(int hint, int value);  
+    void hint(int hint, int value);
 };
 
 typedef std::shared_ptr<GLFWApplication> GLFWApplicationPtr;
 
-
 class GLFWWindowTracker {
 private:
-    std::map<GLFWwindow*, GLFWWindowPtr> m_windowMap;
+    std::map<GLFWwindow *, GLFWWindowPtr> m_windowMap;
 
-    GLFWWindowTracker() {};
+    GLFWWindowTracker(){};
+
 public:
-    static GLFWWindowTracker* instance()
+    static GLFWWindowTracker *instance()
     {
         static GLFWWindowTracker m_instance;
         return &m_instance;
     }
 
     void addWindow(GLFWWindowPtr window);
-    GLFWWindowPtr get(GLFWwindow* window);
-
+    GLFWWindowPtr get(GLFWwindow *window);
 };

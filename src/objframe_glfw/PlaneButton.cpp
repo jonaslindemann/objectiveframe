@@ -60,7 +60,7 @@ PlaneButton::PlaneButton(int id)
     m_checkedFrame->addCoord(25.0, 25.0, 0.0);
     m_checkedFrame->addCoord(25.0, -25.0, 0.0);
     m_checkedFrame->addCoord(-25.0, -25.0, 0.0);
-    Index* idx = Index::create();
+    Index *idx = Index::create();
     idx->add((long)0, (long)1);
     idx->add((long)1, (long)2);
     idx->add((long)2, (long)3);
@@ -85,7 +85,7 @@ PlaneButton::PlaneButton(int id)
     m_hint = "";
 }
 
-PlaneButton::PlaneButton(int id, const std::string& name)
+PlaneButton::PlaneButton(int id, const std::string &name)
 {
     PngImagePtr image = PngImage::create();
     image->setFileName(name);
@@ -182,7 +182,7 @@ PlaneButton::~PlaneButton()
 {
 }
 
-void PlaneButton::setTexture(Texture* texture)
+void PlaneButton::setTexture(Texture *texture)
 {
     m_normalShape->setTexture(texture);
     m_pressedShape->setTexture(texture);
@@ -205,7 +205,7 @@ void PlaneButton::setSize(double width, double height)
     m_checkedFrame->setCoord(3, -width / 2.0, -height / 2.0, 0.0);
 }
 
-void PlaneButton::setHint(const std::string& hintText)
+void PlaneButton::setHint(const std::string &hintText)
 {
     m_hint = hintText;
 }

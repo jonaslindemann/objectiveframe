@@ -3,19 +3,15 @@
 
 using namespace ofem;
 
-
-NodeBCSet::NodeBCSet()
-    : BCSet()
+NodeBCSet::NodeBCSet() : BCSet()
 {
 }
-
 
 NodeBCSet::~NodeBCSet()
 {
 }
 
-
-BC* NodeBCSet::createBC()
+BC *NodeBCSet::createBC()
 {
-    return (BC*)new NodeBC();
+    return (BC *)new NodeBC();
 }

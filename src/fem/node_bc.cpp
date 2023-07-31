@@ -2,28 +2,23 @@
 
 using namespace ofem;
 
-
 NodeBC::NodeBC()
 {
     int i;
-    for (i = 0; i < 6; i++)
-    {
+    for (i = 0; i < 6; i++) {
         m_prescribedDof[i] = true;
         m_prescribedValues[i] = 0.0;
     }
 }
-
 
 NodeBC::~NodeBC()
 {
     this->clearNodes();
 }
 
-
-void NodeBC::print(std::ostream& out)
+void NodeBC::print(std::ostream &out)
 {
 }
-
 
 json_nl NodeBC::toJson()
 {
@@ -31,7 +26,7 @@ json_nl NodeBC::toJson()
 
     json_nl nodeNumbers;
 
-    for (auto& node : m_nodes)
+    for (auto &node : m_nodes)
         nodeNumbers.push_back(node->getNumber());
 
     j["nodes"] = nodeNumbers;
@@ -41,8 +36,7 @@ json_nl NodeBC::toJson()
     return j;
 }
 
-
-void NodeBC::saveToStream(std::ostream& out)
+void NodeBC::saveToStream(std::ostream &out)
 {
     using namespace std;
     unsigned int i;
@@ -51,8 +45,7 @@ void NodeBC::saveToStream(std::ostream& out)
     for (i = 0; i < m_nodes.size(); i++)
         out << m_nodes[i]->getNumber() << endl;
     out << endl;
-    for (i = 0; i < 6; i++)
-    {
+    for (i = 0; i < 6; i++) {
         if (m_prescribedDof[i])
             out << 1 << " " << m_prescribedValues[i] << endl;
         else
@@ -60,8 +53,7 @@ void NodeBC::saveToStream(std::ostream& out)
     }
 }
 
-
-void NodeBC::readFromStream(std::istream& in)
+void NodeBC::readFromStream(std::istream &in)
 {
     int nNodes, i;
     long idx;
@@ -69,13 +61,11 @@ void NodeBC::readFromStream(std::istream& in)
     double value;
     // CFemBC::readFromStream(in);
     in >> nNodes;
-    for (i = 0; i < nNodes; i++)
-    {
+    for (i = 0; i < nNodes; i++) {
         in >> idx;
         m_nodeIndex.push_back(idx);
     }
-    for (i = 0; i < 6; i++)
-    {
+    for (i = 0; i < 6; i++) {
         in >> flag >> value;
         if (flag == 1)
             prescribe(i + 1, value);
@@ -84,30 +74,25 @@ void NodeBC::readFromStream(std::istream& in)
     }
 }
 
-
-void NodeBC::addNode(Node* node)
+void NodeBC::addNode(Node *node)
 {
     m_nodes.emplace_back(NodePtr(node));
 }
-
 
 void NodeBC::clearNodes()
 {
     m_nodes.clear();
 }
 
-
-bool NodeBC::removeNode(Node* node)
+bool NodeBC::removeNode(Node *node)
 {
     auto p = m_nodes.begin();
 
     while ((p != m_nodes.end()) && ((*p).get() != node))
         p++;
 
-    if (p != m_nodes.end())
-    {
-        if ((*p).get() == node)
-        {
+    if (p != m_nodes.end()) {
+        if ((*p).get() == node) {
             m_nodes.erase(p);
             return true;
         }
@@ -118,15 +103,13 @@ bool NodeBC::removeNode(Node* node)
         return false;
 }
 
-
-Node* NodeBC::getNode(unsigned int idx)
+Node *NodeBC::getNode(unsigned int idx)
 {
     if (idx < m_nodes.size())
         return m_nodes[idx].get();
     else
         return NULL;
 }
-
 
 long NodeBC::getNodeIndex(unsigned int idx)
 {
@@ -136,23 +119,19 @@ long NodeBC::getNodeIndex(unsigned int idx)
         return -1;
 }
 
-
 size_t NodeBC::getNodeIndexSize()
 {
     return m_nodeIndex.size();
 }
-
 
 size_t NodeBC::getNodeSize()
 {
     return m_nodes.size();
 }
 
-
 void NodeBC::prescribe(int dof, double value)
 {
-    if ((dof >= 1) && (dof <= 6))
-    {
+    if ((dof >= 1) && (dof <= 6)) {
         m_prescribedDof[dof - 1] = true;
         m_prescribedValues[dof - 1] = value;
     }
@@ -189,16 +168,13 @@ void NodeBC::release()
         this->unprescribe(i);
 }
 
-
 void NodeBC::unprescribe(int dof)
 {
-    if ((dof >= 1) && (dof <= 6))
-    {
+    if ((dof >= 1) && (dof <= 6)) {
         m_prescribedDof[dof - 1] = false;
         m_prescribedValues[dof - 1] = 0.0;
     }
 }
-
 
 bool NodeBC::isPrescribed(int dof)
 {
@@ -208,7 +184,6 @@ bool NodeBC::isPrescribed(int dof)
         return false;
 }
 
-
 double NodeBC::getPrescribedValue(int dof)
 {
     if ((dof >= 1) && (dof <= 6))
@@ -217,12 +192,12 @@ double NodeBC::getPrescribedValue(int dof)
         return 0.0;
 }
 
-bool* NodeBC::getPrescribedArr()
+bool *NodeBC::getPrescribedArr()
 {
     return m_prescribedDof;
 }
 
-double* NodeBC::getPrescribedValueArr()
+double *NodeBC::getPrescribedValueArr()
 {
     return m_prescribedValues;
 }

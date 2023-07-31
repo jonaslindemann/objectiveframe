@@ -2,13 +2,11 @@
 
 #include <ofem/section.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(TubeSection);
 
-class TubeSection : public Section
-{
+class TubeSection : public Section {
 public:
     TubeSection();
     virtual ~TubeSection();
@@ -16,4 +14,4 @@ public:
     ClassInfo("TubeSection", Section);
     StdFactory(TubeSection);
 };
-}
+} // namespace ofem

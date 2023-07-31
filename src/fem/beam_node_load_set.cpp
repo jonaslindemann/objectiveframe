@@ -2,19 +2,15 @@
 
 using namespace ofem;
 
-
-BeamNodeLoadSet::BeamNodeLoadSet()
-    : NodeLoadSet()
+BeamNodeLoadSet::BeamNodeLoadSet() : NodeLoadSet()
 {
 }
-
 
 BeamNodeLoadSet::~BeamNodeLoadSet()
 {
 }
 
-
-Load* BeamNodeLoadSet::createLoad()
+Load *BeamNodeLoadSet::createLoad()
 {
     return new BeamNodeLoad();
 }

@@ -13,8 +13,7 @@
 using namespace ofem;
 using namespace std;
 
-BeamMaterial::BeamMaterial()
-    : Material()
+BeamMaterial::BeamMaterial() : Material()
 {
     m_width = 0.0;
     m_height = 0.0;
@@ -33,9 +32,7 @@ BeamMaterial::~BeamMaterial()
 {
 }
 
-void BeamMaterial::setProperties(double E, double G,
-    double A, double Iy,
-    double Iz, double Kv)
+void BeamMaterial::setProperties(double E, double G, double A, double Iy, double Iz, double Kv)
 {
     m_E = E;
     m_G = G;
@@ -45,8 +42,7 @@ void BeamMaterial::setProperties(double E, double G,
     m_Kv = Kv;
 }
 
-void BeamMaterial::getProperties(double& E, double& G, double& A,
-    double& Iy, double& Iz, double& Kv)
+void BeamMaterial::getProperties(double &E, double &G, double &A, double &Iy, double &Iz, double &Kv)
 {
     E = m_E;
     G = m_G;
@@ -56,7 +52,7 @@ void BeamMaterial::getProperties(double& E, double& G, double& A,
     Kv = m_Kv;
 }
 
-void BeamMaterial::print(ostream& out)
+void BeamMaterial::print(ostream &out)
 {
     out << "Material : " << this->getName() << endl;
     out << "   E  = " << m_E << endl;
@@ -67,7 +63,7 @@ void BeamMaterial::print(ostream& out)
     out << "   Kv = " << m_Kv << endl;
 }
 
-void BeamMaterial::saveToStream(std::ostream& out)
+void BeamMaterial::saveToStream(std::ostream &out)
 {
     Material::saveToStream(out);
     out << this->getName() << endl;
@@ -82,18 +78,16 @@ void BeamMaterial::saveToStream(std::ostream& out)
     out << m_Iz << " ";
     out << m_Kv << " " << endl;
 
-    if (m_section != nullptr)
-    {
+    if (m_section != nullptr) {
         out << m_section->getSectionType() << endl;
         m_section->saveToStream(out);
     }
-    else
-    {
+    else {
         out << -1 << endl;
     }
 }
 
-void BeamMaterial::readFromStream(std::istream& in)
+void BeamMaterial::readFromStream(std::istream &in)
 {
     int sectionType;
     string matName;
@@ -116,10 +110,8 @@ void BeamMaterial::readFromStream(std::istream& in)
     in >> m_Kv;
     in >> sectionType;
 
-    if (sectionType > -1)
-    {
-        switch (sectionType)
-        {
+    if (sectionType > -1) {
+        switch (sectionType) {
         case FEM_I_SECTION:
             m_section = ISection::create();
             break;
@@ -147,34 +139,26 @@ void BeamMaterial::readFromStream(std::istream& in)
         }
         m_section->readFromStream(in);
     }
-    else
-    {
+    else {
     }
 }
 
-void BeamMaterial::setSection(Section* section)
+void BeamMaterial::setSection(Section *section)
 {
     m_section = SectionPtr(section);
 }
 
 void BeamMaterial::assignPropFromSection()
 {
-    if (m_section != nullptr)
-    {
-        this->setProperties(
-            m_section->data(0),
-            m_section->data(2),
-            m_section->data(1),
-            m_section->data(3),
-            m_section->data(4),
-            m_section->data(5));
+    if (m_section != nullptr) {
+        this->setProperties(m_section->data(0), m_section->data(2), m_section->data(1), m_section->data(3),
+                            m_section->data(4), m_section->data(5));
     }
 }
 
 void BeamMaterial::setSectionType(SectionType sectionType)
 {
-    switch (sectionType)
-    {
+    switch (sectionType) {
     case ST_I:
         m_section = ISection::create();
         break;
@@ -202,12 +186,12 @@ void BeamMaterial::setSectionType(SectionType sectionType)
     }
 }
 
-Section* BeamMaterial::getSection()
+Section *BeamMaterial::getSection()
 {
     return m_section.get();
 }
 
-void BeamMaterial::setName(const std::string& name)
+void BeamMaterial::setName(const std::string &name)
 {
     m_name = name;
 }

@@ -1,14 +1,13 @@
 #include <vfem/beam.h>
 
-#include <ivfmath/Vec3d.h>
 #include <ivf/BlendState.h>
 #include <ivf/Blending.h>
+#include <ivfmath/Vec3d.h>
 
 using namespace ivf;
 using namespace vfem;
 
-Beam::Beam()
-    : Composite()
+Beam::Beam() : Composite()
 {
     m_femBeam = nullptr;
 
@@ -23,14 +22,14 @@ Beam::Beam()
 
     // Set up the solid line
 
-    //auto blendState = ivf::BlendState::create();
-    //blendState->setFunction(GL_ONE, GL_ONE);
+    // auto blendState = ivf::BlendState::create();
+    // blendState->setFunction(GL_ONE, GL_ONE);
 
     m_solidLine = SolidLine::create();
     m_solidLine->setMaterial(m_beamMaterial);
     m_solidLine->setUseName(false);
     m_solidLine->setUseSelectShape(false);
-    //m_solidLine->setRenderState(blendState);
+    // m_solidLine->setRenderState(blendState);
     this->addChild(m_solidLine);
 
     // Set up line set
@@ -65,8 +64,7 @@ Beam::Beam()
 
     int i;
 
-    for (i = 0; i < 8; i++)
-    {
+    for (i = 0; i < 8; i++) {
         /*
         m_beamImage->setPixel(0,i,255,255,255);
         m_beamImage->setPixel(1,i,0,0,0);
@@ -106,10 +104,8 @@ Beam::Beam()
 
 Beam::~Beam()
 {
-    for (int i = 0; i < 2; i++)
-    {
-        if (m_nodes[i] != nullptr)
-        {
+    for (int i = 0; i < 2; i++) {
+        if (m_nodes[i] != nullptr) {
             m_nodes[i]->deleteReference();
             if (!m_nodes[i]->referenced())
                 delete m_nodes[i];
@@ -117,24 +113,23 @@ Beam::~Beam()
     }
 }
 
-void Beam::setBeam(ofem::Beam* beam)
+void Beam::setBeam(ofem::Beam *beam)
 {
     m_femBeam = beam;
 }
 
-ofem::Beam* Beam::getBeam()
+ofem::Beam *Beam::getBeam()
 {
     return m_femBeam;
 }
 
 void Beam::refresh()
 {
-    if (m_femBeam != nullptr)
-    {
+    if (m_femBeam != nullptr) {
         double x1, y1, z1;
         double x2, y2, z2;
-        ofem::Node* node1 = m_nodes[0]->getFemNode();
-        ofem::Node* node2 = m_nodes[1]->getFemNode();
+        ofem::Node *node1 = m_nodes[0]->getFemNode();
+        ofem::Node *node2 = m_nodes[1]->getFemNode();
         node1->getCoord(x1, y1, z1);
         node2->getCoord(x2, y2, z2);
 
@@ -142,31 +137,23 @@ void Beam::refresh()
         m_solidLine->setState(Shape::OS_OFF);
         m_extrusion->setState(Shape::OS_OFF);
 
-        if (m_beamModel != nullptr)
-        {
+        if (m_beamModel != nullptr) {
 
-            if (m_beamModel->getColorTable() == nullptr)
-            {
-                if (m_femBeam->getMaterial() != nullptr)
-                {
+            if (m_beamModel->getColorTable() == nullptr) {
+                if (m_femBeam->getMaterial() != nullptr) {
                     m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 0.0f, 1.0f);
                     m_beamMaterial->setSpecularColor(0.0f, 0.0f, 0.0f, 0.0f);
                 }
-                else
-                {
+                else {
                     m_beamMaterial->setDiffuseColor(0.5f, 0.5f, 0.5f, 1.0f);
                     m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
                 }
             }
-            else
-            {
-                if (m_femBeam->getMaterial() != nullptr)
-                {
-                    m_beamModel->getColorTable()->assignColor(
-                        m_femBeam->getMaterial()->getColor(), m_beamMaterial);
+            else {
+                if (m_femBeam->getMaterial() != nullptr) {
+                    m_beamModel->getColorTable()->assignColor(m_femBeam->getMaterial()->getColor(), m_beamMaterial);
                 }
-                else
-                {
+                else {
                     m_beamMaterial->setDiffuseColor(0.5f, 0.5f, 0.5f, 1.0f);
                     m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
                 }
@@ -176,8 +163,7 @@ void Beam::refresh()
             m_extrusion->setState(Shape::OS_OFF);
             m_solidLine->setState(Shape::OS_OFF);
 
-            switch (m_beamModel->getBeamType())
-            {
+            switch (m_beamModel->getBeamType()) {
             case IVF_BEAM_LINESET:
                 m_lineSet->setCoord(0, x1, y1, z1);
                 m_lineSet->setCoord(1, x2, y2, z2);
@@ -186,7 +172,6 @@ void Beam::refresh()
             case IVF_BEAM_SOLID:
                 if (m_beamModel != nullptr)
                     m_solidLine->setRadius(m_beamModel->getLineRadius());
-                
 
                 m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                 m_solidLine->setState(Shape::OS_ON);
@@ -199,8 +184,7 @@ void Beam::refresh()
                 if (m_solidLine->getSides() != m_beamModel->getLineSides())
                     m_solidLine->setSides(m_beamModel->getLineSides());
 
-                if (this->getBeam()->beamType() == ofem::btBar)
-                {
+                if (this->getBeam()->beamType() == ofem::btBar) {
                     m_solidLine->setOffsets(-m_beamModel->getNodeSize() * 2.0, -m_beamModel->getNodeSize() * 2.0);
                     m_solidLine->setStartOffsets(-m_beamModel->getNodeSize(), -m_beamModel->getNodeSize());
                 }
@@ -212,23 +196,19 @@ void Beam::refresh()
                 m_solidLine->setTextureMode(0);
                 break;
             case IVF_BEAM_RESULTS:
-                if (m_beamModel != nullptr)
-                {
-                    if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT)
-                    {
+                if (m_beamModel != nullptr) {
+                    if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) {
                         m_solidLine->setRadius(m_beamModel->getLineRadius());
                         m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                         m_solidLine->setState(Shape::OS_ON);
                         m_beamTexture->activate();
                         m_beamTexture->setTextureModifier(1.0, 0.8 / m_solidLine->getLength(), 0.0);
-                        //m_beamTexture->setTextureModifier(1.0, 1.0, 0.0);
-                        if (m_beamModel->getUseBlending())
-                        {
+                        // m_beamTexture->setTextureModifier(1.0, 1.0, 0.0);
+                        if (m_beamModel->getUseBlending()) {
                             m_beamMaterial->setDiffuseColor(0.3f, 0.3f, 0.3f, 1.0f);
                             m_beamMaterial->setAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
                         }
-                        else
-                        {
+                        else {
                             m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
                             m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
                         }
@@ -238,8 +218,7 @@ void Beam::refresh()
                         // m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_NORMAL_FLAT);
                         initResults();
                     }
-                    else
-                    {
+                    else {
                         m_solidLine->setRadius(m_beamModel->getLineRadius());
                         m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                         m_solidLine->setState(Shape::OS_ON);
@@ -250,10 +229,8 @@ void Beam::refresh()
                 }
                 break;
             case IVF_BEAM_EXTRUSION:
-                if (m_femBeam != nullptr)
-                {
-                    if (m_femBeam->getMaterial() != nullptr)
-                    {
+                if (m_femBeam != nullptr) {
+                    if (m_femBeam->getMaterial() != nullptr) {
                         initExtrusion();
                         m_extrusion->setState(Shape::OS_ON);
                     }
@@ -269,21 +246,18 @@ void Beam::refresh()
 
 void Beam::doCreateGeometry()
 {
-    if (m_femBeam != nullptr)
-    {
-        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT)&&(m_beamModel->getUseBlending()))
-        {
+    if (m_femBeam != nullptr) {
+        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending())) {
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glEnable(GL_BLEND);
             glDisable(GL_LIGHTING);
             glBlendFunc(GL_ONE, GL_ONE);
-            glDisable(GL_DEPTH_TEST);            
+            glDisable(GL_DEPTH_TEST);
         }
-       
+
         Composite::doCreateGeometry();
 
-        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending()))
-        {
+        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending())) {
 
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
@@ -293,12 +267,10 @@ void Beam::doCreateGeometry()
     }
 }
 
-void Beam::setNodes(vfem::Node* node1, vfem::Node* node2)
+void Beam::setNodes(vfem::Node *node1, vfem::Node *node2)
 {
-    for (int i = 0; i < 2; i++)
-    {
-        if (m_nodes[i] != nullptr)
-        {
+    for (int i = 0; i < 2; i++) {
+        if (m_nodes[i] != nullptr) {
             m_nodes[i]->deleteReference();
             if (!m_nodes[i]->referenced())
                 delete m_nodes[i];
@@ -312,7 +284,7 @@ void Beam::setNodes(vfem::Node* node1, vfem::Node* node2)
     m_beamTexture->setTextureModifier(1.0, 1.0 / m_solidLine->getLength(), 0.0);
 }
 
-vfem::Node* vfem::Beam::getNode(int idx)
+vfem::Node *vfem::Beam::getNode(int idx)
 {
     if ((idx >= 0) && (idx < 2))
         return m_nodes[idx];
@@ -322,10 +294,8 @@ vfem::Node* vfem::Beam::getNode(int idx)
 
 void Beam::doCreateSelect()
 {
-    if (m_beamModel != nullptr)
-    {
-        switch (m_beamModel->getBeamType())
-        {
+    if (m_beamModel != nullptr) {
+        switch (m_beamModel->getBeamType()) {
         case IVF_BEAM_LINESET:
 
             break;
@@ -337,16 +307,13 @@ void Beam::doCreateSelect()
 
             break;
         case IVF_BEAM_EXTRUSION:
-            if (m_femBeam->getMaterial() != nullptr)
-            {
-                if (m_extrusion->getState() == Shape::OS_ON)
-                {
+            if (m_femBeam->getMaterial() != nullptr) {
+                if (m_extrusion->getState() == Shape::OS_ON) {
                     m_extrusion->setSelect(Shape::SS_ON);
                     m_extrusion->render();
                     m_extrusion->setSelect(Shape::SS_OFF);
                 }
-                else
-                {
+                else {
                     m_solidLine->setSelect(Shape::SS_ON);
                     m_solidLine->render();
                     m_solidLine->setSelect(Shape::SS_OFF);
@@ -370,17 +337,15 @@ void Beam::initExtrusion()
 
     m_extrusion->setUseTwist(true);
 
-    if ((m_femBeam != nullptr) && (m_femBeam->getMaterial() != nullptr) && (m_femBeam->getMaterial()->getSection() != nullptr))
-    {
-        ofem::Section* section = m_femBeam->getMaterial()->getSection();
+    if ((m_femBeam != nullptr) && (m_femBeam->getMaterial() != nullptr) &&
+        (m_femBeam->getMaterial()->getSection() != nullptr)) {
+        ofem::Section *section = m_femBeam->getMaterial()->getSection();
         double x, y;
         m_extrusion->setSectionSize(static_cast<int>(section->getSize()));
-        for (unsigned int i = 0; i < section->getSize(); i++)
-        {
+        for (unsigned int i = 0; i < section->getSize(); i++) {
             section->getCoord(i, x, y);
             m_extrusion->setSectionCoord(i, x, y);
-            if (i < section->getSize() - 1)
-            {
+            if (i < section->getSize() - 1) {
                 section->getNormal(i, x, y);
                 m_extrusion->setSectionNormal(i, x, y);
             }
@@ -440,25 +405,21 @@ void Beam::initExtrusion()
 
 void Beam::initResults()
 {
-    if (m_beamModel != nullptr)
-    {
+    if (m_beamModel != nullptr) {
         ColorMapPtr colorMapPos;
         ColorMapPtr colorMapNeg;
-       
-        if (m_beamModel->getUseBlending())
-        {
+
+        if (m_beamModel->getUseBlending()) {
             colorMapPos = m_beamModel->getColorMapPosBlack();
-            colorMapNeg = m_beamModel->getColorMapNegBlack();        
+            colorMapNeg = m_beamModel->getColorMapNegBlack();
         }
-        else
-        {
+        else {
             colorMapPos = m_beamModel->getColorMapPos();
-            colorMapNeg = m_beamModel->getColorMapNeg();        
+            colorMapNeg = m_beamModel->getColorMapNeg();
         }
         ColorMapPtr colorMapStd = m_beamModel->getColorMapStd();
 
-        if (m_femBeam != nullptr)
-        {
+        if (m_femBeam != nullptr) {
             int n = m_femBeam->getEvaluationPoints();
             int k;
             float red, green, blue;
@@ -468,21 +429,16 @@ void Beam::initResults()
 
             red = green = blue = 0.0;
 
-            for (k = 0; k < n; k++)
-            {
-                if (m_femBeam->beamType() == ofem::btBeam)
-                {
-                    switch (m_beamModel->getResultType())
-                    {
+            for (k = 0; k < n; k++) {
+                if (m_femBeam->beamType() == ofem::btBeam) {
+                    switch (m_beamModel->getResultType()) {
                     case IVF_BEAM_N:
                         value = m_femBeam->getValue(0 + 6 * k);
-                        if (value > 0)
-                        {
+                        if (value > 0) {
                             value = fabs(value) / m_beamModel->maxN();
                             colorMapPos->getColor(value, red, green, blue);
                         }
-                        else
-                        {
+                        else {
                             value = fabs(value) / m_beamModel->minN();
                             colorMapNeg->getColor(fabs(value), red, green, blue);
                         }
@@ -516,19 +472,15 @@ void Beam::initResults()
                         break;
                     }
                 }
-                else
-                {
-                    switch (m_beamModel->getResultType())
-                    {
+                else {
+                    switch (m_beamModel->getResultType()) {
                     case IVF_BEAM_N:
                         value = m_femBeam->getValue(0 + 6 * k);
-                        if (value > 0)
-                        {
+                        if (value > 0) {
                             value = fabs(value) / m_beamModel->maxN();
                             colorMapPos->getColor(value, red, green, blue);
                         }
-                        else
-                        {
+                        else {
                             value = fabs(value) / m_beamModel->minN();
                             colorMapNeg->getColor(fabs(value), red, green, blue);
                         }
@@ -572,7 +524,7 @@ void Beam::initResults()
     }
 }
 
-void Beam::setBeamModel(BeamModel* beamModel)
+void Beam::setBeamModel(BeamModel *beamModel)
 {
     m_beamModel = beamModel;
 }

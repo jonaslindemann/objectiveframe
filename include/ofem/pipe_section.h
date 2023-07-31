@@ -4,8 +4,7 @@
 
 #define FEM_PIPE_SECTION 3
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(PipeSection);
 
@@ -20,8 +19,7 @@ SmartPointer(PipeSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class PipeSection : public Section
-{
+class PipeSection : public Section {
 public:
     PipeSection();
 
@@ -40,7 +38,7 @@ public:
      * This function gives all measurements associated with the Pipe-Section.
      *
      */
-    void getSectionSize(double& outerRadius, double& innerRadius);
+    void getSectionSize(double &outerRadius, double &innerRadius);
 
     /**
      * Set section size
@@ -58,15 +56,16 @@ public:
      */
     void setData();
 
-    virtual void getExcZ(double& emax, double& emin) override;
-    virtual void getExcY(double& emax, double& emin) override;
+    virtual void getExcZ(double &emax, double &emin) override;
+    virtual void getExcY(double &emax, double &emin) override;
 
     virtual void calcDataFromSection() override;
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius) override;
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                 double &innerRadius) override;
 };
-}
+} // namespace ofem

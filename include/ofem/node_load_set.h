@@ -2,13 +2,11 @@
 
 #include <ofem/load_set.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(NodeLoadSet);
 
-class NodeLoadSet : public LoadSet
-{
+class NodeLoadSet : public LoadSet {
 public:
     NodeLoadSet();
     virtual ~NodeLoadSet();
@@ -19,6 +17,6 @@ public:
     StdFactory(NodeLoadSet);
 
 protected:
-    virtual Load* createLoad() override;
+    virtual Load *createLoad() override;
 };
-}
+} // namespace ofem

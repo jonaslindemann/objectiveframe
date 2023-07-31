@@ -2,13 +2,11 @@
 
 #include <string>
 
-namespace ofem
-{
+namespace ofem {
 
-    class ModelStateInfo
-{
+class ModelStateInfo {
 public:
-    static ModelStateInfo& getInstance()
+    static ModelStateInfo &getInstance()
     {
         static ModelStateInfo instance; // Guaranteed to be destroyed.
                                         // Instantiated on first use.
@@ -27,8 +25,8 @@ private:
     // We can use the better technique of deleting the methods
     // we don't want.
 public:
-    ModelStateInfo(ModelStateInfo const&) = delete;
-    void operator=(ModelStateInfo const&) = delete;
+    ModelStateInfo(ModelStateInfo const &) = delete;
+    void operator=(ModelStateInfo const &) = delete;
 
     void setVersion(std::string version);
     std::string version();
@@ -46,4 +44,4 @@ public:
     //       before deleted status
 };
 
-}
+} // namespace ofem

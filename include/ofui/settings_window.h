@@ -8,11 +8,9 @@ class FemViewWindow;
 class FemWidget;
 #endif
 
-namespace ofui
-{
+namespace ofui {
 
-class SettingsWindow : public UiWindow
-{
+class SettingsWindow : public UiWindow {
 private:
     float m_size;
     float m_prevSize;
@@ -28,9 +26,9 @@ private:
     int m_lineSides;
 
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
 
 public:
@@ -38,9 +36,9 @@ public:
     virtual ~SettingsWindow();
 
 #ifdef USE_FEMVIEW
-    void setFemView(FemViewWindow* view);
+    void setFemView(FemViewWindow *view);
 #else
-    void setFemWidget(FemWidget* femWidget);
+    void setFemWidget(FemWidget *femWidget);
 #endif
 
     void update();
@@ -53,4 +51,4 @@ protected:
 
 typedef std::shared_ptr<SettingsWindow> SettingsWindowPtr;
 
-}
+} // namespace ofui

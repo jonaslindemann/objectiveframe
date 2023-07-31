@@ -2,8 +2,7 @@
 
 using namespace ofem;
 
-ElementSet::ElementSet()
-    : Base()
+ElementSet::ElementSet() : Base()
 {
 }
 
@@ -12,7 +11,7 @@ ElementSet::~ElementSet()
     deleteAll();
 }
 
-void ElementSet::print(std::ostream& out)
+void ElementSet::print(std::ostream &out)
 {
     using namespace std;
     for (unsigned int i = 0; i < m_elements.size(); i++)
@@ -20,12 +19,12 @@ void ElementSet::print(std::ostream& out)
     out << endl;
 }
 
-void ElementSet::addElement(Element* element)
+void ElementSet::addElement(Element *element)
 {
     m_elements.push_back(ElementPtr(element));
 }
 
-Element* ElementSet::getElement(long i)
+Element *ElementSet::getElement(long i)
 {
     if ((i >= 0) && (i < (long)m_elements.size()))
         return m_elements[i].get();
@@ -35,10 +34,8 @@ Element* ElementSet::getElement(long i)
 
 bool ElementSet::deleteElement(long i)
 {
-    if ((i >= 0) && (i < (long)m_elements.size()))
-    {
-        if (m_elements[i]->getRefCount() == 1)
-        {
+    if ((i >= 0) && (i < (long)m_elements.size())) {
+        if (m_elements[i]->getRefCount() == 1) {
             m_elements.erase(m_elements.begin() + i);
             return true;
         }
@@ -50,10 +47,8 @@ bool ElementSet::deleteElement(long i)
 
 bool ElementSet::removeElement(long i)
 {
-    if ((i >= 0) && (i < (long)m_elements.size()))
-    {
-        if (m_elements[i]->getRefCount() == 1)
-        {
+    if ((i >= 0) && (i < (long)m_elements.size())) {
+        if (m_elements[i]->getRefCount() == 1) {
             ElementPtr element = m_elements[i];
             m_elements.erase(m_elements.begin() + i);
             return true;
@@ -87,7 +82,7 @@ size_t ElementSet::getSize()
     return m_elements.size();
 }
 
-void ElementSet::saveToStream(std::ostream& out)
+void ElementSet::saveToStream(std::ostream &out)
 {
     using namespace std;
     Base::saveToStream(out);
@@ -96,39 +91,36 @@ void ElementSet::saveToStream(std::ostream& out)
         m_elements[i]->saveToStream(out);
 }
 
-void ElementSet::readFromStream(std::istream& in)
+void ElementSet::readFromStream(std::istream &in)
 {
     long nElements;
     Base::readFromStream(in);
     in >> nElements;
     deleteAll();
-    for (int i = 0; i < nElements; i++)
-    {
+    for (int i = 0; i < nElements; i++) {
         ElementPtr element = ElementPtr(createElement());
         element->readFromStream(in);
         m_elements.push_back(element);
     }
 }
 
-void ElementSet::connectNodes(NodeSet* nodes)
+void ElementSet::connectNodes(NodeSet *nodes)
 {
-    for (unsigned int i = 0; i < m_elements.size(); i++)
-    {
+    for (unsigned int i = 0; i < m_elements.size(); i++) {
         ElementPtr element = m_elements[i];
         for (unsigned int j = 0; j < element->getIndexSize(); j++)
             element->addNode(nodes->getNode(element->getElementIndex(j) - 1));
     }
 }
 
-Element* ElementSet::createElement()
+Element *ElementSet::createElement()
 {
     return new Element();
 }
 
-bool ElementSet::removeElement(Element* element)
+bool ElementSet::removeElement(Element *element)
 {
-    for (unsigned int i = 0; i < m_elements.size(); i++)
-    {
+    for (unsigned int i = 0; i < m_elements.size(); i++) {
         if (element == m_elements[i].get())
             return this->deleteElement(i);
     }

@@ -5,26 +5,20 @@
 using namespace std;
 using namespace ofem;
 
-
-BC::BC()
-    : Base()
-    , m_number { -1 }
+BC::BC() : Base(), m_number{-1}
 {
 }
-
 
 BC::~BC()
 {
 }
 
-
-bool BC::isPrescribed(Dof* dof)
+bool BC::isPrescribed(Dof *dof)
 {
     std::vector<DofPtr>::iterator p = m_prescribedDofs.begin();
     std::vector<DofPtr>::iterator lastDof = m_prescribedDofs.end();
 
-    while (p != lastDof)
-    {
+    while (p != lastDof) {
         if ((*p).get() == dof)
             return true;
         p++;
@@ -32,27 +26,22 @@ bool BC::isPrescribed(Dof* dof)
     return false;
 }
 
-
-void BC::prescribeDof(Dof* dof, double value)
+void BC::prescribeDof(Dof *dof, double value)
 {
-    if (!isPrescribed(dof))
-    {
+    if (!isPrescribed(dof)) {
         m_prescribedDofs.push_back(DofPtr(dof));
         m_prescribedValues.push_back(value);
     }
 }
 
-
-void BC::unprescribeDof(Dof* dof)
+void BC::unprescribeDof(Dof *dof)
 {
     auto p = m_prescribedDofs.begin();
     auto q = m_prescribedValues.begin();
     auto lastDof = m_prescribedDofs.end();
 
-    while (p != lastDof)
-    {
-        if ((*p).get() == dof)
-        {
+    while (p != lastDof) {
+        if ((*p).get() == dof) {
             m_prescribedDofs.erase(p);
             m_prescribedValues.erase(q);
         }
@@ -61,27 +50,23 @@ void BC::unprescribeDof(Dof* dof)
     }
 }
 
-
 void BC::clearDofs()
 {
     m_prescribedDofs.clear();
     m_prescribedValues.clear();
 }
 
-
 void BC::setNumber(long number)
 {
     m_number = number;
 }
-
 
 long BC::getNumber()
 {
     return m_number;
 }
 
-
-void BC::saveToStream(std::ostream& out)
+void BC::saveToStream(std::ostream &out)
 {
     Base::saveToStream(out);
 
@@ -92,8 +77,7 @@ void BC::saveToStream(std::ostream& out)
     DofPtr dof;
 
     out << m_prescribedDofs.size() << endl;
-    while (p != lastDof)
-    {
+    while (p != lastDof) {
         dof = *p;
         out << dof->getKind() << " ";
         out << dof->getNumber() << " ";
@@ -103,7 +87,6 @@ void BC::saveToStream(std::ostream& out)
     }
 }
 
-
 json_nl BC::toJson()
 {
     json_nl j;
@@ -111,7 +94,7 @@ json_nl BC::toJson()
 
     json_nl dofList;
 
-    for (auto& pdof : m_prescribedDofs)
+    for (auto &pdof : m_prescribedDofs)
         dofList.push_back(pdof->toJson());
 
     j["prescribed_dofs"] = dofList;
@@ -119,8 +102,7 @@ json_nl BC::toJson()
     return j;
 }
 
-
-void BC::readFromStream(std::istream& in)
+void BC::readFromStream(std::istream &in)
 {
     Base::readFromStream(in);
 
@@ -131,8 +113,7 @@ void BC::readFromStream(std::istream& in)
     this->clearDofs();
 
     in >> nDofs;
-    for (int i = 0; i < nDofs; i++)
-    {
+    for (int i = 0; i < nDofs; i++) {
         dof = Dof::create();
         in >> kind;
         in >> number;
@@ -144,20 +125,17 @@ void BC::readFromStream(std::istream& in)
     }
 }
 
-
-void BC::print(std::ostream& out)
+void BC::print(std::ostream &out)
 {
 }
 
-
-Dof* BC::getDof(unsigned int idx)
+Dof *BC::getDof(unsigned int idx)
 {
     if (idx < m_prescribedDofs.size())
         return m_prescribedDofs[idx].get();
     else
         return NULL;
 }
-
 
 double BC::getValue(unsigned int idx)
 {
@@ -166,7 +144,6 @@ double BC::getValue(unsigned int idx)
     else
         return 0.0;
 }
-
 
 size_t BC::getSize()
 {

@@ -2,12 +2,11 @@
 
 using namespace ofui;
 
-CoordWindow::CoordWindow(const std::string name)
-    : UiWindow(name)
-    , m_coord { 0.0, 0.0, 0.0 }
+CoordWindow::CoordWindow(const std::string name) : UiWindow(name), m_coord{0.0, 0.0, 0.0}
 {
-    this->setWindowFlags(
-        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+    this->setWindowFlags(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                         ImGuiWindowFlags_NoNav);
 }
 
 CoordWindow::~CoordWindow()
@@ -21,7 +20,7 @@ void CoordWindow::setCoord(double x, double y, double z)
     m_coord[2] = z;
 }
 
-void CoordWindow::coord(double& x, double& y, double& z)
+void CoordWindow::coord(double &x, double &y, double &z)
 {
     x = m_coord[0];
     y = m_coord[1];
@@ -37,7 +36,7 @@ void CoordWindow::doPreDraw()
 {
     const int corner = 1;
     const float PAD = 10.0f;
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
     ImVec2 work_size = viewport->WorkSize;
     ImVec2 window_pos, window_pos_pivot;

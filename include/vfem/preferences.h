@@ -1,15 +1,13 @@
 #pragma once
 
-namespace vfem
-{
+namespace vfem {
 
-class Preferences
-{
+class Preferences {
 public:
-    static Preferences& instance()
+    static Preferences &instance()
     {
         static Preferences m_instance; // Guaranteed to be destroyed.
-                           // Instantiated on first use.
+                                       // Instantiated on first use.
         return m_instance;
     }
 
@@ -20,8 +18,8 @@ private:
     bool m_useSphereNodes;
 
 public:
-    Preferences(Preferences const&) = delete;
-    void operator=(Preferences const&) = delete;
+    Preferences(Preferences const &) = delete;
+    void operator=(Preferences const &) = delete;
 
     bool showNodeNumbers();
     bool useSphereNodes();
@@ -30,4 +28,4 @@ public:
     void setUseSphereNodes(bool flag);
 };
 
-}
+} // namespace vfem

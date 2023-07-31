@@ -5,8 +5,7 @@
 #define CFEMUSECTION 10105
 #define FEM_U_SECTION 8
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(USection);
 
@@ -21,8 +20,7 @@ SmartPointer(USection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class USection : public Section
-{
+class USection : public Section {
 private:
     double m_Ytp;
     double m_Xtp;
@@ -45,7 +43,7 @@ public:
      * This function gives all measurements associated with the U-Section.
      *
      */
-    void getSectionSize(double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT);
+    void getSectionSize(double &height, double &UFW, double &LFW, double &WT, double &UFT, double &LFT);
 
     /**
      * Set section size
@@ -63,15 +61,16 @@ public:
      */
     void setData();
 
-    virtual void getExcZ(double& emax, double& emin) override;
-    virtual void getExcY(double& emax, double& emin) override;
+    virtual void getExcZ(double &emax, double &emin) override;
+    virtual void getExcY(double &emax, double &emin) override;
 
     virtual void calcDataFromSection() override;
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius) override;
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                 double &innerRadius) override;
 };
-}
+} // namespace ofem

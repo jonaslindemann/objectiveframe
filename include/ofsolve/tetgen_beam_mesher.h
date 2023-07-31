@@ -5,19 +5,17 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <vector>
-#include <limits>
 
 #include <Eigen/Dense>
 
-namespace ofsolver
-{
+namespace ofsolver {
 
 bool is_equal(double a, double b, double eps = 1e-7);
 
-class TetgenNode 
-{
+class TetgenNode {
 private:
     int m_idx;
     double m_pos[3];
@@ -34,8 +32,7 @@ public:
     bool zIsNear(double value, double eps = 1e-6);
 };
 
-class TetgenEdge
-{
+class TetgenEdge {
 private:
     int m_idx;
     int m_i0;
@@ -51,8 +48,7 @@ public:
     void setIndices(int i0, int i1);
 };
 
-class TetgenFace
-{
+class TetgenFace {
 private:
     int m_idx;
     int m_i0;
@@ -70,20 +66,18 @@ public:
     void setIndices(int i0, int i1, int i2);
 };
 
-
-class TetgenNodes
-{
+class TetgenNodes {
 private:
     std::vector<TetgenNode> m_nodes;
     std::vector<int> m_nodeIndices;
 
 public:
-    TetgenNodes(size_t preAllocate=0);
+    TetgenNodes(size_t preAllocate = 0);
 
     void addNode(int idx, double x, double y, double z);
     void clear();
     void preAllocate(size_t nNodes);
-    const std::vector<int>& nodeIndices();
+    const std::vector<int> &nodeIndices();
 
     size_t count();
 
@@ -92,8 +86,7 @@ public:
     void save(const std::string filename);
 };
 
-class TetgenEdges
-{
+class TetgenEdges {
 private:
     std::vector<TetgenEdge> m_edges;
 
@@ -105,13 +98,12 @@ public:
 
     void load(const std::string filename);
 
-    void updateIndices(const std::vector<int>& indices);
+    void updateIndices(const std::vector<int> &indices);
 
     TetgenEdge at(int idx);
 };
 
-class TetgenFaces
-{
+class TetgenFaces {
 private:
     std::vector<TetgenFace> m_faces;
 
@@ -123,14 +115,12 @@ public:
 
     void load(const std::string filename);
 
-    void updateIndices(const std::vector<int>& indices);
+    void updateIndices(const std::vector<int> &indices);
 
     TetgenFace at(int idx);
 };
 
-
-class TetgenBeamMesher
-{
+class TetgenBeamMesher {
 private:
     TetgenNodes m_nodes;
     TetgenEdges m_edges;
@@ -155,11 +145,11 @@ public:
     size_t nodeCount();
     void generate();
 
-    TetgenNodes& nodes();
-    TetgenEdges& edges();
-    TetgenFaces& faces();
+    TetgenNodes &nodes();
+    TetgenEdges &edges();
+    TetgenFaces &faces();
 };
 
 typedef std::shared_ptr<TetgenBeamMesher> TetgenBeamMesherPtr;
 
-}
+} // namespace ofsolver

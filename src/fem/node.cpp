@@ -2,9 +2,7 @@
 
 using namespace ofem;
 
-
-Node::Node()
-    : Base()
+Node::Node() : Base()
 {
     m_number = -1;
     m_coord[0] = 0.0;
@@ -13,20 +11,16 @@ Node::Node()
     this->setKind(nkNotConnected);
 }
 
-
-Node::Node(double x, double y, double z)
-    : Base()
+Node::Node(double x, double y, double z) : Base()
 {
     m_number = -1;
     this->setCoord(x, y, z);
     this->setKind(nkNotConnected);
 }
 
-
 Node::~Node()
 {
 }
-
 
 void Node::setCoord(double x, double y, double z)
 {
@@ -35,28 +29,24 @@ void Node::setCoord(double x, double y, double z)
     m_coord[2] = z;
 }
 
-
-void Node::getCoord(double& x, double& y, double& z)
+void Node::getCoord(double &x, double &y, double &z)
 {
     x = m_coord[0];
     y = m_coord[1];
     z = m_coord[2];
 }
 
-
 void Node::setNumber(long number)
 {
     m_number = number;
 }
-
 
 long Node::getNumber()
 {
     return m_number;
 }
 
-
-void Node::print(std::ostream& out)
+void Node::print(std::ostream &out)
 {
     using namespace std;
     out << "Node " << m_number << endl;
@@ -94,7 +84,7 @@ json_nl Node::toJson()
 
     json_nl jdofs;
 
-    for (auto& dof : m_dofs)
+    for (auto &dof : m_dofs)
         jdofs.push_back(dof->toJson());
 
     j["dofs"] = jdofs;
@@ -102,10 +92,9 @@ json_nl Node::toJson()
     return j;
 }
 
-void Node::fromJson(nlohmann::json& j)
+void Node::fromJson(nlohmann::json &j)
 {
 }
-
 
 void Node::setKind(NodeKind kind)
 {
@@ -119,18 +108,15 @@ void Node::setKind(NodeKind kind)
 
     // Create new dofs
 
-    switch (m_kind)
-    {
+    switch (m_kind) {
     case nk3Dof:
-        for (i = 0; i < 3; i++)
-        {
+        for (i = 0; i < 3; i++) {
             DofPtr dof = Dof::create(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
         break;
     case nk6Dof:
-        for (i = 0; i < 6; i++)
-        {
+        for (i = 0; i < 6; i++) {
             DofPtr dof = Dof::create(static_cast<DofKind>(i));
             m_dofs.push_back(dof);
         }
@@ -140,21 +126,18 @@ void Node::setKind(NodeKind kind)
     }
 }
 
-
 NodeKind Node::getKind()
 {
     return m_kind;
 }
 
-
-Dof* Node::getDof(unsigned int dof)
+Dof *Node::getDof(unsigned int dof)
 {
     if (dof < m_dofs.size())
         return m_dofs[dof].get();
     else
         return NULL;
 }
-
 
 long Node::enumerateDofs(long count)
 {
@@ -163,16 +146,14 @@ long Node::enumerateDofs(long count)
     return count;
 }
 
-
-void Node::saveToStream(std::ostream& out)
+void Node::saveToStream(std::ostream &out)
 {
     using namespace std;
     Base::saveToStream(out);
 
     int kind;
 
-    switch (m_kind)
-    {
+    switch (m_kind) {
     case nk3Dof:
         kind = 0;
         break;
@@ -210,8 +191,7 @@ void Node::saveToStream(std::ostream& out)
     out << endl;
 }
 
-
-void Node::readFromStream(std::istream& in)
+void Node::readFromStream(std::istream &in)
 {
     Base::readFromStream(in);
 
@@ -219,28 +199,26 @@ void Node::readFromStream(std::istream& in)
 
     in >> kind;
 
-    switch (kind)
-    {
-        case 0: 
-            m_kind = nk3Dof;    
-            break;
-        case 1:
-            m_kind = nk6Dof;
-            break;
-        case 2:
-            m_kind = nkNotConnected;
-            break;
-        default:
-            m_kind = nk3Dof;
-            break;
+    switch (kind) {
+    case 0:
+        m_kind = nk3Dof;
+        break;
+    case 1:
+        m_kind = nk6Dof;
+        break;
+    case 2:
+        m_kind = nkNotConnected;
+        break;
+    default:
+        m_kind = nk3Dof;
+        break;
     }
-        
+
     in >> m_number;
     for (int i = 0; i < 3; i++)
         in >> m_coord[i];
     this->setKind(m_kind);
 }
-
 
 void Node::setValueSize(int size)
 {
@@ -250,7 +228,6 @@ void Node::setValueSize(int size)
         m_values[i] = 0.0;
 }
 
-
 double Node::getValue(unsigned int idx)
 {
     if (idx < m_values.size())
@@ -259,19 +236,16 @@ double Node::getValue(unsigned int idx)
         return 0.0;
 }
 
-
 void Node::setValue(unsigned int idx, double value)
 {
     if (idx < m_values.size())
         m_values[idx] = value;
 }
 
-
 size_t Node::getValueSize()
 {
     return m_values.size();
 }
-
 
 void Node::clearValues()
 {

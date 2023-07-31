@@ -3,17 +3,15 @@
 #include <ofem/beam_material.h>
 #include <ofem/material_set.h>
 
-namespace ofem
-{
+namespace ofem {
 
-class BeamMaterialSet : public MaterialSet
-{
+class BeamMaterialSet : public MaterialSet {
 public:
     BeamMaterialSet();
     virtual ~BeamMaterialSet();
 
 protected:
-    virtual Material* createMaterial();
+    virtual Material *createMaterial();
 };
 
-}
+} // namespace ofem

@@ -3,8 +3,7 @@
 
 using namespace ofem;
 
-ElementLoadSet::ElementLoadSet()
-    : LoadSet()
+ElementLoadSet::ElementLoadSet() : LoadSet()
 {
 }
 
@@ -12,7 +11,7 @@ ElementLoadSet::~ElementLoadSet()
 {
 }
 
-Load* ElementLoadSet::createLoad()
+Load *ElementLoadSet::createLoad()
 {
     return new ElementLoad();
 }

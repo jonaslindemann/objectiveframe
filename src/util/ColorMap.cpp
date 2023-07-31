@@ -21,7 +21,7 @@ std::shared_ptr<ColorMap> ColorMap::create()
     return std::make_shared<ColorMap>();
 }
 
-void ColorMap::open(const std::string& fname)
+void ColorMap::open(const std::string &fname)
 {
     using namespace std;
 
@@ -46,8 +46,7 @@ void ColorMap::open(const std::string& fname)
     fileName = fileName + "/" + fname;
 
     m_mapFile.open(fileName.c_str(), ios::in);
-    if (m_mapFile.fail())
-    {
+    if (m_mapFile.fail()) {
         cout << "Could not open colormap file:" << endl;
         cout << "\t" << fileName << endl;
         m_error = true;
@@ -58,8 +57,7 @@ void ColorMap::open(const std::string& fname)
 
     m_mapFile >> nColors;
 
-    for (auto i = 0; i < nColors; i++)
-    {
+    for (auto i = 0; i < nColors; i++) {
         m_mapFile >> r >> g >> b;
         auto color = ColorEntry::create();
         color->setColor(r, g, b, 1.0f);
@@ -76,10 +74,9 @@ void ColorMap::clear()
     m_colors.clear();
 }
 
-void ColorMap::getColor(double value, float& r, float& g, float& b)
+void ColorMap::getColor(double value, float &r, float &g, float &b)
 {
-    if (m_colors.size() > 0)
-    {
+    if (m_colors.size() > 0) {
         double clampedValue;
         int colorIndex;
         float a;
@@ -119,20 +116,19 @@ void ColorMap::setValue(double value)
     this->getColor(m_value, m_currentColor[0], m_currentColor[1], m_currentColor[2]);
 }
 
-void ColorMap::setPath(const std::string& path)
+void ColorMap::setPath(const std::string &path)
 {
     m_progPath = path;
 }
 
-void ColorMap::setFileName(const std::string& fileName)
+void ColorMap::setFileName(const std::string &fileName)
 {
     m_fileName = fileName;
 }
 
 bool ColorMap::open()
 {
-    if (m_fileName != "")
-    {
+    if (m_fileName != "") {
         this->open(m_fileName);
         return m_error;
     }

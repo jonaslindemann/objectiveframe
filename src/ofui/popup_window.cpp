@@ -5,14 +5,8 @@
 using namespace ofui;
 
 PopupWindow::PopupWindow(const std::string name, bool modal)
-    : m_name { name }
-    , m_visible { false }
-    , m_windowFlags { 0 }
-    , m_updatePos { false }
-    , m_corner { -1 }
-    , m_modal { modal }
-    , m_closed { false }
-    , m_modalResult { PopupResult::NONE }
+    : m_name{name}, m_visible{false}, m_windowFlags{0},
+      m_updatePos{false}, m_corner{-1}, m_modal{modal}, m_closed{false}, m_modalResult{PopupResult::NONE}
 {
 }
 
@@ -27,12 +21,10 @@ std::shared_ptr<PopupWindow> PopupWindow::create(const std::string name, bool mo
 
 void PopupWindow::draw()
 {
-    if (m_visible)
-    {
-        if (m_updatePos)
-        {
+    if (m_visible) {
+        if (m_updatePos) {
             const float PAD = 10.0f;
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;
@@ -131,8 +123,7 @@ void PopupWindow::doDraw()
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-    if (ImGui::BeginPopupModal(m_name.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize))
-    {
+    if (ImGui::BeginPopupModal(m_name.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         this->doPopup();
         ImGui::EndPopup();
     }

@@ -16,17 +16,15 @@ class FemViewWindow;
 class FemWidget;
 #endif
 
-namespace ofui
-{
+namespace ofui {
 
-class MaterialsWindow : public UiWindow
-{
+class MaterialsWindow : public UiWindow {
 private:
-    ofem::BeamMaterialSet* m_materials;
+    ofem::BeamMaterialSet *m_materials;
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
     std::vector<bool> m_selected;
     int m_currentItemIdx;
@@ -38,12 +36,12 @@ public:
 
     static std::shared_ptr<MaterialsWindow> create(const std::string name);
 
-    void setFemMaterialSet(ofem::BeamMaterialSet* materialSet);
+    void setFemMaterialSet(ofem::BeamMaterialSet *materialSet);
 
 #ifdef USE_FEMVIEW
-    void setFemView(FemViewWindow* view);
+    void setFemView(FemViewWindow *view);
 #else
-    void setFemWidget(FemWidget* widget);
+    void setFemWidget(FemWidget *widget);
 #endif
 
 protected:
@@ -54,4 +52,4 @@ protected:
 
 typedef std::shared_ptr<MaterialsWindow> MaterialsWindowPtr;
 
-}
+} // namespace ofui

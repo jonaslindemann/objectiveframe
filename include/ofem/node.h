@@ -5,11 +5,9 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
-enum NodeKind
-{
+enum NodeKind {
     nk3Dof,
     nk6Dof,
     nkNotConnected
@@ -17,8 +15,7 @@ enum NodeKind
 
 SmartPointer(Node);
 
-class Node : public Base
-{
+class Node : public Base {
 private:
     long m_number;
     NodeKind m_kind;
@@ -38,11 +35,11 @@ public:
 
     // Methods
 
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 
     virtual json_nl toJson() override;
-    virtual void fromJson(json_nl& j) override;
+    virtual void fromJson(json_nl &j) override;
 
     long enumerateDofs(long count);
 
@@ -55,15 +52,15 @@ public:
     // Get/Set methods
 
     void setCoord(double x, double y, double z);
-    void getCoord(double& x, double& y, double& z);
+    void getCoord(double &x, double &y, double &z);
     void setNumber(long number);
     long getNumber();
     NodeKind getKind();
     void setKind(NodeKind kind);
-    Dof* getDof(unsigned int dof);
+    Dof *getDof(unsigned int dof);
 
     // IO methods
 
-    virtual void readFromStream(std::istream& in) override;
+    virtual void readFromStream(std::istream &in) override;
 };
-}
+} // namespace ofem

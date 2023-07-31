@@ -10,8 +10,7 @@
 
 IvfSmartPointer(PlaneButton);
 
-class PlaneButton : public ivf::GenericButton
-{
+class PlaneButton : public ivf::GenericButton {
 private:
     ivf::QuadPlanePtr m_normalShape;
     ivf::QuadPlanePtr m_pressedShape;
@@ -24,7 +23,7 @@ private:
 
 public:
     PlaneButton(int id);
-    PlaneButton(int id, const std::string& name);
+    PlaneButton(int id, const std::string &name);
 
     IvfClassInfo("PlaneButton", ivf::GenericButton);
 
@@ -33,7 +32,7 @@ public:
         return PlaneButtonPtr(new PlaneButton(id));
     }
 
-    static PlaneButtonPtr create(int id, const std::string& name)
+    static PlaneButtonPtr create(int id, const std::string &name)
     {
         return PlaneButtonPtr(new PlaneButton(id, name));
     }
@@ -41,10 +40,10 @@ public:
     virtual ~PlaneButton();
 
     void setSize(double width, double height);
-    void setTexture(ivf::Texture* texture);
+    void setTexture(ivf::Texture *texture);
 
     const std::string getHint();
-    void setHint(const std::string& hintText);
+    void setHint(const std::string &hintText);
 };
 
 #endif

@@ -3,12 +3,11 @@
 #include "Color.h"
 
 #include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
-class ColorMap
-{
+class ColorMap {
 private:
     std::vector<ColorEntryPtr> m_colors;
     bool m_reverseColors;
@@ -25,15 +24,15 @@ public:
 
     static std::shared_ptr<ColorMap> create();
 
-    void open(const std::string& fname);
+    void open(const std::string &fname);
     bool open();
     void clear();
-    void setPath(const std::string& path);
+    void setPath(const std::string &path);
 
-    void setFileName(const std::string& fileName);
+    void setFileName(const std::string &fileName);
     void setValue(double value);
     void setReverseColors(bool flag);
-    void getColor(double value, float& r, float& g, float& b);
+    void getColor(double value, float &r, float &g, float &b);
 };
 
 typedef std::shared_ptr<ColorMap> ColorMapPtr;

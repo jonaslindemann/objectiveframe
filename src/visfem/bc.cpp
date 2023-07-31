@@ -94,10 +94,8 @@ void BC::refresh()
 
 void BC::prescribe(int dof, bool prescribed)
 {
-    if ((dof >= 1) && (dof <= 6))
-    {
-        switch (dof)
-        {
+    if ((dof >= 1) && (dof <= 6)) {
+        switch (dof) {
         case 1:
             if (prescribed)
                 m_dispX->setState(Shape::OS_ON);
@@ -147,7 +145,7 @@ void BC::unprescribeAll()
         prescribe(i, false);
 }
 
-void BC::setBeamModel(BeamModel* model)
+void BC::setBeamModel(BeamModel *model)
 {
     m_beamModel = BeamModelPtr(model);
     refresh();

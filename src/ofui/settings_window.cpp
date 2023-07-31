@@ -12,19 +12,9 @@
 using namespace ofui;
 
 SettingsWindow::SettingsWindow(const std::string name)
-    : UiWindow(name)
-    , m_size { 20.0f }
-    , m_prevSize { 20.0f }
-    , m_nodeSize { 0.4f }
-    , m_lineRadius { 0.15f }
-    , m_loadSize { 7.0f }
-    , m_view { nullptr }
-    , m_scaleFactor { 1.0f }
-    , m_lockScaleFactor { false }
-    , m_showNodeNumbers { true }
-    , m_uiScale { 1.0f }
-    , m_lineSides { 6 }
-    , m_sphereNodes { true }
+    : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f},
+      m_loadSize{7.0f}, m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false},
+      m_showNodeNumbers{true}, m_uiScale{1.0f}, m_lineSides{6}, m_sphereNodes{true}
 {
 }
 
@@ -33,17 +23,17 @@ SettingsWindow::~SettingsWindow()
 }
 
 #ifdef USE_FEMVIEW
-void ofui::SettingsWindow::setFemView(FemViewWindow* view)
+void ofui::SettingsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
     m_size = float(m_view->getWorkspace());
     m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
     m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
-    //m_scaleFactor = float(m_view->getScalefactor());
+    // m_scaleFactor = float(m_view->getScalefactor());
     m_showNodeNumbers = vfem::Preferences::instance().showNodeNumbers();
     m_uiScale = m_view->uiScale();
-    m_lineSides = static_cast<vfem::BeamModel*>(m_view->getModel())->getLineSides();
+    m_lineSides = static_cast<vfem::BeamModel *>(m_view->getModel())->getLineSides();
 
     if (vfem::Preferences::instance().useSphereNodes())
         m_sphereNodes = true;
@@ -51,7 +41,7 @@ void ofui::SettingsWindow::setFemView(FemViewWindow* view)
         m_sphereNodes = false;
 }
 #else
-void SettingsWindow::setFemWidget(FemWidget* femWidget)
+void SettingsWindow::setFemWidget(FemWidget *femWidget)
 {
     m_view = femWidget;
     m_size = float(m_view->getWorkspace());
@@ -59,7 +49,7 @@ void SettingsWindow::setFemWidget(FemWidget* femWidget)
     m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
     m_scaleFactor = float(m_view->getScalefactor());
-    m_showNodeNumbers = static_cast<vfem::BeamModel*>(m_view->getModel())->showNodeNumbers();
+    m_showNodeNumbers = static_cast<vfem::BeamModel *>(m_view->getModel())->showNodeNumbers();
     m_offscreenRendering = m_view->offscreenRendering();
 }
 #endif
@@ -70,20 +60,18 @@ void SettingsWindow::update()
     m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
     m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
     m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
-    //m_scaleFactor = float(m_view->getScalefactor());
+    // m_scaleFactor = float(m_view->getScalefactor());
     m_uiScale = m_view->uiScale();
 
-    static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
-    static_cast<vfem::BeamModel*>(m_view->getModel())->setLineSides(m_lineSides);
+    static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
+    static_cast<vfem::BeamModel *>(m_view->getModel())->setLineSides(m_lineSides);
 
-    if (m_sphereNodes)
-    {
-        static_cast<vfem::BeamModel*>(m_view->getModel())->setNodeRepr(ivf::Node::NT_SPHERE);
+    if (m_sphereNodes) {
+        static_cast<vfem::BeamModel *>(m_view->getModel())->setNodeRepr(ivf::Node::NT_SPHERE);
         m_view->setSphereCursor(true);
     }
-    else
-    {
-        static_cast<vfem::BeamModel*>(m_view->getModel())->setNodeRepr(ivf::Node::NT_CUBE);
+    else {
+        static_cast<vfem::BeamModel *>(m_view->getModel())->setNodeRepr(ivf::Node::NT_CUBE);
         m_view->setSphereCursor(false);
     }
 }
@@ -118,14 +106,12 @@ void SettingsWindow::doDraw()
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
-    if (m_view != nullptr)
-    {
+    if (m_view != nullptr) {
         m_view->setRelNodeSize(m_nodeSize / 100.0f);
         m_view->setRelLineRadius(m_lineRadius / 100.0f);
         m_view->setRelLoadSize(m_loadSize / 100.0f);
 
-        if (m_size!=m_prevSize)
-        {
+        if (m_size != m_prevSize) {
             m_view->setWorkspace(m_size, false);
             m_prevSize = m_size;
         }
@@ -134,6 +120,6 @@ void SettingsWindow::doDraw()
 
         m_view->setUiScale(m_uiScale);
 
-        static_cast<vfem::BeamModel*>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
+        static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     }
 }

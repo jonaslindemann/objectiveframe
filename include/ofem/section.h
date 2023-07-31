@@ -5,8 +5,7 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(Section);
 
@@ -20,10 +19,9 @@ SmartPointer(Section);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class Section : public Base
-{
+class Section : public Base {
 private:
-    std::vector<Coord*> m_coords;
+    std::vector<Coord *> m_coords;
     unsigned int m_nbrOfProps;
     unsigned int m_nbrOfData;
     int m_sectionType;
@@ -40,10 +38,10 @@ public:
     ClassInfo("Section", Base);
     StdFactory(Section);
 
-    void readFromStream(std::istream& in) override;
+    void readFromStream(std::istream &in) override;
     int getSectionType();
     void setSectionType(int type);
-    void saveToStream(std::ostream& out) override;
+    void saveToStream(std::ostream &out) override;
 
     /**
      * Get normal
@@ -51,7 +49,7 @@ public:
      * Returns ex and ey for a specific normal answering to idx.
      *
      */
-    void getNormal(unsigned int idx, double& ex, double& ey);
+    void getNormal(unsigned int idx, double &ex, double &ey);
 
     /**
      * Add point
@@ -87,7 +85,7 @@ public:
      * creating a crossection.
      *
      */
-    void getPropSize(int& size);
+    void getPropSize(int &size);
 
     /**
      * Get all properties
@@ -95,7 +93,7 @@ public:
      * This method returns a pointer to the variable containing all measurements.
      *
      */
-    void getAllProps(double*& props);
+    void getAllProps(double *&props);
 
     /**
      * Set data size
@@ -113,7 +111,7 @@ public:
      * the crossection, such as Area, moment of inertia, st.Venant constant etc.
      *
      */
-    void getDataSize(int& size);
+    void getDataSize(int &size);
 
     /**
      * Get all data
@@ -121,7 +119,7 @@ public:
      * This method returns a pointer to the variable containing all properties.
      *
      */
-    void getAllData(double*& data);
+    void getAllData(double *&data);
 
     /**
      * Get cooordinate
@@ -130,7 +128,7 @@ public:
      * answering to idx.
      *
      */
-    void getCoord(unsigned int idx, double& x, double& y);
+    void getCoord(unsigned int idx, double &x, double &y);
 
     /**
      * Set auto calculate
@@ -159,8 +157,8 @@ public:
      */
     size_t getSize();
 
-    virtual void getExcZ(double& emax, double& emin);
-    virtual void getExcY(double& emax, double& emin);
+    virtual void getExcZ(double &emax, double &emin);
+    virtual void getExcY(double &emax, double &emin);
 
     double prop(int idx);
     double data(int idx);
@@ -181,14 +179,14 @@ public:
 
     void setSectionData(double E, double A, double G, double Iy, double Iz, double Kv);
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius);
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius);
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius);
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius, double &innerRadius);
 
 protected:
-    double* m_prop;
+    double *m_prop;
     /*
     m_prop[0]  = height
     m_prop[1]  = width
@@ -202,7 +200,7 @@ protected:
     m_prop[9]  = OuterRadius
     m_prop[10] = InnerRadius
     */
-    double* m_data;
+    double *m_data;
     /*
     m_data[0]  = Young�s modulus (E)
     m_data[1]  = Area (A)
@@ -212,4 +210,4 @@ protected:
     m_data[5]  = Saint-Venant const. (Kv)
     */
 };
-}
+} // namespace ofem

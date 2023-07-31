@@ -1,8 +1,7 @@
 #ifndef _CResultInfo_h_
 #define _CResultInfo_h_
 
-class ResultInfo
-{
+class ResultInfo {
 private:
     double m_maxN;
     double m_minN;

@@ -6,7 +6,6 @@ using namespace std;
 #include <fstream>
 #include <iostream>
 
-
 InputFileWriter::InputFileWriter(const std::string filename)
 {
     m_femModel = nullptr;
@@ -21,7 +20,7 @@ void ofem::InputFileWriter::doAfterSave()
 {
 }
 
-void InputFileWriter::saveToStream(std::ostream& out)
+void InputFileWriter::saveToStream(std::ostream &out)
 {
 }
 
@@ -30,12 +29,12 @@ InputFileWriterPtr ofem::InputFileWriter::create(const std::string filename)
     return InputFileWriterPtr(new InputFileWriter(filename));
 }
 
-void InputFileWriter::setFemModel(Model* model)
+void InputFileWriter::setFemModel(Model *model)
 {
     m_femModel = model;
 }
 
-Model* InputFileWriter::getFemModel()
+Model *InputFileWriter::getFemModel()
 {
     return m_femModel;
 }
@@ -47,8 +46,7 @@ const std::string ofem::InputFileWriter::filename()
 
 void InputFileWriter::save()
 {
-    if (m_filename != "")
-    {
+    if (m_filename != "") {
         fstream inputFile;
         inputFile.open(m_filename, ios::out);
         this->saveToStream(inputFile);

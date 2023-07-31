@@ -6,13 +6,11 @@
 class FemViewWindow;
 #else
 class FemWidget;
-#endif 
+#endif
 
-namespace ofui
-{
+namespace ofui {
 
-class ScaleWindow : public UiWindow
-{
+class ScaleWindow : public UiWindow {
 private:
     float m_scaleFactor;
     bool m_lockScaleFactor;
@@ -21,11 +19,10 @@ private:
     float m_maxScale;
     float m_minScale;
 
-
 #ifdef USE_FEMVIEW
-    FemViewWindow* m_view;
+    FemViewWindow *m_view;
 #else
-    FemWidget* m_view;
+    FemWidget *m_view;
 #endif
 
 public:
@@ -33,9 +30,9 @@ public:
     virtual ~ScaleWindow();
 
 #ifdef USE_FEMVIEW
-    void setView(FemViewWindow* view);
+    void setView(FemViewWindow *view);
 #else
-    void setWidget(FemWidget* femWidget);
+    void setWidget(FemWidget *femWidget);
 #endif
 
     void update();
@@ -48,4 +45,4 @@ protected:
 
 typedef std::shared_ptr<ScaleWindow> ScaleWindowPtr;
 
-}
+} // namespace ofui

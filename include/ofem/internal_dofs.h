@@ -8,15 +8,13 @@
 #define FEM_DISPL_DOFS 0
 #define FEM_DISPL_ROT_DOFS 1
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(InternalDofs);
 
-class InternalDofs : public Base
-{
+class InternalDofs : public Base {
 private:
-    std::vector<Dof*> m_dofs;
+    std::vector<Dof *> m_dofs;
     int m_kind;
 
 public:
@@ -30,7 +28,7 @@ public:
 
     int getKind();
     void setKind(int kind);
-    Dof* getDof(unsigned int localDof);
+    Dof *getDof(unsigned int localDof);
 
     // Methods
 
@@ -39,7 +37,7 @@ public:
     void add(unsigned int localDof);
     bool isAssigned(unsigned int localDof);
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
 };
-}
+} // namespace ofem

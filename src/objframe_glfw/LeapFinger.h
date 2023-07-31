@@ -22,23 +22,22 @@
 
 using namespace Leap;
 
-class LeapFinger
-{
+class LeapFinger {
 private:
-    CIvfFemWidget* m_widget;
+    CIvfFemWidget *m_widget;
 
     double m_alpha, m_beta;
     Finger m_fingerData;
     CIvfCylinderPtr m_fingerShape;
-    CIvfVec3d* m_fingerPos;
-    CIvfVec3d* m_fingerDir;
+    CIvfVec3d *m_fingerPos;
+    CIvfVec3d *m_fingerDir;
     CIvfMaterialPtr material;
 
 public:
-    LeapFinger(CIvfFemWidget* widget);
+    LeapFinger(CIvfFemWidget *widget);
     virtual ~LeapFinger();
     void fingerMove(Finger finger);
-    void LeapToScene(Vector leapVector, CIvfVec3d* sceneVector);
+    void LeapToScene(Vector leapVector, CIvfVec3d *sceneVector);
     Vector adjustPosition(Vector height);
     void Show(bool show);
 

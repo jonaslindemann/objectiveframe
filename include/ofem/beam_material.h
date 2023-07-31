@@ -3,13 +3,11 @@
 #include <ofem/material.h>
 #include <ofem/section.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BeamMaterial);
 
-enum SectionType
-{
+enum SectionType {
     ST_I = 1,
     ST_U = 8,
     ST_L = 2,
@@ -19,8 +17,7 @@ enum SectionType
     ST_Rectangle = 4
 };
 
-class BeamMaterial : public Material
-{
+class BeamMaterial : public Material {
 private:
     double m_E;
     double m_G;
@@ -44,16 +41,14 @@ public:
 
     // Get/set methods
 
-    void getProperties(double& E, double& G, double& A,
-        double& Iy, double& Iz, double& Kv);
-    void setProperties(double E, double G, double A,
-        double Iy, double Iz, double Kv);
+    void getProperties(double &E, double &G, double &A, double &Iy, double &Iz, double &Kv);
+    void setProperties(double E, double G, double A, double Iy, double Iz, double Kv);
     int getColor();
     void setColor(int color);
     const std::string getName();
-    void setName(const std::string& name);
-    Section* getSection();
-    void setSection(Section* section);
+    void setName(const std::string &name);
+    Section *getSection();
+    void setSection(Section *section);
 
     void assignPropFromSection();
 
@@ -61,8 +56,8 @@ public:
 
     // IO Methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 };
-}
+} // namespace ofem

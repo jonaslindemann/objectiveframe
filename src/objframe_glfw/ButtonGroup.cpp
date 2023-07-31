@@ -26,20 +26,18 @@ void ButtonGroup::clearChecked()
 {
     int i;
 
-    for (i = 0; i < this->getSize(); i++)
-    {
-        GenericButton* button = static_cast<GenericButton*>(this->getChild(i));
+    for (i = 0; i < this->getSize(); i++) {
+        GenericButton *button = static_cast<GenericButton *>(this->getChild(i));
         button->setButtonState(GenericButton::BS_NORMAL);
     }
 }
 
 void ButtonGroup::check(int idx)
 {
-    if ((idx >= 0) && (idx < this->getSize()))
-    {
+    if ((idx >= 0) && (idx < this->getSize())) {
         m_checkIdx = idx;
         this->clearChecked();
-        GenericButton* button = static_cast<GenericButton*>(this->getChild(idx));
+        GenericButton *button = static_cast<GenericButton *>(this->getChild(idx));
         button->setButtonState(GenericButton::BS_CHECKED);
     }
 }

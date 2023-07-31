@@ -6,8 +6,7 @@
 #include <windows.h>
 #endif
 
-namespace ofutil
-{
+namespace ofutil {
 
 #ifdef WIN32
 
@@ -23,19 +22,18 @@ int run_process(std::string cmd)
     LPSTR s = _strdup(cmd.c_str());
 
     // Start the child process.
-    auto result = CreateProcessA(NULL, // No module name (use command line)
-        s, // Command line
-        NULL, // Process handle not inheritable
-        NULL, // Thread handle not inheritable
-        FALSE, // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL, // Use parent's environment block
-        NULL, // Use parent's starting directory
-        &si, // Pointer to STARTUPINFO structure
-        &pi); // Pointer to PROCESS_INFORMATION structure
+    auto result = CreateProcessA(NULL,             // No module name (use command line)
+                                 s,                // Command line
+                                 NULL,             // Process handle not inheritable
+                                 NULL,             // Thread handle not inheritable
+                                 FALSE,            // Set handle inheritance to FALSE
+                                 CREATE_NO_WINDOW, // No creation flags
+                                 NULL,             // Use parent's environment block
+                                 NULL,             // Use parent's starting directory
+                                 &si,              // Pointer to STARTUPINFO structure
+                                 &pi);             // Pointer to PROCESS_INFORMATION structure
 
-    if (result==0)
-    {
+    if (result == 0) {
         printf("CreateProcess failed (%d).\n", GetLastError());
         return 1;
     }
@@ -115,4 +113,4 @@ int to_int(std::string str)
     else
         return -1;
 }
-}
+} // namespace ofutil

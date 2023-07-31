@@ -5,13 +5,11 @@
 
 #include <vector>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BC);
 
-class BC : public Base
-{
+class BC : public Base {
 private:
     long m_number;
     std::vector<DofPtr> m_prescribedDofs;
@@ -27,9 +25,9 @@ public:
 
     // Methods
 
-    bool isPrescribed(Dof* dof);
-    void prescribeDof(Dof* dof, double value);
-    void unprescribeDof(Dof* dof);
+    bool isPrescribed(Dof *dof);
+    void prescribeDof(Dof *dof, double value);
+    void unprescribeDof(Dof *dof);
     void clearDofs();
 
     // Get/set methods
@@ -41,14 +39,14 @@ public:
 
     double getValue(unsigned int idx);
 
-    Dof* getDof(unsigned int idx);
+    Dof *getDof(unsigned int idx);
 
     // IO Methods
 
-    virtual void readFromStream(std::istream& in) override;
-    virtual void saveToStream(std::ostream& out) override;
-    virtual void print(std::ostream& out) override;
+    virtual void readFromStream(std::istream &in) override;
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void print(std::ostream &out) override;
 
     virtual json_nl toJson() override;
 };
-}
+} // namespace ofem

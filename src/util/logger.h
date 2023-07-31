@@ -5,15 +5,13 @@
 #include <iostream>
 #include <string>
 
-enum class LogDestination
-{
+enum class LogDestination {
     File,
     StdOut,
     StdErr
 };
 
-enum class LogLevel
-{
+enum class LogLevel {
     Debug,
     Info,
     Warning,
@@ -22,23 +20,25 @@ enum class LogLevel
 
 typedef std::function<void(const std::string message)> LoggerMessageFunc;
 
-class Logger
-{
+class Logger {
 public:
-    void log(LogLevel level, const std::string& message);
-    void log(LogLevel level, const char* format, ...);
-    Logger& operator<<(const std::string& message);
-    static Logger* instance(LogDestination dest = LogDestination::StdOut);
+    void log(LogLevel level, const std::string &message);
+    void log(LogLevel level, const char *format, ...);
+    Logger &operator<<(const std::string &message);
+    static Logger *instance(LogDestination dest = LogDestination::StdOut);
 
-    void assignOnMessage(std::function<void(const std::string message)>& onMessageFunc);
-    void assignOnMessageShort(std::function<void(const std::string message)>& onMessageFunc);
+    void assignOnMessage(std::function<void(const std::string message)> &onMessageFunc);
+    void assignOnMessageShort(std::function<void(const std::string message)> &onMessageFunc);
 
 private:
     Logger();
-    Logger(const Logger&);
-    Logger& operator=(const Logger&) { return *this; };
+    Logger(const Logger &);
+    Logger &operator=(const Logger &)
+    {
+        return *this;
+    };
     static const std::string m_filename;
-    static Logger* m_this;
+    static Logger *m_this;
     static std::ofstream m_logFile;
 
     LogDestination m_logDest;

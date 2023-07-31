@@ -4,15 +4,13 @@
 #include <ofem/beam_material_set.h>
 #include <ofem/element_set.h>
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(BeamSet);
 
-class BeamSet : public ElementSet
-{
+class BeamSet : public ElementSet {
 protected:
-    virtual Element* createElement() override;
+    virtual Element *createElement() override;
 
 public:
     BeamSet();
@@ -25,6 +23,6 @@ public:
 
     // Methods
 
-    void connectMaterials(BeamMaterialSet* materialSet);
+    void connectMaterials(BeamMaterialSet *materialSet);
 };
-}
+} // namespace ofem

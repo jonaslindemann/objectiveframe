@@ -4,14 +4,11 @@
 
 using namespace ofem;
 
-
-SolidPipeSection::SolidPipeSection(double outerRadius)
-    : Section()
+SolidPipeSection::SolidPipeSection(double outerRadius) : Section()
 {
     this->setSectionType(FEM_SOLIDPIPE_SECTION);
     this->setSectionSize(outerRadius);
 }
-
 
 SolidPipeSection::SolidPipeSection()
 {
@@ -19,11 +16,9 @@ SolidPipeSection::SolidPipeSection()
     this->setSectionSize(0.1);
 }
 
-
 SolidPipeSection::~SolidPipeSection()
 {
 }
-
 
 void SolidPipeSection::setSectionSize(double outerRadius)
 {
@@ -67,7 +62,6 @@ void SolidPipeSection::setSectionSize(double outerRadius)
     this->setData();
 }
 
-
 void SolidPipeSection::setData()
 {
     double d = 2.0 * m_prop[9];
@@ -82,14 +76,12 @@ void SolidPipeSection::setData()
     m_data[5] = pi * pow(d, 4) / 32.0; // Kv
 }
 
-
-void SolidPipeSection::getSectionSize(double& outerRadius)
+void SolidPipeSection::getSectionSize(double &outerRadius)
 {
     outerRadius = m_prop[9];
 }
 
-
-void SolidPipeSection::getExcY(double& emax, double& emin)
+void SolidPipeSection::getExcY(double &emax, double &emin)
 {
     emax = m_prop[9] / 2.0;
     emin = emax;
@@ -100,20 +92,22 @@ void SolidPipeSection::calcDataFromSection()
     this->setData();
 }
 
-void SolidPipeSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
+void SolidPipeSection::setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT,
+                                       double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius)
 {
     Section::setSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->setSectionSize(outerRadius);
 }
 
-void SolidPipeSection::getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT, double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius)
+void SolidPipeSection::getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                       double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                       double &innerRadius)
 {
     Section::getSectionProps(width, height, UFW, LFW, WT, UFT, LFT, ULFW, LLFW, outerRadius, innerRadius);
     this->getSectionSize(outerRadius);
 }
 
-
-void SolidPipeSection::getExcZ(double& emax, double& emin)
+void SolidPipeSection::getExcZ(double &emax, double &emin)
 {
     emax = m_prop[9] / 2.0;
     emin = emax;

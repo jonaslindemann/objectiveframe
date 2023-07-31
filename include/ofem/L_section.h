@@ -4,8 +4,7 @@
 
 #define FEM_L_SECTION 2
 
-namespace ofem
-{
+namespace ofem {
 
 SmartPointer(LSection);
 
@@ -20,8 +19,7 @@ SmartPointer(LSection);
  * @author Pierre Olsson
  * @version 1.0.0
  */
-class LSection : public Section
-{
+class LSection : public Section {
 private:
     double m_Xtp;
     double m_Ytp;
@@ -44,7 +42,7 @@ public:
      * This function gives all measurements associated with the L-Section.
      *
      */
-    void getSectionSize(double& width, double& height, double& WT, double& LFT);
+    void getSectionSize(double &width, double &height, double &WT, double &LFT);
 
     /**
      * Set section size
@@ -64,10 +62,11 @@ public:
 
     virtual void calcDataFromSection() override;
 
-    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT,
-        double UFT, double LFT, double ULFW, double LLFW, double outerRadius, double innerRadius) override;
+    virtual void setSectionProps(double width, double height, double UFW, double LFW, double WT, double UFT, double LFT,
+                                 double ULFW, double LLFW, double outerRadius, double innerRadius) override;
 
-    virtual void getSectionProps(double& width, double& height, double& UFW, double& LFW, double& WT,
-        double& UFT, double& LFT, double& ULFW, double& LLFW, double& outerRadius, double& innerRadius) override;
+    virtual void getSectionProps(double &width, double &height, double &UFW, double &LFW, double &WT, double &UFT,
+                                 double &LFT, double &ULFW, double &LLFW, double &outerRadius,
+                                 double &innerRadius) override;
 };
-}
+} // namespace ofem

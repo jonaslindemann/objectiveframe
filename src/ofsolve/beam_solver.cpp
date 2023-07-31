@@ -18,7 +18,9 @@ std::string float2str(double value)
 }
 
 BeamSolver::BeamSolver()
-    : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr}, m_modelState{ModelState::Ok}
+    : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr},
+      m_modelState{ModelState::Ok}, m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300},
+      m_minM{1e300}, m_maxV{-1e300}, m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_force{0.0, 0.0, 0.0}
 {
 }
 

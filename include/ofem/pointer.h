@@ -51,8 +51,10 @@ public:
     {
         if (m_object) {
             m_object->deleteReference();
-            if (!m_object->isReferenced())
+            if (!m_object->isReferenced()) {
                 delete m_object;
+                m_object = nullptr;
+            }
         }
     }
 
@@ -81,8 +83,10 @@ public:
         if (m_object != femPointer.m_object) {
             if (m_object) {
                 m_object->deleteReference();
-                if (!m_object->isReferenced())
+                if (!m_object->isReferenced()) {
                     delete m_object;
+                    m_object = nullptr;
+                }
             }
 
             m_object = femPointer.m_object;
@@ -98,8 +102,10 @@ public:
         if (m_object != femObject) {
             if (m_object) {
                 m_object->deleteReference();
-                if (!m_object->isReferenced())
+                if (!m_object->isReferenced()) {
                     delete m_object;
+                    m_object = nullptr;
+                }
             }
 
             m_object = femObject;

@@ -215,7 +215,8 @@ void CalfemWriter::saveToStream(std::ostream &out)
     nodeLoadSet->enumerateLoads();
     elementLoadSet->enumerateLoads();
     bcSet->enumerateBCs();
-    int nDofs = nodeSet->enumerateDofs() - 1;
+    // int nDofs = nodeSet->enumerateDofs() - 1;
+    nodeSet->enumerateDofs();
 
     //
     // Write materials

@@ -57,10 +57,7 @@ void ModelClipBoard::addElement(ofem::Element *element)
 void ModelClipBoard::paste(ofem::Model *model)
 {
     auto startNodeIdx = model->getNodeSet()->enumerateNodes();
-    auto startElementIdx = model->getElementSet()->enumerateElements();
-
-    auto nodeSet = model->getNodeSet();
-    auto elementSet = model->getElementSet();
+    model->getElementSet()->enumerateElements();
 
     double x, y, z;
     double nx, ny, nz;

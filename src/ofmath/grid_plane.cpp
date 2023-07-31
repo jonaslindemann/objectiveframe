@@ -1,6 +1,6 @@
 #include <ofmath/grid_plane.h>
 
-ofmath::GridPlane::GridPlane() : m_snap{true}, m_snapDistance{0.2}
+ofmath::GridPlane::GridPlane() : m_snap{true}, m_snapDistance{0.2}, m_intersectDist{0.0}
 {
     m_origin.x = 0.0;
     m_origin.y = 0.0;

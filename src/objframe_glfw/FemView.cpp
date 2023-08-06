@@ -3033,10 +3033,14 @@ void FemViewWindow::onInit()
 
     // Create ImGui interface
 
+    m_windowList = WindowList::create();
+
     m_showStyleEditor = false;
     m_showMetricsWindow = false;
     m_showNewFileDlg = false;
     m_coordWindow = CoordWindow::create("Coord window");
+
+    m_windowList->add(m_coordWindow);
 
     m_newModelPopup = NewModelPopup::create("Workspace", true);
     m_messagePopup = MessagePopup::create("Message", true);
@@ -3045,31 +3049,45 @@ void FemViewWindow::onInit()
     m_nodeBCsWindow->setFemView(this);
     m_nodeBCsWindow->setVisible(false);
 
+    m_windowList->add(m_nodeBCsWindow);
+
     m_bcPropPopup = BCPropPopup::create("Node BC", true);
 
     m_nodeLoadsWindow = NodeLoadsWindow::create("Node Loads");
     m_nodeLoadsWindow->setFemView(this);
     m_nodeLoadsWindow->setVisible(false);
 
+    m_windowList->add(m_nodeLoadsWindow);
+
     m_settingsWindow = SettingsWindow::create("Settings");
     m_settingsWindow->setFemView(this);
     m_settingsWindow->setVisible(false);
+
+    m_windowList->add(m_settingsWindow);
 
     m_elementLoadsWindow = ElementLoadsWindow::create("Element Loads");
     m_elementLoadsWindow->setFemView(this);
     m_elementLoadsWindow->setVisible(false);
 
+    m_windowList->add(m_elementLoadsWindow);
+
     m_materialsWindow = MaterialsWindow::create("Materials");
     m_materialsWindow->setFemView(this);
     m_materialsWindow->setVisible(false);
+
+    m_windowList->add(m_materialsWindow);
 
     m_pluginWindow = PluginPropWindow::create("Plugin properties");
     m_pluginWindow->setView(this);
     m_pluginWindow->setVisible(false);
 
+    m_windowList->add(m_pluginWindow);
+
     m_scaleWindow = ScaleWindow::create("Scaling");
     m_scaleWindow->setView(this);
     m_scaleWindow->setVisible(false);
+
+    m_windowList->add(m_scaleWindow);
 
     m_aboutWindow = AboutWindow::create("About");
     m_aboutWindow->setVersion(OBJFRAME_VERSION_STRING);
@@ -3080,13 +3098,19 @@ void FemViewWindow::onInit()
     m_aboutWindow->setExtra1(OBJFRAME_EXTRA1);
     m_aboutWindow->setVisible(false);
 
+    m_windowList->add(m_aboutWindow);
+
     m_propWindow = PropWindow::create("Properties");
     m_propWindow->setView(this);
     m_propWindow->setVisible(false);
 
+    m_windowList->add(m_propWindow);
+
     m_loadMixerWindow = LoadMixerWindow::create("Load mixer");
     m_loadMixerWindow->setView(this);
     m_loadMixerWindow->setVisible(false);
+
+    m_windowList->add(m_loadMixerWindow);
 
     // Tetgen
 
@@ -4196,19 +4220,7 @@ void FemViewWindow::onDrawImGui()
     if (m_showMetricsWindow)
         ImGui::ShowMetricsWindow(&m_showMetricsWindow);
 
-    m_coordWindow->draw();
-    m_propWindow->draw();
-    m_nodeBCsWindow->draw();
-    m_nodeLoadsWindow->draw();
-    m_settingsWindow->draw();
-    m_elementLoadsWindow->draw();
-    m_materialsWindow->draw();
-    m_logWindow->draw();
-    m_consoleWindow->draw();
-    m_pluginWindow->draw();
-    m_scaleWindow->draw();
-    m_aboutWindow->draw();
-    m_loadMixerWindow->draw();
+    m_windowList->draw();
 
     ImGui::Render();
 
@@ -4242,6 +4254,8 @@ void FemViewWindow::onInitImGui()
 
     std::filesystem::path p1 = m_progPath / std::filesystem::path("fonts/RopaSans-Regular.ttf");
     std::string fontFilename = p1.string();
+
+    assert(std::filesystem::exists(p1));
 
     io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 22);
 

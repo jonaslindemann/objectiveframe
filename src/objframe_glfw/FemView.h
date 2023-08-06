@@ -68,6 +68,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/prop_window.h>
 #include <ofui/scale_window.h>
 #include <ofui/settings_window.h>
+#include <ofui/window_list.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -253,7 +254,6 @@ private:
     // Dialogs
 
     ofui::CoordWindowPtr m_coordWindow;
-    // ofui::NodePropWindowPtr m_nodePropWindow;
     ofui::NewModelPopupPtr m_newModelPopup;
     ofui::MessagePopupPtr m_messagePopup;
     ofui::NodeBCsWindowPtr m_nodeBCsWindow;
@@ -262,7 +262,6 @@ private:
     ofui::SettingsWindowPtr m_settingsWindow;
     ofui::ElementLoadsWindowPtr m_elementLoadsWindow;
     ofui::MaterialsWindowPtr m_materialsWindow;
-    // ofui::ElementPropWindowPtr m_elementPropWindow;
     ofui::LogWindowPtr m_logWindow;
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
@@ -270,6 +269,8 @@ private:
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
     ofui::LoadMixerWindowPtr m_loadMixerWindow;
+
+    ofui::WindowListPtr m_windowList;
 
     bool m_showStyleEditor;
     bool m_showMetricsWindow;
@@ -282,7 +283,6 @@ private:
     // Scripting
 
     bool m_pluginRunning;
-    // chaiscript::ChaiScript m_chai;
 
     // Plugins
 

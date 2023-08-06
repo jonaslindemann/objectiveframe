@@ -70,6 +70,7 @@ public:
 
     T *operator->() const
     {
+        assert(m_object != nullptr);
         return m_object;
     }
 

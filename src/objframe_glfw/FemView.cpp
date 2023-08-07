@@ -302,6 +302,7 @@ std::string wstrtostr(const std::wstring &wstr)
 {
     // Converts std::wstring to std::string (a bit of a hack).
 
+#ifdef WIN32
     std::string strTo;
     char *szTo = new char[wstr.length() + 1];
     szTo[wstr.size()] = '\0';
@@ -309,17 +310,21 @@ std::string wstrtostr(const std::wstring &wstr)
     strTo = szTo;
     delete[] szTo;
     return strTo;
+#else
+    return "";
+#endif
 }
 
 std::string openFileDialog()
 {
     // WIN32 file dialog function.
 
+    std::wstring filename;
+
 #ifdef WIN32
 
     COMDLG_FILTERSPEC fileTypes[] = {{L"ObjectiveFrame files", L"*.df3"}, {L"All files", L"*.*"}};
 
-    std::wstring filename;
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     if (SUCCEEDED(hr)) {
         IFileOpenDialog *pFileOpen;
@@ -362,11 +367,13 @@ std::string openFileDialog()
 std::string saveFileDialog()
 {
     // WIN32 save file dialog function.
+
+    std::wstring filename;
+
 #ifdef WIN32
 
     COMDLG_FILTERSPEC fileTypes[] = {{L"ObjectiveFrame files", L"*.df3"}, {L"All files", L"*.*"}};
 
-    std::wstring filename;
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     if (SUCCEEDED(hr)) {
         IFileOpenDialog *pFileOpen;
@@ -408,11 +415,13 @@ std::string saveFileDialog()
 
 std::string saveAsCalfemFileDialog()
 {
+
+    std::wstring filename;
+
 #ifdef WIN32
 
     COMDLG_FILTERSPEC fileTypes[] = {{L"CALFEM for Python", L"*.py"}, {L"All files", L"*.*"}};
 
-    std::wstring filename;
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     if (SUCCEEDED(hr)) {
         IFileOpenDialog *pFileOpen;
@@ -3035,6 +3044,9 @@ void FemViewWindow::onInit()
 
     m_windowList = WindowList::create();
 
+    m_windowList->add(m_logWindow);
+    m_windowList->add(m_consoleWindow);
+
     m_showStyleEditor = false;
     m_showMetricsWindow = false;
     m_showNewFileDlg = false;
@@ -4254,6 +4266,8 @@ void FemViewWindow::onInitImGui()
 
     std::filesystem::path p1 = m_progPath / std::filesystem::path("fonts/RopaSans-Regular.ttf");
     std::string fontFilename = p1.string();
+
+    std::cout << fontFilename << "\n";
 
     assert(std::filesystem::exists(p1));
 

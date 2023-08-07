@@ -9,9 +9,13 @@ set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
 option( USE_LEAP "Build with support for LeapMotion" OFF)
 
-set( LIB_DRIVE "d:")
+if (WIN32)
+    set( LIB_DRIVE "d:")
+    set( IVF_ROOT "${LIB_DRIVE}/Libraries/ivfplusplus" )
+else()
+    set( IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus" )
+endif()
 
-set( IVF_ROOT "${LIB_DRIVE}/Libraries/ivfplusplus" )
 message(${IVF_ROOT})
 
 set( IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include )
@@ -91,8 +95,10 @@ else()
     set(GLU_LIBRARY "GLU")
     set(MISC_LIBRARIES "X11 Xft Xcursor Xinerama Xrender Xfixes fontconfig pthread")
     set(CHAISCRIPT_EXTRAS_INCLUDE "E:/Users/Jonas/Development/ChaiScript_Extras/include")
-    set(DEPENDS_INCLUDE_DIR "/home/lindemann/Development/depends/include")
-    set(DEPENDS_LIB_DIR "/home/lindemann/Development/depends/lib")
+    set(GLFW3_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../depends/include")
+    set(GLFW3_LIBRARY "${PROJECT_SOURCE_DIR}/../depends/lib64/libglfw3.a")
+    set(DEPENDS_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../depends/include")
+    set(DEPENDS_LIB_DIR "${PROJECT_SOURCE_DIR}/../depends/lib64")
 endif()
 
 if (USE_LEAP)

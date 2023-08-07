@@ -27,12 +27,18 @@ int main(int argc, char **argv)
     std::string fullExePath = argv[0];
 
     std::filesystem::path path(fullExePath);
+#ifdef WIN32
     std::string progPath = path.parent_path().string() + "\\";
+#else
+    std::string progPath = path.parent_path().string() + "/";
+#endif
 
     auto window = FemViewWindow::create(1440, 900, "ObjectiveFrame");
     window->setArguments(argc, argv);
     window->setProgramPath(progPath);
+#ifdef WIN32
     window->setWindowIcon(progPath + "images\\logo.png");
+#endif
     window->maximize();
 
     app->addWindow(window);

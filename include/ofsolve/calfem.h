@@ -29,6 +29,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace calfem {
 

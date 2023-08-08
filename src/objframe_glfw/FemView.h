@@ -278,6 +278,8 @@ private:
     bool m_showNodeBCsWindow;
     bool m_showBCPropPopup;
 
+    bool m_openDialog;
+
     float m_uiScale;
 
     // Scripting

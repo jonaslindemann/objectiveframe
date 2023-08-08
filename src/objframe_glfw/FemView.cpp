@@ -24,6 +24,8 @@
 
 #include <logger.h>
 
+#include <imguifd/ImGuiFileDialog.h>
+
 #ifdef WIN32
 #include <shellapi.h>
 #endif
@@ -2869,7 +2871,11 @@ void FemViewWindow::onInit()
 
     // Label rendering setup
 
-    if (std::filesystem::is_directory(m_progPath + "fonts")) {
+    log("Loading bitmap fonts...");
+
+    if (std::filesystem::is_directory(m_progPath + "fonts"))
+    {
+        log(m_progPath + "fonts/white_font.fnt");
         m_labelFont = ivf::BitmapFont::create(m_progPath + "fonts/white_font.fnt");
         m_axisFont = ivf::BitmapFont::create(m_progPath + "fonts/black_font.fnt");
         m_greenFont = ivf::BitmapFont::create(m_progPath + "fonts/green_font.fnt");
@@ -3050,6 +3056,9 @@ void FemViewWindow::onInit()
     m_showStyleEditor = false;
     m_showMetricsWindow = false;
     m_showNewFileDlg = false;
+    m_openDialog = false;
+
+
     m_coordWindow = CoordWindow::create("Coord window");
 
     m_windowList->add(m_coordWindow);
@@ -4232,10 +4241,58 @@ void FemViewWindow::onDrawImGui()
     if (m_showMetricsWindow)
         ImGui::ShowMetricsWindow(&m_showMetricsWindow);
 
+#ifdef __linux__
+    if (openDialog)
+    {
+        ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", ".");
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            this->open(filePathName);
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }
+    if (saveDialog)
+    {
+        if (m_fileName!="")
+            ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", ".");
+    }
+
+    if (saveAsDialog)
+    {
+        ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", ".");
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            if (filePathName!="")
+            {
+                this->setFileName(filePathName);
+                m_beamModel->setFileName(m_fileName);
+                m_beamModel->save();
+            }
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }
+#endif
+
     m_windowList->draw();
 
     ImGui::Render();
 
+#ifdef _WIN32
     if (openDialog)
         this->open();
 
@@ -4244,6 +4301,7 @@ void FemViewWindow::onDrawImGui()
 
     if (saveAsDialog)
         this->saveAs();
+#endif
 
     if (executeCalc)
         this->executeCalc();

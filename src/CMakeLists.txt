@@ -1,5 +1,1 @@
-if (WIN32)
-    SUBDIRS(newmat fem visfem util ofmath ofui_glfw imgui_fltk objframe_glfw ofsolve)
-else()
-    SUBDIRS(newmat fem visfem util ofmath ofui_glfw imgui_fltk objframe_glfw ofsolve imguifd)
-endif()
+SUBDIRS(newmat fem visfem util ofmath ofui_glfw imgui_fltk objframe_glfw ofsolve imguifd)

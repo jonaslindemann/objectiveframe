@@ -14,7 +14,7 @@ using namespace ofui;
 SettingsWindow::SettingsWindow(const std::string name)
     : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f},
       m_loadSize{7.0f}, m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false},
-      m_showNodeNumbers{true}, m_uiScale{1.0f}, m_lineSides{6}, m_sphereNodes{true}
+      m_showNodeNumbers{true}, m_uiScale{1.0f}, m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}
 {
 }
 
@@ -39,6 +39,8 @@ void ofui::SettingsWindow::setFemView(FemViewWindow *view)
         m_sphereNodes = true;
     else
         m_sphereNodes = false;
+
+    m_useImGuiFileDialogs = m_view->getUseImGuiFileDialogs();
 }
 #else
 void SettingsWindow::setFemWidget(FemWidget *femWidget)
@@ -74,6 +76,8 @@ void SettingsWindow::update()
         static_cast<vfem::BeamModel *>(m_view->getModel())->setNodeRepr(ivf::Node::NT_CUBE);
         m_view->setSphereCursor(false);
     }
+
+    m_view->setUseImGuiFileDialogs(m_useImGuiFileDialogs);
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
@@ -103,6 +107,7 @@ void SettingsWindow::doDraw()
     ImGui::Separator();
 
     ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
+    ImGui::Checkbox("Use ImGui file dialogs", &m_useImGuiFileDialogs);
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 

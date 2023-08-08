@@ -499,6 +499,7 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
 
     m_useSphereCursor = false;
     m_useBlending = false;
+    m_useImGuiFileDialogs = true;
 
     m_tactileForceValue = 1000.0;
 
@@ -513,6 +514,10 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_nodeSelection = false;
     m_elementSelection = false;
     m_mixedSelection = false;
+
+    m_openDialog = false;
+    m_saveDialog = false;
+    m_saveAsDialog = false;
 
     this->setUseCustomPick(true);
 }
@@ -2031,6 +2036,8 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
 
 void FemViewWindow::setupPlugins()
 {
+    log("Setting up plugins...");
+
     std::string path = m_progPath + "plugins";
 
     if (std::filesystem::is_directory(path)) {
@@ -2639,6 +2646,16 @@ float FemViewWindow::uiScale()
     return m_uiScale;
 }
 
+void FemViewWindow::setUseImGuiFileDialogs(bool flag)
+{
+    m_useImGuiFileDialogs = flag;
+}
+
+bool FemViewWindow::getUseImGuiFileDialogs()
+{
+    return m_useImGuiFileDialogs;
+}
+
 void FemViewWindow::setUiScale(float scale)
 {
     m_uiScale = scale;
@@ -2873,8 +2890,7 @@ void FemViewWindow::onInit()
 
     log("Loading bitmap fonts...");
 
-    if (std::filesystem::is_directory(m_progPath + "fonts"))
-    {
+    if (std::filesystem::is_directory(m_progPath + "fonts")) {
         log(m_progPath + "fonts/white_font.fnt");
         m_labelFont = ivf::BitmapFont::create(m_progPath + "fonts/white_font.fnt");
         m_axisFont = ivf::BitmapFont::create(m_progPath + "fonts/black_font.fnt");
@@ -3031,6 +3047,8 @@ void FemViewWindow::onInit()
     m_tactileForce->setState(Shape::OS_OFF);
     this->getScene()->addChild(m_tactileForce);
 
+    log("Creating cursors.");
+
     m_sphereCursor = Sphere::create();
     m_sphereCursor->setMaterial(m_nodeMaterial);
     m_sphereCursor->setRadius(m_beamModel->getNodeSize());
@@ -3048,6 +3066,8 @@ void FemViewWindow::onInit()
 
     // Create ImGui interface
 
+    log("Initialising immediate mode UI.");
+
     m_windowList = WindowList::create();
 
     m_windowList->add(m_logWindow);
@@ -3057,7 +3077,6 @@ void FemViewWindow::onInit()
     m_showMetricsWindow = false;
     m_showNewFileDlg = false;
     m_openDialog = false;
-
 
     m_coordWindow = CoordWindow::create("Coord window");
 
@@ -3135,12 +3154,14 @@ void FemViewWindow::onInit()
 
     // Tetgen
 
+    log("Initialising tetmesh...");
+
     m_tetMesher = ofsolver::TetgenBeamMesher::create();
     m_tetMesher->setProgPath(m_progPath);
 
     // Set initial edit mode
 
-    log("Setting initial edit mode.");
+    log("Setting initial edit mode...");
     this->setEditMode(WidgetMode::Select);
 
     this->setupPlugins();
@@ -3847,14 +3868,22 @@ void FemViewWindow::onOverButton(int objectName, PlaneButton *button)
 
 void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 {
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'O'))
-        this->open();
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'O')) {
+        if (m_useImGuiFileDialogs)
+            m_openDialog = true;
+        else
+            this->open();
+    }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'N'))
         this->newModel();
 
-    if ((modifier == ModifierKey::mkCtrl) && (key == 'S'))
-        this->save();
+    if ((modifier == ModifierKey::mkCtrl) && (key == 'S')) {
+        if (m_useImGuiFileDialogs)
+            m_saveDialog = true;
+        else
+            this->save();
+    }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'A')) {
         this->setSelectFilter(SelectMode::All);
@@ -3999,9 +4028,6 @@ void FemViewWindow::onClipboardCreateElement(int i0, int i1)
 
 void FemViewWindow::onDrawImGui()
 {
-    bool openDialog = false;
-    bool saveDialog = false;
-    bool saveAsDialog = false;
     bool executeCalc = false;
     bool quitApplication = false;
     bool exportAsCalfem = false;
@@ -4021,13 +4047,13 @@ void FemViewWindow::onDrawImGui()
             }
 
             if (ImGui::MenuItem("Open", "CTRL+O"))
-                openDialog = true;
+                m_openDialog = true;
 
             if (ImGui::MenuItem("Save", "Ctrl+S"))
-                saveDialog = true;
+                m_saveDialog = true;
 
             if (ImGui::MenuItem("Save as", "Ctrl+Shift+S"))
-                saveAsDialog = true;
+                m_saveAsDialog = true;
 
             ImGui::Separator();
 
@@ -4241,67 +4267,68 @@ void FemViewWindow::onDrawImGui()
     if (m_showMetricsWindow)
         ImGui::ShowMetricsWindow(&m_showMetricsWindow);
 
-#ifdef __linux__
-    if (openDialog)
-    {
-        ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", ".");
-    }
-
-    if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-    {
-        if (ImGuiFileDialog::Instance()->IsOk())
-        {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-            this->open(filePathName);
+    if (m_useImGuiFileDialogs) {
+        if (m_openDialog) {
+            ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", ".");
         }
 
-        ImGuiFileDialog::Instance()->Close();
-    }
-    if (saveDialog)
-    {
-        if (m_fileName!="")
-            ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", ".");
-    }
-
-    if (saveAsDialog)
-    {
-        ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", ".");
-    }
-
-    if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-    {
-        if (ImGuiFileDialog::Instance()->IsOk())
-        {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            if (filePathName!="")
-            {
-                this->setFileName(filePathName);
-                m_beamModel->setFileName(m_fileName);
-                m_beamModel->save();
+        if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                this->open(filePathName);
             }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_openDialog = false;
+        }
+        if (m_saveDialog) {
+            if (m_fileName == "noname.df3")
+                ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", ".");
+            else
+                m_beamModel->save();
         }
 
-        ImGuiFileDialog::Instance()->Close();
+        if (m_saveAsDialog) {
+            ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", m_fileName);
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                if (filePathName != "") {
+                    this->setFileName(filePathName);
+                    m_beamModel->setFileName(m_fileName);
+                    m_beamModel->save();
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_saveAsDialog = false;
+            m_saveDialog = false;
+        }
     }
-#endif
 
     m_windowList->draw();
 
     ImGui::Render();
 
-#ifdef _WIN32
-    if (openDialog)
-        this->open();
+    if (!m_useImGuiFileDialogs) {
+        if (m_openDialog)
+            this->open();
 
-    if (saveDialog)
-        this->save();
+        if (m_saveDialog)
+            this->save();
 
-    if (saveAsDialog)
-        this->saveAs();
-#endif
+        if (m_saveAsDialog)
+            this->saveAs();
+
+        m_openDialog = false;
+        m_saveDialog = false;
+        m_saveAsDialog = false;
+    }
 
     if (executeCalc)
         this->executeCalc();

@@ -23,6 +23,7 @@ private:
     bool m_showNodeNumbers;
     bool m_offscreenRendering;
     bool m_sphereNodes;
+    bool m_useImGuiFileDialogs;
     int m_lineSides;
 
 #ifdef USE_FEMVIEW

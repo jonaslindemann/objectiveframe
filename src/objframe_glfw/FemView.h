@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.0.2";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.1.0";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2023\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -250,6 +250,7 @@ private:
     bool m_hintFinished;
     bool m_useSphereCursor;
     bool m_useBlending;
+    bool m_useImGuiFileDialogs;
 
     // Dialogs
 
@@ -279,6 +280,8 @@ private:
     bool m_showBCPropPopup;
 
     bool m_openDialog;
+    bool m_saveDialog;
+    bool m_saveAsDialog;
 
     float m_uiScale;
 
@@ -363,6 +366,9 @@ public:
 
     void setUseBlending(bool flag);
     bool getUseBlending();
+
+    void setUseImGuiFileDialogs(bool flag);
+    bool getUseImGuiFileDialogs();
 
     float uiScale();
     void setUiScale(float scale);

@@ -343,11 +343,19 @@ void ofsolver::TetgenBeamMesher::generate()
     }
 
     // std::string nodeFilename = std::tmpnam(nullptr);
+#ifdef WIN32
     std::string nodeFilename = workDir + "tetmesh.node";
+#else
+    std::string nodeFilename = workDir + "/tetmesh.node";
+#endif
 
     m_nodes.save(nodeFilename);
 
+#ifdef WIN32
     std::string tetgenExec = "\"" + m_progPath + "tetgen.exe\" -e " + nodeFilename;
+#else
+    std::string tetgenExec = "tetgen -e \"" + nodeFilename + "\"";
+#endif
 
     Logger::instance()->log(LogLevel::Info, tetgenExec);
 
@@ -358,7 +366,11 @@ void ofsolver::TetgenBeamMesher::generate()
 #endif
 
     if (result == 0) {
+#ifdef WIN32
         std::string edgeFilename = workDir + "tetmesh.1.edge";
+#else
+        std::string edgeFilename = workDir + "/tetmesh.1.edge";
+#endif
 
         if (std::filesystem::exists(edgeFilename)) {
             m_edges.load(edgeFilename);
@@ -367,8 +379,11 @@ void ofsolver::TetgenBeamMesher::generate()
         else
             m_edges.clear();
 
+#ifdef WIN32
         std::string faceFilename = workDir + "tetmesh.1.face";
-
+#else
+        std::string faceFilename = workDir + "/tetmesh.1.face";
+#endif
         if (std::filesystem::exists(faceFilename)) {
             m_faces.load(faceFilename);
             m_faces.updateIndices(m_nodes.nodeIndices());

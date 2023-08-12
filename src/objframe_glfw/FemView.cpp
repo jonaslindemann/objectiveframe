@@ -2007,7 +2007,6 @@ void FemViewWindow::setupOverlay()
     m_logoButton->setSize(120.0, 120.0);
 
     m_overlayScene->addChild(m_logoButton);
-
     m_overlayScene->addChild(m_objectButtons);
 }
 
@@ -3511,9 +3510,16 @@ void FemViewWindow::onPassiveMotion(int x, int y)
                 m_overlaySelected = false;
             }
 
-            m_overlayScene->setViewport(width(), height());
-            m_overlayScene->pick(x, y);
-            m_selectedButton = (PlaneButton *)m_overlayScene->getSelectedShape();
+            auto editButton = m_editButtons->isUnder(x, y);
+            auto objectButton = this->m_objectButtons->isUnder(x, y);
+
+            m_selectedButton = nullptr;
+
+            if (editButton!=nullptr)
+                m_selectedButton = editButton;
+
+            if (objectButton!=nullptr)
+                m_selectedButton = objectButton;
 
             if (m_selectedButton != nullptr) {
                 m_selectedButton->setScale(1.1, 1.1, 1.1);

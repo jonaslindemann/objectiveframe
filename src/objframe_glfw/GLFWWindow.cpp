@@ -188,20 +188,18 @@ void GLFWWindow::draw()
 
 void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 {
-    if (mods & GLFW_MOD_SHIFT)
+    m_shiftDown = false;
+    m_ctrlDown = false;
+    m_altDown = false;
+
+    if(glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         m_shiftDown = true;
-    else
-        m_shiftDown = false;
 
-    if (mods & GLFW_MOD_CONTROL)
+    if(glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         m_ctrlDown = true;
-    else
-        m_ctrlDown = false;
 
-    if (mods & GLFW_MOD_ALT)
+    if(glfwGetKey(m_window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
         m_altDown = true;
-    else
-        m_altDown = false;
 
     onGlfwKey(key, scancode, action, mods);
 }

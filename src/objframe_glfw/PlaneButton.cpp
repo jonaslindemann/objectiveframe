@@ -21,6 +21,9 @@ PlaneButton::PlaneButton(int id)
     this->setUseName(true);
     this->setId(id);
 
+    m_width = 50.0;
+    m_height = 50.0;
+
     MaterialPtr material;
     m_normalShape = QuadPlane::create();
     m_normalShape->setSize(50.0, 50.0);
@@ -191,6 +194,8 @@ void PlaneButton::setTexture(Texture *texture)
 
 void PlaneButton::setSize(double width, double height)
 {
+    m_width = width;
+    m_height = height;
     m_normalShape->setSize(width, height);
     m_normalShape->flipVert();
     m_pressedShape->setSize(width * 0.95, height * 0.95);
@@ -203,6 +208,12 @@ void PlaneButton::setSize(double width, double height)
     m_checkedFrame->setCoord(1, width / 2.0, height / 2.0, 0.0);
     m_checkedFrame->setCoord(2, width / 2.0, -height / 2.0, 0.0);
     m_checkedFrame->setCoord(3, -width / 2.0, -height / 2.0, 0.0);
+}
+
+void PlaneButton::getSize(double &width, double &height)
+{
+    width = m_width;
+    height = m_height;
 }
 
 void PlaneButton::setHint(const std::string &hintText)

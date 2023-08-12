@@ -21,6 +21,9 @@ private:
     ivf::TexturePtr m_buttonTexture;
     std::string m_hint;
 
+    double m_width;
+    double m_height;
+
 public:
     PlaneButton(int id);
     PlaneButton(int id, const std::string &name);
@@ -40,6 +43,7 @@ public:
     virtual ~PlaneButton();
 
     void setSize(double width, double height);
+    void getSize(double& width, double& height);
     void setTexture(ivf::Texture *texture);
 
     const std::string getHint();

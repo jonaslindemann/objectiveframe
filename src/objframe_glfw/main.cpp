@@ -24,21 +24,23 @@ int main(int argc, char **argv)
     app->hint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     app->hint(GLFW_SAMPLES, 4);
 
-    std::string fullExePath = argv[0];
+    std::string fullExePathStr = argv[0];
 
-    std::filesystem::path path(fullExePath);
-#ifdef WIN32
-    std::string progPath = path.parent_path().string() + "\\";
-#else
-    std::string progPath = path.parent_path().string() + "/";
-#endif
+    namespace fs = std::filesystem;
+
+    fs::path fullExePath(fullExePathStr);
+    fs::path progPath = fullExePath.parent_path();
+    fs::path logoPath = progPath;
+    logoPath.append("images").append("logo.png");
 
     auto window = FemViewWindow::create(1440, 900, "ObjectiveFrame");
     window->setArguments(argc, argv);
-    window->setProgramPath(progPath);
+    window->setProgramPath(progPath.string());
+
 #ifdef WIN32
-    window->setWindowIcon(progPath + "images\\logo.png");
+    window->setWindowIcon(logoPath.string());
 #endif
+
     window->maximize();
 
     app->addWindow(window);

@@ -24,6 +24,7 @@ std::shared_ptr<ColorMap> ColorMap::create()
 void ColorMap::open(const std::string &fname)
 {
     using namespace std;
+    namespace fs = std::filesystem;
 
     int nColors;
     float r, g, b;
@@ -38,17 +39,13 @@ void ColorMap::open(const std::string &fname)
 
     // Open color map file
 
-    std::string fileName = "";
+    fs::path filename = m_progPath / fs::path(fname);
 
-    if (m_progPath != "")
-        fileName = m_progPath;
+    m_mapFile.open(filename.string(), ios::in);
 
-    fileName = fileName + "/" + fname;
-
-    m_mapFile.open(fileName.c_str(), ios::in);
     if (m_mapFile.fail()) {
         cout << "Could not open colormap file:" << endl;
-        cout << "\t" << fileName << endl;
+        cout << "\t" << filename.string() << endl;
         m_error = true;
         return;
     }
@@ -118,7 +115,8 @@ void ColorMap::setValue(double value)
 
 void ColorMap::setPath(const std::string &path)
 {
-    m_progPath = path;
+    m_progPathStr = path;
+    m_progPath.assign(path);
 }
 
 void ColorMap::setFileName(const std::string &fileName)

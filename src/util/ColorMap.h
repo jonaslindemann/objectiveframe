@@ -2,6 +2,7 @@
 
 #include "Color.h"
 
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -13,7 +14,9 @@ private:
     bool m_reverseColors;
     double m_value;
     float m_currentColor[3];
-    std::string m_progPath;
+    std::string m_progPathStr;
+    std::filesystem::path m_progPath;
+
     std::string m_fileName;
     std::fstream m_mapFile;
     bool m_error;

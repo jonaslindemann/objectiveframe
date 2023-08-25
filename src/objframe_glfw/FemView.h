@@ -153,6 +153,10 @@ private:
     std::string m_fileName;
     std::string m_progPathStr;
     std::filesystem::path m_progPath;
+    std::filesystem::path m_imagePath;
+    std::filesystem::path m_fontPath;
+    std::filesystem::path m_pluginPath;
+    std::filesystem::path m_mapPath;
 
     bool m_overlaySelected;
     bool m_haveScaleFactor;

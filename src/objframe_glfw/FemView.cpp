@@ -1016,6 +1016,11 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
 
     m_progPathStr = progPath;
     m_progPath.assign(m_progPathStr);
+
+    m_fontPath = m_progPath / fs::path("fonts");
+    m_imagePath = m_progPath / fs::path("images");
+    m_pluginPath = m_progPath / fs::path("plugins");
+    m_mapPath = m_progPath / fs::path("maps");
 }
 
 const std::string FemViewWindow::getProgPath()
@@ -1075,8 +1080,6 @@ void FemViewWindow::snapShot()
 
 void FemViewWindow::restoreLastSnapShot()
 {
-    namespace fs = std::experimental::filesystem;
-
     auto prevEditMode = this->getEditMode();
 
     m_beamModel->restoreLastSnapShot();
@@ -1167,6 +1170,7 @@ void FemViewWindow::revertLastSnapShot()
 void FemViewWindow::open(std::string filename)
 {
     namespace fs = std::filesystem;
+
     // Change filename and erase previous model/scene
 
     if (!fs::exists(filename))
@@ -1177,21 +1181,11 @@ void FemViewWindow::open(std::string filename)
 
     log("Setting color map path.");
 
-    /*
-    std::string colorPath = "";
-
-    colorPath = colorPath + m_progPathStr;
-    colorPath = colorPath + "maps/";
-    */
-
-    fs::path colorPath = m_progPath;
-    colorPath.append("maps");
-
     // Initialize and open beam model
 
     m_beamModel->initialize();
     m_beamModel->setFileName(m_fileName);
-    m_beamModel->setPath(colorPath.string());
+    m_beamModel->setPath(m_mapPath.string());
     m_beamModel->open();
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
@@ -1307,22 +1301,12 @@ void FemViewWindow::newModel()
 
     this->deleteAll();
 
-    // Setup color map path
-
-    /*
-    std::string colorPath = m_progPathStr;
-    colorPath = colorPath + "maps\\";
-    */
-
-    fs::path colorPath = m_progPath;
-    colorPath.append("maps");
-
     // Setup new beam model
 
     m_beamModel = vfem::BeamModel::create();
 
     m_beamModel->initialize();
-    m_beamModel->setPath(colorPath.string());
+    m_beamModel->setPath(m_mapPath.string());
     m_beamModel->setScene(this->getScene()->getComposite());
     m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
     m_beamModel->setNodeType(ivf::Node::NT_CUBE);
@@ -1923,50 +1907,45 @@ void FemViewWindow::setupOverlay()
 
     namespace fs = std::filesystem;
 
-    fs::path imagePath = m_progPath;
-    imagePath.append("images");
-
-    log("Image path: " + imagePath.string());
-
     m_editButtons = ButtonGroup::create();
 
-    button = PlaneButton::create(ToolbarButton::Select, (imagePath / fs::path("tlselect.png")).string());
+    button = PlaneButton::create(ToolbarButton::Select, (m_imagePath / fs::path("tlselect.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 60.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::SelectBox, (imagePath / fs::path("tlselectbox.png")).string());
+    button = PlaneButton::create(ToolbarButton::SelectBox, (m_imagePath / fs::path("tlselectbox.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 120.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Move, (imagePath / fs::path("tlmove.png")).string());
+    button = PlaneButton::create(ToolbarButton::Move, (m_imagePath / fs::path("tlmove.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 200.0, 0.0);
     button->setHint("Move nodes or elements");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Inspect, (imagePath / fs::path("tlinspect.png")).string());
+    button = PlaneButton::create(ToolbarButton::Inspect, (m_imagePath / fs::path("tlinspect.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 270, 0.0);
     button->setHint("Node or element info");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Delete, (imagePath / fs::path("tldelete.png")).string());
+    button = PlaneButton::create(ToolbarButton::Delete, (m_imagePath / fs::path("tldelete.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 360.0, 0.0);
     button->setHint("Delete node or element");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Feedback, (imagePath / fs::path("tlfeedback.png")).string());
+    button = PlaneButton::create(ToolbarButton::Feedback, (m_imagePath / fs::path("tlfeedback.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 440.0, 0.0);
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Run, (imagePath / fs::path("run.png")).string());
+    button = PlaneButton::create(ToolbarButton::Run, (m_imagePath / fs::path("run.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 520.0, 0.0);
     button->setHint("Excecute calculation");
@@ -1980,43 +1959,43 @@ void FemViewWindow::setupOverlay()
 
     m_objectButtons = ButtonGroup::create();
 
-    button = PlaneButton::create(ToolbarButton::CreateNode, (imagePath / fs::path("tlnode.png")).string());
+    button = PlaneButton::create(ToolbarButton::CreateNode, (m_imagePath / fs::path("tlnode.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(30.0, 30.0, 0.0);
     button->setHint("Create node");
     m_objectButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::CreateBeam, (imagePath / fs::path("tlsolidline.png")).string());
+    button = PlaneButton::create(ToolbarButton::CreateBeam, (m_imagePath / fs::path("tlsolidline.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(90.0, 30.0, 0.0);
     button->setHint("Create element");
     m_objectButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::NodeLoad, (imagePath / fs::path("tlnodeloads.png")).string());
+    button = PlaneButton::create(ToolbarButton::NodeLoad, (m_imagePath / fs::path("tlnodeloads.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(150.0, 30.0, 0.0);
     button->setHint("Show node loads");
     m_objectButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::BeamLoad, (imagePath / fs::path("tldload.png")).string());
+    button = PlaneButton::create(ToolbarButton::BeamLoad, (m_imagePath / fs::path("tldload.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(210.0, 30.0, 0.0);
     button->setHint("Show element loads");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::NodeBC, (imagePath / fs::path("tlbc.png")).string());
+    button = new PlaneButton(ToolbarButton::NodeBC, (m_imagePath / fs::path("tlbc.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(270.0, 30.0, 0.0);
     button->setHint("Show boundary conditions");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Materials, (imagePath / fs::path("tlmaterials.png")).string());
+    button = new PlaneButton(ToolbarButton::Materials, (m_imagePath / fs::path("tlmaterials.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(330.0, 30.0, 0.0);
     button->setHint("Show beam properties");
     m_objectButtons->addChild(button);
 
-    m_logoButton = new PlaneButton(1234, (imagePath / fs::path("logo.png")).string());
+    m_logoButton = new PlaneButton(1234, (m_imagePath / fs::path("logo.png")).string());
     m_logoButton->setSize(120.0, 120.0);
 
     m_overlayScene->addChild(m_logoButton);
@@ -2052,12 +2031,8 @@ void FemViewWindow::setupPlugins()
 
     namespace fs = std::filesystem;
 
-    fs::path pluginPath = m_progPath / fs::path("plugins");
-
-    log("Plugin path: " + pluginPath.string());
-
-    if (std::filesystem::is_directory(pluginPath)) {
-        for (const auto &entry : std::filesystem::directory_iterator(pluginPath)) {
+    if (std::filesystem::is_directory(m_pluginPath)) {
+        for (const auto &entry : std::filesystem::directory_iterator(m_pluginPath)) {
             auto filename = entry.path();
             auto plugin = ScriptPlugin::create(filename.string());
             m_plugins.push_back(plugin);
@@ -2874,6 +2849,13 @@ void FemViewWindow::onInit()
     log(OBJFRAME_AUTHOR2);
     log(OBJFRAME_EXTRA1);
     log("---------------------------------------------");
+    log("Program path : " + m_progPath.string());
+    log("Font path    : " + m_fontPath.string());
+    log("Image path   : " + m_imagePath.string());
+    log("Plugin path  : " + m_pluginPath.string());
+    log("Map path     : " + m_mapPath.string());
+    log("---------------------------------------------");
+
 
     console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
 
@@ -2908,15 +2890,11 @@ void FemViewWindow::onInit()
 
     namespace fs = std::filesystem;
 
-    fs::path fontPath = m_progPath;
-    fontPath.append("fonts");
-
-    if (std::filesystem::is_directory(fontPath)) {
-        log("Font path: " + fontPath.string());
-        m_labelFont = ivf::BitmapFont::create((fontPath / "white_font.fnt").string());
-        m_axisFont = ivf::BitmapFont::create((fontPath / "black_font.fnt").string());
-        m_greenFont = ivf::BitmapFont::create((fontPath / "green_font.fnt").string());
-        m_redFont = ivf::BitmapFont::create((fontPath / "red_font.fnt").string());
+    if (std::filesystem::is_directory(m_fontPath)) {
+        m_labelFont = ivf::BitmapFont::create((m_fontPath / fs::path("white_font.fnt")).string());
+        m_axisFont = ivf::BitmapFont::create((m_fontPath / fs::path("black_font.fnt")).string());
+        m_greenFont = ivf::BitmapFont::create((m_fontPath / fs::path("green_font.fnt")).string());
+        m_redFont = ivf::BitmapFont::create((m_fontPath / fs::path("red_font.fnt")).string());
     }
     else {
         log("No font directory found.");
@@ -2962,10 +2940,7 @@ void FemViewWindow::onInit()
 
     log("Setting color map path.");
 
-    fs::path colorPath = m_progPath;
-    colorPath.append("maps");
-
-    if (!std::filesystem::is_directory(colorPath)) {
+    if (!std::filesystem::is_directory(m_mapPath)) {
         // this->disableRedrawTimer();
         this->quit();
     }
@@ -2973,7 +2948,7 @@ void FemViewWindow::onInit()
     log("Initializing beam model.");
     m_beamModel = vfem::BeamModel::create();
     m_beamModel->initialize();
-    m_beamModel->setPath(colorPath.string());
+    m_beamModel->setPath(m_mapPath.string());
     m_beamModel->setScene(this->getScene()->getComposite());
     m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
     m_beamModel->setNodeType(ivf::Node::NT_CUBE);
@@ -4380,10 +4355,7 @@ void FemViewWindow::onInitImGui()
 
     namespace fs = std::filesystem;
 
-    fs::path fontPath = m_progPath;
-    fontPath.append("fonts");
-
-    fs::path filename = fontPath / fs::path("RopaSans-Regular.ttf");
+    fs::path filename = m_fontPath / fs::path("RopaSans-Regular.ttf");
 
     io.Fonts->AddFontFromFileTTF(filename.string().c_str(), 22);
 

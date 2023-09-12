@@ -37,4 +37,6 @@ public:
     virtual ModelState modelState() = 0;
 };
 
+std::string float2str(double value);
+
 } // namespace ofsolver

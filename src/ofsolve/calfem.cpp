@@ -239,18 +239,14 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
 
     ColVec m(12);
 
-    // m = C.i()*u;
     m = C.inverse() * u;
 
-    // es.ReSize(n, 6);
     es.resize(n, 6);
     es.setZero();
 
-    // edi.ReSize(n,4);
     edi.resize(n, 4);
     edi.setZero();
 
-    // eci.ReSize(n);
     eci.resize(n);
     eci.setZero();
 
@@ -416,9 +412,7 @@ bool solveq(const Matrix &K, const ColVec &f, const IntColVec &bcDofs, const Col
     Ksys = K(ind, ind);
     fsys = f(ind) - K(ind, pind) * bcVals; // [ ind x 1 ] + [ ind x pind ] x [ pind ]
 
-    // ColVec asys = Ksys.ldlt().solve(fsys);
     ColVec asys = Ksys.llt().solve(fsys);
-    // ColVec asys = Ksys.fullPivHouseholderQr().solve(fsys);
 
     a(ind) = asys;
     a(pind) = bcVals;
@@ -536,14 +530,6 @@ bool spsolveq(const SpMatrix &K, const ColVec &f, const IntColVec &bcDofs, const
     }
     Eigen::VectorXd asys = solver.solve(fsys);
 
-    // calfem::print(asys);
-
-    // fsys = f(ind) - K(ind, pind) * bcVals; // [ ind x 1 ] + [ ind x pind ] x [
-
-    // ColVec asys = Ksys.ldlt().solve(fsys);
-    // ColVec asys = Ksys.llt().solve(fsys);
-    // ColVec asys = Ksys.fullPivHouseholderQr().solve(fsys);
-
     a(ind) = asys;
     a(pind) = bcVals;
 
@@ -658,8 +644,6 @@ bool SparseSolver::solve(const ColVec &f, ColVec &a, ColVec &Q)
     std::cout << m_fsys.maxCoeff() << "\n";
     std::cout << f.maxCoeff() << "\n";
 
-    // Eigen::SparseLU<SpMatrix> solver;
-    // Eigen::SimplicialLLT<SpMatrix> solver;
     m_solver.compute(m_Ksys);
     if (m_solver.info() != Eigen::Success) {
         std::cout << "Solver failed.\n";
@@ -692,13 +676,11 @@ bool SparseSolver::recompute(const ColVec &f, ColVec &a, ColVec &Q)
     std::cout << m_fsys.maxCoeff() << "\n";
     std::cout << (*m_f).maxCoeff() << "\n";
 
-    // Eigen::SparseLU<SpMatrix> solver;
-    // Eigen::SimplicialLLT<SpMatrix> solver;
-    // m_solver.compute(m_Ksys);
     if (m_solver.info() != Eigen::Success) {
         std::cout << "Solver failed.\n";
         return false;
     }
+
     m_asys = m_solver.solve(m_fsys);
 
     a(m_ind) = m_asys;
@@ -708,130 +690,5 @@ bool SparseSolver::recompute(const ColVec &f, ColVec &a, ColVec &Q)
 
     return true;
 }
-
-/*
-void writeRowVec(const std::string& name, RowVec &v, std::ostream &out, bool
-matlab)
-{
-        if (matlab)
-                out << name << " = [" << std::endl;
-        else
-                out << name << " = matrix([[" << std::endl;
-
-        int i;
-
-        for (i=1; i<=v.Ncols(); i++)
-                        if (i<v.Nrows())
-                                out << "\t " << v(i) << " ," << std::endl;
-                        else
-                                out << "\t " << v(i) << std::endl;
-
-        if (matlab)
-                out << "]';" << endl;
-        else
-                out << "]])" << endl;
-}
-
-void writeColVector(const std::string& name, ColVec &v, std::ostream &out, bool
-matlab)
-{
-        if (matlab)
-                out << name << " = [" << std::endl;
-        else
-                out << name << " = matrix([" << std::endl;
-
-        int i;
-
-        for (i=1; i<=v.Nrows(); i++)
-                if (matlab)
-                        out << v(i) << std::endl;
-                else
-                        if (i<v.Nrows())
-                                out << "\t[ " << v(i) << " ]," << std::endl;
-                        else
-                                out << "\t[ " << v(i) << "]" << std::endl;
-
-        if (matlab)
-                out << "];" << endl;
-        else
-                out << "])" << endl;
-}
-
-void writeMatrix(const std::string& name, Matrix &m, std::ostream &out, bool
-matlab)
-{
-        if (matlab)
-                out << name << " = [" << std::endl;
-        else
-                out << name << " = matrix([" << std::endl;
-
-        int i, j;
-
-        for (i=1; i<=m.Nrows(); i++)
-        {
-                for (j=1; j<=m.Ncols(); j++)
-                {
-                        //std::cout << "row = " << i << " col = " << j <<
-std::endl; if (matlab) out << m(i,j) << " "; else
-                        {
-                                if (j==1)
-                                        out << "\t[ ";
-
-                                if (j<m.Ncols())
-                                        out << m(i,j) << ", ";
-                                else
-                                        out << m(i,j) << " ],";
-                        }
-                }
-                if (matlab)
-                        out << ";" << std::endl;
-                else
-                        out << std::endl;
-        }
-        if (matlab)
-                out << "];" << endl;
-        else
-                out << "])" << endl;
-}
-*/
-
-/*
-void writeMatrix(const std::string& name, SymmetricBandMatrix &m, std::ostream
-&out, bool matlab)
-{
-        if (matlab)
-                out << name << " = [" << std::endl;
-        else
-                out << name << " = matrix([" << std::endl;
-
-        int i, j;
-
-        for (i=1; i<=m.Nrows(); i++)
-        {
-                for (j=1; j<=m.Ncols(); j++)
-                {
-                        //std::cout << "row = " << i << " col = " << j <<
-std::endl; if (matlab) out << m(i,j) << " "; else
-                        {
-                                if (j==1)
-                                        out << "\t[ ";
-
-                                if (j<m.Ncols())
-                                        out << m(i,j) << ", ";
-                                else
-                                        out << m(i,j) << " ],";
-                        }
-                }
-                if (matlab)
-                        out << ";" << std::endl;
-                else
-                        out << std::endl;
-        }
-        if (matlab)
-                out << "];" << endl;
-        else
-                out << "])" << endl;
-}
-*/
 
 } // namespace calfem

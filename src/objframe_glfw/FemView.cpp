@@ -298,6 +298,23 @@ unsigned int fl_cmap[256] = {
     0xffffff00  // 255};
 };
 
+// Web service handler
+
+static int handler(struct mg_connection *conn, void *ignored)
+{
+    const char *msg = "Hello world";
+    unsigned long len = (unsigned long)strlen(msg);
+
+    mg_send_http_ok(conn, "text/plain", len);
+
+    auto femView = static_cast<FemViewWindow *>(ignored);
+    femView->addNode(0.0, 0.0, 0.0);
+
+    mg_write(conn, msg, len);
+
+    return 200; /* HTTP state 200 = OK */
+}
+
 // File dialog
 
 std::string wstrtostr(const std::wstring &wstr)
@@ -531,6 +548,9 @@ std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, cons
 FemViewWindow::~FemViewWindow()
 {
     log("Destructor.");
+
+    mg_stop(m_webContext);
+    mg_exit_library();
 }
 
 void FemViewWindow::runPlugin(ScriptPlugin *plugin)
@@ -703,6 +723,7 @@ void FemViewWindow::setCurrentBeamLoad(ofem::BeamLoad *elementLoad)
 void FemViewWindow::setRepresentation(RepresentationMode repr)
 {
     // Change model representation
+
     m_representation = repr;
 
     switch (m_representation) {
@@ -1137,7 +1158,6 @@ void FemViewWindow::revertLastSnapShot()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    // m_beamModel->setShowNodeNumbers(true);
 
     // Generate a Ivf++ representation
 
@@ -1478,7 +1498,8 @@ void FemViewWindow::addBeamLoad(ofem::BeamLoad *elementLoad)
 
     // Create ivf represenation
 
-    vfem::BeamLoad *visLoad = new vfem::BeamLoad();
+    auto visLoad = vfem::BeamLoad::create();
+
     visLoad->setBeamModel(m_beamModel.get());
     visLoad->setBeamLoad(elementLoad);
 
@@ -1504,7 +1525,8 @@ void FemViewWindow::addNodeLoad(ofem::BeamNodeLoad *nodeLoad)
 
     // Create ivf represenation
 
-    vfem::NodeLoad *visNodeLoad = new vfem::NodeLoad();
+    auto visNodeLoad = vfem::NodeLoad::create();
+
     visNodeLoad->setBeamModel(m_beamModel.get());
     visNodeLoad->setNodeLoad(nodeLoad);
 
@@ -2296,12 +2318,8 @@ void FemViewWindow::recompute()
             // Refresh scene (Solid lines must be updated)
 
             this->getScene()->getComposite()->refresh();
-            this->redraw(); // set damage(FL_DAMAGE_ALL)
+            this->redraw();
         }
-    }
-    else {
-        // setEditMode(WidgetMode::Select);
-        // refreshToolbars();
     }
 }
 
@@ -2327,10 +2345,12 @@ void FemViewWindow::doFeedback()
 
             // m_frameSolver = FrameSolver::create();
             // m_currentSolver = m_frameSolver.get();
+
             m_beamSolver = BeamSolver::create();
             m_currentSolver = m_beamSolver.get();
 
             // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
+
             m_currentSolver->setBeamModel(m_beamModel.get());
 
             double v[3];
@@ -2410,7 +2430,6 @@ void FemViewWindow::doFeedback()
 
     if (m_saneModel) {
         if (m_currentSolver != nullptr) {
-            // Fl::check();
             if (m_interactionNode != nullptr) {
 
                 double v[3];
@@ -2444,7 +2463,7 @@ void FemViewWindow::doFeedback()
                 // Refresh scene (Solid lines must be updated)
 
                 this->getScene()->getComposite()->refresh();
-                this->redraw(); // set damage(FL_DAMAGE_ALL)
+                this->redraw();
             }
         }
     }
@@ -2458,7 +2477,7 @@ vfem::Node *FemViewWindow::addNode(double x, double y, double z)
 {
     // First we create a FemNode
 
-    ofem::Node *femNode = new ofem::Node();
+    auto femNode = ofem::Node::create();
 
     // Add it to the Fem model
 
@@ -2827,9 +2846,17 @@ void FemViewWindow::hideAllDialogs()
 
 void FemViewWindow::onInit()
 {
+    // Setup web service
+
+    mg_init_library(0);
+    m_webContext = mg_start(NULL, 0, NULL);
+
+    mg_set_request_handler(m_webContext, "/hello", handler, this);
+
     // Create log window early as it will be called by the logger.
 
     m_logWindow = LogWindow::create("Log window");
+    m_logWindow->setSize(600, 600);
     m_logWindow->setVisible(false);
 
     m_consoleWindow = ConsoleWindow::create("Hints");
@@ -2855,7 +2882,6 @@ void FemViewWindow::onInit()
     log("Plugin path  : " + m_pluginPath.string());
     log("Map path     : " + m_mapPath.string());
     log("---------------------------------------------");
-
 
     console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
 
@@ -2941,7 +2967,6 @@ void FemViewWindow::onInit()
     log("Setting color map path.");
 
     if (!std::filesystem::is_directory(m_mapPath)) {
-        // this->disableRedrawTimer();
         this->quit();
     }
 
@@ -2960,7 +2985,6 @@ void FemViewWindow::onInit()
 
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
-    // m_beamModel->setShowNodeNumbers(false);
 
     m_beamModel->generateModel();
 
@@ -2976,8 +3000,6 @@ void FemViewWindow::onInit()
     ofem::ModelClipboardCreateElementFunc onCreateElement =
         std::bind(&FemViewWindow::onClipboardCreateElement, this, _1, _2);
     m_modelClipBoard->assignOnCreateElement(onCreateElement);
-
-    // m_modelClipBoard->assignOnCreateElement(this->onClipboardCreateElement());
 
     // Initialize color table
 
@@ -3265,6 +3287,7 @@ void FemViewWindow::onSelect(Composite *selectedShapes)
     // Handle object selection
 
     if (m_customMode == CustomMode::Normal) {
+
         // Disable all dialogs
 
         m_nodeSelection = false;
@@ -3468,6 +3491,7 @@ void FemViewWindow::onOverlay()
 void FemViewWindow::onInitContext()
 {
     IvfViewWindow::onInitContext();
+
     glEnable(GL_DEPTH_TEST);
     if (m_useBlending)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

@@ -20,18 +20,6 @@ void ofui::LogWindow::clear()
     m_lineOffsets.push_back(0);
 }
 
-// void ofui::LogWindow::log(const char* fmt, ...)
-//{
-//	int old_size = m_buffer.size();
-//	va_list args;
-//	va_start(args, fmt);
-//	m_buffer.appendfv(fmt, args);
-//	va_end(args);
-//	for (int new_size = m_buffer.size(); old_size < new_size; old_size++)
-//		if (m_buffer[old_size] == '\n')
-//			m_lineOffsets.push_back(old_size + 1);
-// }
-
 void ofui::LogWindow::log(const std::string message)
 {
     int old_size = m_buffer.size();
@@ -102,5 +90,4 @@ void ofui::LogWindow::doDraw()
 
 void ofui::LogWindow::doPreDraw()
 {
-    // ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
 }

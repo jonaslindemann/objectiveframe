@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.1.1";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.1.2";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2023\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -71,10 +71,12 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/settings_window.h>
 #include <ofui/window_list.h>
 
+#include <civetweb/civetweb.h>
+
 #include "Area2D.h"
 #include "ButtonGroup.h"
+#include "IvfViewWindow.h"
 #include "PlaneButton.h"
-
 #include "script_plugin.h"
 
 enum class RepresentationMode {
@@ -137,8 +139,6 @@ template <typename T> string to_string(T Number)
     ss << Number;
     return ss.str();
 }
-
-#include "IvfViewWindow.h"
 
 class FemViewWindow : public IvfViewWindow {
 private:
@@ -298,6 +298,10 @@ private:
     // Plugins
 
     std::vector<ScriptPluginPtr> m_plugins;
+
+    // Web service
+
+    struct mg_context *m_webContext;
 
     // Handle mouse updates
 

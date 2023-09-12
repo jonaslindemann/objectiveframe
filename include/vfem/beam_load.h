@@ -12,7 +12,7 @@
 
 namespace vfem {
 
-IvfSmartPointer(VisBeamLoad);
+IvfSmartPointer(BeamLoad);
 
 class BeamLoad : public ivf::Shape {
 private:
@@ -32,6 +32,7 @@ public:
     virtual ~BeamLoad();
 
     IvfClassInfo("vfem::BeamLoad", ivf::Shape);
+    IvfStdFactory(vfem::BeamLoad);
 
     void setColorTable(vfem::ColorTable *colorTable);
     void setBeamModel(vfem::BeamModel *model);

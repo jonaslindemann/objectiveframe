@@ -1,5 +1,4 @@
-#ifndef _CIvfPlaneButton_h_
-#define _CIvfPlaneButton_h_
+#pragma once
 
 #include <ivf/GenericButton.h>
 
@@ -43,11 +42,9 @@ public:
     virtual ~PlaneButton();
 
     void setSize(double width, double height);
-    void getSize(double& width, double& height);
+    void getSize(double &width, double &height);
     void setTexture(ivf::Texture *texture);
 
     const std::string getHint();
     void setHint(const std::string &hintText);
 };
-
-#endif

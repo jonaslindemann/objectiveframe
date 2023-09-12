@@ -13,7 +13,7 @@
 
 namespace vfem {
 
-IvfSmartPointer(CIVfFemNodeBC);
+IvfSmartPointer(NodeBC);
 
 // public class: VisFemNodeBC
 class NodeBC : public ivf::Shape {
@@ -29,6 +29,7 @@ public:
     virtual ~NodeBC();
 
     IvfClassInfo("vfem::NodeBC", ivf::Shape);
+    IvfStdFactory(vfem::NodeBC);
 
     virtual void refresh() override;
 

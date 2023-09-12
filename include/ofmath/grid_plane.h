@@ -5,16 +5,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/intersect.hpp>
 
-/*
-bool glm::intersectRayPlane	(	genType const & 	orig,
-genType const & 	dir,
-genType const & 	planeOrig,
-genType const & 	planeNormal,
-typename genType::value_type & 	intersectionDistance
-)
-
-*/
-
 namespace ofmath {
 
 class GridPlane {

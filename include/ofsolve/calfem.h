@@ -122,11 +122,4 @@ public:
 
 typedef std::shared_ptr<SparseSolver> SparseSolverPtr;
 
-/*
-void writeRowVec(const std::string& name, RowVec& v, std::ostream& out, bool matlab = true);
-void writeColVec(const std::string& name, ColVec& v, std::ostream& out, bool matlab = true);
-void writeMatrix(const std::string& name, Matrix& m, std::ostream& out, bool matlab = true);
-// void writeMatrix(const std::string& name, SymmetricBandMatrix &m, std::ostream &out, bool matlab=true);
-*/
-
 } // namespace calfem

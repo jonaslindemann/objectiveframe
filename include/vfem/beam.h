@@ -21,7 +21,7 @@
 
 namespace vfem {
 
-IvfSmartPointer(VisBeam);
+IvfSmartPointer(Beam);
 
 class Beam : public ivf::Composite {
 private:
@@ -45,6 +45,7 @@ public:
     virtual ~Beam();
 
     IvfClassInfo("vfem::Beam", ivf::Composite);
+    IvfStdFactory(Beam);
 
     // Methods
 
@@ -65,4 +66,5 @@ protected:
     virtual void doCreateSelect() override;
     virtual void doCreateGeometry() override;
 };
+
 } // namespace vfem

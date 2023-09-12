@@ -29,6 +29,7 @@ public:
     // Class info
 
     IvfClassInfo("vfem::NodeLoad", ivf::Shape);
+    IvfStdFactory(vfem::NodeLoad);
 
     // Get/set methods
 

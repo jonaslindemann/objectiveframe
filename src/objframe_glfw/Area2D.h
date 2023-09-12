@@ -1,5 +1,4 @@
-#ifndef _CIvfArea2D_h_
-#define _CIvfArea2D_h_
+#pragma once
 
 #include <ivf/Base.h>
 #include <ivf/GL.h>
@@ -34,5 +33,3 @@ public:
     bool inside(int x, int y);
     void render();
 };
-
-#endif

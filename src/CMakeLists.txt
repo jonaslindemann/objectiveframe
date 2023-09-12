@@ -1,1 +1,1 @@
-SUBDIRS(newmat fem visfem util ofmath ofui_glfw imgui_fltk objframe_glfw ofsolve imguifd)
+SUBDIRS(newmat fem visfem util ofmath ofui_glfw imgui_fltk objframe_glfw ofsolve imguifd civetweb)

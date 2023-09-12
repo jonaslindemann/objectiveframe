@@ -352,7 +352,7 @@ void ofsolver::TetgenBeamMesher::generate()
     m_nodes.save(nodeFilename);
 
 #ifdef WIN32
-    std::string tetgenExec = "\"" + m_progPath + "tetgen.exe\" -e " + nodeFilename;
+    std::string tetgenExec = "\"" + m_progPath + "\\tetgen.exe\" -e " + nodeFilename;
 #else
     std::string tetgenExec = "tetgen -e \"" + nodeFilename + "\"";
 #endif

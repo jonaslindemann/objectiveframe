@@ -31,6 +31,7 @@ public:
     virtual ~BC();
 
     IvfClassInfo("vfem::BC", ivf::Composite);
+    IvfStdFactory(vfem::BC);
 
     void unprescribeAll();
     void prescribe(int dof, bool prescribed);

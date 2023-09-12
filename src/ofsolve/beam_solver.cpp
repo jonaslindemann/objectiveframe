@@ -10,13 +10,6 @@ using namespace ofem;
 using namespace calfem;
 using namespace ofsolver;
 
-std::string float2str(double value)
-{
-    std::stringstream coordStream;
-    coordStream << std::fixed << std::setw(10) << std::setprecision(2) << value;
-    return coordStream.str();
-}
-
 BeamSolver::BeamSolver()
     : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr},
       m_modelState{ModelState::Ok}, m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300},
@@ -337,31 +330,6 @@ void BeamSolver::execute()
         return;
     }
 
-    /*
-
-
-    auto logDetSign = Ksys.LogDeterminant().Sign();
-
-    Logger::instance()->log(LogLevel::Info, "logDetSign = " + float2str(logDetSign));
-
-    if (logDetSign < 0)
-    {
-        Logger::instance()->log(LogLevel::Error, "System unstable.");
-        m_modelState = ModelState::Unstable;
-        return;
-    }
-
-    if (logDetSign == 0)
-    {
-        Logger::instance()->log(LogLevel::Error, "Matrix singular.");
-        m_modelState = ModelState::Singular;
-        return;
-    }
-
-    m_X = std::make_unique<LinearEquationSolver>(Ksys);
-    m_a = m_X->i() * fsys;
-    */
-
     //
     // Create global displacement vector
     //
@@ -608,8 +576,6 @@ void BeamSolver::recompute()
 
         if (f.isZero()) {
             Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
-            // m_modelState = ModelState::NoLoads;
-            // return;
         }
 
         //
@@ -679,6 +645,7 @@ void BeamSolver::update()
     //
     // Store element forces in elements
     //
+
     int n;
     int i, j, k;
     double N, T, Vy, Vz, My, Mz, Navier;

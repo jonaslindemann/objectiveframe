@@ -25,6 +25,7 @@ public:
     virtual ~Node();
 
     IvfClassInfo("vfem::Node", ivf::Node);
+    IvfStdFactory(vfem::Node);
 
     virtual void refresh() override;
 

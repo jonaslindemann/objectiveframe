@@ -4,16 +4,9 @@
 
 #include <logger.h>
 
-#include <sstream>
-
 using namespace ofem;
 
-std::string float2str(double value)
-{
-    std::stringstream coordStream;
-    coordStream << std::fixed << std::setw(10) << std::setprecision(2) << value;
-    return coordStream.str();
-}
+
 
 void bar3e(RowVector &ex, RowVector &ey, RowVector &ez, RowVector &ep, double eq, Matrix &Ke, ColumnVector &fe)
 {

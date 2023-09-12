@@ -17,6 +17,9 @@ private:
     bool m_center;
     bool m_setPos;
     int m_corner;
+    bool m_firstDraw;
+    int m_width;
+    int m_height;
 
 public:
     UiWindow(const std::string name);

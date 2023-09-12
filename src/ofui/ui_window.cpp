@@ -6,7 +6,8 @@ using namespace ofui;
 
 UiWindow::UiWindow(const std::string name)
     : m_name{name}, m_visible{true}, m_windowFlags{ImGuiWindowFlags_AlwaysAutoResize}, m_updatePos{false},
-      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false}
+      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false}, m_firstDraw{true}, m_width{-1}, m_height{
+                                                                                                                 -1}
 {
 }
 
@@ -22,6 +23,9 @@ std::shared_ptr<UiWindow> UiWindow::create(const std::string name)
 void UiWindow::draw()
 {
     if (m_visible) {
+        if ((m_width != -1) && (m_height != -1))
+            ImGui::SetNextWindowSize(ImVec2(float(m_width), float(m_height)), ImGuiCond_FirstUseEver);
+
         if (m_setPos) {
             const float PAD = 50.0f;
             const ImGuiViewport *viewport = ImGui::GetMainViewport();
@@ -115,6 +119,8 @@ void UiWindow::hide()
 void UiWindow::setSize(int w, int h)
 {
     ImGui::SetWindowSize(m_name.c_str(), ImVec2(float(w), float(h)));
+    m_width = w;
+    m_height = h;
 }
 
 int ofui::UiWindow::width()

@@ -298,23 +298,6 @@ unsigned int fl_cmap[256] = {
     0xffffff00  // 255};
 };
 
-// Web service handler
-
-static int handler(struct mg_connection *conn, void *ignored)
-{
-    const char *msg = "Hello world";
-    unsigned long len = (unsigned long)strlen(msg);
-
-    mg_send_http_ok(conn, "text/plain", len);
-
-    auto femView = static_cast<FemViewWindow *>(ignored);
-    femView->addNode(0.0, 0.0, 0.0);
-
-    mg_write(conn, msg, len);
-
-    return 200; /* HTTP state 200 = OK */
-}
-
 // File dialog
 
 std::string wstrtostr(const std::wstring &wstr)
@@ -487,6 +470,10 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
 {
     setUseEscQuit(false);
 
+    // Setup web service
+
+    m_service = ofservice::Service::create(this);
+
     m_width = width;
     m_height = height;
     m_tactileForce = nullptr;
@@ -548,9 +535,6 @@ std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, cons
 FemViewWindow::~FemViewWindow()
 {
     log("Destructor.");
-
-    mg_stop(m_webContext);
-    mg_exit_library();
 }
 
 void FemViewWindow::runPlugin(ScriptPlugin *plugin)
@@ -2847,11 +2831,6 @@ void FemViewWindow::hideAllDialogs()
 void FemViewWindow::onInit()
 {
     // Setup web service
-
-    mg_init_library(0);
-    m_webContext = mg_start(NULL, 0, NULL);
-
-    mg_set_request_handler(m_webContext, "/hello", handler, this);
 
     // Create log window early as it will be called by the logger.
 

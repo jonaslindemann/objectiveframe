@@ -71,7 +71,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/settings_window.h>
 #include <ofui/window_list.h>
 
-#include <civetweb/civetweb.h>
+#include <ofservice/ofservice.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -301,7 +301,7 @@ private:
 
     // Web service
 
-    struct mg_context *m_webContext;
+    ofservice::ServicePtr m_service;
 
     // Handle mouse updates
 

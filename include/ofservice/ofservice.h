@@ -9,14 +9,30 @@ class FemViewWindow;
 
 namespace ofservice {
 
-class AddNodeHandler : public CivetHandler {
+class APIHandler : public CivetHandler {
 private:
     FemViewWindow *m_view;
 
 public:
-    AddNodeHandler(FemViewWindow *view);
+    APIHandler(FemViewWindow *view);
 
-	bool handleGet(CivetServer *server, struct mg_connection *conn);    
+    FemViewWindow *view();
+
+    std::string read_response(mg_connection *conn);
+};
+
+class AddNodesHandler : public APIHandler {
+
+public:
+    AddNodesHandler(FemViewWindow *view);
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
+class AddBeamsHandler : public APIHandler {
+
+public:
+    AddBeamsHandler(FemViewWindow *view);
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class Service {
@@ -24,15 +40,16 @@ private:
     FemViewWindow *m_view;
     std::shared_ptr<CivetServer> m_webServer;
 
-    AddNodeHandler m_addNodeHandler;
+    AddNodesHandler m_addNodesHandler;
+    AddBeamsHandler m_addBeamsHandler;
 
 public:
-    Service(FemViewWindow* view);
+    Service(FemViewWindow *view);
     virtual ~Service();
 
-    static std::shared_ptr<Service> create(FemViewWindow* view);
+    static std::shared_ptr<Service> create(FemViewWindow *view);
 };
 
 typedef std::shared_ptr<Service> ServicePtr;
 
-} // namespace ofui
+} // namespace ofservice

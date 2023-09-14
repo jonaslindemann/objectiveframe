@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <mutex>
 
 #include <json.hpp>
 using json = nlohmann::json;
@@ -27,12 +28,11 @@ float str2float(std::string str)
 }
 
 ofservice::Service::Service(FemViewWindow *view)
-    : m_view{view}, m_addNodesHandler{view}, m_addBeamsHandler{view}, m_newModelHandler{view},
-      m_meshSelectedNodesHandler{view}, m_surfaceSelectedNodesHandler{view}, m_selectAllHandler{view},
-      m_clearSelectionHandler{view}, m_assignNodeFixedBCGroundHandler{view}, m_assignNodePosBCGroundHandler{view},
-      m_addLastNodeToSelectionHandler{view}, m_selectAllNodesHandler{view}
+    : m_view{view}
 {
     mg_init_library(0);
+
+    App::instance().setView(view);
 
     std::vector<std::string> options = {"document_root", ".", "listening_ports", "8081"};
 
@@ -60,12 +60,9 @@ std::shared_ptr<ofservice::Service> ofservice::Service::create(FemViewWindow *vi
     return std::make_shared<ofservice::Service>(view);
 }
 
-ofservice::AddNodesHandler::AddNodesHandler(FemViewWindow *view) : APIHandler(view)
-{
-}
-
 bool ofservice::AddNodesHandler::handlePost(CivetServer *server, mg_connection *conn)
 {
+    std::cout << "handlePost start ... ";
     auto req_info = mg_get_request_info(conn);
 
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
@@ -73,7 +70,7 @@ bool ofservice::AddNodesHandler::handlePost(CivetServer *server, mg_connection *
 
     std::string response = this->read_response(conn);
 
-    std::cout << "response = " << response << "\n";
+    //std::cout << "response = " << response << "\n";
 
     auto j = json::parse(response);
 
@@ -83,7 +80,7 @@ bool ofservice::AddNodesHandler::handlePost(CivetServer *server, mg_connection *
 
     for (auto &element : j) {
 
-        std::cout << element << '\n';
+        //std::cout << element << '\n';
 
         bool responseOK = false;
 
@@ -100,19 +97,11 @@ bool ofservice::AddNodesHandler::handlePost(CivetServer *server, mg_connection *
         }
 
         if (responseOK)
-            view()->addNode(pos[0], pos[1], pos[2]);
+            App::instance().view()->addNode(pos[0], pos[1], pos[2]);
     }
 
+    std::cout << "completed.\n";
     return true;
-}
-
-ofservice::APIHandler::APIHandler(FemViewWindow *view) : m_view{view}
-{
-}
-
-FemViewWindow *ofservice::APIHandler::view()
-{
-    return m_view;
 }
 
 std::string ofservice::APIHandler::read_response(mg_connection *conn)
@@ -142,10 +131,6 @@ std::string ofservice::APIHandler::read_response(mg_connection *conn)
     }
 
     return response;
-}
-
-ofservice::AddBeamsHandler::AddBeamsHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::AddBeamsHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -184,14 +169,10 @@ bool ofservice::AddBeamsHandler::handlePost(CivetServer *server, mg_connection *
         }
 
         if (responseOK)
-            view()->addBeam(idx[0], idx[1]);
+            App::instance().view()->addBeam(idx[0], idx[1]);
     }
 
     return true;
-}
-
-ofservice::NewModelHandler::NewModelHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::NewModelHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -201,13 +182,9 @@ bool ofservice::NewModelHandler::handlePost(CivetServer *server, mg_connection *
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->newModel();
+    App::instance().view()->newModel();
 
     return true;
-}
-
-ofservice::MeshSelectedNodesHandler::MeshSelectedNodesHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::MeshSelectedNodesHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -217,13 +194,9 @@ bool ofservice::MeshSelectedNodesHandler::handlePost(CivetServer *server, mg_con
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->meshSelectedNodes();
+    App::instance().view()->meshSelectedNodes();
 
     return true;
-}
-
-ofservice::SurfaceSelectedNodesHandler::SurfaceSelectedNodesHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::SurfaceSelectedNodesHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -233,13 +206,9 @@ bool ofservice::SurfaceSelectedNodesHandler::handlePost(CivetServer *server, mg_
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->surfaceSelectedNodes();
+    App::instance().view()->surfaceSelectedNodes();
 
     return true;
-}
-
-ofservice::SelectAllHandler::SelectAllHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::SelectAllHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -249,14 +218,9 @@ bool ofservice::SelectAllHandler::handlePost(CivetServer *server, mg_connection 
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->selectAll();
+    App::instance().view()->selectAll();
 
     return true;
-}
-
-ofservice::SelectAllNodesHandler::SelectAllNodesHandler(FemViewWindow *view) : APIHandler(view)
-{
-
 }
 
 bool ofservice::SelectAllNodesHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -266,13 +230,9 @@ bool ofservice::SelectAllNodesHandler::handlePost(CivetServer *server, mg_connec
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->selectAllNodes();
+    App::instance().view()->selectAllNodes();
 
     return true;
-}
-
-ofservice::ClearSelectionHandler::ClearSelectionHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::ClearSelectionHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -282,13 +242,9 @@ bool ofservice::ClearSelectionHandler::handlePost(CivetServer *server, mg_connec
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->clearSelection();
+    App::instance().view()->clearSelection();
 
     return true;
-}
-
-ofservice::AssignNodeFixedBCGroundHandler::AssignNodeFixedBCGroundHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::AssignNodeFixedBCGroundHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -298,13 +254,9 @@ bool ofservice::AssignNodeFixedBCGroundHandler::handlePost(CivetServer *server, 
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->assignNodeFixedBCGround();
+    App::instance().view()->assignNodeFixedBCGround();
 
     return true;
-}
-
-ofservice::AssignNodePosBCGroundHandler::AssignNodePosBCGroundHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::AssignNodePosBCGroundHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -314,13 +266,9 @@ bool ofservice::AssignNodePosBCGroundHandler::handlePost(CivetServer *server, mg
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->assignNodePosBCGround();
+    App::instance().view()->assignNodePosBCGround();
 
     return true;
-}
-
-ofservice::AddLastNodeToSelectionHandler::AddLastNodeToSelectionHandler(FemViewWindow *view) : APIHandler(view)
-{
 }
 
 bool ofservice::AddLastNodeToSelectionHandler::handlePost(CivetServer *server, mg_connection *conn)
@@ -330,7 +278,18 @@ bool ofservice::AddLastNodeToSelectionHandler::handlePost(CivetServer *server, m
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\nConnection: close\r\n\r\n");
 
-    view()->addLastNodeToSelection();
+    App::instance().view()->addLastNodeToSelection();
 
     return true;
+}
+
+void ofservice::App::setView(FemViewWindow *view)
+{
+    m_view = view;
+}
+
+FemViewWindow *ofservice::App::view()
+{
+    const std::lock_guard<std::mutex> lock(m_mutex);
+    return m_view;
 }

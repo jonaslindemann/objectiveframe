@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <mutex>
 
 #include <civetweb/CivetServer.h>
 
@@ -9,83 +10,90 @@ class FemViewWindow;
 
 namespace ofservice {
 
-class APIHandler : public CivetHandler {
+class App {
+public:
+    static App &instance()
+    {
+        static App m_instance; // Guaranteed to be destroyed.
+                                       // Instantiated on first use.
+        return m_instance;
+    }
+
 private:
+    App(){}; // Constructor? (the {} brackets) are needed here.
+
     FemViewWindow *m_view;
+    std::mutex m_mutex;
 
 public:
-    APIHandler(FemViewWindow *view);
+    App(App const &) = delete;
+    void operator=(App const &) = delete;
+
+    void setView(FemViewWindow *view);
 
     FemViewWindow *view();
+};
 
+class APIHandler : public CivetHandler {
+
+public:
     std::string read_response(mg_connection *conn);
 };
 
 class AddNodesHandler : public APIHandler {
 
 public:
-    AddNodesHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class AddBeamsHandler : public APIHandler {
 
 public:
-    AddBeamsHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class NewModelHandler : public APIHandler {
 public:
-    NewModelHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class MeshSelectedNodesHandler : public APIHandler {
 public:
-    MeshSelectedNodesHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class SurfaceSelectedNodesHandler : public APIHandler {
 public:
-    SurfaceSelectedNodesHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class SelectAllHandler : public APIHandler {
 public:
-    SelectAllHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class SelectAllNodesHandler : public APIHandler {
 public:
-    SelectAllNodesHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class ClearSelectionHandler : public APIHandler {
 public:
-    ClearSelectionHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class AssignNodeFixedBCGroundHandler : public APIHandler {
 public:
-    AssignNodeFixedBCGroundHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class AssignNodePosBCGroundHandler : public APIHandler {
 public:
-    AssignNodePosBCGroundHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
 class AddLastNodeToSelectionHandler : public APIHandler {
 public:
-    AddLastNodeToSelectionHandler(FemViewWindow *view);
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 

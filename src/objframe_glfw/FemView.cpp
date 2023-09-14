@@ -1299,6 +1299,8 @@ void FemViewWindow::newModel()
 {
     namespace fs = std::filesystem;
 
+    this->lockSceneRendering();
+
     this->hideAllDialogs();
 
     // Delete all Ivf++ objects
@@ -1386,6 +1388,8 @@ void FemViewWindow::newModel()
     this->setEditMode(WidgetMode::ViewZoom);
 
     this->setUseBlending(false);
+
+    this->unlockSceneRendering();
 
     // Update screen
 

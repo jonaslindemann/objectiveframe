@@ -112,16 +112,12 @@ private:
     bool m_disableRedrawTimer;
     bool m_quit;
     bool m_moveStart;
-
     bool m_mouseUpdate;
-
     bool m_initialised;
-
     double m_controlSize;
-
     bool m_offScreenRendering;
-
     bool m_customPick;
+    bool m_lockSceneRendering;
 
     GLuint m_screenTexture;
     GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;
@@ -298,6 +294,10 @@ public:
 
     void setUseCustomPick(bool flag);
     bool useCustomPick();
+
+    void lockSceneRendering();
+    void unlockSceneRendering();
+    bool isSceneRenderingLocked();
 
 protected:
     // Internal event handlers

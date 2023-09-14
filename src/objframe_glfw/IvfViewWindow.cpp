@@ -23,8 +23,8 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
       m_currentModifier{ButtonState::bsNoButton}, m_angleX{0.0f}, m_angleY{0.0f}, m_moveX{0.0f}, m_moveY{0.0f},
       m_zoomX{0.0f}, m_zoomY{0.0f}, m_snapToGrid{true}, m_selectedShape{nullptr}, m_editMode{WidgetMode::ViewPan},
       m_clickNumber{0}, m_nNodes{0}, m_nLines{0}, m_doOverlay{false}, m_doUnderlay{false}, m_editEnabled{true},
-      m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false},
-      m_workspaceSize{10.0f}, m_quit{false}, m_customPick{false}
+      m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false}, m_workspaceSize{10.0f},
+      m_quit{false}, m_customPick{false}, m_lockSceneRendering{false}
 {
     // Create default camera
 
@@ -201,7 +201,8 @@ void IvfViewWindow::onGlfwDraw()
 
     glPopMatrix();
 
-    m_scene->render();
+    if (!m_lockSceneRendering)
+        m_scene->render();
 
     glPushMatrix();
 
@@ -448,6 +449,21 @@ void IvfViewWindow::setUseCustomPick(bool flag)
 bool IvfViewWindow::useCustomPick()
 {
     return m_customPick;
+}
+
+void IvfViewWindow::lockSceneRendering()
+{
+    m_lockSceneRendering = true;
+}
+
+void IvfViewWindow::unlockSceneRendering()
+{
+    m_lockSceneRendering = false;
+}
+
+bool IvfViewWindow::isSceneRenderingLocked()
+{
+    return m_lockSceneRendering;
 }
 
 // Get/set methods

@@ -8,18 +8,6 @@ import httpx
 import json
 import numpy as np
 
-    # m_webServer->addHandler("/cmds/add_nodes", m_addNodesHandler);
-    # m_webServer->addHandler("/cmds/add_beams", m_addBeamsHandler);
-    # m_webServer->addHandler("/cmds/new_model", m_newModelHandler);
-    # m_webServer->addHandler("/cmds/mesh_selected_nodes", m_meshSelectedNodesHandler);
-    # m_webServer->addHandler("/cmds/surface_selected_nodes", m_surfaceSelectedNodesHandler);
-    # m_webServer->addHandler("/cmds/select_all", m_selectAllHandler);
-    # m_webServer->addHandler("/cmds/clear_selection", m_clearSelectionHandler);
-    # m_webServer->addHandler("/cmds/assign_node_fixed_bc_ground", m_assignNodeFixedBCGroundHandler);
-    # m_webServer->addHandler("/cmds/assign_node_pos_bc_ground", m_assignNodePosBCGroundHandler);
-    # m_webServer->addHandler("/cmds/add_last_node_to_selection", m_addLastNodeToSelectionHandler);
-
-
 class ObjectiveFrame:
     def __init__(self, url="http://localhost:8081"):
         self.session = httpx.Client()

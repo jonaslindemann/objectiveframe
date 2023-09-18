@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <mutex>
+#include <string>
 
 #include <civetweb/CivetServer.h>
 
@@ -15,7 +15,7 @@ public:
     static App &instance()
     {
         static App m_instance; // Guaranteed to be destroyed.
-                                       // Instantiated on first use.
+                               // Instantiated on first use.
         return m_instance;
     }
 
@@ -96,21 +96,6 @@ class AddLastNodeToSelectionHandler : public APIHandler {
 public:
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
-
-/*
-    script.add(chaiscript::fun(&FemViewWindow::addNode, this), "addNode");
-    script.add(chaiscript::fun(&FemViewWindow::newModel, this), "newModel");
-    script.add(chaiscript::fun(&FemViewWindow::addBeam, this), "addBeam");
-    script.add(chaiscript::fun(&FemViewWindow::nodeCount, this), "nodeCount");
-    script.add(chaiscript::fun(&FemViewWindow::meshSelectedNodes, this), "meshSelectedNodes");
-    script.add(chaiscript::fun(&FemViewWindow::surfaceSelectedNodes, this), "surfaceSelectedNodes");
-    script.add(chaiscript::fun(&FemViewWindow::selectAll, this), "selectAll");
-    script.add(chaiscript::fun(&FemViewWindow::selectAllNodes, this), "selectAllNodes");
-    script.add(chaiscript::fun(&FemViewWindow::clearSelection, this), "clearSelection");
-    script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCGround, this), "assignNodeFixedBCGround");
-    script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCGround, this), "assignNodePosBCGround");
-    script.add(chaiscript::fun(&FemViewWindow::addLastNodeToSelection, this), "addLastNodeToSelection");
-*/
 
 class Service {
 private:

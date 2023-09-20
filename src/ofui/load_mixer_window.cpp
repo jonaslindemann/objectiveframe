@@ -17,6 +17,7 @@ LoadMixerWindow::LoadMixerWindow(const std::string name)
 {
     std::fill(std::begin(m_loadScaleFactors), std::begin(m_loadScaleFactors) + 255, 1.0f);
     m_loadSum = std::reduce(std::begin(m_loadScaleFactors), std::begin(m_loadScaleFactors) + 255);
+    m_lastSum = m_loadSum;
 }
 
 LoadMixerWindow::~LoadMixerWindow()

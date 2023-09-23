@@ -8,7 +8,7 @@
 #include <mutex>
 
 #include <json.hpp>
-using json = nlohmann::json;
+using nljson = nlohmann::json;
 
 std::string float2str(double value)
 {
@@ -75,7 +75,7 @@ bool ofservice::AddNodesHandler::handlePost(CivetServer *server, mg_connection *
 
     //std::cout << "response = " << response << "\n";
 
-    auto j = json::parse(response);
+    auto j = nljson::parse(response);
 
     float pos[3] = {0.0f, 0.0f, 0.0f};
 
@@ -149,7 +149,7 @@ bool ofservice::AddBeamsHandler::handlePost(CivetServer *server, mg_connection *
 
     std::cout << "response = " << response << "\n";
 
-    auto j = json::parse(response);
+    auto j = nljson::parse(response);
 
     int idx[2] = {0, 0};
 

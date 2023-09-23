@@ -4,8 +4,10 @@ FILE(GLOB INCLUDE_FILES ${PROJECT_SOURCE_DIR}/include/civetweb/*.h ${PROJECT_SOU
 
 IF(CMAKE_BUILD_TYPE STREQUAL Debug)
 	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include)
-	ADD_LIBRARY(ofserviced ${INCLUDE_FILES} ${SOURCE_FILES})
+	add_library(ofserviced ${INCLUDE_FILES} ${SOURCE_FILES})
+	target_include_directories(ofserviced PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
 ELSE(CMAKE_BUILD_TYPE STREQUAL Debug)
 	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include)
-	ADD_LIBRARY(ofservice ${INCLUDE_FILES} ${SOURCE_FILES})
+	add_library(ofservice ${INCLUDE_FILES} ${SOURCE_FILES})
+	target_include_directories(ofserviced PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
 ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug)

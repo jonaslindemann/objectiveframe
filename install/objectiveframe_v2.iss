@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ObjectiveFrame"
-#define MyAppVersion "2.1.2"
+#define MyAppVersion "2.1.4"
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
 #define MyAppExeName "objframe_glfw.exe"
@@ -26,9 +26,9 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
-OutputDir=c:\Users\Jonas Lindemann\Development\objectiveframe\packages\windows
+OutputDir=..\packages\windows
 OutputBaseFilename=objectiveframe_setup
-SetupIconFile=c:\Users\Jonas Lindemann\Development\objectiveframe\images\logo.ico
+SetupIconFile=..\images\logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -49,12 +49,13 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "..\bin\*.df3"; DestDir: "{userdocs}\ObjectiveFrame Samples"; Flags: ignoreversion; Components: samples
 Source: "vc_redist\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Components: main
-Source: "C:\Users\Jonas Lindemann\Development\objectiveframe\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "..\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "..\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "..\external\tetgen.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "C:\Users\Jonas Lindemann\Development\objectiveframe\bin\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
-Source: "C:\Users\Jonas Lindemann\Development\objectiveframe\bin\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
-Source: "C:\Users\Jonas Lindemann\Development\objectiveframe\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
-Source: "C:\Users\Jonas Lindemann\Development\objectiveframe\bin\plugins\*"; DestDir: "{app}\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\plugins\*"; DestDir: "{app}\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

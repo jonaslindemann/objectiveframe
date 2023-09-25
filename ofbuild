@@ -1,0 +1,26 @@
+#!/bin/sh
+
+DEBUG_DIR=./build-debug
+RELEASE_DIR=./build-release
+
+echo
+echo '*******************************'
+echo '*** Building ObjectiveFrame ***'
+echo '*******************************'
+echo
+
+echo
+echo '*** Configuring debug build'
+echo
+cmake -B $DEBUG_DIR -DCMAKE_BUILD_TYPE=Debug --preset linux
+echo
+echo '*** Building debug build'
+echo
+cmake --build $DEBUG_DIR --config Debug -- -j
+echo
+echo '*** Configuring release build'
+echo
+cmake -B $RELEASE_DIR -DCMAKE_BUILD_TYPE=Release --preset linux
+echo
+echo '*** Building release build'
+echo

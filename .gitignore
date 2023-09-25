@@ -8,7 +8,6 @@ docs/site/
 *.exe
 lib/
 *.ilk
-*.json
 *.sqlite
 src/fmt/
 
@@ -18,3 +17,4 @@ build/
 *.pyc
 reference/html/
 *.lnk
+.vs/*

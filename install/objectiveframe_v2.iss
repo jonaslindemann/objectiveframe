@@ -32,8 +32,8 @@ SetupIconFile=..\images\logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-;SignTool=signtool_lu
-;SignedUninstaller=yes
+SignTool=signtool_lu
+SignedUninstaller=yes
 ArchitecturesInstallIn64BitMode=x64
 
 [Components]
@@ -49,9 +49,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "..\bin\*.df3"; DestDir: "{userdocs}\ObjectiveFrame Samples"; Flags: ignoreversion; Components: samples
 Source: "vc_redist\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Components: main
-Source: "..\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "..\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "..\external\tetgen.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "..\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion signonce; Components: main
+Source: "..\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion signonce; Components: main
+Source: "..\external\tetgen.exe"; DestDir: "{app}"; Flags: ignoreversion signonce; Components: main
 Source: "..\bin\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main

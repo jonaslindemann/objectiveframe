@@ -10,9 +10,10 @@ SmartPointer(CalfemWriter);
 class CalfemWriter : public ofem::InputFileWriter {
 private:
     std::string m_filename;
+    bool m_flipYZ;
 
 public:
-    CalfemWriter(const std::string fname);
+    CalfemWriter(const std::string fname, bool flipYZ = true);
 
     ClassInfo("CalfemWriter", InputFileWriter);
 

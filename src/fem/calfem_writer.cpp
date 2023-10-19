@@ -110,7 +110,7 @@ print(beam_forces)
 print(bar_forces)
 )CF";
 
-CalfemWriter::CalfemWriter(const std::string fname) : InputFileWriter(fname)
+CalfemWriter::CalfemWriter(const std::string fname, bool flipYZ) : InputFileWriter(fname), m_flipYZ{flipYZ}
 {
 }
 
@@ -199,12 +199,12 @@ void CalfemWriter::saveToStream(std::ostream &out)
     if (femModel == NULL)
         return;
 
-    BeamSet *elementSet = femModel->getElementSet();
-    NodeSet *nodeSet = femModel->getNodeSet();
-    MaterialSet *materialSet = femModel->getMaterialSet();
-    NodeBCSet *bcSet = femModel->getNodeBCSet();
-    NodeLoadSet *nodeLoadSet = femModel->getNodeLoadSet();
-    ElementLoadSet *elementLoadSet = femModel->getElementLoadSet();
+    auto elementSet = femModel->getElementSet();
+    auto nodeSet = femModel->getNodeSet();
+    auto materialSet = femModel->getMaterialSet();
+    auto bcSet = femModel->getNodeBCSet();
+    auto nodeLoadSet = femModel->getNodeLoadSet();
+    auto elementLoadSet = femModel->getElementLoadSet();
 
     nodeSet->resetNodeKind(nkNotConnected);
     elementSet->updateNodeKinds();
@@ -332,12 +332,35 @@ void CalfemWriter::saveToStream(std::ostream &out)
 
     out << "\n# ----- Nodes\n" << endl;
 
-    beginArr(out, "coords");
+    beginArr(out, "coords_beams");
 
     for (i = 0; i < nodeSet->getSize(); i++) {
         Node *node = nodeSet->getNode(i);
-        node->getCoord(x, y, z);
-        arrRow(out, vector<double>{x, y, z});
+        if (node->getKind() == NodeKind::nk6Dof) {
+            node->getCoord(x, y, z);
+
+            if (m_flipYZ)
+                arrRow(out, vector<double>{x, z, y});
+            else
+                arrRow(out, vector<double>{x, y, z});
+        }
+    }
+
+    endArr(out);
+    out << "\n";
+
+    beginArr(out, "coords_bars");
+
+    for (i = 0; i < nodeSet->getSize(); i++) {
+        Node *node = nodeSet->getNode(i);
+        if ((node->getKind() == NodeKind::nk6Dof) || (node->getKind() == NodeKind::nk3Dof)) {
+            node->getCoord(x, y, z);
+
+            if (m_flipYZ)
+                arrRow(out, vector<double>{x, z, y});
+            else
+                arrRow(out, vector<double>{x, y, z});
+        }
     }
 
     endArr(out);
@@ -354,12 +377,14 @@ void CalfemWriter::saveToStream(std::ostream &out)
     for (i = 0; i < nodeSet->getSize(); i++) {
         auto node = nodeSet->getNode(i);
 
-        dofs.clear();
+        if (node->getKind() == NodeKind::nk6Dof) {
+            dofs.clear();
 
-        for (j = 0; j < 6; j++)
-            dofs.emplace_back(node->getDof(j)->getNumber());
+            for (j = 0; j < 6; j++)
+                dofs.emplace_back(node->getDof(j)->getNumber());
 
-        arrRow(out, dofs);
+            arrRow(out, dofs);
+        }
     }
 
     endArr(out);
@@ -374,12 +399,14 @@ void CalfemWriter::saveToStream(std::ostream &out)
     for (i = 0; i < nodeSet->getSize(); i++) {
         auto node = nodeSet->getNode(i);
 
-        dofs.clear();
+        if ((node->getKind() == NodeKind::nk3Dof) || (node->getKind() == NodeKind::nk6Dof)) {
+            dofs.clear();
 
-        for (j = 0; j < 3; j++)
-            dofs.emplace_back(node->getDof(j)->getNumber());
+            for (j = 0; j < 3; j++)
+                dofs.emplace_back(node->getDof(j)->getNumber());
 
-        arrRow(out, dofs);
+            arrRow(out, dofs);
+        }
     }
 
     endArr(out);
@@ -397,7 +424,10 @@ void CalfemWriter::saveToStream(std::ostream &out)
         Beam *element = (Beam *)elementSet->getElement(i);
         if (element->beamType() == btBeam) {
             element->getOrientationZ(ex, ey, ez);
-            arrRow(out, vector<double>{ex, ey, ez});
+            if (m_flipYZ)
+                arrRow(out, vector<double>{ex, ez, ey});
+            else
+                arrRow(out, vector<double>{ex, ey, ez});
         }
     }
 
@@ -483,7 +513,10 @@ void CalfemWriter::saveToStream(std::ostream &out)
         nodeLoad->getDirection(ex, ey, ez);
         double value = nodeLoad->getValue();
 
-        arrRow(out, vector<double>{ex * value, ey * value, ez * value});
+        if (m_flipYZ)
+            arrRow(out, vector<double>{ex * value, ez * value, ey * value});
+        else
+            arrRow(out, vector<double>{ex * value, ey * value, ez * value});
 
         for (j = 0; j < (long)nodeLoad->getNodeSize(); j++) {
             Node *node = nodeLoad->getNode(j);
@@ -516,7 +549,11 @@ void CalfemWriter::saveToStream(std::ostream &out)
         for (j = 0; j < beamLoad->getElementsSize(); j++) {
             Beam *beam = (Beam *)beamLoad->getElement(j);
             out << beam->getNumber() - 1 << " ";
-            beamLoad->getLocalDirection(ex, ey, ez);
+            if (m_flipYZ)
+                beamLoad->getLocalDirection(ex, ez, ey);
+            else
+                beamLoad->getLocalDirection(ex, ey, ez);
+
             out << -beamLoad->getValue() * ey << " ";
             out << -beamLoad->getValue() * ez << endl;
         }

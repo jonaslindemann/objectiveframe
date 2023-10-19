@@ -35,7 +35,7 @@ ofservice::Service::Service(FemViewWindow *view)
     App::instance().setView(view);
 
     std::vector<std::string> options = {
-        "document_root", ".", "listening_ports", "8081", "enable_keep_alive", "yes", "keep_alive_timeout_ms", "4000", "prespawn_threads", "4"};
+        "document_root", ".", "listening_ports", "8081", "enable_keep_alive", "no", "keep_alive_timeout_ms", "4000", "prespawn_threads", "4"};
 
     m_webServer = std::make_shared<CivetServer>(options);
     m_webServer->addHandler("/cmds/add_nodes", m_addNodesHandler);
@@ -63,17 +63,12 @@ std::shared_ptr<ofservice::Service> ofservice::Service::create(FemViewWindow *vi
 
 bool ofservice::AddNodesHandler::handlePost(CivetServer *server, mg_connection *conn)
 {
-    std::cout << "handlePost start ... ";
     auto req_info = mg_get_request_info(conn);
 
-    //mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
     std::string response = this->read_response(conn);
-
-    //std::cout << "response = " << response << "\n";
 
     auto j = nljson::parse(response);
 
@@ -140,8 +135,6 @@ bool ofservice::AddBeamsHandler::handlePost(CivetServer *server, mg_connection *
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -184,10 +177,10 @@ bool ofservice::NewModelHandler::handlePost(CivetServer *server, mg_connection *
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
+
+    std::cout << "newModel()" << std::endl;
 
     App::instance().view()->newModel();
 
@@ -198,8 +191,6 @@ bool ofservice::MeshSelectedNodesHandler::handlePost(CivetServer *server, mg_con
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -212,8 +203,6 @@ bool ofservice::SurfaceSelectedNodesHandler::handlePost(CivetServer *server, mg_
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -226,8 +215,6 @@ bool ofservice::SelectAllHandler::handlePost(CivetServer *server, mg_connection 
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -240,8 +227,6 @@ bool ofservice::SelectAllNodesHandler::handlePost(CivetServer *server, mg_connec
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -254,8 +239,6 @@ bool ofservice::ClearSelectionHandler::handlePost(CivetServer *server, mg_connec
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -268,8 +251,6 @@ bool ofservice::AssignNodeFixedBCGroundHandler::handlePost(CivetServer *server, 
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -282,8 +263,6 @@ bool ofservice::AssignNodePosBCGroundHandler::handlePost(CivetServer *server, mg
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
@@ -296,8 +275,6 @@ bool ofservice::AddLastNodeToSelectionHandler::handlePost(CivetServer *server, m
 {
     auto req_info = mg_get_request_info(conn);
 
-    // mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
-    //                 "text/html\r\nConnection: close\r\n\r\n");
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 

@@ -13,6 +13,8 @@
 
 #include <logger.h>
 
+#include "base64.h"
+
 using namespace ofem;
 using namespace std;
 
@@ -184,6 +186,12 @@ void ofem::CalfemWriter::endArr1D(std::ostream &out)
     out << ")\n";
 }
 
+void ofem::CalfemWriter::writeString(std::ostream &out, std::string name, const std::string &value)
+{
+    out << name << " = '''" << value << "'''\n";
+}
+
+
 void CalfemWriter::saveToStream(std::ostream &out)
 {
     writeHeader(out);
@@ -217,6 +225,16 @@ void CalfemWriter::saveToStream(std::ostream &out)
     bcSet->enumerateBCs();
     // int nDofs = nodeSet->enumerateDofs() - 1;
     nodeSet->enumerateDofs();
+
+    //
+    // Write df3 file as pem encoded string
+    //
+
+    out << "\n# ---- Embedded df3 file\n" << endl;
+
+    std::string df3_string = femModel->toString();
+    std::string df3_pem_encoded = base64_encode_mime(df3_string);
+    this->writeString(out, "df3_file", df3_pem_encoded);
 
     //
     // Write materials

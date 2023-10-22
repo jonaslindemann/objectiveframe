@@ -5,6 +5,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 class GLFWWindow {
@@ -25,7 +26,10 @@ private:
     bool m_altDown;
     bool m_escQuit;
 
+    bool m_enabled;
+
     int m_currentKey;
+    std::mutex m_mutex;
 
 public:
     GLFWWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
@@ -45,6 +49,9 @@ public:
     void getSize(int &width, int &height);
     void setWindowIcon(const std::string filename);
     void maximize();
+    void enable();
+    void disable();
+    bool isEnabled();
 
     void draw();
 

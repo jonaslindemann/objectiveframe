@@ -49,6 +49,7 @@ ofservice::Service::Service(FemViewWindow *view)
     m_webServer->addHandler("/cmds/assign_node_fixed_bc_ground", m_assignNodeFixedBCGroundHandler);
     m_webServer->addHandler("/cmds/assign_node_pos_bc_ground", m_assignNodePosBCGroundHandler);
     m_webServer->addHandler("/cmds/add_last_node_to_selection", m_addLastNodeToSelectionHandler);
+    m_webServer->addHandler("/cmds/open_model", m_openModelHandler);
 }
 
 ofservice::Service::~Service()
@@ -180,9 +181,9 @@ bool ofservice::NewModelHandler::handlePost(CivetServer *server, mg_connection *
     mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
                     "text/html\r\n\r\n");
 
-    std::cout << "newModel()" << std::endl;
-
+    App::instance().view()->disable();
     App::instance().view()->newModel();
+    App::instance().view()->enable();
 
     return true;
 }
@@ -292,4 +293,21 @@ FemViewWindow *ofservice::App::view()
 {
     const std::lock_guard<std::mutex> lock(m_mutex);
     return m_view;
+}
+
+bool ofservice::OpenModelHandler::handlePost(CivetServer *server, mg_connection *conn)
+{
+    auto req_info = mg_get_request_info(conn);
+
+    mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
+                    "text/html\r\n\r\n");
+
+    App::instance().view()->disable();
+    std::string response = this->read_response(conn);
+    App::instance().view()->enable();
+
+    App::instance().view()->open(response);
+
+
+    return true;
 }

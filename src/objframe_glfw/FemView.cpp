@@ -1180,6 +1180,8 @@ void FemViewWindow::open(std::string filename)
     if (!fs::exists(filename))
         return;
 
+    this->lockSceneRendering();
+
     this->setFileName(filename);
     this->deleteAll();
 
@@ -1222,6 +1224,8 @@ void FemViewWindow::open(std::string filename)
     this->setEditMode(WidgetMode::Select);
 
     this->setUseBlending(false);
+
+    this->unlockSceneRendering();
 }
 
 void FemViewWindow::open()

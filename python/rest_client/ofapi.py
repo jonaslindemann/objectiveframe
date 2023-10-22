@@ -78,6 +78,9 @@ class ObjectiveFrame:
     def add_last_node_to_selection(self):
         response = requests.post(self.url+"/cmds/add_last_node_to_selection")
 
+    def open_model(self, filename):
+        response = requests.post(self.url+"/cmds/open_model", os.path.abspath(filename))
+
     @property
     def executable(self):
         return self.__executable
@@ -87,6 +90,25 @@ class ObjectiveFrame:
         self.__executable = value
         _, self.executable_name = os.path.split(self.executable)
 
+def test1(of):
+    of.new_model()
+
+    nodes = (10.0 - np.random.random(3*200)*20.0).reshape((200,3)).tolist()
+
+    of.add_nodes(nodes)
+
+    beams = [
+        [0,1],
+        [1,2]
+    ]
+
+    of.add_beams(beams)
+    of.select_all()
+
+def test2(of):
+    of.new_model()
+    of.open_model("bar_frame5_with_load.df3")
+
 
 if __name__ == "__main__":
 
@@ -95,19 +117,9 @@ if __name__ == "__main__":
         of.executable =  "D:\\Users\\Jonas\\Development\\objectiveframe\\bin\\Debug\\objframe_glfwd.exe"
         of.start()
 
-        of.new_model()
+        #test1(of)
+        test2(of)
 
-        nodes = (10.0 - np.random.random(3*200)*20.0).reshape((200,3)).tolist()
-
-        of.add_nodes(nodes)
-
-        beams = [
-            [0,1],
-            [1,2]
-        ]
-
-        of.add_beams(beams)
-        of.select_all()
     except requests.exceptions.ConnectionError as err:
         print("Coudn't connect to ObjectiveFrame. Is it started?")
               

@@ -316,6 +316,21 @@ size_t Model::snapShotCount()
     return m_snapShots.size();
 }
 
+const std::string ofem::Model::toString()
+{
+    std::stringstream ss;
+    this->saveToStream(ss);
+
+    return ss.str();
+}
+
+bool ofem::Model::fromString(const std::string &value)
+{
+    std::stringstream ss(value);
+    this->readFromStream(ss);
+    return true;
+}
+
 void Model::initialize()
 {
     // Create new sets

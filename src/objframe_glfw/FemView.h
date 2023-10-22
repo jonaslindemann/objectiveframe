@@ -14,6 +14,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <chaiscript/chaiscript.hpp>
 
 #include <filesystem>
+#include <mutex>
 #include <sstream>
 #include <string>
 
@@ -302,6 +303,8 @@ private:
     // Web service
 
     ofservice::ServicePtr m_service;
+
+    std::mutex m_drawMutex;
 
     // Handle mouse updates
 

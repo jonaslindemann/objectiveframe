@@ -97,6 +97,11 @@ public:
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
+class OpenModelHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
 class Service {
 private:
     FemViewWindow *m_view;
@@ -113,6 +118,7 @@ private:
     AssignNodeFixedBCGroundHandler m_assignNodeFixedBCGroundHandler;
     AssignNodePosBCGroundHandler m_assignNodePosBCGroundHandler;
     AddLastNodeToSelectionHandler m_addLastNodeToSelectionHandler;
+    OpenModelHandler m_openModelHandler;
 
 public:
     Service(FemViewWindow *view);

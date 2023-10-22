@@ -72,10 +72,7 @@ void GLFWApplication::loop()
     while (!shouldClose) {
         for (auto window : m_windows) {
             if (!window->isClosing()) {
-                window->makeCurrent();
-                window->doDraw();
-                window->swapBuffers();
-
+                window->draw();
                 shouldClose = false;
             }
             else

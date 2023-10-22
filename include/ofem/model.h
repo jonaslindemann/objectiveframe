@@ -75,6 +75,9 @@ public:
 
     size_t snapShotCount();
 
+    const std::string toString();
+    bool fromString(const std::string &value);
+
     void clearNodeValues();
 
     std::string version();

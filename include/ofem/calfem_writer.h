@@ -32,6 +32,8 @@ public:
     void endArr(std::ostream &out);
     void endArr1D(std::ostream &out);
 
+    void writeString(std::ostream &out, std::string name, const std::string &value);
+
     virtual void saveToStream(std::ostream &out) override;
     virtual void doAfterSave() override;
 };

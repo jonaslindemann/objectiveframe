@@ -19,7 +19,7 @@ std::shared_ptr<GLFWWindow> GLFWWindow::create(int width, int height, const std:
 GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
     : m_width(width), m_height(height), m_title(title), m_mouseButton(-1), m_mouseAction(-1), m_mouseMods(-1),
       m_mouseX(-1), m_mouseY(-1), m_currentKey(-1), m_altDown(false), m_ctrlDown(false), m_shiftDown(false),
-      m_escQuit(true)
+      m_escQuit(true), m_enabled(true)
 {
     m_window = glfwCreateWindow(width, height, title.c_str(), monitor, shared);
 
@@ -179,10 +179,30 @@ void GLFWWindow::maximize()
     glfwMaximizeWindow(m_window);
 }
 
+void GLFWWindow::enable()
+{
+    const std::lock_guard<std::mutex> lock(m_mutex);
+    m_enabled = true;
+}
+
+void GLFWWindow::disable()
+{
+    const std::lock_guard<std::mutex> lock(m_mutex);
+    m_enabled = false;
+}
+
+bool GLFWWindow::isEnabled()
+{
+    return m_enabled;
+}
+
 void GLFWWindow::draw()
 {
+    const std::lock_guard<std::mutex> lock(m_mutex);
+
     this->makeCurrent();
-    this->doDraw();
+    if (m_enabled)
+        this->doDraw();
     this->swapBuffers();
 }
 
@@ -192,13 +212,13 @@ void GLFWWindow::doKey(int key, int scancode, int action, int mods)
     m_ctrlDown = false;
     m_altDown = false;
 
-    if(glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         m_shiftDown = true;
 
-    if(glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    if (glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         m_ctrlDown = true;
 
-    if(glfwGetKey(m_window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+    if (glfwGetKey(m_window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
         m_altDown = true;
 
     onGlfwKey(key, scancode, action, mods);

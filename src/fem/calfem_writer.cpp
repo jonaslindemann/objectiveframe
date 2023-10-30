@@ -191,7 +191,6 @@ void ofem::CalfemWriter::writeString(std::ostream &out, std::string name, const 
     out << name << " = '''" << value << "'''\n";
 }
 
-
 void CalfemWriter::saveToStream(std::ostream &out)
 {
     writeHeader(out);
@@ -395,11 +394,19 @@ void CalfemWriter::saveToStream(std::ostream &out)
     for (i = 0; i < nodeSet->getSize(); i++) {
         auto node = nodeSet->getNode(i);
 
-        if (node->getKind() == NodeKind::nk6Dof) {
+        if ((node->getKind() == NodeKind::nk3Dof) || (node->getKind() == NodeKind::nk6Dof)) {
             dofs.clear();
 
-            for (j = 0; j < 6; j++)
-                dofs.emplace_back(node->getDof(j)->getNumber());
+            if (node->getKind() == NodeKind::nk6Dof) {
+                for (j = 0; j < 6; j++)
+                    dofs.emplace_back(node->getDof(j)->getNumber());
+            }
+            else {
+                for (j = 0; j < 3; j++)
+                    dofs.emplace_back(node->getDof(j)->getNumber());
+                for (j = 3; j < 6; j++)
+                    dofs.emplace_back(-1);
+            }
 
             arrRow(out, dofs);
         }

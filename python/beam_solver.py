@@ -12,8 +12,8 @@ from frame_four_loads import *
 
 # --- Extract element coordinates
 
-ex_bm, ey_bm, ez_bm = cfc.coord_extract(edof_beams, coords, dofs_beams)
-ex_br, ey_br, ez_br = cfc.coord_extract(edof_bars, coords, dofs_bars)
+ex_bm, ey_bm, ez_bm = cfc.coord_extract(edof_beams, coords_beams, dofs_beams)
+ex_br, ey_br, ez_br = cfc.coord_extract(edof_bars, coords_bars, dofs_bars)
 
 # --- Setup global matrices
 

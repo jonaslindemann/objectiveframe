@@ -27,10 +27,6 @@
 
 #include <imguifd/ImGuiFileDialog.h>
 
-#ifdef WIN32
-#include <shellapi.h>
-#endif
-
 using namespace ivf;
 using namespace std;
 using namespace ofui;

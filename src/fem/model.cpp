@@ -353,6 +353,10 @@ size_t Model::snapShotCount()
 const std::string ofem::Model::toString()
 {
     std::stringstream ss;
+
+    ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
+
+    ss << "#OF_VERSION=" << m_version << "\n";
     this->saveToStream(ss);
 
     return ss.str();

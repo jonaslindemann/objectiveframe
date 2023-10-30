@@ -16,6 +16,7 @@
 
 #include <ofem/beam.h>
 #include <ofem/beam_load.h>
+#include <ofem/calfem_reader.h>
 #include <ofem/node.h>
 
 #include <vfem/preferences.h>
@@ -298,171 +299,6 @@ unsigned int fl_cmap[256] = {
     0xffffff00  // 255};
 };
 
-// File dialog
-
-std::string wstrtostr(const std::wstring &wstr)
-{
-    // Converts std::wstring to std::string (a bit of a hack).
-
-#ifdef WIN32
-    std::string strTo;
-    char *szTo = new char[wstr.length() + 1];
-    szTo[wstr.size()] = '\0';
-    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, szTo, (int)wstr.length(), NULL, NULL);
-    strTo = szTo;
-    delete[] szTo;
-    return strTo;
-#else
-    return "";
-#endif
-}
-
-std::string openFileDialog()
-{
-    // WIN32 file dialog function.
-
-    std::wstring filename;
-
-#ifdef WIN32
-
-    COMDLG_FILTERSPEC fileTypes[] = {{L"ObjectiveFrame files", L"*.df3"}, {L"All files", L"*.*"}};
-
-    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-    if (SUCCEEDED(hr)) {
-        IFileOpenDialog *pFileOpen;
-
-        // Create the FileOpenDialog object.
-        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog,
-                              reinterpret_cast<void **>(&pFileOpen));
-
-        if (SUCCEEDED(hr)) {
-            // Show the Open dialog box.
-            pFileOpen->SetDefaultExtension(L"df3");
-            pFileOpen->SetFileTypes(_countof(fileTypes), fileTypes);
-            hr = pFileOpen->Show(NULL);
-
-            // Get the file name from the dialog box.
-            if (SUCCEEDED(hr)) {
-                IShellItem *pItem;
-                hr = pFileOpen->GetResult(&pItem);
-                if (SUCCEEDED(hr)) {
-                    PWSTR pszFilePath;
-                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-
-                    // Display the file name to the user.
-                    if (SUCCEEDED(hr)) {
-                        // MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-                        filename = pszFilePath;
-                        CoTaskMemFree(pszFilePath);
-                    }
-                    pItem->Release();
-                }
-            }
-            pFileOpen->Release();
-        }
-        CoUninitialize();
-    }
-#endif
-    return wstrtostr(filename);
-}
-
-std::string saveFileDialog()
-{
-    // WIN32 save file dialog function.
-
-    std::wstring filename;
-
-#ifdef WIN32
-
-    COMDLG_FILTERSPEC fileTypes[] = {{L"ObjectiveFrame files", L"*.df3"}, {L"All files", L"*.*"}};
-
-    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-    if (SUCCEEDED(hr)) {
-        IFileOpenDialog *pFileOpen;
-
-        // Create the FileOpenDialog object.
-        hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog,
-                              reinterpret_cast<void **>(&pFileOpen));
-
-        if (SUCCEEDED(hr)) {
-            // Show the Open dialog box.
-            pFileOpen->SetDefaultExtension(L"df3");
-            pFileOpen->SetFileTypes(_countof(fileTypes), fileTypes);
-            hr = pFileOpen->Show(NULL);
-
-            // Get the file name from the dialog box.
-            if (SUCCEEDED(hr)) {
-                IShellItem *pItem;
-                hr = pFileOpen->GetResult(&pItem);
-                if (SUCCEEDED(hr)) {
-                    PWSTR pszFilePath;
-                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-
-                    // Display the file name to the user.
-                    if (SUCCEEDED(hr)) {
-                        // MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-                        filename = pszFilePath;
-                        CoTaskMemFree(pszFilePath);
-                    }
-                    pItem->Release();
-                }
-            }
-            pFileOpen->Release();
-        }
-        CoUninitialize();
-    }
-#endif
-    return wstrtostr(filename);
-}
-
-std::string saveAsCalfemFileDialog()
-{
-
-    std::wstring filename;
-
-#ifdef WIN32
-
-    COMDLG_FILTERSPEC fileTypes[] = {{L"CALFEM for Python", L"*.py"}, {L"All files", L"*.*"}};
-
-    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-    if (SUCCEEDED(hr)) {
-        IFileOpenDialog *pFileOpen;
-
-        // Create the FileOpenDialog object.
-        hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog,
-                              reinterpret_cast<void **>(&pFileOpen));
-
-        if (SUCCEEDED(hr)) {
-            // Show the Open dialog box.
-            pFileOpen->SetDefaultExtension(L"py");
-            pFileOpen->SetFileTypes(_countof(fileTypes), fileTypes);
-            hr = pFileOpen->Show(NULL);
-
-            // Get the file name from the dialog box.
-            if (SUCCEEDED(hr)) {
-                IShellItem *pItem;
-                hr = pFileOpen->GetResult(&pItem);
-                if (SUCCEEDED(hr)) {
-                    PWSTR pszFilePath;
-                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-
-                    // Display the file name to the user.
-                    if (SUCCEEDED(hr)) {
-                        // MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-                        filename = pszFilePath;
-                        CoTaskMemFree(pszFilePath);
-                    }
-                    pItem->Release();
-                }
-            }
-            pFileOpen->Release();
-        }
-        CoUninitialize();
-    }
-#endif
-    return wstrtostr(filename);
-}
-
 // Constructor/Destructor
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
@@ -522,6 +358,8 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     m_openDialog = false;
     m_saveDialog = false;
     m_saveAsDialog = false;
+    m_saveAsCalfemDialog = false;
+    m_openFromCalfemDialog = false;
 
     this->setUseCustomPick(true);
 }
@@ -1035,46 +873,17 @@ const std::string FemViewWindow::getProgPath()
 
 // Widget methods
 
-void FemViewWindow::save()
+void FemViewWindow::exportAsCalfem(std::string filename)
 {
-    // Save model
-
-    if (m_fileName == "noname.df3") {
-        auto filename = saveFileDialog();
-
-        if (filename != "")
-            this->setFileName(filename);
-    }
-    else {
-        m_beamModel->setFileName(m_fileName);
-        m_beamModel->save();
-    }
+    auto writer = ofem::CalfemWriter::create(filename);
+    writer->setFemModel(m_beamModel.get());
+    writer->save();
 }
 
-void FemViewWindow::saveAs()
+void FemViewWindow::importAsCalfem(std::string filename)
 {
-    // Save model
-
-    auto filename = saveFileDialog();
-
-    if (filename != "") {
-        this->setFileName(filename);
-        m_beamModel->setFileName(m_fileName);
-        m_beamModel->save();
-    }
-}
-
-void FemViewWindow::exportAsCalfem()
-{
-    // Save model
-
-    auto filename = saveAsCalfemFileDialog();
-
-    if (filename != "") {
-        auto writer = ofem::CalfemWriter::create(filename);
-        writer->setFemModel(m_beamModel.get());
-        writer->save();
-    }
+    auto reader = ofem::CalfemReader::create(filename);
+    this->openFromString(reader->df3String());
 }
 
 void FemViewWindow::snapShot()
@@ -1171,6 +980,56 @@ void FemViewWindow::revertLastSnapShot()
     this->setEditMode(prevEditMode);
 }
 
+void FemViewWindow::openFromString(const std::string df3_string)
+{
+    this->lockSceneRendering();
+
+    this->setFileName("noname.df3");
+    this->deleteAll();
+
+    log("Setting color map path.");
+
+    // Initialize and open beam model
+
+    m_beamModel->initialize();
+    m_beamModel->setFileName(m_fileName);
+    m_beamModel->setPath(m_mapPath.string());
+    m_beamModel->openFromString(df3_string);
+    m_beamModel->setTextFont(m_labelFont);
+    m_beamModel->setCamera(this->getCamera());
+
+    // Generate a Ivf++ representation
+
+    m_beamModel->generateModel();
+
+    // Update dialogs
+
+    m_propWindow->setNode(nullptr);
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setSelectedShapes(nullptr);
+
+    // Add tactile force
+
+    this->getScene()->addChild(m_tactileForce);
+
+    double loadSize = m_beamModel->getLoadSize();
+
+    m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
+    m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
+    m_tactileForce->setDirection(0.0, -1.0, 0.0);
+    m_tactileForce->setOffset(-loadSize * 0.7);
+
+    m_needRecalc = true;
+
+    m_currentSolver = nullptr;
+
+    this->setEditMode(WidgetMode::Select);
+
+    this->setUseBlending(false);
+
+    this->unlockSceneRendering();
+}
+
 void FemViewWindow::open(std::string filename)
 {
     namespace fs = std::filesystem;
@@ -1226,18 +1085,6 @@ void FemViewWindow::open(std::string filename)
     this->setUseBlending(false);
 
     this->unlockSceneRendering();
-}
-
-void FemViewWindow::open()
-{
-    // Open model
-
-    this->hideAllDialogs();
-
-    auto filename = openFileDialog();
-
-    if (filename != "")
-        this->open(filename);
 }
 
 void FemViewWindow::copy()
@@ -3884,20 +3731,14 @@ void FemViewWindow::onOverButton(int objectName, PlaneButton *button)
 void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 {
     if ((modifier == ModifierKey::mkCtrl) && (key == 'O')) {
-        if (m_useImGuiFileDialogs)
-            m_openDialog = true;
-        else
-            this->open();
+        m_openDialog = true;
     }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'N'))
         this->newModel();
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'S')) {
-        if (m_useImGuiFileDialogs)
-            m_saveDialog = true;
-        else
-            this->save();
+        m_saveDialog = true;
     }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'A')) {
@@ -4046,6 +3887,7 @@ void FemViewWindow::onDrawImGui()
     bool executeCalc = false;
     bool quitApplication = false;
     bool exportAsCalfem = false;
+    bool importAsCalfem = false;
     bool runScriptDialog = false;
     bool snapShot = false;
     bool restoreLastSnapShot = false;
@@ -4073,7 +3915,10 @@ void FemViewWindow::onDrawImGui()
             ImGui::Separator();
 
             if (ImGui::MenuItem("Save as CALFEM...", ""))
-                exportAsCalfem = true;
+                m_saveAsCalfemDialog = true;
+
+            if (ImGui::MenuItem("Open from CALFEM...", ""))
+                m_openFromCalfemDialog = true;
 
             ImGui::Separator();
 
@@ -4308,6 +4153,14 @@ void FemViewWindow::onDrawImGui()
             ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", m_fileName);
         }
 
+        if (m_saveAsCalfemDialog) {
+            ImGuiFileDialog::Instance()->OpenDialog("Save as CALFEM", "Choose File", ".py", ".");
+        }
+
+        if (m_openFromCalfemDialog) {
+            ImGuiFileDialog::Instance()->OpenDialog("Open from CALFEM", "Choose File", ".py", ".");
+        }
+
         if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
             if (ImGuiFileDialog::Instance()->IsOk()) {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
@@ -4324,32 +4177,42 @@ void FemViewWindow::onDrawImGui()
             m_saveAsDialog = false;
             m_saveDialog = false;
         }
+
+        if (ImGuiFileDialog::Instance()->Display("Save as CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                if (filePathName != "") {
+                    this->exportAsCalfem(filePathName);
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_saveAsCalfemDialog = false;
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("Open from CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400))) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                if (filePathName != "") {
+                    this->importAsCalfem(filePathName);
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_openFromCalfemDialog = false;
+        }
     }
 
     m_windowList->draw();
 
     ImGui::Render();
 
-    if (!m_useImGuiFileDialogs) {
-        if (m_openDialog)
-            this->open();
-
-        if (m_saveDialog)
-            this->save();
-
-        if (m_saveAsDialog)
-            this->saveAs();
-
-        m_openDialog = false;
-        m_saveDialog = false;
-        m_saveAsDialog = false;
-    }
-
     if (executeCalc)
         this->executeCalc();
-
-    if (exportAsCalfem)
-        this->exportAsCalfem();
 
     if (quitApplication) {
         this->quit();

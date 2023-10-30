@@ -289,6 +289,8 @@ private:
     bool m_openDialog;
     bool m_saveDialog;
     bool m_saveAsDialog;
+    bool m_saveAsCalfemDialog;
+    bool m_openFromCalfemDialog;
 
     float m_uiScale;
 
@@ -406,10 +408,9 @@ public:
     virtual void setWorkspace(double size, bool resetCamera = true);
 
     void open(std::string filename);
-    void open();
-    void save();
-    void saveAs();
-    void exportAsCalfem();
+    void openFromString(const std::string df3_string);
+    void exportAsCalfem(std::string filename);
+    void importAsCalfem(std::string filename);
     void snapShot();
     void restoreLastSnapShot();
     void revertLastSnapShot();

@@ -65,9 +65,11 @@ public:
     void initialize();
     void save();
     bool open();
+    bool openFromString(const std::string df3_string);
     void deleteAll();
 
     std::string queryFileVersion(std::string filename);
+    std::string queryFileVersionFromString(std::string df3_string);
 
     void snapShot();
     void restoreLastSnapShot();

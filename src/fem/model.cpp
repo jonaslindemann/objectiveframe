@@ -226,6 +226,22 @@ std::string ofem::Model::queryFileVersion(std::string filename)
         return "";
 }
 
+std::string ofem::Model::queryFileVersionFromString(std::string df3_string)
+{
+    std::stringstream f(df3_string);
+    std::string line;
+
+    std::getline(f, line);
+
+    if (line.find("#OF_VERSION") != -1) {
+        auto equalPos = line.find("=");
+        auto versionStr = line.substr(equalPos + 1, line.length() - equalPos);
+        return versionStr;
+    }
+    else
+        return "0";
+}
+
 bool Model::open()
 {
     if (m_fileName != "") {
@@ -251,6 +267,24 @@ bool Model::open()
     }
     else
         return false;
+}
+
+bool ofem::Model::openFromString(const std::string df3_string)
+{
+    std::string readVersion = queryFileVersionFromString(df3_string);
+    ModelStateInfo::getInstance().setReadVersion(readVersion);
+
+    std::stringstream inputFile(df3_string);
+
+    // Skip version line
+
+    if (readVersion != "0") {
+        std::string line;
+        std::getline(inputFile, line);
+    }
+    this->readFromStream(inputFile);
+
+    return true;
 }
 
 void Model::save()

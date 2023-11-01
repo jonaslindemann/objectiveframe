@@ -158,6 +158,7 @@ private:
     std::filesystem::path m_fontPath;
     std::filesystem::path m_pluginPath;
     std::filesystem::path m_mapPath;
+    std::filesystem::path m_pythonPath;
 
     bool m_overlaySelected;
     bool m_haveScaleFactor;

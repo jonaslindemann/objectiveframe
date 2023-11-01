@@ -1,6 +1,7 @@
 #pragma once
 #include <ofem/input_file_writer.h>
 
+#include <filesystem>
 #include <memory>
 
 namespace ofem {
@@ -10,6 +11,7 @@ SmartPointer(CalfemWriter);
 class CalfemWriter : public ofem::InputFileWriter {
 private:
     std::string m_filename;
+    std::filesystem::path m_pythonPath;
     bool m_flipYZ;
 
 public:
@@ -22,6 +24,8 @@ public:
         return CalfemWriterPtr(new CalfemWriter(fname));
     }
 
+    void setPythonPath(std::filesystem::path pythonPath);
+
     void writeHeader(std::ostream &out);
     void writeImports(std::ostream &out);
     void beginArr(std::ostream &out, std::string name);
@@ -33,6 +37,8 @@ public:
     void endArr1D(std::ostream &out);
 
     void writeString(std::ostream &out, std::string name, const std::string &value);
+
+    std::string readTemplate(std::string filename);
 
     virtual void saveToStream(std::ostream &out) override;
     virtual void doAfterSave() override;

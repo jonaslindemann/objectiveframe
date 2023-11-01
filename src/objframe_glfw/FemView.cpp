@@ -860,6 +860,7 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
     m_imagePath = m_progPath / fs::path("images");
     m_pluginPath = m_progPath / fs::path("plugins");
     m_mapPath = m_progPath / fs::path("maps");
+    m_pythonPath = m_progPath / fs::path("python");
 }
 
 const std::string FemViewWindow::getProgPath()
@@ -872,6 +873,7 @@ const std::string FemViewWindow::getProgPath()
 void FemViewWindow::exportAsCalfem(std::string filename)
 {
     auto writer = ofem::CalfemWriter::create(filename);
+    writer->setPythonPath(m_pythonPath);
     writer->setFemModel(m_beamModel.get());
     writer->save();
 }
@@ -2711,6 +2713,7 @@ void FemViewWindow::onInit()
     log("Image path   : " + m_imagePath.string());
     log("Plugin path  : " + m_pluginPath.string());
     log("Map path     : " + m_mapPath.string());
+    log("Python path  : " + m_pythonPath.string());
     log("---------------------------------------------");
 
     console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");

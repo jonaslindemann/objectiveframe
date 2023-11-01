@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <sstream>
 
 #define FMT_HEADER_ONLY
 #include <fmt/core.h>
@@ -20,31 +21,9 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
-const std::string solver_template_part1 = R"CF(# -*- coding: iso-8859-15 -*-
-'''
-ObjectiveFrame generated CALFEM Python code.
-'''
-
-import beam_solver as bs
-import beam_vis as bv
-
-# --- Import model
-
-)CF";
-
-const std::string solver_template_part2 = R"CF(
-if __name__ == "__main__":
-    
-    solver = bs.BeamBarSolver(model)
-    solver.execute()
-
-    vis = bv.BeamVisualiser(solver)
-    vis.draw()
-    vis.show_and_wait()
-)CF";
-
 CalfemWriter::CalfemWriter(const std::string fname, bool flipYZ) : InputFileWriter(fname), m_flipYZ{flipYZ}
 {
+    m_pythonPath = fs::current_path();
 }
 
 void ofem::CalfemWriter::doAfterSave()
@@ -59,13 +38,39 @@ void ofem::CalfemWriter::doAfterSave()
 
     std::string full_solver_filename = solver_path.string();
 
-    fstream f;
-    f.open(full_solver_filename, ios::out);
-    f << solver_template_part1;
-    f << "from " << base_filename << " import *"
-      << "\n";
-    f << solver_template_part2;
-    f.close();
+    // Copy template solvers
+
+    namespace fs = std::filesystem;
+
+    fs::path solver_mod_path = m_pythonPath / "of_solver.py";
+    fs::path vis_mod_path = m_pythonPath / "of_vis.py";
+    fs::path vis_beams_mod_path = m_pythonPath / "of_vis_beams.py";
+    fs::path solver_template_path = m_pythonPath / "template_solver.py";
+    fs::path dest_path = python_data_filename.parent_path();
+
+    if (fs::exists(solver_mod_path))
+        fs::copy_file(solver_mod_path, dest_path / "of_solver.py", fs::copy_options::overwrite_existing);
+
+    if (fs::exists(vis_mod_path))
+        fs::copy_file(vis_mod_path, dest_path / "of_vis.py", fs::copy_options::overwrite_existing);
+
+    if (fs::exists(vis_beams_mod_path))
+        fs::copy_file(vis_beams_mod_path, dest_path / "of_vis_beams.py", fs::copy_options::overwrite_existing);
+
+    std::string solver_template = this->readTemplate(solver_template_path.string());
+
+    if (!solver_template.empty()) {
+        solver_template.replace(solver_template.find("OFMODEL"), sizeof("OFMODEL") - 1, base_filename);
+        fstream f;
+        f.open(full_solver_filename, ios::out);
+        f << solver_template;
+        f.close();
+    }
+}
+
+void ofem::CalfemWriter::setPythonPath(std::filesystem::path pythonPath)
+{
+    m_pythonPath = pythonPath;
 }
 
 void ofem::CalfemWriter::writeHeader(std::ostream &out)
@@ -120,6 +125,20 @@ void ofem::CalfemWriter::endArr1D(std::ostream &out)
 void ofem::CalfemWriter::writeString(std::ostream &out, std::string name, const std::string &value)
 {
     out << name << " = '''" << value << "'''\n";
+}
+
+std::string ofem::CalfemWriter::readTemplate(std::string filename)
+{
+    if (fs::exists(filename)) {
+        ifstream f(filename, ios::in);
+
+        stringstream buffer;
+        buffer << f.rdbuf();
+
+        return buffer.str();
+    }
+    else
+        return std::string();
 }
 
 void CalfemWriter::saveToStream(std::ostream &out)

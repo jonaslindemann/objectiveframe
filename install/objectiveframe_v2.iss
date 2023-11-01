@@ -56,6 +56,7 @@ Source: "..\bin\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion recursesu
 Source: "..\bin\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\plugins\*"; DestDir: "{app}\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\python\*"; DestDir: "{app}\python"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

@@ -50,6 +50,9 @@ ofservice::Service::Service(FemViewWindow *view)
     m_webServer->addHandler("/cmds/assign_node_pos_bc_ground", m_assignNodePosBCGroundHandler);
     m_webServer->addHandler("/cmds/add_last_node_to_selection", m_addLastNodeToSelectionHandler);
     m_webServer->addHandler("/cmds/open_model", m_openModelHandler);
+    m_webServer->addHandler("/cmds/save_model", m_saveModelHandler);
+    m_webServer->addHandler("/cmds/export_model", m_exportModelHandler);
+    m_webServer->addHandler("/cmds/import_model", m_importModelHandler);
 }
 
 ofservice::Service::~Service()
@@ -310,4 +313,51 @@ bool ofservice::OpenModelHandler::handlePost(CivetServer *server, mg_connection 
 
 
     return true;
+}
+
+bool ofservice::SaveModelHandler::handlePost(CivetServer *server, mg_connection *conn)
+{
+    auto req_info = mg_get_request_info(conn);
+
+    mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
+                    "text/html\r\n\r\n");
+
+    App::instance().view()->disable();
+    std::string response = this->read_response(conn);
+    App::instance().view()->enable();
+
+    App::instance().view()->save(response);
+    return true;
+}
+
+bool ofservice::ExportModelHandler::handlePost(CivetServer* server, mg_connection* conn)
+{
+    auto req_info = mg_get_request_info(conn);
+
+    mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
+                    "text/html\r\n\r\n");
+
+    App::instance().view()->disable();
+    std::string response = this->read_response(conn);
+    App::instance().view()->enable();
+
+    App::instance().view()->exportAsCalfem(response);
+
+    return true;
+}
+
+bool ofservice::ImportModelHandler::handlePost(CivetServer* server, mg_connection* conn)
+{
+	auto req_info = mg_get_request_info(conn);
+
+	mg_printf(conn, "HTTP/1.1 200 OK\r\nContent-Type: "
+    		"text/html\r\n\r\n");
+
+	App::instance().view()->disable();
+	std::string response = this->read_response(conn);
+	App::instance().view()->enable();
+
+	App::instance().view()->importAsCalfem(response);
+
+	return true;
 }

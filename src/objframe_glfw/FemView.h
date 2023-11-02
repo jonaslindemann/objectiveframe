@@ -410,6 +410,7 @@ public:
 
     void open(std::string filename);
     void openFromString(const std::string df3_string);
+    void save(std::string filename);
     void exportAsCalfem(std::string filename);
     void importAsCalfem(std::string filename);
     void snapShot();

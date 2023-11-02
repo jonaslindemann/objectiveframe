@@ -1028,6 +1028,17 @@ void FemViewWindow::openFromString(const std::string df3_string)
     this->unlockSceneRendering();
 }
 
+void FemViewWindow::save(std::string filename)
+{
+    // Save model to file
+
+    std::string oldName = m_beamModel->getFileName();
+
+    m_beamModel->setFileName(filename);
+	m_beamModel->save();
+    m_beamModel->setFileName(oldName);
+}
+
 void FemViewWindow::open(std::string filename)
 {
     namespace fs = std::filesystem;

@@ -36,7 +36,7 @@ class ObjectiveFrame:
                 if os.path.exists(self.executable):
                     self.process = subprocess.Popen(self.executable)
                     print("Waiting for ObjectiveFrame to start...")
-                    time.sleep(5)
+                    time.sleep(3)
                     print("Done.")
                 else:
                     print(f"Could not find ObjectiveFrame at {self.executable}.")
@@ -81,6 +81,18 @@ class ObjectiveFrame:
     def open_model(self, filename):
         response = requests.post(self.url+"/cmds/open_model", os.path.abspath(filename))
 
+    def save_model(self, filename):
+        print(os.path.abspath(filename))
+        response = requests.post(self.url+"/cmds/save_model", os.path.abspath(filename))
+
+    def export_calfem(self, filename):
+        print(os.path.abspath(filename))
+        response = requests.post(self.url+"/cmds/export_model", os.path.abspath(filename))
+
+    def import_calfem(self, filename):
+        print(os.path.abspath(filename))
+        response = requests.post(self.url+"/cmds/import_model", os.path.abspath(filename))
+
     @property
     def executable(self):
         return self.__executable
@@ -109,6 +121,32 @@ def test2(of):
     of.new_model()
     of.open_model("bar_frame5_with_load.df3")
 
+def test3(of):
+    of.new_model()
+
+    nodes = (10.0 - np.random.random(3*200)*20.0).reshape((200,3)).tolist()
+
+    of.add_nodes(nodes)
+
+    beams = [
+        [0,1],
+        [1,2]
+    ]
+
+    of.add_beams(beams)
+
+    of.save_model("test4.df3")
+
+def test4(of):
+    test3(of)
+    of.export_calfem("test4.py")
+
+def test5(of):
+    of.new_model()
+    of.import_calfem("test4.py")
+
+
+
 
 if __name__ == "__main__":
 
@@ -117,8 +155,11 @@ if __name__ == "__main__":
         of.executable =  "D:\\Users\\Jonas\\Development\\objectiveframe\\bin\\Debug\\objframe_glfwd.exe"
         of.start()
 
-        #test1(of)
+        test1(of)
         test2(of)
+        test3(of)
+        test4(of)
+        test5(of)
 
     except requests.exceptions.ConnectionError as err:
         print("Coudn't connect to ObjectiveFrame. Is it started?")

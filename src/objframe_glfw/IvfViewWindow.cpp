@@ -23,8 +23,8 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
       m_currentModifier{ButtonState::bsNoButton}, m_angleX{0.0f}, m_angleY{0.0f}, m_moveX{0.0f}, m_moveY{0.0f},
       m_zoomX{0.0f}, m_zoomY{0.0f}, m_snapToGrid{true}, m_selectedShape{nullptr}, m_editMode{WidgetMode::ViewPan},
       m_clickNumber{0}, m_nNodes{0}, m_nLines{0}, m_doOverlay{false}, m_doUnderlay{false}, m_editEnabled{true},
-      m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false}, m_workspaceSize{10.0f},
-      m_quit{false}, m_customPick{false}, m_lockSceneRendering{false}
+      m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false},
+      m_workspaceSize{10.0f}, m_quit{false}, m_customPick{false}, m_lockSceneRendering{false}
 {
     // Create default camera
 
@@ -726,6 +726,11 @@ void IvfViewWindow::doInitImGui()
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
 
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
+
     onInitImGui();
 
     io.DisplaySize = ImVec2((float)width(), (float)height());
@@ -757,9 +762,45 @@ void IvfViewWindow::doDrawImGui()
 
     ImGui::NewFrame();
 
+    // ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+    // ImGuiStyle &style = ImGui::GetStyle();
+    // style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // White with 50% opacity
+
+    ImGuiWindowFlags window_flags =
+        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBackground;
+
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    window_flags |=
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+    ImGui::Begin("DockSpace", nullptr, window_flags);
+    ImGui::PopStyleVar(3);
+
+    // DockSpace
+    ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+    ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+    ImGui::End();
+
     onDrawImGui();
 
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        GLFWwindow *backup_current_context = glfwGetCurrentContext();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        glfwMakeContextCurrent(backup_current_context);
+    }
 }
 
 void IvfViewWindow::onInit()

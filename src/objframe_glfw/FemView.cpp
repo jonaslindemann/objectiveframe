@@ -1035,7 +1035,7 @@ void FemViewWindow::save(std::string filename)
     std::string oldName = m_beamModel->getFileName();
 
     m_beamModel->setFileName(filename);
-	m_beamModel->save();
+    m_beamModel->save();
     m_beamModel->setFileName(oldName);
 }
 
@@ -3014,6 +3014,12 @@ void FemViewWindow::onInit()
     m_loadMixerWindow->setVisible(false);
 
     m_windowList->add(m_loadMixerWindow);
+
+    m_mainToolbarWindow = MainToolbar::create("Main toolbar");
+    m_mainToolbarWindow->setView(this);
+    m_mainToolbarWindow->setVisible(true);
+
+    m_windowList->add(m_mainToolbarWindow);
 
     // Tetgen
 

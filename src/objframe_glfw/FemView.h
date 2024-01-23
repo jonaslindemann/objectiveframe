@@ -59,6 +59,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/element_prop_window.h>
 #include <ofui/load_mixer_window.h>
 #include <ofui/log_window.h>
+#include <ofui/main_toolbar.h>
 #include <ofui/materials_window.h>
 #include <ofui/message_popup.h>
 #include <ofui/new_model_popup.h>
@@ -278,6 +279,7 @@ private:
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
     ofui::LoadMixerWindowPtr m_loadMixerWindow;
+    ofui::MainToolbarPtr m_mainToolbarWindow;
 
     ofui::WindowListPtr m_windowList;
 

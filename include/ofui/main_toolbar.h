@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ofui/texture.h>
 #include <ofui/ui_window.h>
 
 #include <vector>
@@ -61,6 +62,7 @@ private:
     int m_selectedButton;
 
     std::vector<OfToolbarButton> m_buttons;
+    ofui::TexturePtr m_texture;
 
 public:
     MainToolbar(const std::string name);

@@ -12,7 +12,10 @@ using namespace ofui;
 
 MainToolbar::MainToolbar(const std::string name) : UiWindow(name), m_view{nullptr}, m_selectedButton{-1}
 {
-    // setWindowFlags(ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
+    setWindowFlags(ImGuiWindowFlags_NoCollapse);
+
+    m_texture = Texture::create("D:\\Users\\Jonas\\Development\\objectiveframe\\bin\\Debug\\images\\tlviewpan.png");
+    m_texture->load();
 
     this->addButton("Box", OfToolbarButtonType::Button, 0, 0);
     this->addButton("Sphere", OfToolbarButtonType::Button, 0, 1);
@@ -79,75 +82,89 @@ void MainToolbar::doDraw()
 
     int id = 0;
 
+    m_texture->bind();
+
     for (auto &button : m_buttons) {
         ImGui::PushID(id++);
 
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
         if (button.type() == OfToolbarButtonType::Button) {
-            if (ImGui::Button(button.name().c_str(), button_sz)) {
+            if (ImGui::ImageButton((ImTextureID)(m_texture->id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4)) {
             }
         }
         else if (button.type() == OfToolbarButtonType::ToggleButton) {
             if (button.selected()) {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.3f, 0.4f, 1.0f});
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 1, 1});
             }
             else {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.1f, 0.1f, 1.0f});
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0.5, 1.0});
             }
-            if (ImGui::Button(button.name().c_str(), button_sz)) {
+            if (ImGui::ImageButton((ImTextureID)(m_texture->id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4)) {
                 button.toggleSelected();
             }
             ImGui::PopStyleColor(1);
         }
         else if (button.type() == OfToolbarButtonType::RadioButton) {
-            if (ImGui::Button(button.name().c_str(), button_sz)) {
+            if (ImGui::ImageButton((ImTextureID)(m_texture->id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4,
+                                   ImVec4{1, 0, 0, 1}, ImVec4{0, 2, 0, 1})) {
             }
         }
-        ImGui::PopID();
-    }
 
-    /*
-    for (int n = 0; n < buttons_count; n++) {
-        if (n == m_selectedButton) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.3f, 0.4f, 1.0f});
-        }
-        else {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.1f, 0.1f, 1.0f});
-        }
-        ImGui::PushID(n);
-        // ImGui::ImageButton(0, button_sz, ImVec2(0, 0), ImVec2(1, 1), 2, );
-        if (ImGui::Button("Box", button_sz)) {
-            m_selectedButton = n;
-        }
+        m_texture->unbind();
+
+        ImGui::PopStyleVar(1);
         float last_button_x2 = ImGui::GetItemRectMax().x;
         float next_button_x2 =
             last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
-        if (n + 1 < buttons_count && next_button_x2 < window_visible_x2)
+        if (id < buttons_count && next_button_x2 < window_visible_x2)
             ImGui::SameLine();
         ImGui::PopID();
-        ImGui::PopStyleColor(1);
-    }
-    */
-
-    /*
-    static bool pressed = true;
-
-    if (pressed)
-        ImGui::PushStyleColor(ImGuiCol_Button, color);
-    else
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.3f, 0.4f, 1.0f});
-    bool temp = ImGui::Button(buttonName);
-
-    if (temp == true)
-    {
-       pressed = 1 - pressed;
-    }
-
-    ImGui::PopStyleColor(1);
-    */
-
-    if (m_view != nullptr) {
     }
 }
+
+/*
+for (int n = 0; n < buttons_count; n++) {
+    if (n == m_selectedButton) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.3f, 0.4f, 1.0f});
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.1f, 0.1f, 1.0f});
+    }
+    ImGui::PushID(n);
+    // ImGui::ImageButton(0, button_sz, ImVec2(0, 0), ImVec2(1, 1), 2, );
+    if (ImGui::Button("Box", button_sz)) {
+        m_selectedButton = n;
+    }
+    float last_button_x2 = ImGui::GetItemRectMax().x;
+    float next_button_x2 =
+        last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
+    if (n + 1 < buttons_count && next_button_x2 < window_visible_x2)
+        ImGui::SameLine();
+    ImGui::PopID();
+    ImGui::PopStyleColor(1);
+}
+*/
+
+/*
+static bool pressed = true;
+
+if (pressed)
+    ImGui::PushStyleColor(ImGuiCol_Button, color);
+else
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.3f, 0.4f, 1.0f});
+bool temp = ImGui::Button(buttonName);
+
+if (temp == true)
+{
+   pressed = 1 - pressed;
+}
+
+ImGui::PopStyleColor(1);
+
+if (m_view != nullptr) {
+}
+}
+*/
 
 OfToolbarButton::OfToolbarButton(const std::string name, OfToolbarButtonType type, int group, int id)
     : m_name{name}, m_selected{false}, m_enabled{true}, m_group{group}, m_id{id}, m_type{type}

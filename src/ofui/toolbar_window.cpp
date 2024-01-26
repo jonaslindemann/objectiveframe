@@ -10,9 +10,13 @@
 
 using namespace ofui;
 
-ToolbarWindow::ToolbarWindow(const std::string name) : UiWindow(name), m_view{nullptr}, m_selectedButton{-1}
+ToolbarWindow::ToolbarWindow(const std::string name)
+    : UiWindow(name), m_view{nullptr}, m_selectedButton{-1}, m_selectedColor{0.0, 0.0, 1.0, 1.0}, m_color{0.0, 0.0, 0.0, 1.0}
 {
     setWindowFlags(ImGuiWindowFlags_NoCollapse);
+
+    m_color = ImGui::GetStyle().Colors[ImGuiCol_Button];
+    m_selectedColor = {1.0, 1.0, 1.0, 1.0};
 }
 
 ToolbarWindow::~ToolbarWindow()
@@ -37,6 +41,23 @@ void ofui::ToolbarWindow::addButton(const std::string name, OfToolbarButtonType 
     auto texture = Texture::create(filename);
     texture->load();
     m_buttons.emplace_back(name, type, texture, group, texture->id());
+}
+void ofui::ToolbarWindow::selectButton(int idx, int group)
+{
+	if (idx < 0 || idx >= m_buttons.size()) {
+		return;
+	}
+
+	if (group >= 0) {
+		for (auto &button : m_buttons) {
+			if (button.group() == group) {
+				button.unselect();
+			}
+		}
+	}
+
+	m_buttons[idx].select();
+	m_selectedButton = idx;
 }
 ofui::OfToolbarButton &ofui::ToolbarWindow::button(int idx)
 {
@@ -71,6 +92,8 @@ void ToolbarWindow::doDraw()
 
     int id = 0;
 
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4{1, 0, 0, 1});
+
     for (auto &button : m_buttons) {
         ImGui::PushID(id++);
 
@@ -80,7 +103,7 @@ void ToolbarWindow::doDraw()
         button.texture()->bind();
 
         if (button.type() == OfToolbarButtonType::Button) {
-            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4)) {
+            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4, m_color, m_selectedColor)) {
             }
         }
         else if (button.type() == OfToolbarButtonType::ToggleButton) {
@@ -90,15 +113,24 @@ void ToolbarWindow::doDraw()
             else {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0.5, 1.0});
             }
-            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4)) {
+            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4, m_color, m_selectedColor)) {
                 button.toggleSelected();
             }
             ImGui::PopStyleColor(1);
         }
         else if (button.type() == OfToolbarButtonType::RadioButton) {
-            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4,
-                                   ImVec4{1, 0, 0, 1}, ImVec4{0, 2, 0, 1})) {
+
+            if (button.selected()) {
+                ImGui::PushStyleColor(ImGuiCol_Button, m_selectedColor);
             }
+            else {
+                ImGui::PushStyleColor(ImGuiCol_Button, m_color);
+            }
+            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4,
+                                   m_color, m_selectedColor)) {
+                this->selectButton(id-1, button.group());
+            }
+            ImGui::PopStyleColor(1);
         }
 
         button.texture()->bind();
@@ -111,6 +143,7 @@ void ToolbarWindow::doDraw()
             ImGui::SameLine();
         ImGui::PopID();
     }
+    ImGui::PopStyleColor(1);
 }
 
 OfToolbarButton::OfToolbarButton(const std::string name, OfToolbarButtonType type, ofui::TexturePtr texture, int group,

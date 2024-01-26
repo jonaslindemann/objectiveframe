@@ -67,6 +67,8 @@ private:
 
     std::vector<OfToolbarButton> m_buttons;
     ofui::TexturePtr m_texture;
+    ImVec4 m_selectedColor;
+    ImVec4 m_color;
 
 public:
     ToolbarWindow(const std::string name);
@@ -80,6 +82,8 @@ public:
 
     void addButton(const std::string name, OfToolbarButtonType type = OfToolbarButtonType::Button,
                    std::string filename = "", int group = -1);
+
+    void selectButton(int idx, int group);
 
     OfToolbarButton &button(int idx);
     size_t buttonCount();

@@ -3015,9 +3015,23 @@ void FemViewWindow::onInit()
 
     m_windowList->add(m_loadMixerWindow);
 
-    m_mainToolbarWindow = MainToolbar::create("Main toolbar");
+    m_mainToolbarWindow = ToolbarWindow::create("Main toolbar");
     m_mainToolbarWindow->setView(this);
     m_mainToolbarWindow->setVisible(true);
+
+    m_mainToolbarWindow->addButton("Select", OfToolbarButtonType::RadioButton,
+                                   (m_imagePath / fs::path("tlselect.png")).string(), 0);
+    m_mainToolbarWindow->addButton("Box select", OfToolbarButtonType::RadioButton,
+                                   (m_imagePath / fs::path("tlselectbox.png")).string(), 0);
+    m_mainToolbarWindow->addButton("Move", OfToolbarButtonType::RadioButton,
+                                   (m_imagePath / fs::path("tlmove.png")).string(), 0);
+    m_mainToolbarWindow->addButton("Inspect", OfToolbarButtonType::Button,
+                                   (m_imagePath / fs::path("tlinspect.png")).string());
+    m_mainToolbarWindow->addButton("Delete", OfToolbarButtonType::Button,
+                                   (m_imagePath / fs::path("tldelete.png")).string());
+    m_mainToolbarWindow->addButton("Feedback", OfToolbarButtonType::RadioButton,
+                                   (m_imagePath / fs::path("tlfeedback.png")).string(), 0);
+    m_mainToolbarWindow->addButton("Run", OfToolbarButtonType::Button, (m_imagePath / fs::path("run.png")).string());
 
     m_windowList->add(m_mainToolbarWindow);
 

@@ -59,7 +59,6 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/element_prop_window.h>
 #include <ofui/load_mixer_window.h>
 #include <ofui/log_window.h>
-#include <ofui/main_toolbar.h>
 #include <ofui/materials_window.h>
 #include <ofui/message_popup.h>
 #include <ofui/new_model_popup.h>
@@ -71,6 +70,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/prop_window.h>
 #include <ofui/scale_window.h>
 #include <ofui/settings_window.h>
+#include <ofui/toolbar_window.h>
 #include <ofui/window_list.h>
 
 #include <ofservice/ofservice.h>

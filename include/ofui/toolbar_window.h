@@ -27,10 +27,11 @@ private:
     bool m_enabled;
     int m_group;
     int m_id;
+    ofui::TexturePtr m_texture;
 
 public:
     OfToolbarButton(const std::string name = "Button", OfToolbarButtonType type = OfToolbarButtonType::Button,
-                    int group = -1, int id = -1);
+                    ofui::TexturePtr texture = nullptr, int group = -1, int id = -1);
     virtual ~OfToolbarButton() = default;
 
     void setSelected(bool flag);
@@ -46,12 +47,15 @@ public:
 
     int group();
     int id();
+
+    ofui::TexturePtr texture();
+
     OfToolbarButtonType type();
     std::string name();
     void setName(const std::string name);
 };
 
-class MainToolbar : public UiWindow {
+class ToolbarWindow : public UiWindow {
 private:
 #ifdef USE_FEMVIEW
     FemViewWindow *m_view;
@@ -65,8 +69,8 @@ private:
     ofui::TexturePtr m_texture;
 
 public:
-    MainToolbar(const std::string name);
-    virtual ~MainToolbar();
+    ToolbarWindow(const std::string name);
+    virtual ~ToolbarWindow();
 
 #ifdef USE_FEMVIEW
     void setView(FemViewWindow *view);
@@ -74,19 +78,20 @@ public:
     void setWidget(FemWidget *femWidget);
 #endif
 
-    void addButton(const std::string name, OfToolbarButtonType type = OfToolbarButtonType::Button, int group = -1,
-                   int id = -1);
+    void addButton(const std::string name, OfToolbarButtonType type = OfToolbarButtonType::Button,
+                   std::string filename = "", int group = -1);
+
     OfToolbarButton &button(int idx);
     size_t buttonCount();
 
     void update();
 
-    static std::shared_ptr<MainToolbar> create(const std::string name);
+    static std::shared_ptr<ToolbarWindow> create(const std::string name);
 
 protected:
     virtual void doDraw();
 };
 
-typedef std::shared_ptr<MainToolbar> MainToolbarPtr;
+typedef std::shared_ptr<ToolbarWindow> MainToolbarPtr;
 
 } // namespace ofui

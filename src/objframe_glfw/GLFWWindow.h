@@ -25,11 +25,14 @@ private:
     bool m_ctrlDown;
     bool m_altDown;
     bool m_escQuit;
+    bool m_firstDraw;
 
     bool m_enabled;
 
     int m_currentKey;
     std::mutex m_mutex;
+    int m_x;
+    int m_y;
 
 public:
     GLFWWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
@@ -51,24 +54,27 @@ public:
     void maximize();
     void enable();
     void disable();
-    bool isEnabled();
+    bool isEnabled() const;
+    int x();
+    int y();
+    bool firstDraw() const;
 
     void draw();
 
     GLFWwindow *ref();
 
-    int mouseButton();
-    int mouseAction();
-    int mouseMods();
-    int mouseX();
-    int mouseY();
-    bool isAnyMouseButtonDown();
+    int mouseButton() const;
+    int mouseAction() const;
+    int mouseMods() const;
+    int mouseX() const;
+    int mouseY() const;
+    bool isAnyMouseButtonDown() const;
 
-    bool isShiftDown();
-    bool isCtrlDown();
-    bool isAltDown();
+    bool isShiftDown() const;
+    bool isCtrlDown() const;
+    bool isAltDown() const;
 
-    bool useEscQuit();
+    bool useEscQuit() const;
     void setUseEscQuit(bool flag);
 
 public:

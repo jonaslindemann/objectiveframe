@@ -20,6 +20,11 @@ private:
     bool m_firstDraw;
     int m_width;
     int m_height;
+    bool m_canClose;
+    int m_x;
+    int m_y;
+
+    bool m_newPos;
 
 public:
     UiWindow(const std::string name);
@@ -40,11 +45,17 @@ public:
     int width();
     int height();
 
+    bool canClose();
+    void setCanClose(bool flag);
+
     void align(int corner);
     void centerBottom();
     void center();
 
     void setPosition(int x, int y);
+
+    int x();
+    int y();
 
 protected:
     virtual void doPreDraw();

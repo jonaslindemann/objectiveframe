@@ -19,11 +19,13 @@ std::shared_ptr<GLFWWindow> GLFWWindow::create(int width, int height, const std:
 GLFWWindow::GLFWWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
     : m_width(width), m_height(height), m_title(title), m_mouseButton(-1), m_mouseAction(-1), m_mouseMods(-1),
       m_mouseX(-1), m_mouseY(-1), m_currentKey(-1), m_altDown(false), m_ctrlDown(false), m_shiftDown(false),
-      m_escQuit(true), m_enabled(true)
+      m_escQuit(true), m_enabled(true), m_x(0), m_y(0), m_window(nullptr), m_monitor(monitor), m_sharedWindow(shared),
+      m_firstDraw(true)
 {
     m_window = glfwCreateWindow(width, height, title.c_str(), monitor, shared);
 
-    if (!m_window) {
+    if (!m_window)
+    {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -37,7 +39,8 @@ GLFWWindow::~GLFWWindow()
 
 void GLFWWindow::makeCurrent()
 {
-    if (m_window) {
+    if (m_window)
+    {
         glfwMakeContextCurrent(m_window);
         gladLoadGL();
         glfwSwapInterval(1);
@@ -65,7 +68,8 @@ void GLFWWindow::swapBuffers()
 
 void GLFWWindow::destroy()
 {
-    if (m_window) {
+    if (m_window)
+    {
         glfwDestroyWindow(m_window);
         m_window = nullptr;
     }
@@ -76,54 +80,54 @@ GLFWwindow *GLFWWindow::ref()
     return m_window;
 }
 
-int GLFWWindow::mouseButton()
+int GLFWWindow::mouseButton() const
 {
     return m_mouseButton;
 }
 
-int GLFWWindow::mouseAction()
+int GLFWWindow::mouseAction() const
 {
     return m_mouseAction;
 }
 
-int GLFWWindow::mouseMods()
+int GLFWWindow::mouseMods() const
 {
     return m_mouseMods;
 }
 
-int GLFWWindow::mouseX()
+int GLFWWindow::mouseX() const
 {
     return m_mouseX;
 }
 
-int GLFWWindow::mouseY()
+int GLFWWindow::mouseY() const
 {
     return m_mouseY;
 }
 
-bool GLFWWindow::isAnyMouseButtonDown()
+bool GLFWWindow::isAnyMouseButtonDown() const
 {
     return ((m_mouseButton == GLFW_MOUSE_BUTTON_1) || (m_mouseButton == GLFW_MOUSE_BUTTON_2) ||
             (m_mouseButton == GLFW_MOUSE_BUTTON_3)) &&
            (m_mouseAction == GLFW_PRESS);
 }
 
-bool GLFWWindow::isShiftDown()
+bool GLFWWindow::isShiftDown() const
 {
     return m_shiftDown;
 }
 
-bool GLFWWindow::isCtrlDown()
+bool GLFWWindow::isCtrlDown() const
 {
     return m_ctrlDown;
 }
 
-bool GLFWWindow::isAltDown()
+bool GLFWWindow::isAltDown() const
 {
     return m_altDown;
 }
 
-bool GLFWWindow::useEscQuit()
+bool GLFWWindow::useEscQuit() const
 {
     return m_escQuit;
 }
@@ -135,7 +139,8 @@ void GLFWWindow::setUseEscQuit(bool flag)
 
 int GLFWWindow::width()
 {
-    if (m_window) {
+    if (m_window)
+    {
         glfwGetFramebufferSize(m_window, &m_width, &m_height);
         return m_width;
     }
@@ -145,7 +150,8 @@ int GLFWWindow::width()
 
 int GLFWWindow::height()
 {
-    if (m_window) {
+    if (m_window)
+    {
         glfwGetFramebufferSize(m_window, &m_width, &m_height);
         return m_height;
     }
@@ -155,12 +161,14 @@ int GLFWWindow::height()
 
 void GLFWWindow::getSize(int &width, int &height)
 {
-    if (m_window) {
+    if (m_window)
+    {
         glfwGetFramebufferSize(m_window, &m_width, &m_height);
         width = m_width;
         height = m_height;
     }
-    else {
+    else
+    {
         width = -1;
         height = -1;
     }
@@ -191,9 +199,21 @@ void GLFWWindow::disable()
     m_enabled = false;
 }
 
-bool GLFWWindow::isEnabled()
+bool GLFWWindow::isEnabled() const
 {
     return m_enabled;
+}
+
+int GLFWWindow::x()
+{
+    glfwGetWindowPos(m_window, &m_x, &m_y);
+    return m_x;
+}
+
+int GLFWWindow::y()
+{
+    glfwGetWindowPos(m_window, &m_x, &m_y);
+    return m_y;
 }
 
 void GLFWWindow::draw()
@@ -255,23 +275,25 @@ void GLFWWindow::doDraw()
     glViewport(0, 0, width, height);
 
     onGlfwDraw();
+
+    if (m_firstDraw)
+    {
+        doResize(width, height);
+        m_firstDraw = false;
+    }
 }
 
 void GLFWWindow::onGlfwKey(int key, int scancode, int action, int mods)
-{
-}
+{}
 
 void GLFWWindow::onGlfwMousePosition(double x, double y)
-{
-}
+{}
 
 void GLFWWindow::onGlfwMouseButton(int button, int action, int mods)
-{
-}
+{}
 
 void GLFWWindow::onGlfwResize(int width, int height)
-{
-}
+{}
 
 void GLFWWindow::onGlfwDraw()
 {

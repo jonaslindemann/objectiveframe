@@ -72,7 +72,8 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
     if (isAltDown())
         m_currentModifier = ButtonState::bsAlt;
 
-    if ((key < GLFW_KEY_LEFT_SHIFT) && (m_currentModifier != ButtonState::bsNoButton) && (action == GLFW_PRESS)) {
+    if ((key < GLFW_KEY_LEFT_SHIFT) && (m_currentModifier != ButtonState::bsNoButton) && (action == GLFW_PRESS))
+    {
         if (m_currentModifier == ButtonState::bsShift)
             doShortcut(ModifierKey::mkShift, key);
         if (m_currentModifier == ButtonState::bsCtrl)
@@ -80,7 +81,8 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
         if (m_currentModifier == ButtonState::bsAlt)
             doShortcut(ModifierKey::mkAlt, key);
     }
-    else {
+    else
+    {
         if (action == GLFW_PRESS)
             doKeyboard(key);
         else
@@ -90,7 +92,8 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 
 void IvfViewWindow::onGlfwMousePosition(double x, double y)
 {
-    if (isAnyMouseButtonDown()) {
+    if (isAnyMouseButtonDown())
+    {
         doMotion(mouseX(), mouseY());
     }
     else
@@ -99,7 +102,8 @@ void IvfViewWindow::onGlfwMousePosition(double x, double y)
 
 void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 {
-    if (action == GLFW_PRESS) {
+    if (action == GLFW_PRESS)
+    {
         if (button == GLFW_MOUSE_BUTTON_1)
             m_currentButton = ButtonState::bsButton1;
 
@@ -108,12 +112,14 @@ void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
 
         if (button == GLFW_MOUSE_BUTTON_3)
             m_currentButton = ButtonState::bsButton3;
-        if (!isOverWindow()) {
+        if (!isOverWindow())
+        {
             doMouseDown(mouseX(), mouseY());
             doMouse(mouseX(), mouseY());
         }
     }
-    else {
+    else
+    {
         if (!isOverWindow())
             doMouseUp(mouseX(), mouseY());
     }
@@ -126,7 +132,8 @@ void IvfViewWindow::onGlfwResize(int width, int height)
 
 void IvfViewWindow::onGlfwDraw()
 {
-    if (!m_initDone) {
+    if (!m_initDone)
+    {
         onInitContext();
 
         doInitImGui();
@@ -178,7 +185,8 @@ void IvfViewWindow::onGlfwDraw()
 
     glPushMatrix();
 
-    if (m_doUnderlay) {
+    if (m_doUnderlay)
+    {
         glPushAttrib(GL_ENABLE_BIT);
 
         glDisable(GL_DEPTH_TEST);
@@ -206,7 +214,8 @@ void IvfViewWindow::onGlfwDraw()
 
     glPushMatrix();
 
-    if (m_doOverlay) {
+    if (m_doOverlay)
+    {
         glPushAttrib(GL_ENABLE_BIT);
 
         glDisable(GL_DEPTH_TEST);
@@ -247,7 +256,8 @@ void IvfViewWindow::deleteSelected()
     // Before anything is deleted we remove all
     // manipulators.
 
-    for (i = 0; i < m_selectedShapes->getSize(); i++) {
+    for (i = 0; i < m_selectedShapes->getSize(); i++)
+    {
         auto shape = m_selectedShapes->getChild(i);
 
         bool doit = false;
@@ -273,7 +283,8 @@ void IvfViewWindow::deleteSelectedKeep()
 
     vector<ShapePtr> remainingShapes;
 
-    for (i = 0; i < m_selectedShapes->getSize(); i++) {
+    for (i = 0; i < m_selectedShapes->getSize(); i++)
+    {
         auto shape = m_selectedShapes->getChild(i);
 
         bool doit = false;
@@ -296,14 +307,17 @@ void IvfViewWindow::deleteSelectedKeep()
 
 void IvfViewWindow::createLine()
 {
-    if (m_selectedShapes->getSize() == 2) {
+    if (m_selectedShapes->getSize() == 2)
+    {
         Node *node1 = static_cast<Node *>(m_selectedShapes->getChild(0));
         Node *node2 = static_cast<Node *>(m_selectedShapes->getChild(1));
 
-        if ((node1->isClass("Node")) && (node2->isClass("Node"))) {
+        if ((node1->isClass("Node")) && (node2->isClass("Node")))
+        {
             Shape *solidLine = nullptr;
             onCreateLine(node1, node2, solidLine);
-            if (solidLine != nullptr) {
+            if (solidLine != nullptr)
+            {
                 addToScene(solidLine);
             }
         }
@@ -317,7 +331,8 @@ void IvfViewWindow::addToScene(Shape *shape)
 
 void IvfViewWindow::centerSelected()
 {
-    if (m_selectedShapes->getSize() == 1) {
+    if (m_selectedShapes->getSize() == 1)
+    {
         Shape *shape = static_cast<Shape *>(m_selectedShapes->getChild(0));
         double x, y, z;
         shape->getPosition(x, y, z);
@@ -357,7 +372,8 @@ void IvfViewWindow::selectAll()
     auto scene = this->getScene()->getComposite();
     bool select;
 
-    for (i = 0; i < scene->getSize(); i++) {
+    for (i = 0; i < scene->getSize(); i++)
+    {
         shape = scene->getChild(i);
         select = true;
         onSelectFilter(shape, select);
@@ -383,7 +399,8 @@ void IvfViewWindow::selectAllBox()
     auto scene = this->getScene()->getComposite();
     bool select;
 
-    for (i = 0; i < scene->getSize(); i++) {
+    for (i = 0; i < scene->getSize(); i++)
+    {
         shape = scene->getChild(i);
         select = true;
         onSelectFilter(shape, select);
@@ -402,30 +419,37 @@ bool IvfViewWindow::isInsideVolume(ivf::Shape *shape)
     double x_min, y_min, z_min;
     double x_max, y_max, z_max;
 
-    if (shape->isClass("Node")) {
-        if (m_volumeStart[0] < m_volumeEnd[0]) {
+    if (shape->isClass("Node"))
+    {
+        if (m_volumeStart[0] < m_volumeEnd[0])
+        {
             x_min = m_volumeStart[0];
             x_max = m_volumeEnd[0];
         }
-        else {
+        else
+        {
             x_min = m_volumeEnd[0];
             x_max = m_volumeStart[0];
         }
 
-        if (m_volumeStart[1] < m_volumeEnd[1]) {
+        if (m_volumeStart[1] < m_volumeEnd[1])
+        {
             y_min = m_volumeStart[1];
             y_max = m_volumeEnd[1];
         }
-        else {
+        else
+        {
             y_min = m_volumeEnd[1];
             y_max = m_volumeStart[1];
         }
 
-        if (m_volumeStart[2] < m_volumeEnd[2]) {
+        if (m_volumeStart[2] < m_volumeEnd[2])
+        {
             z_min = m_volumeStart[2];
             z_max = m_volumeEnd[2];
         }
-        else {
+        else
+        {
             z_min = m_volumeEnd[2];
             z_max = m_volumeStart[2];
         }
@@ -436,7 +460,8 @@ bool IvfViewWindow::isInsideVolume(ivf::Shape *shape)
 
         return (x >= x_min) && (x <= x_max) && (y >= y_min) && (y <= y_max) && (z >= z_min) && (z <= z_max);
     }
-    else {
+    else
+    {
         return this->onInsideVolume(shape);
     }
 }
@@ -479,19 +504,22 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    if (getEditMode() == WidgetMode::Select) {
+    if (getEditMode() == WidgetMode::Select)
+    {
         m_selectedShape = NULL;
         m_scene->disableCursor();
     };
 
-    if (getEditMode() == WidgetMode::CreateLine) {
+    if (getEditMode() == WidgetMode::CreateLine)
+    {
         clearSelection();
         m_scene->disableCursor();
         m_clickNumber = 0;
         m_selectedShapes->clear();
     }
 
-    if (getEditMode() == WidgetMode::CreateNode) {
+    if (getEditMode() == WidgetMode::CreateNode)
+    {
         clearSelection();
         m_scene->enableCursor();
         m_clickNumber = 0;
@@ -499,7 +527,8 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->unlockCursor();
     }
 
-    if (getEditMode() == WidgetMode::SelectPosition) {
+    if (getEditMode() == WidgetMode::SelectPosition)
+    {
         clearSelection();
         m_scene->enableCursor();
         m_clickNumber = 0;
@@ -507,7 +536,8 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->unlockCursor();
     }
 
-    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection)) {
+    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
+    {
         clearSelection();
         m_scene->enableCursor();
         m_clickNumber = 0;
@@ -515,17 +545,20 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->unlockCursor();
     }
 
-    if (getEditMode() == WidgetMode::Move) {
+    if (getEditMode() == WidgetMode::Move)
+    {
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_scene->unlockCursor();
     }
 
-    if (getEditMode() == WidgetMode::ViewPan) {
+    if (getEditMode() == WidgetMode::ViewPan)
+    {
         m_scene->disableCursor();
     }
 
-    if (getEditMode() == WidgetMode::ViewZoom) {
+    if (getEditMode() == WidgetMode::ViewZoom)
+    {
         m_scene->disableCursor();
     }
 
@@ -593,7 +626,8 @@ void IvfViewWindow::updateCursor(int x, int y)
     ivf::Vec3d v = m_scene->getCamera()->pickVector(x, y);
     ivf::Vec3d o = m_scene->getCamera()->getPosition();
 
-    if (isShiftDown()) {
+    if (isShiftDown())
+    {
         double xx, yy, zz;
         v.getComponents(xx, yy, zz);
         glm::vec3 vv(xx, yy, zz);
@@ -605,12 +639,14 @@ void IvfViewWindow::updateCursor(int x, int y)
 
         glm::vec3 ip;
 
-        if (s1 > s2) {
+        if (s1 > s2)
+        {
             m_xyPlane.setPlaneOrigin(pos.getComponents());
             m_xyPlane.setOrigin(o.getComponents());
             ip = m_xyPlane.intersect(v.getComponents());
         }
-        else {
+        else
+        {
             m_yzPlane.setPlaneOrigin(pos.getComponents());
             m_yzPlane.setOrigin(o.getComponents());
             ip = m_yzPlane.intersect(v.getComponents());
@@ -618,7 +654,8 @@ void IvfViewWindow::updateCursor(int x, int y)
 
         m_scene->updateCursor(ip.x, ip.y, ip.z);
     }
-    else {
+    else
+    {
         m_xzPlane.setOrigin(o.getComponents());
         glm::vec3 ip = m_xzPlane.intersect(v.getComponents());
 
@@ -786,7 +823,7 @@ void IvfViewWindow::doDrawImGui()
 
     // DockSpace
     ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-    ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+    ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_AutoHideTabBar;
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
     ImGui::End();
@@ -816,7 +853,8 @@ void IvfViewWindow::doDrawImGui()
 
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
         GLFWwindow *backup_current_context = glfwGetCurrentContext();
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
@@ -825,28 +863,22 @@ void IvfViewWindow::doDrawImGui()
 }
 
 void IvfViewWindow::onInit()
-{
-}
+{}
 
 void IvfViewWindow::onDestroy()
-{
-}
+{}
 
 void IvfViewWindow::onShortcut(ModifierKey modifier, int key)
-{
-}
+{}
 
 void IvfViewWindow::onCreateNode(double x, double y, double z, ivf::Node *&newNode)
-{
-}
+{}
 
 void IvfViewWindow::onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape *&newLine)
-{
-}
+{}
 
 void IvfViewWindow::onSelect(ivf::Composite *selectedShapes)
-{
-}
+{}
 
 bool IvfViewWindow::onInsideVolume(ivf::Shape *shape)
 {
@@ -854,36 +886,28 @@ bool IvfViewWindow::onInsideVolume(ivf::Shape *shape)
 }
 
 void IvfViewWindow::onSelectPosition(double x, double y, double z)
-{
-}
+{}
 
 void IvfViewWindow::onDeSelect()
-{
-}
+{}
 
 void IvfViewWindow::onCoordinate(double x, double y, double z)
-{
-}
+{}
 
 void IvfViewWindow::onDeleteShape(ivf::Shape *shape, bool &doit)
-{
-}
+{}
 
 void IvfViewWindow::onInitContext()
-{
-}
+{}
 
 void IvfViewWindow::onOverlay()
-{
-}
+{}
 
 void IvfViewWindow::onUnderlay()
-{
-}
+{}
 
 void IvfViewWindow::onHighlightShape(ivf::Shape *shape)
-{
-}
+{}
 
 void IvfViewWindow::doMouseUp(int x, int y)
 {
@@ -918,8 +942,10 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     // m_scene->updateCursor(x, y);
     this->updateCursor(x, y);
 
-    if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled)) {
-        if (m_selectedShape != nullptr) {
+    if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled))
+    {
+        if (m_selectedShape != nullptr)
+        {
             m_selectedShape->setHighlight(Shape::HS_OFF);
         }
 
@@ -927,17 +953,20 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
         if (m_customPick)
             m_selectedShape = onPick(x, y);
-        else {
+        else
+        {
             m_scene->pick(x, y);
             m_selectedShape = m_scene->getSelectedShape();
         }
 
-        if (m_selectedShape != NULL) {
+        if (m_selectedShape != NULL)
+        {
             bool highlight = true;
 
             onHighlightFilter(m_selectedShape, highlight);
 
-            if (highlight) {
+            if (highlight)
+            {
                 m_selectedShape->setHighlight(Shape::HS_ON);
                 onHighlightShape(m_selectedShape);
             }
@@ -946,7 +975,8 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if (getEditMode() == WidgetMode::CreateNode) {
+    if (getEditMode() == WidgetMode::CreateNode)
+    {
         double wx, wy, wz;
         Vec3d pos;
         // m_scene->updateCursor(x, y);
@@ -957,7 +987,8 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if (getEditMode() == WidgetMode::Move) {
+    if (getEditMode() == WidgetMode::Move)
+    {
         double wx, wy, wz;
         // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
@@ -967,25 +998,30 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
         redraw();
     }
 
-    if ((getEditMode() == WidgetMode::CreateLine) && (m_selectEnabled)) {
+    if ((getEditMode() == WidgetMode::CreateLine) && (m_selectEnabled))
+    {
         bool needInvalidate = false;
 
-        if (m_selectedShape != nullptr) {
+        if (m_selectedShape != nullptr)
+        {
             m_selectedShape->setHighlight(Shape::HS_OFF);
             needInvalidate = true;
         }
 
         if (m_customPick)
             m_selectedShape = onPick(x, y);
-        else {
+        else
+        {
             m_scene->pick(x, y);
             m_selectedShape = m_scene->getSelectedShape();
         }
 
-        if (m_selectedShape != nullptr) {
+        if (m_selectedShape != nullptr)
+        {
             bool highlight = true;
             onHighlightFilter(m_selectedShape, highlight);
-            if (highlight) {
+            if (highlight)
+            {
                 m_selectedShape->setHighlight(Shape::HS_ON);
                 needInvalidate = true;
             }
@@ -995,14 +1031,16 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
             redraw();
     }
 
-    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection)) {
+    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
+    {
         // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         double vx, vy, vz;
         auto pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
 
-        if (m_clickNumber == 1) {
+        if (m_clickNumber == 1)
+        {
             m_volumeEnd[0] = vx;
             m_volumeEnd[1] = vy;
             m_volumeEnd[2] = vz;
@@ -1031,19 +1069,23 @@ void IvfViewWindow::doMotion(int x, int y)
     this->getScene()->showCursor();
     // if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
     {
-        if ((mouseButton() == GLFW_MOUSE_BUTTON_RIGHT) && (mouseAction() == GLFW_PRESS)) {
+        if ((mouseButton() == GLFW_MOUSE_BUTTON_RIGHT) && (mouseAction() == GLFW_PRESS))
+        {
             // if ((getEditMode()==IVF_VIEW_ZOOM)||(getEditMode()==IVF_VIEW_PAN))
             {
                 this->getScene()->hideCursor();
-                if (getCurrentModifier() == ButtonState::bsAlt) {
+                if (getCurrentModifier() == ButtonState::bsAlt)
+                {
                     m_zoomX = ((float)x - m_beginX);
                     m_zoomY = ((float)y - m_beginY);
                 }
-                else if (getCurrentModifier() == ButtonState::bsShift) {
+                else if (getCurrentModifier() == ButtonState::bsShift)
+                {
                     m_moveX = ((float)x - m_beginX);
                     m_moveY = ((float)y - m_beginY);
                 }
-                else {
+                else
+                {
                     m_angleX = ((float)x - m_beginX);
                     m_angleY = ((float)y - m_beginY);
                 }
@@ -1057,7 +1099,8 @@ void IvfViewWindow::doMotion(int x, int y)
         }
     }
 
-    if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT)) {
+    if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
         // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         double x, y, z;
@@ -1073,17 +1116,21 @@ void IvfViewWindow::doMotion(int x, int y)
         m_startPos[1] = m_startPos[1] + dy;
         m_startPos[2] = m_startPos[2] + dz;
 
-        if (m_moveStart) {
+        if (m_moveStart)
+        {
             // onMoveStart();
             m_moveStart = false;
         }
 
         onMove(m_selectedShapes, dx, dy, dz, doit);
 
-        if (doit) {
-            for (int i = 0; i < m_selectedShapes->getSize(); i++) {
+        if (doit)
+        {
+            for (int i = 0; i < m_selectedShapes->getSize(); i++)
+            {
                 auto shape = m_selectedShapes->getChild(i);
-                if (shape->isClass("vfem::Node")) {
+                if (shape->isClass("vfem::Node"))
+                {
                     shape->getPosition(x, y, z);
                     shape->setPosition(x + dx, y + dy, z + dz);
                 }
@@ -1106,12 +1153,16 @@ void IvfViewWindow::doMouse(int x, int y)
     Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
-    if ((m_editMode == WidgetMode::Select) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT)) {
-        if (m_selectedShape != NULL) {
-            if (m_selectedShape->getSelect() != GLBase::SS_ON) {
+    if ((m_editMode == WidgetMode::Select) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        if (m_selectedShape != NULL)
+        {
+            if (m_selectedShape->getSelect() != GLBase::SS_ON)
+            {
                 bool select = true;
                 onSelectFilter(m_selectedShape, select);
-                if (select) {
+                if (select)
+                {
                     m_selectedShape->setSelect(GLBase::SS_ON);
                     m_selectedShapes->addChild(m_selectedShape);
                     onSelect(m_selectedShapes);
@@ -1119,7 +1170,8 @@ void IvfViewWindow::doMouse(int x, int y)
                 redraw();
             }
         }
-        else {
+        else
+        {
             m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
             m_selectedShapes->clear();
             onDeSelect();
@@ -1130,7 +1182,8 @@ void IvfViewWindow::doMouse(int x, int y)
 
     // Handle node creation
 
-    if ((m_editMode == WidgetMode::CreateNode) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT)) {
+    if ((m_editMode == WidgetMode::CreateNode) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
         double vx, vy, vz;
         Node *node = NULL;
         Vec3d pos;
@@ -1142,7 +1195,8 @@ void IvfViewWindow::doMouse(int x, int y)
         if (m_editEnabled)
             onCreateNode(vx, vy, vz, node);
 
-        if (node != NULL) {
+        if (node != NULL)
+        {
             m_scene->addChild(node);
             redraw();
             draw();
@@ -1151,7 +1205,8 @@ void IvfViewWindow::doMouse(int x, int y)
 
     // Handle selection
 
-    if ((m_editMode == WidgetMode::SelectPosition) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT)) {
+    if ((m_editMode == WidgetMode::SelectPosition) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
         double vx, vy, vz;
         Node *node = NULL;
         Vec3d pos;
@@ -1164,7 +1219,8 @@ void IvfViewWindow::doMouse(int x, int y)
     }
 
     if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) &&
-        (mouseButton() == GLFW_MOUSE_BUTTON_LEFT)) {
+        (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
         double vx, vy, vz;
         Node *node = NULL;
         Vec3d pos;
@@ -1173,7 +1229,8 @@ void IvfViewWindow::doMouse(int x, int y)
         pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(vx, vy, vz);
 
-        if (m_clickNumber == 0) {
+        if (m_clickNumber == 0)
+        {
             m_volumeStart[0] = vx;
             m_volumeStart[1] = vy;
             m_volumeStart[2] = vz;
@@ -1190,12 +1247,14 @@ void IvfViewWindow::doMouse(int x, int y)
             m_volumeSelection->setState(Shape::OS_ON);
             m_clickNumber++;
         }
-        else if (m_clickNumber == 1) {
+        else if (m_clickNumber == 1)
+        {
             m_volumeEnd[0] = vx;
             m_volumeEnd[1] = vy;
             m_volumeEnd[2] = vz;
 
-            if (m_volumeStart[1] == m_volumeEnd[1]) {
+            if (m_volumeStart[1] == m_volumeEnd[1])
+            {
                 m_volumeStart[1] = -1e300;
                 m_volumeEnd[1] = 1e300;
             }
@@ -1211,17 +1270,22 @@ void IvfViewWindow::doMouse(int x, int y)
         }
     }
 
-    if (m_editMode == WidgetMode::CreateLine) {
-        if (m_selectedShapes->getSize() < 2) {
-            if (m_selectedShape != NULL) {
-                if (m_selectedShape->isClass("Node")) {
+    if (m_editMode == WidgetMode::CreateLine)
+    {
+        if (m_selectedShapes->getSize() < 2)
+        {
+            if (m_selectedShape != NULL)
+            {
+                if (m_selectedShape->isClass("Node"))
+                {
                     m_selectedShape->setSelect(GLBase::SS_ON);
                     m_selectedShapes->addChild(m_selectedShape);
                 }
                 redraw();
                 draw();
             }
-            else {
+            else
+            {
                 m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
                 m_selectedShapes->clear();
                 redraw();
@@ -1229,7 +1293,8 @@ void IvfViewWindow::doMouse(int x, int y)
             }
         }
 
-        if (m_selectedShapes->getSize() == 2) {
+        if (m_selectedShapes->getSize() == 2)
+        {
             this->createLine();
             m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
             m_selectedShapes->clear();
@@ -1267,48 +1332,37 @@ void IvfViewWindow::doShortcut(ModifierKey modifier, int key)
 }
 
 void IvfViewWindow::onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
-{
-}
+{}
 
 void IvfViewWindow::onMoveCompleted()
-{
-}
+{}
 
 void IvfViewWindow::onSelectFilter(ivf::Shape *shape, bool &select)
-{
-}
+{}
 
 void IvfViewWindow::onHighlightFilter(ivf::Shape *, bool &highlight)
-{
-}
+{}
 
 void IvfViewWindow::onMotion(int x, int y)
-{
-}
+{}
 
 void IvfViewWindow::onPassiveMotion(int x, int y)
-{
-}
+{}
 
 void IvfViewWindow::onMouse(int x, int y)
-{
-}
+{}
 
 void IvfViewWindow::onMouseDown(int x, int y)
-{
-}
+{}
 
 void IvfViewWindow::onMouseUp(int x, int y)
-{
-}
+{}
 
 void IvfViewWindow::onKeyboard(int key)
-{
-}
+{}
 
 void IvfViewWindow::onSelectVolume(double x0, double y0, double z0, double x1, double y1, double yz)
-{
-}
+{}
 
 ivf::Shape *IvfViewWindow::onPick(int x, int y)
 {
@@ -1316,17 +1370,13 @@ ivf::Shape *IvfViewWindow::onPick(int x, int y)
 }
 
 void IvfViewWindow::onPostRender()
-{
-}
+{}
 
 void IvfViewWindow::onPreRender()
-{
-}
+{}
 
 void IvfViewWindow::onInitImGui()
-{
-}
+{}
 
 void IvfViewWindow::onDrawImGui()
-{
-}
+{}

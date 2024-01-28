@@ -8,7 +8,8 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 {
     auto win = GLFWWindowTracker::instance()->get(window);
 
-    if (win->useEscQuit()) {
+    if (win->useEscQuit())
+    {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             win->close();
     }
@@ -69,9 +70,12 @@ void GLFWApplication::loop()
 {
     bool shouldClose = false;
 
-    while (!shouldClose) {
-        for (auto window : m_windows) {
-            if (!window->isClosing()) {
+    while (!shouldClose)
+    {
+        for (auto &window : m_windows)
+        {
+            if (!window->isClosing())
+            {
                 window->draw();
                 shouldClose = false;
             }

@@ -279,7 +279,8 @@ private:
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
     ofui::LoadMixerWindowPtr m_loadMixerWindow;
-    ofui::MainToolbarPtr m_mainToolbarWindow;
+    ofui::ToolbarWindowPtr m_mainToolbarWindow;
+    ofui::ToolbarWindowPtr m_editToolbarWindow;
 
     ofui::WindowListPtr m_windowList;
 
@@ -464,6 +465,12 @@ public:
     vfem::Beam *addBeam(int i0, int i1);
     size_t nodeCount();
 
+    // Service related methods
+
+    void startService();
+    void stopService();
+    bool isServiceRunning() const;
+
     // Implemented FltkWidget events
 
     virtual void onInit() override;
@@ -471,6 +478,7 @@ public:
     virtual void onOverlay() override;
     virtual void onUnderlay();
     virtual void onPostRender() override;
+    virtual void onGlfwResize(int width, int height) override;
 
     virtual void onCreateNode(double x, double y, double z, ivf::Node *&newNode) override;
     virtual void onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape *&newLine) override;
@@ -506,6 +514,11 @@ public:
     virtual void onButton(int objectName, PlaneButton *button);
     virtual void onOverButton(int objectName, PlaneButton *button);
     virtual void onShortcut(ModifierKey modifier, int key) override;
+
+    // Toolbar events
+
+    virtual void onButtonClicked(ofui::OfToolbarButton &button);
+    virtual void onButtonHover(ofui::OfToolbarButton &button);
 
     // Plugin handling
 

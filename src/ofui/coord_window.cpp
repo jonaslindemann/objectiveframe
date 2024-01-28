@@ -10,8 +10,7 @@ CoordWindow::CoordWindow(const std::string name) : UiWindow(name), m_coord{0.0, 
 }
 
 CoordWindow::~CoordWindow()
-{
-}
+{}
 
 void CoordWindow::setCoord(double x, double y, double z)
 {

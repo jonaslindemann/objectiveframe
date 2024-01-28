@@ -15,12 +15,10 @@ SettingsWindow::SettingsWindow(const std::string name)
     : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f},
       m_loadSize{7.0f}, m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false},
       m_showNodeNumbers{true}, m_uiScale{1.0f}, m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}
-{
-}
+{}
 
 SettingsWindow::~SettingsWindow()
-{
-}
+{}
 
 #ifdef USE_FEMVIEW
 void ofui::SettingsWindow::setFemView(FemViewWindow *view)
@@ -68,11 +66,13 @@ void SettingsWindow::update()
     static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     static_cast<vfem::BeamModel *>(m_view->getModel())->setLineSides(m_lineSides);
 
-    if (m_sphereNodes) {
+    if (m_sphereNodes)
+    {
         static_cast<vfem::BeamModel *>(m_view->getModel())->setNodeRepr(ivf::Node::NT_SPHERE);
         m_view->setSphereCursor(true);
     }
-    else {
+    else
+    {
         static_cast<vfem::BeamModel *>(m_view->getModel())->setNodeRepr(ivf::Node::NT_CUBE);
         m_view->setSphereCursor(false);
     }
@@ -109,14 +109,43 @@ void SettingsWindow::doDraw()
     ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
     ImGui::Checkbox("Use ImGui file dialogs", &m_useImGuiFileDialogs);
 
+    ImGui::Separator();
+
+    ImGui::TextWrapped(
+        "Objective frame can expose its functionality using a rest based API, which can be started with the "
+        "button below. The service currently provides no security and only listens to access from localhost.");
+
+    ImGui::Dummy(ImVec2(0.0, 10.0));
+
+    if (m_view->isServiceRunning())
+    {
+        if (ImGui::Button("Stop service"))
+        {
+            m_view->stopService();
+        }
+        ImGui::SameLine();
+        ImGui::Text("Service is running at localhost:8081");
+    }
+    else
+    {
+        if (ImGui::Button("Start service"))
+        {
+            m_view->startService();
+        }
+        ImGui::SameLine();
+        ImGui::Text("Service is not running.");
+    }
+
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
-    if (m_view != nullptr) {
+    if (m_view != nullptr)
+    {
         m_view->setRelNodeSize(m_nodeSize / 100.0f);
         m_view->setRelLineRadius(m_lineRadius / 100.0f);
         m_view->setRelLoadSize(m_loadSize / 100.0f);
 
-        if (m_size != m_prevSize) {
+        if (m_size != m_prevSize)
+        {
             m_view->setWorkspace(m_size, false);
             m_prevSize = m_size;
         }

@@ -6,23 +6,23 @@ BasedOnStyle: Microsoft
 BraceWrapping: 
   AfterCaseLabel: false
   AfterClass: false
-  AfterControlStatement: false
+  AfterControlStatement: true
   AfterEnum: false
-  AfterFunction: false
+  AfterFunction: true
   AfterNamespace: false
   AfterObjCDeclaration: false
   AfterStruct: false
   AfterUnion: false
   AfterExternBlock: false
   BeforeCatch: false
-  BeforeElse: false
+  BeforeElse: true
   IndentBraces: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
   BeforeLambdaBody: false
   BeforeWhile: false
-BreakBeforeBraces: Stroustrup
+BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeColon
 IndentWidth: 4
 ...

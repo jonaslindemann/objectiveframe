@@ -3,20 +3,16 @@
 #include <ofui/texture.h>
 #include <ofui/ui_window.h>
 
+#include <functional>
 #include <vector>
-
-#ifdef USE_FEMVIEW
-class FemViewWindow;
-#else
-class FemWidget;
-#endif
 
 namespace ofui {
 
 enum class OfToolbarButtonType {
     Button,
     ToggleButton,
-    RadioButton
+    RadioButton,
+    Spacer
 };
 
 class OfToolbarButton {
@@ -55,14 +51,11 @@ public:
     void setName(const std::string name);
 };
 
+typedef std::function<void(OfToolbarButton &button)> ButtonClickedFunc;
+typedef std::function<void(OfToolbarButton &button)> ButtonHoverFunc;
+
 class ToolbarWindow : public UiWindow {
 private:
-#ifdef USE_FEMVIEW
-    FemViewWindow *m_view;
-#else
-    FemWidget *m_view;
-#endif
-
     int m_selectedButton;
 
     std::vector<OfToolbarButton> m_buttons;
@@ -70,18 +63,21 @@ private:
     ImVec4 m_selectedColor;
     ImVec4 m_color;
 
+    ButtonClickedFunc m_onButtonClicked;
+    ButtonHoverFunc m_onButtonHover;
+
+    std::vector<std::shared_ptr<ToolbarWindow>> m_toolbarGroup;
+
 public:
     ToolbarWindow(const std::string name);
     virtual ~ToolbarWindow();
 
-#ifdef USE_FEMVIEW
-    void setView(FemViewWindow *view);
-#else
-    void setWidget(FemWidget *femWidget);
-#endif
-
     void addButton(const std::string name, OfToolbarButtonType type = OfToolbarButtonType::Button,
                    std::string filename = "", int group = -1);
+
+    void addSpacer();
+
+    void addToolbarGroup(std::shared_ptr<ToolbarWindow> toolbar);
 
     void selectButton(int idx, int group);
 
@@ -90,12 +86,15 @@ public:
 
     void update();
 
+    void assignOnButtonClicked(ofui::ButtonClickedFunc &onButtonClicked);
+    void assignOnButtonHover(ofui::ButtonHoverFunc &onButtonHover);
+
     static std::shared_ptr<ToolbarWindow> create(const std::string name);
 
 protected:
     virtual void doDraw();
 };
 
-typedef std::shared_ptr<ToolbarWindow> MainToolbarPtr;
+typedef std::shared_ptr<ToolbarWindow> ToolbarWindowPtr;
 
 } // namespace ofui

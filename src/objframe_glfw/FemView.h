@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.1.6";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.1.7";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2024\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -70,6 +70,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/prop_window.h>
 #include <ofui/scale_window.h>
 #include <ofui/settings_window.h>
+#include <ofui/start_popup.h>
 #include <ofui/toolbar_window.h>
 #include <ofui/window_list.h>
 
@@ -281,6 +282,7 @@ private:
     ofui::LoadMixerWindowPtr m_loadMixerWindow;
     ofui::ToolbarWindowPtr m_mainToolbarWindow;
     ofui::ToolbarWindowPtr m_editToolbarWindow;
+    ofui::StartPopupPtr m_startPopup;
 
     ofui::WindowListPtr m_windowList;
 

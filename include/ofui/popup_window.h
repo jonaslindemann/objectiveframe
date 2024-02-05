@@ -26,6 +26,8 @@ private:
     int m_corner;
     bool m_closed;
     PopupResult m_modalResult;
+    ImVec2 m_size;
+    bool m_newSize;
 
 public:
     PopupWindow(const std::string name, bool modal);

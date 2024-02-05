@@ -77,12 +77,12 @@ size_t ofui::ToolbarWindow::buttonCount()
 void ToolbarWindow::update()
 {}
 
-void ofui::ToolbarWindow::assignOnButtonClicked(ButtonClickedFunc &onButtonClicked)
+void ofui::ToolbarWindow::assignOnButtonClicked(const ButtonClickedFunc &onButtonClicked)
 {
     m_onButtonClicked = onButtonClicked;
 }
 
-void ofui::ToolbarWindow::assignOnButtonHover(ButtonHoverFunc &onButtonHover)
+void ofui::ToolbarWindow::assignOnButtonHover(const ButtonHoverFunc &onButtonHover)
 {
     m_onButtonHover = onButtonHover;
 }

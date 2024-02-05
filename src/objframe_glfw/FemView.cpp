@@ -26,6 +26,7 @@
 #include <logger.h>
 
 #include <imguifd/ImGuiFileDialog.h>
+#include <imguifd/ImGuiFileDialogConfig.h>
 
 using namespace ivf;
 using namespace std;
@@ -298,65 +299,19 @@ unsigned int fl_cmap[256] = {
 // Constructor/Destructor
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
-    : IvfViewWindow(width, height, title, monitor, shared), m_uiScale{1.0f}
+    : IvfViewWindow(width, height, title, monitor, shared), m_uiScale{1.0f}, m_service{nullptr}, m_width{width},
+      m_height{height}, m_tactileForce{nullptr}, m_currentSolver{nullptr}, m_relNodeSize{0.004},
+      m_relLineRadius{0.0015}, m_relLoadSize{0.07}, m_customMode{CustomMode::Feedback},
+      m_customModeSet{false}, m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
+      m_haveScaleFactor{false}, m_needRecalc{true}, m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All},
+      m_highlightFilter{HighlightMode::All}, m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},
+      m_lockScaleFactor{false}, m_saneModel{false}, m_selectedPos{0.0, 0.0, 0.0}, m_useSphereCursor{false},
+      m_useBlending{false}, m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""},
+      m_showNodeBCsWindow{false}, m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false},
+      m_elementSelection{false}, m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false},
+      m_saveAsDialog{false}, m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}
 {
-    setUseEscQuit(false);
-
-    // Setup web service
-
-    m_service = nullptr;
-
-    m_width = width;
-    m_height = height;
-    m_tactileForce = nullptr;
-    m_currentSolver = nullptr;
-    m_relNodeSize = 0.004;
-    m_relLineRadius = 0.0015;
-    m_relLoadSize = 0.07;
-    m_customMode = CustomMode::Feedback;
-    m_customModeSet = false;
-    m_alfa = 0.0;
-    m_beta = 0.0;
-    m_startAlfa = 0.0;
-    m_startBeta = M_PI / 2.0;
-    m_haveScaleFactor = false;
-    m_needRecalc = true;
-    m_selectFilter = SelectMode::All;
-    m_deleteFilter = DeleteMode::All;
-    m_highlightFilter = HighlightMode::All;
-    m_overWorkspace = true;
-    m_lastOverWorkspace = true;
-    m_hintFinished = true;
-    m_lockScaleFactor = false;
-    m_saneModel = false;
-    m_selectedPos[0] = 0.0;
-    m_selectedPos[1] = 0.0;
-    m_selectedPos[2] = 0.0;
-
-    m_useSphereCursor = false;
-    m_useBlending = false;
-    m_useImGuiFileDialogs = true;
-
-    m_tactileForceValue = 1000.0;
-
-    // Initialize GUI variables
-
-    m_progPathStr = "";
-
-    m_showNodeBCsWindow = false;
-    m_showBCPropPopup = false;
-    m_prevButton = nullptr;
-
-    m_nodeSelection = false;
-    m_elementSelection = false;
-    m_mixedSelection = false;
-
-    m_openDialog = false;
-    m_saveDialog = false;
-    m_saveAsDialog = false;
-    m_saveAsCalfemDialog = false;
-    m_openFromCalfemDialog = false;
-
+    this->setUseEscQuit(false);
     this->setUseCustomPick(true);
 }
 
@@ -2131,6 +2086,9 @@ void FemViewWindow::executeCalc()
     m_settingsWindow->update();
     m_scaleWindow->show();
 
+    m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
+    m_loadMixerWindow->show();
+
     // Show displacements
 
     this->setRepresentation(RepresentationMode::Results);
@@ -3135,6 +3093,10 @@ void FemViewWindow::onInit()
 
     m_windowList->add(m_loadMixerWindow);
 
+    m_startPopup = StartPopup::create("Start window", true);
+    m_startPopup->setView(this);
+    m_startPopup->setVisible(true);
+
     m_mainToolbarWindow = ToolbarWindow::create("Edit");
 
     m_mainToolbarWindow->setVisible(true);
@@ -3156,11 +3118,9 @@ void FemViewWindow::onInit()
     m_mainToolbarWindow->addButton("Run", OfToolbarButtonType::Button, (m_imagePath / fs::path("run.png")).string());
 
     using std::placeholders::_1;
-    m_mainToolbarWindow->assignOnButtonClicked(
-        ButtonClickedFunc(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1)));
+    m_mainToolbarWindow->assignOnButtonClicked(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1));
 
-    m_mainToolbarWindow->assignOnButtonHover(
-        ButtonClickedFunc(std::bind(&FemViewWindow::onButtonHover, this, std::placeholders::_1)));
+    m_mainToolbarWindow->assignOnButtonHover(std::bind(&FemViewWindow::onButtonHover, this, std::placeholders::_1));
 
     m_windowList->add(m_mainToolbarWindow);
 
@@ -3218,8 +3178,11 @@ void FemViewWindow::onInit()
     {
         // We have command line arguments
         log("Loading from command line:" + to_string(m_argv[1]));
+        m_startPopup->setVisible(false);
         this->open(to_string(m_argv[1]));
     }
+    else
+    {}
 }
 
 void FemViewWindow::doMouse(int x, int y)
@@ -4543,6 +4506,11 @@ void FemViewWindow::onDrawImGui()
     if (m_messagePopup->closed())
     {}
 
+    m_startPopup->draw();
+
+    if (m_startPopup->closed())
+    {}
+
     if (m_showStyleEditor)
         ImGui::ShowStyleEditor();
 
@@ -4553,7 +4521,9 @@ void FemViewWindow::onDrawImGui()
     {
         if (m_openDialog)
         {
-            ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", ".");
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
+            ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", config);
         }
 
         if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -4562,6 +4532,7 @@ void FemViewWindow::onDrawImGui()
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_dir", filePath);
                 this->open(filePathName);
             }
 
@@ -4570,25 +4541,36 @@ void FemViewWindow::onDrawImGui()
         }
         if (m_saveDialog)
         {
+            IGFD::FileDialogConfig config;
+
             if (m_fileName == "noname.df3")
-                ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", ".");
+            {
+                config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
+                ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
+            }
             else
                 m_beamModel->save();
         }
 
         if (m_saveAsDialog)
         {
-            ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", m_fileName);
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
+            ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
         }
 
         if (m_saveAsCalfemDialog)
         {
-            ImGuiFileDialog::Instance()->OpenDialog("Save as CALFEM", "Choose File", ".py", ".");
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_calfem_dir", ofutil::samples_folder());
+            ImGuiFileDialog::Instance()->OpenDialog("Save as CALFEM", "Choose File", ".py", config);
         }
 
         if (m_openFromCalfemDialog)
         {
-            ImGuiFileDialog::Instance()->OpenDialog("Open from CALFEM", "Choose File", ".py", ".");
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_calfem_dir", ofutil::samples_folder());
+            ImGuiFileDialog::Instance()->OpenDialog("Open from CALFEM", "Choose File", ".py", config);
         }
 
         if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -4597,6 +4579,7 @@ void FemViewWindow::onDrawImGui()
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_dir", filePath);
 
                 if (filePathName != "")
                 {
@@ -4617,6 +4600,7 @@ void FemViewWindow::onDrawImGui()
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_calfem_dir", filePath);
 
                 if (filePathName != "")
                 {
@@ -4634,6 +4618,7 @@ void FemViewWindow::onDrawImGui()
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_calfem_dir", filePath);
 
                 if (filePathName != "")
                 {

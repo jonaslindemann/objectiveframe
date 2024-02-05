@@ -8,6 +8,8 @@
 #include <FemWidget.h>
 #endif
 
+#include <format>
+
 using namespace ofem;
 using namespace ofui;
 
@@ -19,8 +21,7 @@ ElementLoadsWindow::ElementLoadsWindow(const std::string name)
 }
 
 ElementLoadsWindow::~ElementLoadsWindow()
-{
-}
+{}
 
 std::shared_ptr<ElementLoadsWindow> ElementLoadsWindow::create(const std::string name)
 {
@@ -37,6 +38,7 @@ void ElementLoadsWindow::setFemLoadSet(BeamLoadSet *bcSet)
 void ofui::ElementLoadsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
+    m_propPopup->setFemView(view);
 }
 #else
 void ElementLoadsWindow::setFemWidget(FemWidget *widget)
@@ -47,20 +49,30 @@ void ElementLoadsWindow::setFemWidget(FemWidget *widget)
 #endif
 
 void ElementLoadsWindow::doPreDraw()
-{
-}
+{}
 
 void ElementLoadsWindow::doDraw()
 {
+    std::string name;
+
     ImGui::BeginGroup();
 
-    if (ImGui::BeginListBox("##empty", ImVec2(0.0f, -FLT_MIN))) {
-        if (m_femBeamLoadSet != nullptr) {
-            for (auto i = 0; i < m_femBeamLoadSet->getSize(); i++) {
+    if (ImGui::BeginListBox("##empty", ImVec2(0.0f, -FLT_MIN)))
+    {
+        if (m_femBeamLoadSet != nullptr)
+        {
+            for (auto i = 0; i < m_femBeamLoadSet->getSize(); i++)
+            {
                 ofem::BeamLoad *beamLoad = static_cast<ofem::BeamLoad *>(m_femBeamLoadSet->getLoad(i));
 
+                if (beamLoad->isReadOnly())
+                    name = std::format("{} - (Default) - ({})", beamLoad->getName(), beamLoad->getElementsSize());
+                else
+                    name = std::format("{} - ({})", beamLoad->getName(), beamLoad->getElementsSize());
+
                 ImGui::PushID(i);
-                if (ImGui::Selectable(beamLoad->getName().c_str(), i == m_currentItemIdx)) {
+                if (ImGui::Selectable(name.c_str(), i == m_currentItemIdx))
+                {
                     m_currentItemIdx = i;
                     m_view->setCurrentBeamLoad(beamLoad);
                     m_propPopup->update();
@@ -75,35 +87,45 @@ void ElementLoadsWindow::doDraw()
     ImGui::SameLine();
 
     ImGui::BeginGroup();
-    if (ImGui::Button("Add", ImVec2(100.0f, 0.0f))) {
-        if (m_femBeamLoadSet != nullptr) {
+    if (ImGui::Button("Add", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femBeamLoadSet != nullptr)
+        {
             ofem::BeamLoad *load = new ofem::BeamLoad();
             load->setName("new load");
             m_femBeamLoadSet->addLoad(load);
             m_view->addBeamLoad(load);
         }
     }
-    if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f))) {
-        if (m_femBeamLoadSet != nullptr) {
-            if (m_currentItemIdx != -1) {
+    if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femBeamLoadSet != nullptr)
+        {
+            if (m_currentItemIdx != -1)
+            {
                 m_view->removeNodesFromNodeLoad();
                 m_femBeamLoadSet->removeLoad(m_currentItemIdx);
             }
         }
     }
-    if (ImGui::Button("Assign", ImVec2(100.0f, 0.0f))) {
-        if (m_femBeamLoadSet != nullptr) {
+    if (ImGui::Button("Assign", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femBeamLoadSet != nullptr)
+        {
             m_view->assignBeamLoadSelected();
             m_view->setNeedRecalc(true);
         }
     }
-    if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f))) {
-        if (m_femBeamLoadSet != nullptr) {
+    if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femBeamLoadSet != nullptr)
+        {
             m_view->removeBeamLoadsFromSelected();
             m_view->setNeedRecalc(true);
         }
     }
-    if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f))) {
+    if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))
+    {
         m_propPopup->setVisible(true);
     }
 
@@ -111,14 +133,14 @@ void ElementLoadsWindow::doDraw()
 
     m_propPopup->draw();
 
-    if (m_propPopup->closed()) {
-        if (m_propPopup->modalResult() == PopupResult::OK) {
-        }
-        else if (m_propPopup->modalResult() == PopupResult::CANCEL) {
-        }
+    if (m_propPopup->closed())
+    {
+        if (m_propPopup->modalResult() == PopupResult::OK)
+        {}
+        else if (m_propPopup->modalResult() == PopupResult::CANCEL)
+        {}
     }
 }
 
 void ElementLoadsWindow::doPostDraw()
-{
-}
+{}

@@ -7,6 +7,7 @@
 
 #include "FemView.h"
 #include "GLFWApplication.h"
+#include <ofutil/util_functions.h>
 
 static void error_callback(int error, const char *description)
 {

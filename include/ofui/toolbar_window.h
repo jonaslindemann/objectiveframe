@@ -86,8 +86,8 @@ public:
 
     void update();
 
-    void assignOnButtonClicked(ofui::ButtonClickedFunc &onButtonClicked);
-    void assignOnButtonHover(ofui::ButtonHoverFunc &onButtonHover);
+    void assignOnButtonClicked(const ofui::ButtonClickedFunc &onButtonClicked);
+    void assignOnButtonHover(const ofui::ButtonHoverFunc &onButtonHover);
 
     static std::shared_ptr<ToolbarWindow> create(const std::string name);
 

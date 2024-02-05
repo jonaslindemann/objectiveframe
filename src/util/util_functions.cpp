@@ -1,9 +1,14 @@
 #include <ofutil/util_functions.h>
 
+#include <filesystem>
+#include <format>
+#include <iostream>
 #include <sstream>
 
 #ifdef WIN32
+#include <shlobj.h>
 #include <windows.h>
+#pragma comment(lib, "shell32.lib")
 #endif
 
 namespace ofutil {
@@ -33,7 +38,8 @@ int run_process(std::string cmd)
                                  &si,              // Pointer to STARTUPINFO structure
                                  &pi);             // Pointer to PROCESS_INFORMATION structure
 
-    if (result == 0) {
+    if (result == 0)
+    {
         printf("CreateProcess failed (%d).\n", GetLastError());
         return 1;
     }
@@ -54,44 +60,62 @@ int run_process(std::string cmd)
 
 std::string to_string(float value)
 {
+    return std::format("{}", value);
+    /*
     std::ostringstream ss;
     ss << value;
     return ss.str();
+    */
 }
 
 std::string to_string(double value)
 {
+    return std::format("{}", value);
+    /*
     std::ostringstream ss;
     ss << value;
     return ss.str();
+    */
 }
 
 std::string to_string(int value)
 {
+    return std::format("{}", value);
+    /*
     std::ostringstream ss;
     ss << value;
     return ss.str();
+    */
 }
 
 std::string to_string(size_t value)
 {
+    return std::format("{}", value);
+    /*
     std::ostringstream ss;
     ss << value;
     return ss.str();
+    */
 }
 
 std::string to_coord_string(double x, double y)
 {
+    return std::format("({}, {})", x, y);
+    /*
     std::ostringstream ss;
     ss << "(" << x << ", " << y << ")";
     return ss.str();
+    */
 }
 
 std::string to_coord_string(double x, double y, double z)
 {
+    return std::format("({}, {}, {})", x, y, z);
+    /*
     std::ostringstream ss;
     ss << "(" << x << ", " << y << ", " << z << ")";
     return ss.str();
+    */
 }
 float to_float(std::string str)
 {
@@ -113,4 +137,92 @@ int to_int(std::string str)
     else
         return -1;
 }
+
+std::string doc_folder()
+{
+#ifdef WIN32
+    CHAR my_documents[MAX_PATH];
+    HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
+
+    if (result == S_OK)
+        return std::string(my_documents);
+    else
+        return std::string();
+#else
+    return std::string(getenv("HOME")) + "/Documents";
+#endif
+
+    return std::string(my_documents);
+}
+
+std::string samples_folder()
+{
+    namespace fs = std::filesystem;
+    auto docs = doc_folder();
+
+    fs::path samples = fs::path(docs) / fs::path("ObjectiveFrame Samples");
+
+    return samples.string();
+}
+
+std::string get_config_value(std::string key, std::string default_value)
+{
+    std::string subKey{"Software\\ObjectiveFrame"};
+    std::string value{""};
+
+    HKEY hKey;
+    LONG lResult = RegOpenKeyEx(HKEY_CURRENT_USER, subKey.c_str(), 0, KEY_READ, &hKey);
+    if (lResult != ERROR_SUCCESS)
+    {
+        std::cout << "Couldn't open registry key - returning default value" << std::endl;
+        return default_value;
+    }
+
+    DWORD dataSize = 0;
+    lResult = RegQueryValueEx(hKey, key.c_str(), NULL, NULL, NULL, &dataSize);
+    if (lResult != ERROR_SUCCESS)
+    {
+        std::cout << "Couldn't read registry key size - returning default value" << std::endl;
+        RegCloseKey(hKey);
+        return default_value;
+    }
+
+    std::string dataBuffer(dataSize / sizeof(char8_t), '\0');
+    lResult = RegQueryValueEx(hKey, key.c_str(), NULL, NULL, reinterpret_cast<LPBYTE>(&dataBuffer[0]), &dataSize);
+    if (lResult == ERROR_SUCCESS)
+    {
+        // Remove the trailing null character
+        value = std::string(dataBuffer.c_str());
+    }
+    else
+    {
+        std::cout << "Couldn't read registry key - returning default value" << std::endl;
+        value = default_value;
+    }
+
+    RegCloseKey(hKey);
+
+    return value;
+}
+
+bool set_config_value(std::string key, std::string value)
+{
+    std::string subKey = "Software\\ObjectiveFrame";
+
+    HKEY hKey;
+    LONG lResult = RegCreateKeyEx(HKEY_CURRENT_USER, subKey.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL,
+                                  &hKey, NULL);
+
+    if (lResult != ERROR_SUCCESS)
+    {
+        return false;
+    }
+
+    lResult =
+        RegSetValueEx(hKey, key.c_str(), 0, REG_SZ, (const BYTE *)value.c_str(), (value.size() + 1) * sizeof(char8_t));
+    RegCloseKey(hKey);
+
+    return lResult == ERROR_SUCCESS;
+}
+
 } // namespace ofutil

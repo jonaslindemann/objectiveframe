@@ -4,6 +4,8 @@
 
 #include <FemView.h>
 
+#include <format>
+
 using namespace ofem;
 using namespace ofui;
 
@@ -15,8 +17,7 @@ NodeLoadsWindow::NodeLoadsWindow(const std::string name)
 }
 
 NodeLoadsWindow::~NodeLoadsWindow()
-{
-}
+{}
 
 std::shared_ptr<NodeLoadsWindow> NodeLoadsWindow::create(const std::string name)
 {
@@ -44,20 +45,25 @@ void NodeLoadsWindow::setFemWidget(FemWidget *widget)
 #endif
 
 void NodeLoadsWindow::doPreDraw()
-{
-}
+{}
 
 void NodeLoadsWindow::doDraw()
 {
     ImGui::BeginGroup();
 
-    if (ImGui::BeginListBox("##empty", ImVec2(0.0f, -FLT_MIN))) {
-        if (m_femNodeLoadSet != nullptr) {
-            for (auto i = 0; i < m_femNodeLoadSet->getSize(); i++) {
+    if (ImGui::BeginListBox("##empty", ImVec2(0.0f, -FLT_MIN)))
+    {
+        if (m_femNodeLoadSet != nullptr)
+        {
+            for (auto i = 0; i < m_femNodeLoadSet->getSize(); i++)
+            {
                 BeamNodeLoad *nodeLoad = static_cast<BeamNodeLoad *>(m_femNodeLoadSet->getLoad(i));
 
+                std::string name = std::format("{} - ({})", nodeLoad->getName(), nodeLoad->getNodeSize());
+
                 ImGui::PushID(i);
-                if (ImGui::Selectable(nodeLoad->getName().c_str(), i == m_currentItemIdx)) {
+                if (ImGui::Selectable(name.c_str(), i == m_currentItemIdx))
+                {
                     m_currentItemIdx = i;
                     m_view->setCurrentNodeLoad(nodeLoad);
                     m_propPopup->update();
@@ -72,17 +78,22 @@ void NodeLoadsWindow::doDraw()
     ImGui::SameLine();
 
     ImGui::BeginGroup();
-    if (ImGui::Button("Add", ImVec2(100.0f, 0.0f))) {
-        if (m_femNodeLoadSet != nullptr) {
+    if (ImGui::Button("Add", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femNodeLoadSet != nullptr)
+        {
             BeamNodeLoad *load = new BeamNodeLoad();
             load->setName("new load");
             m_femNodeLoadSet->addLoad(load);
             m_view->addNodeLoad(load);
         }
     }
-    if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f))) {
-        if (m_femNodeLoadSet != nullptr) {
-            if (m_currentItemIdx != -1) {
+    if (ImGui::Button("Remove", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femNodeLoadSet != nullptr)
+        {
+            if (m_currentItemIdx != -1)
+            {
                 auto nodeLoad = static_cast<ofem::BeamNodeLoad *>(m_femNodeLoadSet->getLoad(m_currentItemIdx));
                 m_view->removeNodesFromNodeLoad();
                 m_view->deleteNodeLoad(nodeLoad);
@@ -90,19 +101,24 @@ void NodeLoadsWindow::doDraw()
             }
         }
     }
-    if (ImGui::Button("Assign", ImVec2(100.0f, 0.0f))) {
-        if (m_femNodeLoadSet != nullptr) {
+    if (ImGui::Button("Assign", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femNodeLoadSet != nullptr)
+        {
             m_view->assignNodeLoadSelected();
             m_view->setNeedRecalc(true);
         }
     }
-    if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f))) {
-        if (m_femNodeLoadSet != nullptr) {
+    if (ImGui::Button("Unassign", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femNodeLoadSet != nullptr)
+        {
             m_view->removeNodeLoadsFromSelected();
             m_view->setNeedRecalc(true);
         }
     }
-    if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f))) {
+    if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))
+    {
         m_propPopup->setVisible(true);
     }
 
@@ -110,14 +126,14 @@ void NodeLoadsWindow::doDraw()
 
     m_propPopup->draw();
 
-    if (m_propPopup->closed()) {
-        if (m_propPopup->modalResult() == PopupResult::OK) {
-        }
-        else if (m_propPopup->modalResult() == PopupResult::CANCEL) {
-        }
+    if (m_propPopup->closed())
+    {
+        if (m_propPopup->modalResult() == PopupResult::OK)
+        {}
+        else if (m_propPopup->modalResult() == PopupResult::CANCEL)
+        {}
     }
 }
 
 void NodeLoadsWindow::doPostDraw()
-{
-}
+{}

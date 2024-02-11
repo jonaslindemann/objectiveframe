@@ -82,6 +82,8 @@ public:
 
     void clearNodeValues();
 
+    bool nodeHasBCs(Node *node);
+
     std::string version();
 
     // Get/set methods

@@ -28,6 +28,7 @@ public:
     bool removeNode(Node *node);
     void clearNodes();
     void addNode(Node *node);
+    bool contains(Node *node);
     bool isPrescribed(int dof);
     void unprescribe(int dof);
     void prescribe(int dof, double value);

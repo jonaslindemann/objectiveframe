@@ -382,6 +382,8 @@ public:
     vfem::NodePtr getInteractionNode();
     vfem::BeamModel *getVisualBeamModel();
 
+    RepresentationMode getRepresentation();
+
     void setSphereCursor(bool flag);
     bool getSphereCursor();
 

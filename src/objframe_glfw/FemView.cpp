@@ -2510,6 +2510,11 @@ vfem::BeamModel *FemViewWindow::getVisualBeamModel()
     return m_beamModel.get();
 }
 
+RepresentationMode FemViewWindow::getRepresentation()
+{
+    return m_representation;
+}
+
 void FemViewWindow::setSphereCursor(bool flag)
 {
     vfem::Preferences::instance().setUseSphereNodes(flag);

@@ -12,20 +12,18 @@ const double PI = 2 * acos(0.0);
 
 PropWindow::PropWindow(const std::string name)
     : UiWindow(name), m_beam{nullptr}, m_beamRotation{0.0f}, m_oldBeamRotation{0.0f}, m_view{nullptr}, m_beamType{0},
-      m_selectedShapes{nullptr}, m_node{nullptr}, m_nodePos{0.0, 0.0, 0.0}, m_nodeDispl{0.0, 0.0, 0.0}, m_nodeMove{0.0,
-                                                                                                                   0.0,
-                                                                                                                   0.0}
-{
-}
+      m_selectedShapes{nullptr}, m_node{nullptr}, m_nodePos{0.0, 0.0, 0.0}, m_nodeDispl{0.0, 0.0, 0.0},
+      m_nodeMove{0.0, 0.0, 0.0}, m_nodeReactionForces{0.0, 0.0, 0.0}, m_nodeReactionMoments{0.0, 0.0, 0.0}
+{}
 
 PropWindow::~PropWindow()
-{
-}
+{}
 
 void PropWindow::setBeam(vfem::Beam *beam)
 {
     m_beam = beam;
-    if (m_beam != nullptr) {
+    if (m_beam != nullptr)
+    {
         m_beamRotation = float(m_beam->getBeam()->getBeamRotation() * 2.0f * PI / 360.0f);
         m_oldBeamRotation = m_beamRotation;
 
@@ -70,18 +68,95 @@ void PropWindow::doDraw()
     int nodeCount = 0;
     int beamCount = 0;
 
-    if (m_node != nullptr) {
+    if (m_node != nullptr)
+    {
         ImGui::Text("Node properties");
         ImGui::Separator();
 
         double x, y, z;
-        m_node->getPosition(x, y, z);
+        m_node->getFemNode()->getCoord(x, y, z);
         m_nodePos[0] = float(x);
         m_nodePos[1] = float(y);
         m_nodePos[2] = float(z);
-        ImGui::InputFloat3("Position", m_nodePos, "%.4g");
-        m_node->setPosition(m_nodePos[0], m_nodePos[1], m_nodePos[2]);
 
+        if (m_view->getRepresentation() == RepresentationMode::Results)
+            ImGui::InputFloat3("Position", m_nodePos, "%.4g", ImGuiInputTextFlags_ReadOnly);
+        else
+        {
+            ImGui::InputFloat3("Position", m_nodePos, "%.4g");
+            m_node->getPosition(x, y, z);
+            if (abs(x - m_nodePos[0]) > 1e-6 || abs(y - m_nodePos[1]) > 1e-6 || abs(z - m_nodePos[2]) > 1e-6)
+                m_node->setPosition(m_nodePos[0], m_nodePos[1], m_nodePos[2]);
+        }
+
+        if (m_node->getFemNode()->getKind() == ofem::NodeKind::nk3Dof)
+        {
+            double dx, dy, dz, rx, ry, rz;
+            dx = m_node->getFemNode()->getValue(0);
+            dy = m_node->getFemNode()->getValue(1);
+            dz = m_node->getFemNode()->getValue(2);
+
+            m_nodeDispl[0] = float(dx);
+            m_nodeDispl[1] = float(dy);
+            m_nodeDispl[2] = float(dz);
+            ImGui::InputFloat3("Displacement", m_nodeDispl, "%.3g", ImGuiInputTextFlags_ReadOnly);
+
+            if (m_view->getModel()->nodeHasBCs(m_node->getFemNode()))
+            {
+                double Rx, Ry, Rz, Mx, My, Mz;
+                Rx = m_node->getFemNode()->getValue(3);
+                Ry = m_node->getFemNode()->getValue(4);
+                Rz = m_node->getFemNode()->getValue(5);
+
+                m_nodeReactionForces[0] = float(Rx);
+                m_nodeReactionForces[1] = float(Ry);
+                m_nodeReactionForces[2] = float(Rz);
+                ImGui::InputFloat3("Reaction forces", m_nodeReactionForces, "%.3g", ImGuiInputTextFlags_ReadOnly);
+            }
+        }
+        else if (m_node->getFemNode()->getKind() == ofem::NodeKind::nk6Dof)
+        {
+            double dx, dy, dz, rx, ry, rz;
+            dx = m_node->getFemNode()->getValue(0);
+            dy = m_node->getFemNode()->getValue(1);
+            dz = m_node->getFemNode()->getValue(2);
+            rx = m_node->getFemNode()->getValue(3);
+            ry = m_node->getFemNode()->getValue(4);
+            rz = m_node->getFemNode()->getValue(5);
+
+            m_nodeDispl[0] = float(dx);
+            m_nodeDispl[1] = float(dy);
+            m_nodeDispl[2] = float(dz);
+            ImGui::InputFloat3("Displacement", m_nodeDispl, "%.3g", ImGuiInputTextFlags_ReadOnly);
+
+            m_nodeRot[0] = float(rx);
+            m_nodeRot[1] = float(ry);
+            m_nodeRot[2] = float(rz);
+            ImGui::InputFloat3("Rotation", m_nodeRot, "%.3g", ImGuiInputTextFlags_ReadOnly);
+
+            if (m_view->getModel()->nodeHasBCs(m_node->getFemNode()))
+            {
+                double Rx, Ry, Rz, Mx, My, Mz;
+                Rx = m_node->getFemNode()->getValue(6);
+                Ry = m_node->getFemNode()->getValue(7);
+                Rz = m_node->getFemNode()->getValue(8);
+                Mx = m_node->getFemNode()->getValue(9);
+                My = m_node->getFemNode()->getValue(10);
+                Mz = m_node->getFemNode()->getValue(11);
+
+                m_nodeReactionForces[0] = float(Rx);
+                m_nodeReactionForces[1] = float(Ry);
+                m_nodeReactionForces[2] = float(Rz);
+                ImGui::InputFloat3("Reaction forces", m_nodeReactionForces, "%.3g", ImGuiInputTextFlags_ReadOnly);
+
+                m_nodeReactionMoments[0] = float(Mx);
+                m_nodeReactionMoments[1] = float(My);
+                m_nodeReactionMoments[2] = float(Mz);
+                ImGui::InputFloat3("Reaction moments", m_nodeReactionMoments, "%.3g", ImGuiInputTextFlags_ReadOnly);
+            }
+        }
+
+        /*
         double dx, dy, dz;
         dx = m_node->getFemNode()->getValue(0);
         dy = m_node->getFemNode()->getValue(1);
@@ -91,11 +166,14 @@ void PropWindow::doDraw()
         m_nodeDispl[1] = float(dy);
         m_nodeDispl[2] = float(dz);
         ImGui::InputFloat3("Displacement", m_nodeDispl, "%.4g", ImGuiInputTextFlags_ReadOnly);
+        */
     }
-    else if (m_selectedShapes != nullptr) {
+    else if (m_selectedShapes != nullptr)
+    {
         nodeCount = m_view->selectionShapeCount("vfem::Node");
 
-        if (nodeCount > 0) {
+        if (nodeCount > 0)
+        {
             ImGui::Text("Node properties");
             ImGui::Separator();
 
@@ -103,11 +181,14 @@ void PropWindow::doDraw()
 
             ImGui::Separator();
 
-            if (ImGui::Button("Move", ImVec2(120, 0))) {
+            if (ImGui::Button("Move", ImVec2(120, 0)))
+            {
                 m_view->snapShot();
 
-                for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
-                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node")) {
+                for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+                {
+                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
+                    {
                         auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                         double x, y, z;
                         node->getPosition(x, y, z);
@@ -121,13 +202,16 @@ void PropWindow::doDraw()
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Copy", ImVec2(120, 0))) {
+            if (ImGui::Button("Copy", ImVec2(120, 0)))
+            {
                 std::vector<ivf::Shape *> newSelected;
 
                 m_view->snapShot();
 
-                for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
-                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node")) {
+                for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+                {
+                    if (m_selectedShapes->getChild(i)->isClass("vfem::Node"))
+                    {
                         auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                         double x, y, z;
                         node->getPosition(x, y, z);
@@ -147,7 +231,8 @@ void PropWindow::doDraw()
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Reset", ImVec2(120, 0))) {
+            if (ImGui::Button("Reset", ImVec2(120, 0)))
+            {
                 m_nodeMove[0] = 0.0;
                 m_nodeMove[1] = 0.0;
                 m_nodeMove[2] = 0.0;
@@ -157,7 +242,8 @@ void PropWindow::doDraw()
         }
     }
 
-    if (m_beam != nullptr) {
+    if (m_beam != nullptr)
+    {
         ImGui::Text("Beam properties");
         ImGui::Separator();
 
@@ -172,18 +258,23 @@ void PropWindow::doDraw()
         ImGui::SameLine();
         ImGui::RadioButton("Bar", &m_beamType, 1);
 
-        if (m_beamType == 0) {
+        if (m_beamType == 0)
+        {
             m_beam->getBeam()->setBeamType(ofem::btBeam);
             m_beam->refresh();
         }
-        else {
+        else
+        {
             m_beam->getBeam()->setBeamType(ofem::btBar);
             m_beam->refresh();
         }
 
-        if (m_beam->getBeam()->getValueSize() > 0) {
-            if (ImGui::BeginTabBar("Test")) {
-                if (ImGui::BeginTabItem("Section forces")) {
+        if (m_beam->getBeam()->getValueSize() > 0)
+        {
+            if (ImGui::BeginTabBar("Test"))
+            {
+                if (ImGui::BeginTabItem("Section forces"))
+                {
                     int n = m_beam->getBeam()->getEvaluationPoints();
                     size_t k = m_beam->getBeam()->getValueSize();
 
@@ -206,9 +297,11 @@ void PropWindow::doDraw()
                     ImGui::TableNextColumn();
                     ImGui::Text("Mz");
 
-                    for (auto i = 0; i < n; i++) {
+                    for (auto i = 0; i < n; i++)
+                    {
                         ImGui::TableNextRow();
-                        for (auto j = 0; j < 6; j++) {
+                        for (auto j = 0; j < 6; j++)
+                        {
                             ImGui::TableNextColumn();
                             ImGui::Text("%.4g", m_beam->getBeam()->getValue(pos++));
                         }
@@ -216,7 +309,8 @@ void PropWindow::doDraw()
                     ImGui::EndTable();
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem("Displacements")) {
+                if (ImGui::BeginTabItem("Displacements"))
+                {
                     int n = m_beam->getBeam()->getEvaluationPoints();
                     size_t k = m_beam->getBeam()->getValueSize();
 
@@ -233,9 +327,11 @@ void PropWindow::doDraw()
                     ImGui::TableNextColumn();
                     ImGui::Text("phi");
 
-                    for (auto i = 0; i < n; i++) {
+                    for (auto i = 0; i < n; i++)
+                    {
                         ImGui::TableNextRow();
-                        for (auto j = 0; j < 4; j++) {
+                        for (auto j = 0; j < 4; j++)
+                        {
                             ImGui::TableNextColumn();
                             ImGui::Text("%.4g", m_beam->getBeam()->getValue(pos++));
                         }
@@ -247,11 +343,14 @@ void PropWindow::doDraw()
             ImGui::EndTabBar();
         }
     }
-    else {
-        if (m_selectedShapes != nullptr) {
+    else
+    {
+        if (m_selectedShapes != nullptr)
+        {
             beamCount = m_view->selectionShapeCount("vfem::Beam");
 
-            if (beamCount > 0) {
+            if (beamCount > 0)
+            {
                 ImGui::Text("Beam properties");
                 ImGui::Separator();
 
@@ -261,9 +360,11 @@ void PropWindow::doDraw()
                 ImGui::SameLine();
                 ImGui::RadioButton("Bar", &m_beamType, 1);
 
-                for (auto i = 0; i < m_selectedShapes->getSize(); i++) {
+                for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+                {
                     auto shape = m_selectedShapes->getChild(i);
-                    if (shape->isClass("vfem::Beam")) {
+                    if (shape->isClass("vfem::Beam"))
+                    {
                         auto beam = static_cast<vfem::Beam *>(shape);
                         if (m_beamType == 0)
                             beam->getBeam()->setBeamType(ofem::btBeam);
@@ -279,12 +380,15 @@ void PropWindow::doDraw()
         }
     }
 
-    if ((m_beam == nullptr) && (m_node == nullptr) && (beamCount == 0) && (nodeCount == 0)) {
+    if ((m_beam == nullptr) && (m_node == nullptr) && (beamCount == 0) && (nodeCount == 0))
+    {
         ImGui::Text("Select an object to display properties.");
     }
 
-    if (m_oldBeamRotation != m_beamRotation) {
-        if (m_view != nullptr) {
+    if (m_oldBeamRotation != m_beamRotation)
+    {
+        if (m_view != nullptr)
+        {
             m_view->setRotationSelected(double(m_beamRotation * 360.0f / 2.0f / PI));
         }
     }

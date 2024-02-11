@@ -25,7 +25,10 @@ private:
 #endif
     float m_nodePos[3];
     float m_nodeDispl[3];
+    float m_nodeRot[3];
     float m_nodeMove[3];
+    float m_nodeReactionForces[3];
+    float m_nodeReactionMoments[3];
 
 public:
     NodePropWindow(const std::string name);

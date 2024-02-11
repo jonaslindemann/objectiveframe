@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <format>
+
 using namespace ofui;
 
 StartPopup::StartPopup(const std::string name, bool modal) : PopupWindow(name, modal), m_view(nullptr)
@@ -31,17 +33,43 @@ void StartPopup::doPopup()
 
     ImGui::NewLine();
 
-    if (ImGui::BeginTable("table2", 3))
+    if (ImGui::BeginTable("table2", 2))
     {
-        for (int row = 0; row < 4; row++)
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::BeginTable("table3", 4))
         {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("Row %d", row);
-            ImGui::TableNextColumn();
-            ImGui::Text("Some contents");
-            ImGui::TableNextColumn();
-            ImGui::Text("123.456");
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    ImGui::Text(std::format("Sample {},{}", i, j).c_str());
+                    ImGui::TableNextColumn();
+                }
+                ImGui::TableNextRow();
+            }
+            ImGui::EndTable();
+        }
+        ImGui::TableNextColumn();
+        if (ImGui::Button("New Project...", ImVec2(140, 0)))
+        {
+            this->close(PopupResult::OK);
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Open Model...", ImVec2(140, 0)))
+        {
+            this->close(PopupResult::OK);
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Open Python model...", ImVec2(140, 0)))
+        {
+            this->close(PopupResult::OK);
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Start automation API", ImVec2(140, 0)))
+        {
+            this->close(PopupResult::OK);
+            ImGui::CloseCurrentPopup();
         }
         ImGui::EndTable();
     }

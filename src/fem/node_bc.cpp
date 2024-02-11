@@ -5,7 +5,8 @@ using namespace ofem;
 NodeBC::NodeBC()
 {
     int i;
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < 6; i++)
+    {
         m_prescribedDof[i] = true;
         m_prescribedValues[i] = 0.0;
     }
@@ -17,8 +18,7 @@ NodeBC::~NodeBC()
 }
 
 void NodeBC::print(std::ostream &out)
-{
-}
+{}
 
 json_nl NodeBC::toJson()
 {
@@ -45,7 +45,8 @@ void NodeBC::saveToStream(std::ostream &out)
     for (i = 0; i < m_nodes.size(); i++)
         out << m_nodes[i]->getNumber() << endl;
     out << endl;
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < 6; i++)
+    {
         if (m_prescribedDof[i])
             out << 1 << " " << m_prescribedValues[i] << endl;
         else
@@ -61,11 +62,13 @@ void NodeBC::readFromStream(std::istream &in)
     double value;
     // CFemBC::readFromStream(in);
     in >> nNodes;
-    for (i = 0; i < nNodes; i++) {
+    for (i = 0; i < nNodes; i++)
+    {
         in >> idx;
         m_nodeIndex.push_back(idx);
     }
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < 6; i++)
+    {
         in >> flag >> value;
         if (flag == 1)
             prescribe(i + 1, value);
@@ -77,6 +80,15 @@ void NodeBC::readFromStream(std::istream &in)
 void NodeBC::addNode(Node *node)
 {
     m_nodes.emplace_back(NodePtr(node));
+}
+
+bool ofem::NodeBC::contains(Node *node)
+{
+    for (auto &n : m_nodes)
+        if (n.get() == node)
+            return true;
+
+    return false;
 }
 
 void NodeBC::clearNodes()
@@ -91,8 +103,10 @@ bool NodeBC::removeNode(Node *node)
     while ((p != m_nodes.end()) && ((*p).get() != node))
         p++;
 
-    if (p != m_nodes.end()) {
-        if ((*p).get() == node) {
+    if (p != m_nodes.end())
+    {
+        if ((*p).get() == node)
+        {
             m_nodes.erase(p);
             return true;
         }
@@ -131,7 +145,8 @@ size_t NodeBC::getNodeSize()
 
 void NodeBC::prescribe(int dof, double value)
 {
-    if ((dof >= 1) && (dof <= 6)) {
+    if ((dof >= 1) && (dof <= 6))
+    {
         m_prescribedDof[dof - 1] = true;
         m_prescribedValues[dof - 1] = value;
     }
@@ -170,7 +185,8 @@ void NodeBC::release()
 
 void NodeBC::unprescribe(int dof)
 {
-    if ((dof >= 1) && (dof <= 6)) {
+    if ((dof >= 1) && (dof <= 6))
+    {
         m_prescribedDof[dof - 1] = false;
         m_prescribedValues[dof - 1] = 0.0;
     }

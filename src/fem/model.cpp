@@ -1,6 +1,7 @@
 #include <ofem/model.h>
 
 #include <ofem/model_state_info.h>
+#include <ofem/node_bc.h>
 
 #include <sstream>
 
@@ -13,8 +14,7 @@ Model::Model() : Base(), m_version{"2"}, m_readVersion{""}, m_writeVersion{""}
 }
 
 Model::~Model()
-{
-}
+{}
 
 NodeSet *Model::getNodeSet()
 {
@@ -165,8 +165,7 @@ void Model::connectElements()
 }
 
 void Model::connectMaterials()
-{
-}
+{}
 
 void Model::connectNodeLoads()
 {
@@ -209,12 +208,14 @@ std::string ofem::Model::queryFileVersion(std::string filename)
     f.open(filename.c_str(), ios::in);
 
     std::string line;
-    if (f.is_open()) {
+    if (f.is_open())
+    {
         std::getline(f, line);
 
         f.close();
 
-        if (line.find("#OF_VERSION") != -1) {
+        if (line.find("#OF_VERSION") != -1)
+        {
             auto equalPos = line.find("=");
             auto versionStr = line.substr(equalPos + 1, line.length() - equalPos);
             return versionStr;
@@ -233,7 +234,8 @@ std::string ofem::Model::queryFileVersionFromString(std::string df3_string)
 
     std::getline(f, line);
 
-    if (line.find("#OF_VERSION") != -1) {
+    if (line.find("#OF_VERSION") != -1)
+    {
         auto equalPos = line.find("=");
         auto versionStr = line.substr(equalPos + 1, line.length() - equalPos);
         return versionStr;
@@ -244,16 +246,19 @@ std::string ofem::Model::queryFileVersionFromString(std::string df3_string)
 
 bool Model::open()
 {
-    if (m_fileName != "") {
+    if (m_fileName != "")
+    {
         std::string readVersion = queryFileVersion(m_fileName);
         ModelStateInfo::getInstance().setReadVersion(readVersion);
 
         fstream inputFile;
 
         inputFile.open(m_fileName.c_str(), ios::in);
-        if (inputFile.is_open()) {
+        if (inputFile.is_open())
+        {
             // Skip version line
-            if (readVersion != "0") {
+            if (readVersion != "0")
+            {
                 std::string line;
                 std::getline(inputFile, line);
             }
@@ -278,7 +283,8 @@ bool ofem::Model::openFromString(const std::string df3_string)
 
     // Skip version line
 
-    if (readVersion != "0") {
+    if (readVersion != "0")
+    {
         std::string line;
         std::getline(inputFile, line);
     }
@@ -289,7 +295,8 @@ bool ofem::Model::openFromString(const std::string df3_string)
 
 void Model::save()
 {
-    if (m_fileName != "") {
+    if (m_fileName != "")
+    {
         ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
 
         fstream outputFile;
@@ -310,7 +317,8 @@ void Model::snapShot()
 
 void Model::restoreLastSnapShot()
 {
-    if (m_snapShots.size() > 0) {
+    if (m_snapShots.size() > 0)
+    {
         // Snapshot current model
 
         std::stringstream cs;
@@ -329,7 +337,8 @@ void Model::restoreLastSnapShot()
 
 void Model::revertLastSnapShot()
 {
-    if (m_restoredSnapShots.size() > 0) {
+    if (m_restoredSnapShots.size() > 0)
+    {
         // Current model to snapshot
 
         std::stringstream ss;
@@ -384,20 +393,28 @@ void Model::initialize()
 }
 
 void Model::onInitialised()
-{
-}
+{}
 
 void ofem::Model::onReadComplete()
-{
-}
+{}
 
 void ofem::Model::onSaveComplete()
-{
-}
+{}
 
 void Model::clearNodeValues()
 {
     m_nodeSet->clearNodeValues();
+}
+
+bool ofem::Model::nodeHasBCs(Node *node)
+{
+    for (auto i = 0; i < m_bcSet->getSize(); i++)
+    {
+        ofem::NodeBC *nodeBC = dynamic_cast<NodeBC *>(m_bcSet->getBC(i));
+        if (nodeBC->contains(node))
+            return true;
+    }
+    return false;
 }
 
 std::string ofem::Model::version()

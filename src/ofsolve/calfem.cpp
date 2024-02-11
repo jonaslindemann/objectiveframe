@@ -90,7 +90,8 @@ void bar3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &e
 
     B << -1.0 / L, 1.0 / L;
 
-    for (int i = 1; i <= n; i++) {
+    for (int i = 1; i <= n; i++)
+    {
         eci(i - 1) = (i - 1.0) * L / (n - 1.0);
         double x = eci(i - 1);
         double up = -eq * (0.5 * pow(x, 2) - 0.5 * L * x) / E / A;
@@ -250,7 +251,8 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
     eci.resize(n);
     eci.setZero();
 
-    for (auto i = 0; i < n; i++) {
+    for (auto i = 0; i < n; i++)
+    {
         eci(i) = double(i) * L / double(n - 1);
         double x = eci(i);
 
@@ -288,8 +290,10 @@ void spy(const SpMatrix &matrix)
     auto rows = matrix.rows();
     auto cols = matrix.cols();
 
-    for (auto i = 0; i < rows; i++) {
-        for (auto j = 0; j < cols; j++) {
+    for (auto i = 0; i < rows; i++)
+    {
+        for (auto j = 0; j < cols; j++)
+        {
             if (abs(matrix.coeff(i, j)) > 0.0)
                 std::cout << "o ";
             else
@@ -329,7 +333,8 @@ void extractElDisp(const IntMatrix &edof, const ColVec &a, Matrix &ed)
 
     ed.resize(nElements, nDofs);
 
-    for (auto i = 0; i < nElements; i++) {
+    for (auto i = 0; i < nElements; i++)
+    {
         IntColVec ind = edof.row(i).array() - 1;
         ed.row(i) = a(ind);
     }
@@ -355,8 +360,10 @@ void extractEdof(const IntMatrix &dofs, const Matrix &coords, const IntMatrix &t
     ez.resize(nElements, nodesPerElement);
     ez.setZero();
 
-    for (auto i = 0; i < nElements; i++) {
-        for (auto j = 0; j < nodesPerElement; j++) {
+    for (auto i = 0; i < nElements; i++)
+    {
+        for (auto j = 0; j < nodesPerElement; j++)
+        {
             auto k = topo(i, j);
             auto x = coords(k - 1, 0);
             auto y = coords(k - 1, 1);
@@ -374,14 +381,16 @@ void assem(IntRowVec &Topo, Matrix &K, Matrix &Ke, ColVec &f, ColVec &fe)
     int i, j, r, c;
 
     for (i = 0; i < Ke.rows(); i++)
-        for (j = i; j < Ke.cols(); j++) {
+        for (j = i; j < Ke.cols(); j++)
+        {
             r = Topo(i) - 1;
             c = Topo(j) - 1;
 
             K(r, c) = K(r, c) + Ke(i, j);
         }
 
-    for (i = 0; i < fe.rows(); i++) {
+    for (i = 0; i < fe.rows(); i++)
+    {
         r = Topo(i) - 1;
         f(r) = f(r) + fe(i);
     }
@@ -427,14 +436,16 @@ void spassem(const IntRowVec &Topo, TripletList &Ktriplets, const Matrix &Ke, Co
     int i, j, r, c;
 
     for (i = 0; i < Ke.rows(); i++)
-        for (j = 0; j < Ke.cols(); j++) {
+        for (j = 0; j < Ke.cols(); j++)
+        {
             r = Topo(i) - 1;
             c = Topo(j) - 1;
 
             Ktriplets.push_back(Triplet(r, c, Ke(i, j)));
         }
 
-    for (i = 0; i < fe.rows(); i++) {
+    for (i = 0; i < fe.rows(); i++)
+    {
         r = Topo(i) - 1;
         f(r) = f(r) + fe(i);
     }
@@ -450,7 +461,8 @@ bool spsolveq(const SpMatrix &K, const ColVec &f, const IntColVec &bcDofs, const
 
     a.setZero();
 
-    for (auto i = 0; i < bcDofs.rows(); i++) {
+    for (auto i = 0; i < bcDofs.rows(); i++)
+    {
         bcDofsVec.push_back(bcDofs(i));
         a(bcDofs(i) - 1) = bcVals(i);
     }
@@ -492,16 +504,19 @@ bool spsolveq(const SpMatrix &K, const ColVec &f, const IntColVec &bcDofs, const
         pindMap[idx] = i++;
 
     for (Eigen::Index k = 0; k < K.outerSize(); ++k)
-        for (SpMatrix::InnerIterator it(K, k); it; ++it) {
+        for (SpMatrix::InnerIterator it(K, k); it; ++it)
+        {
             auto v = it.value();
             auto r = it.row();
             auto c = it.col();
 
-            if ((indSet.find(r) != indSet.end()) && (indSet.find(c) != indSet.end())) {
+            if ((indSet.find(r) != indSet.end()) && (indSet.find(c) != indSet.end()))
+            {
                 Ksyslist.push_back(Triplet(indMap[r], indMap[c], v));
             }
 
-            if ((indSet.find(r) != indSet.end()) && (pindSet.find(c) != pindSet.end())) {
+            if ((indSet.find(r) != indSet.end()) && (pindSet.find(c) != pindSet.end()))
+            {
                 Ksysflist.push_back(Triplet(indMap[r], pindMap[c], v));
             }
         }
@@ -524,7 +539,8 @@ bool spsolveq(const SpMatrix &K, const ColVec &f, const IntColVec &bcDofs, const
 
     solver.compute(Ksys);
 
-    if (solver.info() != Eigen::Success) {
+    if (solver.info() != Eigen::Success)
+    {
         std::cout << "Solver failed.\n";
         return false;
     }
@@ -539,8 +555,7 @@ bool spsolveq(const SpMatrix &K, const ColVec &f, const IntColVec &bcDofs, const
 }
 
 SparseSolver::SparseSolver()
-{
-}
+{}
 
 std::shared_ptr<SparseSolver> SparseSolver::create()
 {
@@ -562,7 +577,8 @@ bool SparseSolver::setup(const SpMatrix &K, const IntColVec &bcDofs, const ColVe
     m_a.resize(m_nDofs);
     m_a.setZero();
 
-    for (auto i = 0; i < bcDofs.rows(); i++) {
+    for (auto i = 0; i < bcDofs.rows(); i++)
+    {
         m_bcDofsVec.push_back(bcDofs(i));
         m_a(bcDofs(i) - 1) = bcVals(i);
     }
@@ -604,16 +620,19 @@ bool SparseSolver::setup(const SpMatrix &K, const IntColVec &bcDofs, const ColVe
         pindMap[idx] = i++;
 
     for (int k = 0; k < (*m_K).outerSize(); ++k)
-        for (SpMatrix::InnerIterator it((*m_K), k); it; ++it) {
+        for (SpMatrix::InnerIterator it((*m_K), k); it; ++it)
+        {
             auto v = it.value();
             auto r = it.row();
             auto c = it.col();
 
-            if ((indSet.find(r) != indSet.end()) && (indSet.find(c) != indSet.end())) {
+            if ((indSet.find(r) != indSet.end()) && (indSet.find(c) != indSet.end()))
+            {
                 m_Ksyslist.push_back(Triplet(indMap[r], indMap[c], v));
             }
 
-            if ((indSet.find(r) != indSet.end()) && (pindSet.find(c) != pindSet.end())) {
+            if ((indSet.find(r) != indSet.end()) && (pindSet.find(c) != pindSet.end()))
+            {
                 m_Ksysflist.push_back(Triplet(indMap[r], pindMap[c], v));
             }
         }
@@ -632,7 +651,8 @@ bool SparseSolver::solve(const ColVec &f, ColVec &a, ColVec &Q)
     a.resize(m_nDofs);
     a.setZero();
 
-    for (auto i = 0; i < (*m_bcDofs).rows(); i++) {
+    for (auto i = 0; i < (*m_bcDofs).rows(); i++)
+    {
         m_bcDofsVec.push_back((*m_bcDofs)(i));
         a((*m_bcDofs)(i)-1) = (*m_bcVals)(i);
     }
@@ -645,7 +665,8 @@ bool SparseSolver::solve(const ColVec &f, ColVec &a, ColVec &Q)
     std::cout << f.maxCoeff() << "\n";
 
     m_solver.compute(m_Ksys);
-    if (m_solver.info() != Eigen::Success) {
+    if (m_solver.info() != Eigen::Success)
+    {
         std::cout << "Solver failed.\n";
         return false;
     }
@@ -654,7 +675,7 @@ bool SparseSolver::solve(const ColVec &f, ColVec &a, ColVec &Q)
     a(m_ind) = m_asys;
     a(m_pind) = (*m_bcVals);
 
-    Q = (*m_K) * m_a - f;
+    Q = (*m_K) * a - f;
 
     return true;
 }
@@ -664,7 +685,8 @@ bool SparseSolver::recompute(const ColVec &f, ColVec &a, ColVec &Q)
     a.resize(m_nDofs);
     a.setZero();
 
-    for (auto i = 0; i < (*m_bcDofs).rows(); i++) {
+    for (auto i = 0; i < (*m_bcDofs).rows(); i++)
+    {
         m_bcDofsVec.push_back((*m_bcDofs)(i));
         a((*m_bcDofs)(i)-1) = (*m_bcVals)(i);
     }
@@ -676,7 +698,8 @@ bool SparseSolver::recompute(const ColVec &f, ColVec &a, ColVec &Q)
     std::cout << m_fsys.maxCoeff() << "\n";
     std::cout << (*m_f).maxCoeff() << "\n";
 
-    if (m_solver.info() != Eigen::Success) {
+    if (m_solver.info() != Eigen::Success)
+    {
         std::cout << "Solver failed.\n";
         return false;
     }
@@ -686,7 +709,7 @@ bool SparseSolver::recompute(const ColVec &f, ColVec &a, ColVec &Q)
     a(m_ind) = m_asys;
     a(m_pind) = (*m_bcVals);
 
-    Q = (*m_K) * m_a - f;
+    Q = (*m_K) * a - f;
 
     return true;
 }

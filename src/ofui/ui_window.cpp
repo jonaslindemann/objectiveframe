@@ -6,8 +6,8 @@ using namespace ofui;
 
 UiWindow::UiWindow(const std::string name)
     : m_name{name}, m_visible{true}, m_windowFlags{ImGuiWindowFlags_AlwaysAutoResize}, m_updatePos{false},
-      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false},
-      m_firstDraw{true}, m_width{-1}, m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false}
+      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false}, m_firstDraw{true}, m_width{-1},
+      m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false}, m_autoPlacement{true}, m_newBottomPos{false}
 {}
 
 UiWindow::~UiWindow()
@@ -41,8 +41,20 @@ void UiWindow::draw()
         }
         if (m_newPos)
         {
-            ImGui::SetNextWindowPos(ImVec2(float(m_x), float(m_y)), ImGuiCond_Always);
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + float(m_x), work_pos.y + float(m_y)), ImGuiCond_Always);
             m_newPos = false;
+        }
+        if (m_newBottomPos)
+        {
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            m_y = work_size.y - m_y;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + float(m_x), work_pos.y + float(m_y)), ImGuiCond_Always);
+            m_newBottomPos = false;
         }
         if (m_updatePos)
         {
@@ -79,11 +91,14 @@ void UiWindow::draw()
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
             ImVec2 window_pos, window_pos_pivot;
-            window_pos.x = work_size.x / 2.0f;
-            window_pos.y = work_size.y / 2.0f;
-            window_pos_pivot.x = 0.5;
-            window_pos_pivot.y = 1.0;
-            ImGui::SetNextWindowPos(window_pos, ImGuiCond_Appearing, window_pos_pivot);
+
+            ImVec2 size = ImGui::GetWindowSize();
+            m_width = int(size.x);
+            m_height = int(size.y);
+
+            window_pos.x = work_size.x / 2.0f - m_width / 2.0;
+            window_pos.y = work_size.y / 2.0f - m_height / 2.0;
+            ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always);
             m_center = false;
         }
         doPreDraw();
@@ -92,9 +107,22 @@ void UiWindow::draw()
         else
             ImGui::Begin(m_name.c_str(), nullptr, m_windowFlags);
         doDraw();
+
+        if (!m_firstDraw)
+        {
+            ImVec2 size = ImGui::GetWindowSize();
+            m_width = int(size.x);
+            m_height = int(size.y);
+
+            ImVec2 pos = ImGui::GetWindowPos();
+            m_x = int(pos.x);
+            m_y = int(pos.y);
+        }
+
         ImGui::End();
         doPostDraw();
     }
+    m_firstDraw = false;
 }
 
 void UiWindow::setWindowFlags(ImGuiWindowFlags flags)
@@ -144,6 +172,16 @@ int ofui::UiWindow::height()
     return m_height;
 }
 
+bool ofui::UiWindow::autoPlacement()
+{
+    return m_autoPlacement;
+}
+
+void ofui::UiWindow::setAutoPlacement(bool flag)
+{
+    m_autoPlacement = flag;
+}
+
 bool ofui::UiWindow::canClose()
 {
     return m_canClose;
@@ -175,6 +213,13 @@ void ofui::UiWindow::setPosition(int x, int y)
     m_x = x;
     m_y = y;
     m_newPos = true;
+}
+
+void ofui::UiWindow::setPositionFromBottom(int x, int y)
+{
+    m_x = x;
+    m_y = y;
+    m_newBottomPos = true;
 }
 
 int ofui::UiWindow::x()

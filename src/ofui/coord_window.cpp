@@ -7,6 +7,8 @@ CoordWindow::CoordWindow(const std::string name) : UiWindow(name), m_coord{0.0, 
     this->setWindowFlags(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                          ImGuiWindowFlags_NoNav);
+
+    this->setAutoPlacement(false);
 }
 
 CoordWindow::~CoordWindow()

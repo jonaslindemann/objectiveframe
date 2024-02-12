@@ -19,7 +19,7 @@ IvfSmartPointer(NodeBC);
 class NodeBC : public ivf::Shape {
 private:
     ofem::BeamNodeBC *m_nodeBC;
-    std::vector<vfem::BC *> m_bc;
+    std::vector<vfem::BCPtr> m_bc;
     ivf::MaterialPtr m_bcMaterial;
 
     vfem::BeamModel *m_beamModel;

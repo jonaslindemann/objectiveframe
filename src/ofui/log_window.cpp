@@ -6,6 +6,7 @@ LogWindow::LogWindow(const std::string name) : UiWindow(name), m_autoScroll{true
 {
     setWindowFlags(ImGuiWindowFlags_None);
     clear();
+    setAutoPlacement(false);
 }
 
 std::shared_ptr<LogWindow> ofui::LogWindow::create(const std::string name)
@@ -32,7 +33,8 @@ void ofui::LogWindow::log(const std::string message)
 void ofui::LogWindow::doDraw()
 {
     // Options menu
-    if (ImGui::BeginPopup("Options")) {
+    if (ImGui::BeginPopup("Options"))
+    {
         ImGui::Checkbox("Auto-scroll", &m_autoScroll);
         ImGui::EndPopup();
     }
@@ -58,8 +60,10 @@ void ofui::LogWindow::doDraw()
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     const char *buf = m_buffer.begin();
     const char *buf_end = m_buffer.end();
-    if (m_filter.IsActive()) {
-        for (int line_no = 0; line_no < m_lineOffsets.Size; line_no++) {
+    if (m_filter.IsActive())
+    {
+        for (int line_no = 0; line_no < m_lineOffsets.Size; line_no++)
+        {
             const char *line_start = buf + m_lineOffsets[line_no];
             const char *line_end =
                 (line_no + 1 < m_lineOffsets.Size) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
@@ -67,11 +71,14 @@ void ofui::LogWindow::doDraw()
                 ImGui::TextUnformatted(line_start, line_end);
         }
     }
-    else {
+    else
+    {
         ImGuiListClipper clipper;
         clipper.Begin(m_lineOffsets.Size);
-        while (clipper.Step()) {
-            for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
+        while (clipper.Step())
+        {
+            for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+            {
                 const char *line_start = buf + m_lineOffsets[line_no];
                 const char *line_end =
                     (line_no + 1 < m_lineOffsets.Size) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
@@ -89,5 +96,4 @@ void ofui::LogWindow::doDraw()
 }
 
 void ofui::LogWindow::doPreDraw()
-{
-}
+{}

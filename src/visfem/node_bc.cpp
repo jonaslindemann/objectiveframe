@@ -19,26 +19,31 @@ NodeBC::NodeBC()
 }
 
 NodeBC::~NodeBC()
-{
-}
+{}
 
 void NodeBC::setNodeBC(ofem::BeamNodeBC *bc)
 {
     int i, j;
 
-    for (i = 0; i < m_bc.size(); i++) {
+    /*
+    for (i = 0; i < m_bc.size(); i++)
+    {
         delete m_bc[i];
     }
+    */
     m_bc.clear();
 
     m_nodeBC = bc;
-    if (m_nodeBC != nullptr) {
-        for (i = 0; i < m_nodeBC->getNodeSize(); i++) {
+    if (m_nodeBC != nullptr)
+    {
+        for (i = 0; i < m_nodeBC->getNodeSize(); i++)
+        {
             double x, y, z;
-            vfem::BC *ivfBC = new vfem::BC();
+            auto *ivfBC = new vfem::BC();
             if (m_beamModel != nullptr)
                 ivfBC->setBeamModel(m_beamModel);
-            for (j = 0; j < 6; j++) {
+            for (j = 0; j < 6; j++)
+            {
                 if (m_nodeBC->isPrescribed(j + 1))
                     ivfBC->prescribe(j + 1, true);
                 else

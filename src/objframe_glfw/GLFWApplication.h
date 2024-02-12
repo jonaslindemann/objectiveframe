@@ -20,6 +20,8 @@ public:
     static std::shared_ptr<GLFWApplication> create();
 
     void addWindow(GLFWWindowPtr window);
+    GLFWWindowPtr getWindow(int index);
+    size_t windowCount();
     void loop();
     void pollEvents();
     void hint(int hint, int value);

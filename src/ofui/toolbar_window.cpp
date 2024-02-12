@@ -9,6 +9,7 @@ ToolbarWindow::ToolbarWindow(const std::string name)
 {
     setWindowFlags(ImGuiWindowFlags_NoCollapse);
     setCanClose(false);
+    setAutoPlacement(false);
 
     m_color = ImGui::GetStyle().Colors[ImGuiCol_Button];
     m_selectedColor = {1.0, 1.0, 1.0, 1.0};

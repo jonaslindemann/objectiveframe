@@ -13,12 +13,10 @@ using namespace ofui;
 ScaleWindow::ScaleWindow(const std::string name)
     : UiWindow(name), m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false}, m_animate{false},
       m_animationSpeed{0.02f}, m_maxScale{1.0f}, m_minScale{1.0f}
-{
-}
+{}
 
 ScaleWindow::~ScaleWindow()
-{
-}
+{}
 #ifdef USE_FEMVIEW
 void ofui::ScaleWindow::setView(FemViewWindow *view)
 {
@@ -57,14 +55,16 @@ void ScaleWindow::doDraw()
     ImGui::Separator();
     ImGui::Checkbox("Lock scale factor", &m_lockScaleFactor);
     ImGui::Checkbox("Animate", &m_animate);
-    if (m_animate) {
+    if (m_animate)
+    {
         ImGui::SliderFloat("Animation speed", &m_animationSpeed, 0.01f, 0.2f);
     }
     ImGui::Separator();
     ImGui::SliderFloat("Max value scale", &m_maxScale, 0.1f, 10.0f);
     ImGui::SliderFloat("Min value scale", &m_minScale, 0.1f, 10.0f);
 
-    if (m_view != nullptr) {
+    if (m_view != nullptr)
+    {
         if (m_animate)
             m_view->setScalefactor(m_view->autoScaleFactor() *
                                    (0.5 + 0.5 * sin(ImGui::GetFrameCount() * m_animationSpeed)));

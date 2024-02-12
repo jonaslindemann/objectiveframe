@@ -66,6 +66,19 @@ void GLFWApplication::addWindow(GLFWWindowPtr window)
     GLFWWindowTracker::instance()->addWindow(window);
 }
 
+GLFWWindowPtr GLFWApplication::getWindow(int index)
+{
+    if (index < m_windows.size())
+        return m_windows[index];
+    else
+        return nullptr;
+}
+
+size_t GLFWApplication::windowCount()
+{
+    return m_windows.size();
+}
+
 void GLFWApplication::loop()
 {
     bool shouldClose = false;

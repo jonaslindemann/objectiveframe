@@ -87,7 +87,7 @@ std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
 
 void SettingsWindow::doDraw()
 {
-    ImGui::Dummy(ImVec2(150.0, 0.0));
+    // ImGui::Dummy(ImVec2(150.0, 0.0));
 
     this->update();
 

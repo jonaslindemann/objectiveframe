@@ -582,6 +582,8 @@ void FemViewWindow::setEditMode(WidgetMode mode)
     this->setUseOverlay(true);
     m_pluginWindow->hide();
 
+    this->hideAllDialogs();
+
     switch (mode)
     {
     case WidgetMode::Select:
@@ -642,6 +644,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         m_mainToolbarWindow->selectButton(5, 1);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
+        m_windowList->placeWindow(m_loadMixerWindow);
     }
     else
         m_loadMixerWindow->hide();
@@ -742,6 +745,7 @@ void FemViewWindow::setCustomMode(CustomMode mode)
         this->setEditMode(WidgetMode::Select);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
+        m_windowList->placeWindow(m_loadMixerWindow);
     }
     else
         m_loadMixerWindow->hide();
@@ -1117,11 +1121,15 @@ void FemViewWindow::showProperties()
     if (m_nodeSelection || m_singleNodeSelection)
     {
         m_propWindow->show();
+        m_propWindow->setPositionFromBottom(20, 540);
+        m_windowList->placeWindow(m_propWindow);
     }
 
     if (m_elementSelection || m_singleElementSelection)
     {
         m_propWindow->show();
+        m_propWindow->setPositionFromBottom(20, 540);
+        m_windowList->placeWindow(m_propWindow);
     }
 
     if ((!m_nodeSelection) && (!m_elementSelection))
@@ -2085,9 +2093,11 @@ void FemViewWindow::executeCalc()
 
     m_settingsWindow->update();
     m_scaleWindow->show();
+    m_scaleWindow->setPosition(100, 20);
 
     m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
     m_loadMixerWindow->show();
+    m_loadMixerWindow->setPosition(100, 240);
 
     // Show displacements
 
@@ -2767,6 +2777,8 @@ void FemViewWindow::hideAllDialogs()
     m_elementLoadsWindow->hide();
     m_materialsWindow->hide();
     m_loadMixerWindow->hide();
+    m_scaleWindow->hide();
+    m_settingsWindow->hide();
 }
 
 // Widget events
@@ -3015,6 +3027,7 @@ void FemViewWindow::onInit()
     log("Initialising immediate mode UI.");
 
     m_windowList = WindowList::create();
+    m_windowList->setFemView(this);
 
     m_windowList->add(m_logWindow);
     m_windowList->add(m_consoleWindow);
@@ -4047,6 +4060,8 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
 {
     log("onButtonClicked: " + button.name());
 
+    hideAllDialogs();
+
     if (button.name() == "Select")
     {
         this->setEditMode(WidgetMode::Select);
@@ -4114,6 +4129,7 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
     {
         m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_nodeLoadsWindow->setVisible(true);
+        m_nodeLoadsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
     }
 
@@ -4121,6 +4137,7 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
     {
         m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet *)m_beamModel->getElementLoadSet());
         m_elementLoadsWindow->setVisible(true);
+        m_elementLoadsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
     }
 
@@ -4128,6 +4145,7 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
     {
         m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet *)m_beamModel->getMaterialSet());
         m_materialsWindow->setVisible(true);
+        m_materialsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
     }
 
@@ -4135,6 +4153,7 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
     {
         m_nodeBCsWindow->setFemNodeBCSet((ofem::BeamNodeBCSet *)m_beamModel->getNodeBCSet());
         m_nodeBCsWindow->setVisible(true);
+        m_nodeBCsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
     }
 }
@@ -4290,8 +4309,8 @@ void FemViewWindow::onDrawImGui()
 
             if (ImGui::MenuItem("Preferences...", ""))
             {
-                m_settingsWindow->align(1);
                 m_settingsWindow->show();
+                m_settingsWindow->center();
             }
 
             ImGui::Separator();
@@ -4364,7 +4383,6 @@ void FemViewWindow::onDrawImGui()
         {
             if (ImGui::MenuItem("Properties...", ""))
             {
-                m_propWindow->align(0);
                 m_propWindow->setVisible(true);
             }
 
@@ -4457,8 +4475,8 @@ void FemViewWindow::onDrawImGui()
 
             if (ImGui::MenuItem("Scaling settings...", ""))
             {
-                m_scaleWindow->align(2);
                 m_scaleWindow->show();
+                m_scaleWindow->setPosition(100, 20);
             }
 
             ImGui::EndMenu();
@@ -4467,8 +4485,8 @@ void FemViewWindow::onDrawImGui()
         {
             if (ImGui::MenuItem("About...", ""))
             {
-                m_aboutWindow->center();
                 m_aboutWindow->show();
+                m_aboutWindow->center();
             }
             if (ImGui::MenuItem("Homepage...", ""))
             {
@@ -4481,6 +4499,7 @@ void FemViewWindow::onDrawImGui()
             if (ImGui::MenuItem("Log...", ""))
             {
                 m_logWindow->show();
+                m_logWindow->center();
             }
 
             ImGui::EndMenu();
@@ -4528,6 +4547,12 @@ void FemViewWindow::onDrawImGui()
         {
             IGFD::FileDialogConfig config;
             config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
             ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", config);
         }
 
@@ -4551,6 +4576,12 @@ void FemViewWindow::onDrawImGui()
             if (m_fileName == "noname.df3")
             {
                 config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
+
+                auto viewport = ImGui::GetMainViewport();
+                ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+                ImVec2 work_size = viewport->WorkSize;
+                ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
                 ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
             }
             else
@@ -4561,6 +4592,12 @@ void FemViewWindow::onDrawImGui()
         {
             IGFD::FileDialogConfig config;
             config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
             ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
         }
 
@@ -4568,6 +4605,12 @@ void FemViewWindow::onDrawImGui()
         {
             IGFD::FileDialogConfig config;
             config.path = ofutil::get_config_value("last_calfem_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
             ImGuiFileDialog::Instance()->OpenDialog("Save as CALFEM", "Choose File", ".py", config);
         }
 
@@ -4575,6 +4618,12 @@ void FemViewWindow::onDrawImGui()
         {
             IGFD::FileDialogConfig config;
             config.path = ofutil::get_config_value("last_calfem_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
             ImGuiFileDialog::Instance()->OpenDialog("Open from CALFEM", "Choose File", ".py", config);
         }
 
@@ -4672,12 +4721,11 @@ void FemViewWindow::onPostRender()
 void FemViewWindow::onGlfwResize(int width, int height)
 {
     if (m_mainToolbarWindow != nullptr)
-        m_mainToolbarWindow->setPosition(this->x() + 20, this->y() + 50);
+        m_mainToolbarWindow->setPosition(20, 20);
 
     if (m_editToolbarWindow != nullptr)
-        m_editToolbarWindow->setPosition(this->x() + 20, this->y() + this->height() - 120);
+        m_editToolbarWindow->setPosition(20, this->height() - 140);
 
     if (m_consoleWindow != nullptr)
-        m_consoleWindow->setPosition(this->x() + this->width() / 2.0 - m_consoleWindow->width() / 2.0,
-                                     this->y() + this->height() - 120);
+        m_consoleWindow->setPosition(this->width() / 2.0 - m_consoleWindow->width() / 2.0, this->height() - 120);
 }

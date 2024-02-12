@@ -23,8 +23,10 @@ private:
     bool m_canClose;
     int m_x;
     int m_y;
+    bool m_autoPlacement;
 
     bool m_newPos;
+    bool m_newBottomPos;
 
 public:
     UiWindow(const std::string name);
@@ -44,6 +46,8 @@ public:
     void setSize(int w, int h);
     int width();
     int height();
+    bool autoPlacement();
+    void setAutoPlacement(bool flag);
 
     bool canClose();
     void setCanClose(bool flag);
@@ -53,6 +57,8 @@ public:
     void center();
 
     void setPosition(int x, int y);
+
+    void setPositionFromBottom(int x, int y);
 
     int x();
     int y();

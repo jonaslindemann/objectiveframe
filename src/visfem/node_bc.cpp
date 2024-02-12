@@ -25,12 +25,6 @@ void NodeBC::setNodeBC(ofem::BeamNodeBC *bc)
 {
     int i, j;
 
-    /*
-    for (i = 0; i < m_bc.size(); i++)
-    {
-        delete m_bc[i];
-    }
-    */
     m_bc.clear();
 
     m_nodeBC = bc;
@@ -61,10 +55,8 @@ void NodeBC::setNodeBC(ofem::BeamNodeBC *bc)
 
 void NodeBC::doCreateGeometry()
 {
-    int i;
-
-    for (i = 0; i < m_bc.size(); i++)
-        m_bc[i]->render();
+    for (auto &bc : m_bc)
+        bc->render();
 }
 
 void NodeBC::refresh()

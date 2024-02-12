@@ -21,19 +21,16 @@ NodeLoad::NodeLoad() : Shape()
 }
 
 NodeLoad::~NodeLoad()
-{
-}
+{}
 
 void NodeLoad::doCreateGeometry()
 {
-    int i;
-    for (i = 0; i < m_arrow.size(); i++)
-        m_arrow[i]->render();
+    for (auto &arrow : m_arrow)
+        arrow->render();
 }
 
 void NodeLoad::doCreateSelect()
-{
-}
+{}
 
 void NodeLoad::initArrow()
 {
@@ -41,9 +38,11 @@ void NodeLoad::initArrow()
     double loadHeight;
     double l;
 
-    if (m_nodeLoad != nullptr) {
+    if (m_nodeLoad != nullptr)
+    {
 
-        for (int i = 0; i < m_arrow.size(); i++) {
+        for (int i = 0; i < m_arrow.size(); i++)
+        {
             if (m_beamModel != nullptr)
                 loadHeight = m_beamModel->getLoadSize();
             else
@@ -51,7 +50,7 @@ void NodeLoad::initArrow()
 
             // Set topolgy
 
-            ofem::Node *node = m_nodeLoad->getNode(i);
+            auto node = m_nodeLoad->getNode(i);
 
             // Define arrow
 
@@ -97,8 +96,10 @@ void NodeLoad::setNodeLoad(ofem::BeamNodeLoad *nodeLoad)
 
     m_nodeLoad = nodeLoad;
 
-    if (m_nodeLoad != nullptr) {
-        for (unsigned int i = 0; i < m_nodeLoad->getNodeSize(); i++) {
+    if (m_nodeLoad != nullptr)
+    {
+        for (unsigned int i = 0; i < m_nodeLoad->getNodeSize(); i++)
+        {
             auto arrow = ExtrArrow::create();
             m_arrow.push_back(arrow);
             arrow->setMaterial(m_arrowMaterial);

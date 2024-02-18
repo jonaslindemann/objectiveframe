@@ -2019,8 +2019,6 @@ void FemViewWindow::assignNodePosBCGround()
 
 void FemViewWindow::executeCalc()
 {
-    double maxNodeValue;
-
     // m_frameSolver = FrameSolver::create();
     // m_currentSolver = m_frameSolver.get();
     m_beamSolver = BeamSolver::create();
@@ -2077,7 +2075,12 @@ void FemViewWindow::executeCalc()
     else
         m_needRecalc = false;
 
-    maxNodeValue = m_currentSolver->getMaxNodeValue();
+    auto maxNodeValue = m_currentSolver->getMaxNodeValue();
+    auto maxReactionForce = m_currentSolver->getMaxReactionForce();
+    auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+
+    m_beamModel->setMaxReactionForce(maxReactionForce);
+    m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
     // Calculate default scalefactor
 
@@ -2158,6 +2161,12 @@ void FemViewWindow::recompute()
 
         maxNodeValue = m_currentSolver->getMaxNodeValue();
 
+        auto maxReactionForce = m_currentSolver->getMaxReactionForce();
+        auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+
+        m_beamModel->setMaxReactionForce(maxReactionForce);
+        m_beamModel->setMaxReactionMoment(maxReactionMoment);
+
         // Only compute the scale factor at the first attempt
 
         if (!m_lockScaleFactor)
@@ -2189,6 +2198,12 @@ void FemViewWindow::recompute()
 
             m_currentSolver->recompute();
             m_currentSolver->update(); // NEW
+
+            auto maxReactionForce = m_currentSolver->getMaxReactionForce();
+            auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+
+            m_beamModel->setMaxReactionForce(maxReactionForce);
+            m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
             // Only compute the scale factor at the first attempt
 
@@ -2298,6 +2313,12 @@ void FemViewWindow::doFeedback()
 
             maxNodeValue = m_currentSolver->getMaxNodeValue();
 
+            auto maxReactionForce = m_currentSolver->getMaxReactionForce();
+            auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+
+            m_beamModel->setMaxReactionForce(maxReactionForce);
+            m_beamModel->setMaxReactionMoment(maxReactionMoment);
+
             // Only compute the scale factor at the first attempt
 
             if (!m_lockScaleFactor)
@@ -2338,6 +2359,12 @@ void FemViewWindow::doFeedback()
 
                 m_currentSolver->recompute();
                 m_currentSolver->update(); // NEW
+
+                auto maxReactionForce = m_currentSolver->getMaxReactionForce();
+                auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+
+                m_beamModel->setMaxReactionForce(maxReactionForce);
+                m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
                 // Only compute the scale factor at the first attempt
 

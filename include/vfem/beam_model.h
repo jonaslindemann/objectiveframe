@@ -38,6 +38,9 @@ private:
     double m_beamLoadSize;
     double m_scaleFactor;
 
+    double m_maxReactionForce;
+    double m_maxReactionMoment;
+
     int m_beamType;
     int m_resultType;
     int m_nodeType;
@@ -148,6 +151,12 @@ public:
 
     void setCamera(ivf::Camera *camera);
     ivf::Camera *camera();
+
+    void setMaxReactionForce(double force);
+    void setMaxReactionMoment(double moment);
+
+    double getMaxReactionForce();
+    double getMaxReactionMoment();
 
     ofem::BeamNodeBC *defaultNodePosBC();
     ofem::BeamNodeBC *defaultNodeFixedBC();

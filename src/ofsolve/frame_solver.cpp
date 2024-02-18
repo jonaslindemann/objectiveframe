@@ -6,8 +6,6 @@
 
 using namespace ofem;
 
-
-
 void bar3e(RowVector &ex, RowVector &ey, RowVector &ez, RowVector &ep, double eq, Matrix &Ke, ColumnVector &fe)
 {
     /*
@@ -128,7 +126,8 @@ void bar3s(RowVector &ex, RowVector &ey, RowVector &ez, RowVector &ep, RowVector
 
     B << -1.0 / L << 1.0 / L;
 
-    for (int i = 1; i <= n; i++) {
+    for (int i = 1; i <= n; i++)
+    {
         eci(i) = (i - 1.0) * L / (n - 1.0);
         double x = eci(i);
         double up = -eq * (0.5 * pow(x, 2) - 0.5 * L * x) / E / A;
@@ -292,7 +291,8 @@ void beam3s(RowVector &ex, RowVector &ey, RowVector &ez, RowVector &eo, RowVecto
     eci = 0.0;
 
     int i;
-    for (i = 1; i <= n; i++) {
+    for (i = 1; i <= n; i++)
+    {
         eci(i) = (i - 1.0) * L / (n - 1.0);
         double x = eci(i);
 
@@ -379,12 +379,10 @@ namespace ofsolver {
 
 FrameSolver::FrameSolver()
     : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr}, m_modelState{ModelState::Ok}
-{
-}
+{}
 
 FrameSolver::~FrameSolver()
-{
-}
+{}
 
 void FrameSolver::setBeamModel(ofem::BeamModel *model)
 {
@@ -411,7 +409,8 @@ void FrameSolver::execute()
 
     BeamModel *femModel = m_beamModel;
 
-    if (femModel == NULL) {
+    if (femModel == NULL)
+    {
         Logger::instance()->log(LogLevel::Error, "Invalid model.");
         m_modelState = ModelState::Invalid;
         return;
@@ -432,25 +431,29 @@ void FrameSolver::execute()
     // Check if we have a valid model
     //
 
-    if (nodeSet->getSize() == 0) {
+    if (nodeSet->getSize() == 0)
+    {
         Logger::instance()->log(LogLevel::Error, "No nodes defined.");
         m_modelState = ModelState::NoNodes;
         return;
     }
 
-    if (elementSet->getSize() == 0) {
+    if (elementSet->getSize() == 0)
+    {
         Logger::instance()->log(LogLevel::Error, "No elements defined.");
         m_modelState = ModelState::NoElements;
         return;
     }
 
-    if (bcSet->getSize() == 0) {
+    if (bcSet->getSize() == 0)
+    {
         Logger::instance()->log(LogLevel::Error, "No boundary conditions defined.");
         m_modelState = ModelState::NoBC;
         return;
     }
 
-    if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL)) {
+    if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL))
+    {
         Logger::instance()->log(LogLevel::Error, "No node loads defined.");
         m_modelState = ModelState::NoLoads;
         return;
@@ -498,7 +501,8 @@ void FrameSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Setting up element loads.");
 
-    for (i = 0; i < elementLoadSet->getSize(); i++) {
+    for (i = 0; i < elementLoadSet->getSize(); i++)
+    {
         double vx, vy, vz;
         double value;
 
@@ -507,7 +511,8 @@ void FrameSolver::execute()
         elementLoad->getLocalDirection(vx, vy, vz);
         value = -elementLoad->getValue();
 
-        for (j = 0; j < elementLoad->getElementsSize(); j++) {
+        for (j = 0; j < elementLoad->getElementsSize(); j++)
+        {
             Element *element = elementLoad->getElement(j);
 
             Eq(element->getNumber(), 1) = Eq(element->getNumber(), 1) + vx * value;
@@ -526,10 +531,12 @@ void FrameSolver::execute()
     int maxBandwidth = 0;
     int bandwidth;
 
-    for (i = 1; i <= elementSet->getSize(); i++) {
+    for (i = 1; i <= elementSet->getSize(); i++)
+    {
         auto beam = static_cast<ofem::Beam *>(elementSet->getElement(i - 1));
 
-        if (beam->beamType() == btBeam) {
+        if (beam->beamType() == btBeam)
+        {
             for (j = 0; j < 6; j++)
                 DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
@@ -540,7 +547,8 @@ void FrameSolver::execute()
             if (bandwidth > maxBandwidth)
                 maxBandwidth = bandwidth;
         }
-        else {
+        else
+        {
             for (j = 0; j < 3; j++)
                 DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
@@ -562,7 +570,8 @@ void FrameSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Assembling system matrix.");
 
-    for (i = 1; i <= elementSet->getSize(); i++) {
+    for (i = 1; i <= elementSet->getSize(); i++)
+    {
         double x1, y1, z1;
         double x2, y2, z2;
         double ex, ey, ez;
@@ -584,7 +593,8 @@ void FrameSolver::execute()
         Eo(2) = ey;
         Eo(3) = ez;
 
-        if (beam->getMaterial() != NULL) {
+        if (beam->getMaterial() != NULL)
+        {
             beam->getMaterial()->getProperties(E, G, A, Iy, Iz, Kv);
             Ep(1) = E;
             Ep(2) = G;
@@ -593,7 +603,8 @@ void FrameSolver::execute()
             Ep(5) = Iz;
             Ep(6) = Kv;
 
-            if (beam->beamType() == ofem::btBeam) {
+            if (beam->beamType() == ofem::btBeam)
+            {
                 for (j = 0; j < 6; j++)
                     DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
@@ -606,7 +617,8 @@ void FrameSolver::execute()
                 beam3e(Ex, Ey, Ez, Eo, Ep, RowEq, Ke, fe);
                 assem(DofTopo, K, Ke, m_f, fe);
             }
-            else {
+            else
+            {
                 Ep(1) = E;
                 Ep(2) = A;
 
@@ -622,7 +634,8 @@ void FrameSolver::execute()
                 assem(DofTopo_b, K, Ke_b, m_f, fe_b);
             }
         }
-        else {
+        else
+        {
             Logger::instance()->log(LogLevel::Error, "Element with undefined material.");
             m_modelState = ModelState::UndefinedMaterial;
         }
@@ -640,7 +653,8 @@ void FrameSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Defining load vector.");
 
-    for (i = 0; i < nodeLoadSet->getSize(); i++) {
+    for (i = 0; i < nodeLoadSet->getSize(); i++)
+    {
         double vx, vy, vz;
         double value;
 
@@ -649,7 +663,8 @@ void FrameSolver::execute()
         nodeLoad->getDirection(vx, vy, vz);
         value = nodeLoad->getValue();
 
-        for (j = 0; j < (int)nodeLoad->getNodeSize(); j++) {
+        for (j = 0; j < (int)nodeLoad->getNodeSize(); j++)
+        {
             Node *node = nodeLoad->getNode(j);
             m_f(node->getDof(0)->getNumber()) = vx * value;
             m_f(node->getDof(1)->getNumber()) = vy * value;
@@ -667,16 +682,22 @@ void FrameSolver::execute()
     Bc = 0.0;
     int bcCount = 0;
 
-    for (i = 0; i < bcSet->getSize(); i++) {
+    for (i = 0; i < bcSet->getSize(); i++)
+    {
         BeamNodeBC *nodeBC = (BeamNodeBC *)bcSet->getBC(i);
 
-        for (j = 0; j < nodeBC->getNodeSize(); j++) {
+        for (j = 0; j < nodeBC->getNodeSize(); j++)
+        {
             Node *node = nodeBC->getNode(j);
 
-            if (node->getKind() != nkNotConnected) {
-                for (k = 0; k < 6; k++) {
-                    if (nodeBC->isPrescribed(k + 1)) {
-                        if (node->getDof(k) != nullptr) {
+            if (node->getKind() != nkNotConnected)
+            {
+                for (k = 0; k < 6; k++)
+                {
+                    if (nodeBC->isPrescribed(k + 1))
+                    {
+                        if (node->getDof(k) != nullptr)
+                        {
                             bcCount++;
                             Bc(bcCount, 1) = node->getDof(k)->getNumber();
                             Bc(bcCount, 2) = nodeBC->getPrescribedValue(k);
@@ -727,11 +748,15 @@ void FrameSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Creating Ksys.");
 
-    for (i = 1; i <= K.Nrows(); i++) {
-        if (Idx(i) < 0.5) {
+    for (i = 1; i <= K.Nrows(); i++)
+    {
+        if (Idx(i) < 0.5)
+        {
             col = row;
-            for (j = i; j <= K.Ncols(); j++) {
-                if (Idx(j) < 0.5) {
+            for (j = i; j <= K.Ncols(); j++)
+            {
+                if (Idx(j) < 0.5)
+                {
                     if (abs(row - col) <= maxBandwidth)
                         if (abs(i - j) <= maxBandwidth)
                             Ksys(row, col) = K(i, j);
@@ -760,14 +785,16 @@ void FrameSolver::execute()
 
     ColumnVector fsys = m_fsys;
 
-    if (m_forceNode != NULL) {
+    if (m_forceNode != NULL)
+    {
         // cout<< "\tdof1 = " << m_forceNode->getDof(0)->getNumber());
         // cout<< "\tdof2 = " << m_forceNode->getDof(1)->getNumber());
         // cout<< "\tdof3 = " << m_forceNode->getDof(2)->getNumber());
         int ldof1 = (int)m_ldof(m_forceNode->getDof(0)->getNumber());
         int ldof2 = (int)m_ldof(m_forceNode->getDof(1)->getNumber());
         int ldof3 = (int)m_ldof(m_forceNode->getDof(2)->getNumber());
-        if ((ldof1 > 0.0) && (ldof2 > 0.0) && (ldof3 > 0.0)) {
+        if ((ldof1 > 0.0) && (ldof2 > 0.0) && (ldof3 > 0.0))
+        {
             fsys(ldof1) += m_force[0];
             fsys(ldof2) += m_force[1];
             fsys(ldof3) += m_force[2];
@@ -776,7 +803,8 @@ void FrameSolver::execute()
             Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
     }
 
-    if (fsys.IsZero()) {
+    if (fsys.IsZero())
+    {
         Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
         m_modelState = ModelState::NoLoads;
         return;
@@ -788,13 +816,15 @@ void FrameSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "logDetSign = " + float2str(logDetSign));
 
-    if (logDetSign < 0) {
+    if (logDetSign < 0)
+    {
         Logger::instance()->log(LogLevel::Error, "System unstable.");
         m_modelState = ModelState::Unstable;
         return;
     }
 
-    if (logDetSign == 0) {
+    if (logDetSign == 0)
+    {
         Logger::instance()->log(LogLevel::Error, "Matrix singular.");
         m_modelState = ModelState::Singular;
         return;
@@ -811,7 +841,8 @@ void FrameSolver::execute()
     m_GlobalA = 0.0;
     m_maxNodeValue = -1.0e300;
 
-    for (i = 1; i <= Ksys.Nrows(); i++) {
+    for (i = 1; i <= Ksys.Nrows(); i++)
+    {
         m_GlobalA((int)m_gdof(i)) = m_a(i);
         if (fabs(m_a(i)) > m_maxNodeValue)
             m_maxNodeValue = fabs(m_a(i));
@@ -827,12 +858,15 @@ void FrameSolver::execute()
 
     double nodeValue;
 
-    for (i = 0; i < nodeSet->getSize(); i++) {
+    for (i = 0; i < nodeSet->getSize(); i++)
+    {
         Node *node = nodeSet->getNode(i);
 
-        if (node->getKind() != nkNotConnected) {
+        if (node->getKind() != nkNotConnected)
+        {
             node->setValueSize(3);
-            for (j = 0; j < 3; j++) {
+            for (j = 0; j < 3; j++)
+            {
                 nodeValue = m_GlobalA(node->getDof(j)->getNumber());
                 node->setValue(j, nodeValue);
             }
@@ -853,7 +887,8 @@ void FrameSolver::execute()
 
     initMaxMin();
 
-    for (i = 1; i <= elementSet->getSize(); i++) {
+    for (i = 1; i <= elementSet->getSize(); i++)
+    {
 
         double x1, y1, z1;
         double x2, y2, z2;
@@ -886,8 +921,10 @@ void FrameSolver::execute()
         Ep(5) = Iz;
         Ep(6) = Kv;
 
-        if (beam->beamType() == btBeam) {
-            for (j = 0; j < 6; j++) {
+        if (beam->beamType() == btBeam)
+        {
+            for (j = 0; j < 6; j++)
+            {
                 DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
                 Ed(j + 1) = m_GlobalA((int)DofTopo(j + 1));
@@ -900,7 +937,8 @@ void FrameSolver::execute()
 
             int pos = 0;
 
-            for (k = 1; k <= n; k++) {
+            for (k = 1; k <= n; k++)
+            {
                 N = Es(k, 1);
                 T = Es(k, 2);
                 Vy = Es(k, 3);
@@ -919,8 +957,10 @@ void FrameSolver::execute()
                 for (j = 1; j <= 4; j++)
                     beam->setValue(pos++, Edi(k, j));
         }
-        else {
-            for (j = 0; j < 3; j++) {
+        else
+        {
+            for (j = 0; j < 3; j++)
+            {
                 DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
                 Ed_b(j + 1) = m_GlobalA((int)DofTopo_b(j + 1));
@@ -940,7 +980,8 @@ void FrameSolver::execute()
 
             int pos = 0;
 
-            for (k = 1; k <= n; k++) {
+            for (k = 1; k <= n; k++)
+            {
                 N = Es_b(k);
                 T = 0.0;
                 Vy = 0.0;
@@ -959,7 +1000,8 @@ void FrameSolver::execute()
             }
 
             for (k = 1; k <= n; k++)
-                for (j = 1; j <= 4; j++) {
+                for (j = 1; j <= 4; j++)
+                {
                     beam->setValue(pos++, 0.0);
                 }
         }
@@ -973,14 +1015,26 @@ double FrameSolver::getMaxNodeValue()
     return m_maxNodeValue;
 }
 
+double FrameSolver::getMaxReactionForce()
+{
+    return 0.0;
+}
+
+double FrameSolver::getMaxReactionMoment()
+{
+    return 0.0;
+}
+
 void FrameSolver::recompute()
 {
-    if (this->modelState() == ModelState::Ok) {
+    if (this->modelState() == ModelState::Ok)
+    {
         int i, j;
 
         BeamModel *femModel = m_beamModel;
 
-        if (femModel == NULL) {
+        if (femModel == NULL)
+        {
             Logger::instance()->log(LogLevel::Error, "Invalid model.");
             m_modelState = ModelState::Invalid;
             return;
@@ -998,7 +1052,8 @@ void FrameSolver::recompute()
 
         ColumnVector fsys = m_fsys;
 
-        if (m_forceNode != NULL) {
+        if (m_forceNode != NULL)
+        {
             fsys((int)m_ldof(m_forceNode->getDof(0)->getNumber())) += m_force[0];
             fsys((int)m_ldof(m_forceNode->getDof(1)->getNumber())) += m_force[1];
             fsys((int)m_ldof(m_forceNode->getDof(2)->getNumber())) += m_force[2];
@@ -1017,7 +1072,8 @@ void FrameSolver::recompute()
         m_maxNodeValue = -1.0e300;
         m_GlobalA = 0.0;
 
-        for (i = 1; i <= m_nVars; i++) {
+        for (i = 1; i <= m_nVars; i++)
+        {
             m_GlobalA((int)m_gdof(i)) = m_a(i);
             if (fabs(m_a(i)) > m_maxNodeValue)
                 m_maxNodeValue = fabs(m_a(i));
@@ -1031,11 +1087,14 @@ void FrameSolver::recompute()
 
         nodeSet->clearNodeValues();
 
-        for (i = 0; i < nodeSet->getSize(); i++) {
+        for (i = 0; i < nodeSet->getSize(); i++)
+        {
             Node *node = nodeSet->getNode(i);
             node->setValueSize(3);
-            for (j = 0; j < 3; j++) {
-                if (node->getDof(j) != nullptr) {
+            for (j = 0; j < 3; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
                     nodeValue = m_GlobalA(node->getDof(j)->getNumber());
                     node->setValue(j, nodeValue);
                 }
@@ -1054,7 +1113,8 @@ void FrameSolver::update()
 
     BeamModel *femModel = m_beamModel;
 
-    if (femModel == NULL) {
+    if (femModel == NULL)
+    {
         Logger::instance()->log(LogLevel::Error, "Invalid model.");
         m_modelState = ModelState::Invalid;
         return;
@@ -1090,7 +1150,8 @@ void FrameSolver::update()
     // Element loads
     //
 
-    for (i = 0; i < elementLoadSet->getSize(); i++) {
+    for (i = 0; i < elementLoadSet->getSize(); i++)
+    {
         double vx, vy, vz;
         double value;
 
@@ -1099,7 +1160,8 @@ void FrameSolver::update()
         elementLoad->getLocalDirection(vx, vy, vz);
         value = -elementLoad->getValue();
 
-        for (j = 0; j < elementLoad->getElementsSize(); j++) {
+        for (j = 0; j < elementLoad->getElementsSize(); j++)
+        {
             Element *element = elementLoad->getElement(j);
 
             Eq(element->getNumber(), 1) = Eq(element->getNumber(), 1) + vx * value;
@@ -1194,7 +1256,8 @@ void FrameSolver::update()
                 beam->setValue(pos++, Edi(k, j));
     }
     */
-    for (i = 1; i <= elementSet->getSize(); i++) {
+    for (i = 1; i <= elementSet->getSize(); i++)
+    {
 
         double x1, y1, z1;
         double x2, y2, z2;
@@ -1227,8 +1290,10 @@ void FrameSolver::update()
         Ep(5) = Iz;
         Ep(6) = Kv;
 
-        if (beam->beamType() == btBeam) {
-            for (j = 0; j < 6; j++) {
+        if (beam->beamType() == btBeam)
+        {
+            for (j = 0; j < 6; j++)
+            {
                 DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
                 Ed(j + 1) = m_GlobalA((int)DofTopo(j + 1));
@@ -1241,7 +1306,8 @@ void FrameSolver::update()
 
             int pos = 0;
 
-            for (k = 1; k <= n; k++) {
+            for (k = 1; k <= n; k++)
+            {
                 N = Es(k, 1);
                 T = Es(k, 2);
                 Vy = Es(k, 3);
@@ -1260,8 +1326,10 @@ void FrameSolver::update()
                 for (j = 1; j <= 4; j++)
                     beam->setValue(pos++, Edi(k, j));
         }
-        else {
-            for (j = 0; j < 3; j++) {
+        else
+        {
+            for (j = 0; j < 3; j++)
+            {
                 DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
                 DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
                 Ed_b(j + 1) = m_GlobalA((int)DofTopo_b(j + 1));
@@ -1281,7 +1349,8 @@ void FrameSolver::update()
 
             int pos = 0;
 
-            for (k = 1; k <= n; k++) {
+            for (k = 1; k <= n; k++)
+            {
                 N = Es_b(k);
                 T = 0.0;
                 Vy = 0.0;
@@ -1300,7 +1369,8 @@ void FrameSolver::update()
             }
 
             for (k = 1; k <= n; k++)
-                for (j = 1; j <= 4; j++) {
+                for (j = 1; j <= 4; j++)
+                {
                     beam->setValue(pos++, 0.0);
                 }
         }
@@ -1354,7 +1424,8 @@ void FrameSolver::updateMaxMin(double N, double T, double Vy, double Vz, double 
     if (fabs(Navier) < m_minNavier)
         m_minNavier = fabs(Navier);
 
-    if (m_beamModel != nullptr) {
+    if (m_beamModel != nullptr)
+    {
         m_beamModel->setMaxN(m_maxN);
         m_beamModel->setMaxT(m_maxT);
         m_beamModel->setMaxV(m_maxV);
@@ -1381,7 +1452,8 @@ void FrameSolver::initMaxMin()
     m_maxNavier = -1.0e300;
     m_minNavier = 1.0e300;
 
-    if (m_beamModel != nullptr) {
+    if (m_beamModel != nullptr)
+    {
         m_beamModel->setMaxN(m_maxN);
         m_beamModel->setMaxT(m_maxT);
         m_beamModel->setMaxV(m_maxV);

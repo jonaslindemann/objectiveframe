@@ -33,6 +33,8 @@ public:
     virtual void setBeamModel(ofem::BeamModel *model) = 0;
     virtual void setFeedbackForce(ofem::Node *node, double fx, double fy, double fz) = 0;
     virtual double getMaxNodeValue() = 0;
+    virtual double getMaxReactionForce() = 0;
+    virtual double getMaxReactionMoment() = 0;
 
     virtual ModelState modelState() = 0;
 };

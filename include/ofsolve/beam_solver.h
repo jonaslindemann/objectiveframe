@@ -48,6 +48,8 @@ private:
     double m_minV;
     double m_maxNavier;
     double m_minNavier;
+    double m_maxReactionForce;
+    double m_maxReactionMoment;
 
     calfem::SparseSolver m_sparseSolver;
 
@@ -72,6 +74,8 @@ public:
     virtual void setBeamModel(ofem::BeamModel *model) override;
     virtual void setFeedbackForce(ofem::Node *node, double fx, double fy, double fz) override;
     virtual double getMaxNodeValue() override;
+    virtual double getMaxReactionForce() override;
+    virtual double getMaxReactionMoment() override;
 
     virtual ModelState modelState() override;
 };

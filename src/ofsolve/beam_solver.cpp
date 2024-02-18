@@ -393,6 +393,9 @@ void BeamSolver::execute()
 
     double nodeValue;
 
+    m_maxReactionForce = 0.0;
+    m_maxReactionMoment = 0.0;
+
     for (i = 0; i < nodeSet->getSize(); i++)
     {
         auto node = nodeSet->getNode(i);
@@ -414,6 +417,17 @@ void BeamSolver::execute()
                 {
                     nodeValue = m_globalQ(node->getDof(j)->getNumber() - 1);
                     node->setValue(j + 6, nodeValue);
+
+                    if (j < 3)
+                    {
+                        if (abs(nodeValue) > m_maxReactionForce)
+                            m_maxReactionForce = abs(nodeValue);
+                    }
+                    else
+                    {
+                        if (abs(nodeValue) > m_maxReactionMoment)
+                            m_maxReactionMoment = abs(nodeValue);
+                    }
                 }
             }
             else
@@ -432,6 +446,9 @@ void BeamSolver::execute()
                 {
                     nodeValue = m_globalQ(node->getDof(j)->getNumber() - 1);
                     node->setValue(j + 3, nodeValue);
+
+                    if (abs(nodeValue) > m_maxReactionForce)
+                        m_maxReactionForce = abs(nodeValue);
                 }
             }
         }
@@ -579,6 +596,16 @@ double BeamSolver::getMaxNodeValue()
     return m_maxNodeValue;
 }
 
+double ofsolver::BeamSolver::getMaxReactionForce()
+{
+    return m_maxReactionForce;
+}
+
+double ofsolver::BeamSolver::getMaxReactionMoment()
+{
+    return m_maxReactionMoment;
+}
+
 void BeamSolver::recompute()
 {
     if (this->modelState() == ModelState::Ok)
@@ -678,6 +705,9 @@ void BeamSolver::recompute()
 
         double nodeValue;
 
+        m_maxReactionForce = 0.0;
+        m_maxReactionMoment = 0.0;
+
         for (i = 0; i < nodeSet->getSize(); i++)
         {
             auto node = nodeSet->getNode(i);
@@ -699,6 +729,17 @@ void BeamSolver::recompute()
                     {
                         nodeValue = m_globalQ(node->getDof(j)->getNumber() - 1);
                         node->setValue(j + 6, nodeValue);
+
+                        if (j < 3)
+                        {
+                            if (abs(nodeValue) > m_maxReactionForce)
+                                m_maxReactionForce = abs(nodeValue);
+                        }
+                        else
+                        {
+                            if (abs(nodeValue) > m_maxReactionMoment)
+                                m_maxReactionMoment = abs(nodeValue);
+                        }
                     }
                 }
                 else
@@ -717,6 +758,15 @@ void BeamSolver::recompute()
                     {
                         nodeValue = m_globalQ(node->getDof(j)->getNumber() - 1);
                         node->setValue(j + 3, nodeValue);
+
+                        for (j = 0; j < 3; j++)
+                        {
+                            nodeValue = m_globalQ(node->getDof(j)->getNumber() - 1);
+                            node->setValue(j + 3, nodeValue);
+
+                            if (abs(nodeValue) > m_maxReactionForce)
+                                m_maxReactionForce = abs(nodeValue);
+                        }
                     }
                 }
             }

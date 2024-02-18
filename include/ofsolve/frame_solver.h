@@ -67,6 +67,9 @@ public:
     virtual void setFeedbackForce(ofem::Node *node, double fx, double fy, double fz) override;
     virtual double getMaxNodeValue() override;
 
+    virtual double getMaxReactionForce() override;
+    virtual double getMaxReactionMoment() override;
+
     virtual ModelState modelState() override;
 };
 

@@ -62,11 +62,12 @@ BeamModel::BeamModel() : ofem::BeamModel()
     m_camera = nullptr;
 
     m_useBlending = false;
+    m_maxReactionForce = 0.0;
+    m_maxReactionMoment = 0.0;
 }
 
 BeamModel::~BeamModel()
-{
-}
+{}
 
 vfem::BeamModelPtr vfem::BeamModel::create()
 {
@@ -102,7 +103,8 @@ void vfem::BeamModel::onReadComplete()
 {
     // Set the default node BCs after load
 
-    for (auto i = 0; i < this->nodeBCSet()->getSize(); i++) {
+    for (auto i = 0; i < this->nodeBCSet()->getSize(); i++)
+    {
         auto nodeBC = static_cast<ofem::BeamNodeBC *>(this->nodeBCSet()->getBC(i));
         if (nodeBC->getName() == "fixed pos/rot")
             m_defaultNodeFixedBC = ofem::BeamNodeBCPtr(nodeBC);
@@ -130,7 +132,8 @@ void BeamModel::generateModel()
 
     auto nodeSet = this->getNodeSet();
 
-    for (int i = 0; i < nodeSet->getSize(); i++) {
+    for (int i = 0; i < nodeSet->getSize(); i++)
+    {
         auto ivfNode = new vfem::Node();
         ivfNode->setBeamModel(this);
         ivfNode->setFemNode(nodeSet->getNode(i));
@@ -148,7 +151,8 @@ void BeamModel::generateModel()
 
     auto beamSet = this->getElementSet();
 
-    for (int i = 0; i < beamSet->getSize(); i++) {
+    for (int i = 0; i < beamSet->getSize(); i++)
+    {
         auto ivfBeam = new Beam();
         auto femBeam = (ofem::Beam *)beamSet->getElement(i);
         ivfBeam->setBeam(femBeam);
@@ -165,7 +169,8 @@ void BeamModel::generateModel()
 
     auto elementLoadSet = this->getElementLoadSet();
 
-    for (int i = 0; i < elementLoadSet->getSize(); i++) {
+    for (int i = 0; i < elementLoadSet->getSize(); i++)
+    {
         auto ivfBeamLoad = new vfem::BeamLoad();
         auto femBeamLoad = (ofem::BeamLoad *)elementLoadSet->getLoad(i);
         ivfBeamLoad->setBeamModel(this);
@@ -179,7 +184,8 @@ void BeamModel::generateModel()
 
     auto nodeLoadSet = this->getNodeLoadSet();
 
-    for (int i = 0; i < nodeLoadSet->getSize(); i++) {
+    for (int i = 0; i < nodeLoadSet->getSize(); i++)
+    {
         auto ivfNodeLoad = new vfem::NodeLoad();
         auto femNodeLoad = (ofem::BeamNodeLoad *)nodeLoadSet->getLoad(i);
         ivfNodeLoad->setBeamModel(this);
@@ -193,7 +199,8 @@ void BeamModel::generateModel()
 
     ofem::NodeBCSet *nodeBCSet = this->getNodeBCSet();
 
-    for (int i = 0; i < nodeBCSet->getSize(); i++) {
+    for (int i = 0; i < nodeBCSet->getSize(); i++)
+    {
         auto ivfNodeBC = new vfem::NodeBC();
         auto femNodeBC = (ofem::BeamNodeBC *)nodeBCSet->getBC(i);
         ivfNodeBC->setBeamModel(this);
@@ -211,7 +218,8 @@ void vfem::BeamModel::enumerate()
 
     ofem::NodeSet *nodeSet = this->getNodeSet();
 
-    for (int i = 0; i < nodeSet->getSize(); i++) {
+    for (int i = 0; i < nodeSet->getSize(); i++)
+    {
         nodeSet->getNode(i)->setNumber(i + 1);
     }
 }
@@ -344,6 +352,26 @@ ivf::Camera *vfem::BeamModel::camera()
     return m_camera;
 }
 
+void vfem::BeamModel::setMaxReactionForce(double force)
+{
+    m_maxReactionForce = force;
+}
+
+void vfem::BeamModel::setMaxReactionMoment(double moment)
+{
+    m_maxReactionMoment = moment;
+}
+
+double vfem::BeamModel::getMaxReactionForce()
+{
+    return m_maxReactionForce;
+}
+
+double vfem::BeamModel::getMaxReactionMoment()
+{
+    return m_maxReactionMoment;
+}
+
 ofem::BeamNodeBC *BeamModel::defaultNodePosBC()
 {
     return m_defaultNodePosBC.get();
@@ -449,7 +477,8 @@ void BeamModel::setPath(const std::string &path)
 
 ivf::Shape *BeamModel::pick(int sx, int sy)
 {
-    if (m_camera != nullptr) {
+    if (m_camera != nullptr)
+    {
         std::vector<ivf::Shape *> selectedShapes;
         double x, y, z, r;
         double vx, vy, vz;
@@ -474,14 +503,17 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
 
         auto nodeSet = this->getNodeSet();
 
-        for (int i = 0; i < nodeSet->getSize(); i++) {
+        for (int i = 0; i < nodeSet->getSize(); i++)
+        {
             auto node = nodeSet->getNode(i);
             node->getCoord(x, y, z);
 
-            if (glm::intersectRaySphere(p_orig, v_dir, glm::vec3(x, y, z), float(r), p_intersect, v_intersect_normal)) {
+            if (glm::intersectRaySphere(p_orig, v_dir, glm::vec3(x, y, z), float(r), p_intersect, v_intersect_normal))
+            {
                 glm::vec3 v_orig_sphere = p_intersect - p_orig;
                 d = v_orig_sphere.length();
-                if (d < min_node_d) {
+                if (d < min_node_d)
+                {
                     min_node_d = d;
                     selected_node_idx = i;
                     min_node_shape = static_cast<ivf::Shape *>(node->getUser());
@@ -500,7 +532,8 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
         double x0, y0, z0;
         double x1, y1, z1;
 
-        for (int i = 0; i < elementSet->getSize(); i++) {
+        for (int i = 0; i < elementSet->getSize(); i++)
+        {
             auto beam = elementSet->getElement(i);
             auto n0 = beam->getNode(0);
             auto n1 = beam->getNode(1);
@@ -519,12 +552,14 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
             double d = glm::length(v_cyl);
 
             if (ofmath::intersectRayOrientedCylinder(p_orig, v_dir, float(r), float(d), v_n0, v_cyl, p_intersect,
-                                                     v_normal)) {
+                                                     v_normal))
+            {
                 glm::vec3 v_orig_sphere = v_mid - p_orig;
 
                 d = glm::length(v_orig_sphere);
 
-                if (d < min_beam_d) {
+                if (d < min_beam_d)
+                {
                     min_beam_d = d;
                     selected_beam_idx = i;
                     min_beam_shape = static_cast<ivf::Shape *>(beam->getUser());
@@ -534,7 +569,8 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
         if (min_beam_shape != nullptr)
             std::cout << "beam " << selected_beam_idx << " found...\n";
 
-        if ((min_node_shape != nullptr) && (min_beam_shape != nullptr)) {
+        if ((min_node_shape != nullptr) && (min_beam_shape != nullptr))
+        {
             return min_node_shape;
         }
 

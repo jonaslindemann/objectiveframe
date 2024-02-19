@@ -12,9 +12,9 @@
 using namespace ofui;
 
 SettingsWindow::SettingsWindow(const std::string name)
-    : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f},
-      m_loadSize{7.0f}, m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false},
-      m_showNodeNumbers{true}, m_uiScale{1.0f}, m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}
+    : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f}, m_loadSize{7.0f},
+      m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false}, m_showNodeNumbers{true}, m_uiScale{1.0f},
+      m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}, m_saveScreenShot{false}
 {}
 
 SettingsWindow::~SettingsWindow()
@@ -39,6 +39,7 @@ void ofui::SettingsWindow::setFemView(FemViewWindow *view)
         m_sphereNodes = false;
 
     m_useImGuiFileDialogs = m_view->getUseImGuiFileDialogs();
+    m_saveScreenShot = m_view->getSaveScreenShot();
 }
 #else
 void SettingsWindow::setFemWidget(FemWidget *femWidget)
@@ -78,6 +79,7 @@ void SettingsWindow::update()
     }
 
     m_view->setUseImGuiFileDialogs(m_useImGuiFileDialogs);
+    m_view->setSaveScreenShot(m_saveScreenShot);
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
@@ -108,6 +110,7 @@ void SettingsWindow::doDraw()
 
     ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
     ImGui::Checkbox("Use ImGui file dialogs", &m_useImGuiFileDialogs);
+    ImGui::Checkbox("Save screenshot on save", &m_saveScreenShot);
 
     ImGui::Separator();
 

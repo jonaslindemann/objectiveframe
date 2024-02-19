@@ -24,6 +24,7 @@ private:
     bool m_offscreenRendering;
     bool m_sphereNodes;
     bool m_useImGuiFileDialogs;
+    bool m_saveScreenShot;
     int m_lineSides;
 
 #ifdef USE_FEMVIEW

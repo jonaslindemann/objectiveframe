@@ -309,7 +309,7 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
       m_useBlending{false}, m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""},
       m_showNodeBCsWindow{false}, m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false},
       m_elementSelection{false}, m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false},
-      m_saveAsDialog{false}, m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}
+      m_saveAsDialog{false}, m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -1407,6 +1407,15 @@ void FemViewWindow::addLastNodeToSelection()
     }
 
     redraw();
+}
+
+void FemViewWindow::saveScreenShot(std::string filename)
+{
+    BYTE *pixels = new BYTE[3 * this->width() * this->height()];
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, this->width(), this->height(), GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    ofutil::saveImage(filename, pixels, this->width(), this->height());
+    delete[] pixels;
 }
 
 void FemViewWindow::subdivideSelectedBeam()
@@ -2624,6 +2633,16 @@ void FemViewWindow::setUiScale(float scale)
     m_uiScale = scale;
 
     this->refreshUiStyle();
+}
+
+void FemViewWindow::setSaveScreenShot(bool flag)
+{
+    m_saveScreenShot = flag;
+}
+
+bool FemViewWindow::getSaveScreenShot()
+{
+    return m_saveScreenShot;
 }
 
 void FemViewWindow::setInteractionNode(vfem::Node *interactionNode)
@@ -4612,7 +4631,12 @@ void FemViewWindow::onDrawImGui()
                 ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
             }
             else
+            {
                 m_beamModel->save();
+                if (m_saveScreenShot)
+                    this->saveScreenShot(m_fileName + ".png");
+                m_saveDialog = false;
+            }
         }
 
         if (m_saveAsDialog)
@@ -4667,6 +4691,8 @@ void FemViewWindow::onDrawImGui()
                     this->setFileName(filePathName);
                     m_beamModel->setFileName(m_fileName);
                     m_beamModel->save();
+                    if (m_saveScreenShot)
+                        this->saveScreenShot(m_fileName + ".png");
                 }
             }
 

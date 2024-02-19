@@ -5,6 +5,9 @@
 #include <iostream>
 #include <sstream>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+
 #ifdef WIN32
 #include <shlobj.h>
 #include <windows.h>
@@ -223,6 +226,25 @@ bool set_config_value(std::string key, std::string value)
     RegCloseKey(hKey);
 
     return lResult == ERROR_SUCCESS;
+}
+
+void flipImageVertically(GLubyte *data, unsigned width, unsigned height)
+{
+    size_t rowSize = width * 3; // RGB
+    GLubyte *rowBuffer = (GLubyte *)malloc(rowSize);
+    for (int i = 0; i < height / 2; ++i)
+    {
+        memcpy(rowBuffer, data + i * rowSize, rowSize);
+        memcpy(data + i * rowSize, data + (height - i - 1) * rowSize, rowSize);
+        memcpy(data + (height - i - 1) * rowSize, rowBuffer, rowSize);
+    }
+    free(rowBuffer);
+}
+
+void saveImage(std::string &filename, GLubyte *data, int width, int height)
+{
+    flipImageVertically(data, width, height);
+    stbi_write_png(filename.c_str(), width, height, 3, data, width * 3);
 }
 
 } // namespace ofutil

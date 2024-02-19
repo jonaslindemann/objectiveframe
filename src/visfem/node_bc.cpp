@@ -75,6 +75,12 @@ void NodeBC::refresh()
 {
     if (m_nodeBC != nullptr)
     {
+        if (m_bc.size() != m_nodeBC->getNodeSize())
+        {
+            setNodeBC(m_nodeBC);
+            return;
+        }
+
         for (auto i = 0; i < m_nodeBC->getNodeSize(); i++)
         {
             double x, y, z;

@@ -173,6 +173,7 @@ private:
     bool m_elementSelection;
     bool m_singleElementSelection;
     bool m_mixedSelection;
+    bool m_saveScreenShot;
 
     CustomMode m_customMode;
     bool m_customModeSet;
@@ -396,6 +397,9 @@ public:
     float uiScale();
     void setUiScale(float scale);
 
+    void setSaveScreenShot(bool flag);
+    bool getSaveScreenShot();
+
     // Methods
 
     void hideAllDialogs();
@@ -448,6 +452,7 @@ public:
     void assignNodeLoadSelected();
     void addNodeLoad(ofem::BeamNodeLoad *nodeLoad);
     void addLastNodeToSelection();
+    void saveScreenShot(std::string filename);
 
     void subdivideSelectedBeam();
     void meshSelectedNodes();

@@ -9,12 +9,10 @@ using namespace ofui;
 
 Texture::Texture(const std::string filename)
     : m_filename(filename), m_imageWidth(-1), m_imageHeight(-1), m_textureId(0), m_loaded(false), m_channels(-1)
-{
-}
+{}
 
 Texture::~Texture()
-{
-}
+{}
 
 std::shared_ptr<Texture> Texture::create(const std::string filename)
 {
@@ -23,7 +21,8 @@ std::shared_ptr<Texture> Texture::create(const std::string filename)
 
 void Texture::load()
 {
-    if (m_loaded) {
+    if (m_loaded)
+    {
         return;
     }
 
@@ -31,7 +30,8 @@ void Texture::load()
 
     unsigned char *data = stbi_load(m_filename.c_str(), &m_imageWidth, &m_imageHeight, &m_channels, 0);
 
-    if (data) {
+    if (data)
+    {
         glGenTextures(1, &m_textureId);
         glBindTexture(GL_TEXTURE_2D, m_textureId);
 
@@ -39,26 +39,30 @@ void Texture::load()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                         GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); // Same
 
-        if (m_channels == 3) {
+        if (m_channels == 3)
+        {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_imageWidth, m_imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         }
-        else if (m_channels == 4) {
+        else if (m_channels == 4)
+        {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imageWidth, m_imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         }
         // glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(data);
         m_loaded = true;
     }
-    else {
+    else
+    {
         std::cout << "Failed to load texture" << std::endl;
     }
 }
 
 void Texture::unload()
 {
-    if (!m_loaded) {
+    if (!m_loaded)
+    {
         return;
     }
     glDeleteTextures(1, &m_textureId);
@@ -67,7 +71,8 @@ void Texture::unload()
 
 void Texture::bind()
 {
-    if (!m_loaded) {
+    if (!m_loaded)
+    {
         load();
     }
     glBindTexture(GL_TEXTURE_2D, m_textureId);

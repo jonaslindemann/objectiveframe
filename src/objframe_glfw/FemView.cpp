@@ -843,6 +843,7 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
     m_pluginPath = m_progPath / fs::path("plugins");
     m_mapPath = m_progPath / fs::path("maps");
     m_pythonPath = m_progPath / fs::path("python");
+    m_examplePath = m_progPath / fs::path("examples");
 }
 
 const std::string FemViewWindow::getProgPath()
@@ -1942,6 +1943,30 @@ void FemViewWindow::setupPlugins()
     }
     else
         log("Couldn't find load any plugins...");
+}
+
+void FemViewWindow::setupExamples()
+{
+    log("Setting up examples...");
+
+    namespace fs = std::filesystem;
+
+    if (std::filesystem::is_directory(m_examplePath))
+    {
+        for (const auto &entry : std::filesystem::directory_iterator(m_examplePath))
+        {
+            auto filename = entry.path();
+            if (filename.extension() == ".df3")
+            {
+                m_examples.push_back(filename.string());
+                log("Found example - " + filename.string());
+            }
+        }
+
+        std::sort(m_examples.begin(), m_examples.end());
+    }
+    else
+        log("Couldn't find load any examples...");
 }
 
 void FemViewWindow::refreshUiStyle()
@@ -3223,6 +3248,11 @@ void FemViewWindow::onInit()
 
     m_mainToolbarWindow->addToolbarGroup(m_editToolbarWindow);
     m_editToolbarWindow->addToolbarGroup(m_mainToolbarWindow);
+
+    this->setupExamples();
+
+    for (auto &filename : m_examples)
+        m_startPopup->addExample(filename, filename + ".png");
 
     // Tetgen
 

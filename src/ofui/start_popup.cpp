@@ -10,7 +10,7 @@ using namespace ofui;
 StartPopup::StartPopup(const std::string name, bool modal) : PopupWindow(name, modal), m_view(nullptr)
 {
     this->setWindowFlags(ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
-    this->setSize(800, 800);
+    // this->setSize(800, 800);
 }
 
 StartPopup::~StartPopup()
@@ -26,53 +26,82 @@ void ofui::StartPopup::setView(FemViewWindow *view)
     m_view = view;
 }
 
+void ofui::StartPopup::addExample(const std::string &filename, const std::string &imageFilename)
+{
+    m_exampleFilename.push_back(filename);
+
+    auto texture = Texture::create(imageFilename);
+    texture->load();
+
+    m_exampleImage.push_back(texture);
+}
+
 void StartPopup::doPopup()
 {
     // ImGui::Dummy(ImVec2(800.0, 800.0));
     ImGui::Text("Welcome to ObjectiveFrame!");
-
     ImGui::NewLine();
 
-    if (ImGui::BeginTable("table2", 2))
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(
+        "Select one of the examples below or use the buttons to the right to create new models or open "
+        "existing models.");
+    ImGui::PopTextWrapPos();
+
+    auto imageIdx = 0;
+
+    // if (ImGui::BeginTable("table2", 2, ImGuiTableFlags_Resizable))
+    //{
+    //     ImGui::TableNextRow();
+    //     ImGui::TableNextColumn();
+    if (ImGui::BeginTable("table3", 4, ImGuiTableFlags_Resizable))
     {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (ImGui::BeginTable("table3", 4))
+        for (int i = 0; i < 4; i++)
         {
-            for (int i = 0; i < 4; i++)
+            ImGui::TableNextRow();
+            for (int j = 0; j < 4; j++)
             {
-                for (int j = 0; j < 4; j++)
+                ImGui::TableNextColumn();
+                if (imageIdx < m_exampleImage.size())
                 {
-                    ImGui::Text(std::format("Sample {},{}", i, j).c_str());
-                    ImGui::TableNextColumn();
+                    m_exampleImage[imageIdx]->bind();
+                    ImGui::Image((ImTextureID)m_exampleImage[imageIdx]->id(), ImVec2(180, 180));
+                    m_exampleImage[imageIdx]->unbind();
+                    imageIdx++;
                 }
-                ImGui::TableNextRow();
+                else
+                {
+                    ImGui::Text("No image");
+                }
             }
-            ImGui::EndTable();
-        }
-        ImGui::TableNextColumn();
-        if (ImGui::Button("New Project...", ImVec2(140, 0)))
-        {
-            this->close(PopupResult::OK);
-            ImGui::CloseCurrentPopup();
-        }
-        if (ImGui::Button("Open Model...", ImVec2(140, 0)))
-        {
-            this->close(PopupResult::OK);
-            ImGui::CloseCurrentPopup();
-        }
-        if (ImGui::Button("Open Python model...", ImVec2(140, 0)))
-        {
-            this->close(PopupResult::OK);
-            ImGui::CloseCurrentPopup();
-        }
-        if (ImGui::Button("Start automation API", ImVec2(140, 0)))
-        {
-            this->close(PopupResult::OK);
-            ImGui::CloseCurrentPopup();
         }
         ImGui::EndTable();
     }
+    /*
+    ImGui::TableNextColumn();
+    if (ImGui::Button("New Project...", ImVec2(140, 0)))
+    {
+        this->close(PopupResult::OK);
+        ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Open Model...", ImVec2(140, 0)))
+    {
+        this->close(PopupResult::OK);
+        ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Open Python model...", ImVec2(140, 0)))
+    {
+        this->close(PopupResult::OK);
+        ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Start automation API", ImVec2(140, 0)))
+    {
+        this->close(PopupResult::OK);
+        ImGui::CloseCurrentPopup();
+    }
+    */
+    //        ImGui::EndTable();
+    //}
 
     ImVec2 button_size = ImGui::CalcItemSize(ImVec2{120, 0}, 0.0f, 0.0f);
     ImVec2 winSize = ImGui::GetWindowSize();

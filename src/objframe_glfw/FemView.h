@@ -161,6 +161,7 @@ private:
     std::filesystem::path m_pluginPath;
     std::filesystem::path m_mapPath;
     std::filesystem::path m_pythonPath;
+    std::filesystem::path m_examplePath;
 
     bool m_overlaySelected;
     bool m_haveScaleFactor;
@@ -309,6 +310,10 @@ private:
 
     std::vector<ScriptPluginPtr> m_plugins;
 
+    // Examples
+
+    std::vector<std::string> m_examples;
+
     // Web service
 
     ofservice::ServicePtr m_service;
@@ -332,6 +337,7 @@ private:
     void setupScript(chaiscript::ChaiScript &script);
     void setupOverlay();
     void setupPlugins();
+    void setupExamples();
 
     void refreshUiStyle();
 

@@ -65,7 +65,7 @@ void StartPopup::doPopup()
                 if (imageIdx < m_exampleImage.size())
                 {
                     m_exampleImage[imageIdx]->bind();
-                    ImGui::Image((ImTextureID)m_exampleImage[imageIdx]->id(), ImVec2(180, 180));
+                    ImGui::ImageButton((ImTextureID)m_exampleImage[imageIdx]->id(), ImVec2(180, 180));
                     m_exampleImage[imageIdx]->unbind();
                     imageIdx++;
                 }

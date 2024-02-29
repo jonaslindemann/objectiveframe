@@ -4,6 +4,9 @@
 #include <ivf/ExtrArrow.h>
 #include <ivf/Material.h>
 #include <ivf/Transform.h>
+#include <ivf/Cone.h>
+
+#include <ivfgle/GleSpiralCylinder.h>
 
 #include <vfem/beam_model.h>
 
@@ -17,11 +20,20 @@ private:
     ivf::ExtrArrowPtr m_reactionY;
     ivf::ExtrArrowPtr m_reactionZ;
 
-    ivf::TransformPtr m_dispX;
-    ivf::TransformPtr m_dispY;
-    ivf::TransformPtr m_dispZ;
+    ivf::GleSpiralCylinderPtr m_momentX;
+    ivf::GleSpiralCylinderPtr m_momentY;
+    ivf::GleSpiralCylinderPtr m_momentZ;
 
-    ivf::MaterialPtr m_arrowMaterial;
+    ivf::ConePtr m_momentConeX;
+    ivf::ConePtr m_momentConeY;
+    ivf::ConePtr m_momentConeZ;
+
+    ivf::TransformPtr m_coneXfmX;
+    ivf::TransformPtr m_coneXfmY;
+    ivf::TransformPtr m_coneXfmZ;
+
+    ivf::MaterialPtr m_forceMaterial;
+    ivf::MaterialPtr m_momentMaterial;
 
     double m_F[3];
     double m_M[3];
@@ -49,7 +61,8 @@ public:
     virtual void refresh() override;
 
     void setBeamModel(vfem::BeamModel *model);
-    void setArrowMaterial(ivf::Material *material);
+    void setForceMaterial(ivf::Material *material);
+    void setMomentMaterial(ivf::Material *material);
 };
 
 } // namespace vfem

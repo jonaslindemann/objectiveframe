@@ -64,11 +64,19 @@ void NodeBC::setNodeBC(ofem::BeamNodeBC *bc)
 
 void NodeBC::doCreateGeometry()
 {
-    for (auto &bc : m_bc)
-        bc->render();
-
-    for (auto &reaction : m_reaction)
-        reaction->render();
+    if (m_beamModel != nullptr)
+    {
+        if ((m_beamModel->getResultType() == IVF_BEAM_NO_RESULT) && (m_beamModel->getNodeType() == IVF_NODE_GEOMETRY))
+        {
+            for (auto &bc : m_bc)
+                bc->render();
+        }
+        else
+        {
+            for (auto &reaction : m_reaction)
+                reaction->render();
+        }
+    }
 }
 
 void NodeBC::refresh()

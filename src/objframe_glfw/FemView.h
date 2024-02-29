@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.1.7";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.2.0";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2024\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -534,6 +534,11 @@ public:
 
     virtual void onButtonClicked(ofui::OfToolbarButton &button);
     virtual void onButtonHover(ofui::OfToolbarButton &button);
+
+    // Start popup events
+
+    virtual void onStartButtonClicked(ofui::OfStartButton &button);
+    virtual void onExampleClicked(std::string &filename);
 
     // Plugin handling
 

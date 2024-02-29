@@ -25,4 +25,5 @@ BraceWrapping:
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeColon
 IndentWidth: 4
+SortIncludes: false
 ...

@@ -594,6 +594,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         setHighlightFilter(HighlightMode::All);
         setSelectFilter(SelectMode::All);
         setRepresentation(RepresentationMode::Fem);
+        m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
         break;
     case WidgetMode::BoxSelection:
         log("WidgetMode::BoxSelect");
@@ -3254,6 +3255,10 @@ void FemViewWindow::onInit()
     for (auto &filename : m_examples)
         m_startPopup->addExample(filename, filename + ".png");
 
+    m_startPopup->assignStartButtonClickedFunc(
+        std::bind(&FemViewWindow::onStartButtonClicked, this, std::placeholders::_1));
+    m_startPopup->assignExampleClickedFunc(std::bind(&FemViewWindow::onExampleClicked, this, std::placeholders::_1));
+
     // Tetgen
 
     log("Initialising tetmesh...");
@@ -4269,6 +4274,41 @@ void FemViewWindow::onButtonHover(ofui::OfToolbarButton &button)
         console("Create node boundary conditions.");
 }
 
+void FemViewWindow::onStartButtonClicked(ofui::OfStartButton &button)
+{
+    if (button == OfStartButton::NewModel)
+    {
+        this->newModel();
+    }
+    if (button == OfStartButton::OpenModel)
+    {
+        m_openDialog = true;
+    }
+    if (button == OfStartButton::OpenPythonModel)
+    {
+        m_openFromCalfemDialog = true;
+    }
+    if (button == OfStartButton::StartAPI)
+    {
+        if (this->isServiceRunning())
+            this->stopService();
+        else
+            this->startService();
+    }
+    if (button == OfStartButton::Documentation)
+    {
+#ifdef WIN32
+        ShellExecuteW(0, 0, L"https://jonaslindemann.github.io/objectiveframe/", 0, 0, SW_SHOW);
+#endif
+    }
+}
+
+void FemViewWindow::onExampleClicked(std::string &filename)
+{
+    this->open(filename);
+    this->setFileName("noname.df3");
+}
+
 void FemViewWindow::onHighlightFilter(Shape *shape, bool &highlight)
 {
     switch (m_highlightFilter)
@@ -4354,6 +4394,13 @@ void FemViewWindow::onDrawImGui()
     {
         if (ImGui::BeginMenu("File"))
         {
+            if (ImGui::MenuItem("Start page", ""))
+            {
+                m_startPopup->show();
+            }
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("New", "CTRL+N"))
             {
                 m_showNewFileDlg = true;

@@ -31,7 +31,7 @@ void Reaction::initReaction()
     m_forceMaterial->setDiffuseColor(1.0f, 0.5f, 0.0f, 1.0f);
 
     m_momentMaterial = ivf::Material::create();
-    m_momentMaterial->setDiffuseColor(0.0f, 0.5f, 1.0f, 1.0f);
+    m_momentMaterial->setDiffuseColor(1.0f, 0.5f, 0.0f, 1.0f);
 
     m_reactionX->setMaterial(m_forceMaterial);
     m_reactionY->setMaterial(m_forceMaterial);
@@ -133,7 +133,7 @@ void Reaction::refresh()
     m_momentConeX->setHeight(0.1);
 
     if (momentSizeX > 0.0)
-        m_coneXfmX->setRotation(-momentSizeX + 5.0, 0.0, 0.0);
+        m_coneXfmX->setRotation(momentSizeX + 5.0, 0.0, 0.0);
     else
         m_coneXfmX->setRotation(momentSizeX - 5.0, 0.0, 0.0);
 

@@ -301,7 +301,7 @@ unsigned int fl_cmap[256] = {
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
     : IvfViewWindow(width, height, title, monitor, shared), m_uiScale{1.0f}, m_service{nullptr}, m_width{width},
       m_height{height}, m_tactileForce{nullptr}, m_currentSolver{nullptr}, m_relNodeSize{0.004},
-      m_relLineRadius{0.0015}, m_relLoadSize{0.07}, m_customMode{CustomMode::Feedback},
+      m_relLineRadius{0.0015}, m_relLoadSize{0.06}, m_customMode{CustomMode::Feedback},
       m_customModeSet{false}, m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
       m_haveScaleFactor{false}, m_needRecalc{true}, m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All},
       m_highlightFilter{HighlightMode::All}, m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},

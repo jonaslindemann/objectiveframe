@@ -3184,6 +3184,8 @@ void FemViewWindow::onInit()
     m_windowList->add(m_loadMixerWindow);
 
     m_startPopup = StartPopup::create("Start window", true);
+    m_startPopup->setVersionString(OBJFRAME_VERSION_STRING);
+    m_startPopup->setRelease(OBJFRAME_RELEASE);
     m_startPopup->setView(this);
     m_startPopup->setVisible(true);
 

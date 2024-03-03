@@ -47,6 +47,16 @@ void ofui::StartPopup::assignExampleClickedFunc(ExampleClickedFunc func)
     m_exampleClickedFunc = func;
 }
 
+void ofui::StartPopup::setVersionString(const std::string &versionString)
+{
+    m_versionString = versionString;
+}
+
+void ofui::StartPopup::setRelease(const std::string &release)
+{
+    m_release = release;
+}
+
 void StartPopup::doPopup()
 {
     // ImGui::Dummy(ImVec2(800.0, 800.0));
@@ -163,6 +173,13 @@ void StartPopup::doPopup()
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
         }
+
+        ImGui::Dummy(ImVec2(0.0, 430.0));
+
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
+        ImGui::TextUnformatted(m_versionString.c_str());
+        ImGui::TextUnformatted(m_release.c_str());
+        ImGui::PopTextWrapPos();
 
         ImGui::EndTable();
     }

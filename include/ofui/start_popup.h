@@ -29,6 +29,9 @@ private:
     std::vector<std::string> m_exampleFilename;
     std::vector<TexturePtr> m_exampleImage;
 
+    std::string m_versionString;
+    std::string m_release;
+
     StartButtonClickedFunc m_startButtonClickedFunc;
     ExampleClickedFunc m_exampleClickedFunc;
 
@@ -43,6 +46,9 @@ public:
     void addExample(const std::string &filename, const std::string &imageFilename);
     void assignStartButtonClickedFunc(StartButtonClickedFunc func);
     void assignExampleClickedFunc(ExampleClickedFunc func);
+
+    void setVersionString(const std::string &versionString);
+    void setRelease(const std::string &release);
 
 protected:
     virtual void doPopup();

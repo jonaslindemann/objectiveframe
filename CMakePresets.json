@@ -3,7 +3,7 @@
     "configurePresets": [
       {
         "name": "default",
-        "toolchainFile": "e:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "toolchainFile": "c:/vcpkg/scripts/buildsystems/vcpkg.cmake"
       },
       {
         "name": "linux",

@@ -55,7 +55,7 @@ void Texture::load()
     }
     else
     {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture: " << m_filename << std::endl;
     }
 }
 

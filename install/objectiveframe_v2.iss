@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ObjectiveFrame"
-#define MyAppVersion "2.1.6"
+#define MyAppVersion "2.2.0"
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
 #define MyAppExeName "objframe_glfw.exe"
@@ -57,6 +57,7 @@ Source: "..\bin\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recurse
 Source: "..\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\plugins\*"; DestDir: "{app}\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\python\*"; DestDir: "{app}\python"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\examples\*"; DestDir: "{app}\examples"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

@@ -3,7 +3,7 @@ file(GLOB INCLUDE_FILES *.h)
 
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
 
-
+ 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include/ofui )
 	add_definitions(-DUSE_FEMVIEW)
@@ -27,10 +27,10 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
     if (WIN32)
-        target_link_libraries(objframe_glfwd femd ofsolved ofserviced visfemd utild ofmathd ivfd ivfgled ivfmathd ivfimaged ofui_glfwd gleivfd gladd newmatd imguifdd civetwebd PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL)
+        target_link_libraries(objframe_glfwd femd ofsolved ofserviced visfemd utild ofmathd ivfd ivfgled ivfmathd ivfimaged ofui_glfwd gleivfd gladd newmatd imguifdd civetwebd PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl nlohmann_json::nlohmann_json)
     else()
-        target_link_libraries(objframe_glfwd femd ofsolved ofserviced visfemd utild ofmathd ivf ivfgle ivfmath ivfimage ofui_glfwd gleivf glad newmatd imguifdd civetwebd PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL)
+        target_link_libraries(objframe_glfwd femd ofsolved ofserviced visfemd utild ofmathd ivf ivfgle ivfmath ivfimage ofui_glfwd gleivf glad newmatd imguifdd civetwebd PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl nlohmann_json::nlohmann_json)
     endif()
 else()
-    target_link_libraries(objframe_glfw fem ofsolve ofservice visfem util ofmath ivf ivfgle ivfmath ivfimage ofui_glfw gleivf glad newmat imguifd civetweb PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL)
+    target_link_libraries(objframe_glfw fem ofsolve ofservice visfem util ofmath ivf ivfgle ivfmath ivfimage ofui_glfw gleivf glad newmat imguifd civetweb PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl nlohmann_json::nlohmann_json)
 endif() 

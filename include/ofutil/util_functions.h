@@ -20,8 +20,13 @@ std::string doc_folder();
 std::string samples_folder();
 std::string get_config_value(std::string key, std::string default_value);
 bool set_config_value(std::string key, std::string value);
+std::string read_file(std::string filename);
 
 void flipImageVertically(GLubyte *data, unsigned width, unsigned height);
 void saveImage(std::string &filename, GLubyte *data, int width, int height);
+
+void rand_seed();
+double rand_float(double min, double max);
+int rand_int(int min, int max);
 
 } // namespace ofutil

@@ -34,6 +34,8 @@ public:
     void hideAll();
     void showAll();
 
+    bool isAnyFocused();
+
     void draw();
 };
 

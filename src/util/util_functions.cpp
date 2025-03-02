@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <format>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -141,6 +142,21 @@ int to_int(std::string str)
         return -1;
 }
 
+std::string read_file(std::string filename)
+{
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        std::cout << "Couldn't open file: " << filename << std::endl;
+        return std::string();
+    }
+
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+
+    return content;
+}
+
 std::string doc_folder()
 {
 #ifdef WIN32
@@ -245,6 +261,21 @@ void saveImage(std::string &filename, GLubyte *data, int width, int height)
 {
     flipImageVertically(data, width, height);
     stbi_write_png(filename.c_str(), width, height, 3, data, width * 3);
+}
+
+void rand_seed()
+{
+    srand(time(NULL));
+}
+
+double rand_float(double min, double max)
+{
+    return min + (max - min) * (rand() / (RAND_MAX + 1.0));
+}
+
+int rand_int(int min, int max)
+{
+    return min + (rand() % (max - min + 1));
 }
 
 } // namespace ofutil

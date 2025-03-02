@@ -6,8 +6,9 @@ using namespace ofui;
 
 UiWindow::UiWindow(const std::string name)
     : m_name{name}, m_visible{true}, m_windowFlags{ImGuiWindowFlags_AlwaysAutoResize}, m_updatePos{false},
-      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false}, m_firstDraw{true}, m_width{-1},
-      m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false}, m_autoPlacement{true}, m_newBottomPos{false}
+      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false},
+      m_firstDraw{true}, m_width{-1}, m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false},
+      m_autoPlacement{true}, m_newBottomPos{false}, m_isFocused{false}
 {}
 
 UiWindow::~UiWindow()
@@ -103,9 +104,15 @@ void UiWindow::draw()
         }
         doPreDraw();
         if (m_canClose)
+        {
             ImGui::Begin(m_name.c_str(), &m_visible, m_windowFlags); //, nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            m_isFocused = ImGui::IsWindowFocused();
+        }
         else
+        {
             ImGui::Begin(m_name.c_str(), nullptr, m_windowFlags);
+            m_isFocused = ImGui::IsWindowFocused();
+        }
         doDraw();
 
         if (!m_firstDraw)
@@ -182,6 +189,11 @@ void ofui::UiWindow::setAutoPlacement(bool flag)
     m_autoPlacement = flag;
 }
 
+bool ofui::UiWindow::isFocused()
+{
+    return m_isFocused;
+}
+
 bool ofui::UiWindow::canClose()
 {
     return m_canClose;
@@ -220,6 +232,11 @@ void ofui::UiWindow::setPositionFromBottom(int x, int y)
     m_x = x;
     m_y = y;
     m_newBottomPos = true;
+}
+
+void ofui::UiWindow::enableMenuBar()
+{
+    m_windowFlags |= ImGuiWindowFlags_MenuBar;
 }
 
 int ofui::UiWindow::x()

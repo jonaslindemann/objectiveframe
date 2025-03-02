@@ -18,3 +18,4 @@ build/
 reference/html/
 *.lnk
 .vs/*
+/vcpkg_installed

@@ -309,7 +309,8 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
       m_useBlending{false}, m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""},
       m_showNodeBCsWindow{false}, m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false},
       m_elementSelection{false}, m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false},
-      m_saveAsDialog{false}, m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}
+      m_saveAsDialog{false}, m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false},
+      m_openScriptDialog{false}, m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -345,6 +346,46 @@ void FemViewWindow::runPlugin(ScriptPlugin *plugin)
         log(e.pretty_print());
     }
     script.set_state(s);
+}
+
+void FemViewWindow::runScript(std::string scriptFilename)
+{
+    this->snapShot();
+
+    chaiscript::ChaiScript chai;
+    this->setupScript(chai);
+
+    auto scriptSource = ofutil::read_file(scriptFilename);
+
+    try
+    {
+        chai.eval(scriptSource);
+    } catch (const chaiscript::exception::eval_error &e)
+    {
+        log(e.pretty_print());
+    }
+
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::runScriptFromText(std::string scriptText)
+{
+    this->snapShot();
+
+    chaiscript::ChaiScript chai;
+    this->setupScript(chai);
+
+    try
+    {
+        chai.eval(scriptText);
+    } catch (const chaiscript::exception::eval_error &e)
+    {
+        log(e.pretty_print());
+    }
+
+    this->set_changed();
+    this->redraw();
 }
 
 // Get/set methods
@@ -1539,9 +1580,6 @@ void FemViewWindow::meshSelectedNodes()
         for (auto i = 0; i < m_tetMesher->edges().count(); i++)
         {
             auto edge = m_tetMesher->edges().at(i);
-
-            std::cout << edge.index() << ", " << edge.i0() << ", " << edge.i1() << "\n";
-
             this->addBeam(edge.i0() - 1, edge.i1() - 1);
         }
     }
@@ -1603,22 +1641,14 @@ void FemViewWindow::surfaceSelectedNodes(bool groundElements)
                 n1->getCoord(x, y1, z);
                 n2->getCoord(x, y2, z);
 
-                std::cout << y0 << ", " << y1 << ", " << y2 << "\n";
-
                 if (!(is_equal(y0, 0.0) && is_equal(y1, 0.0)))
                     this->addBeam(face.i0() - 1, face.i1() - 1);
-                else
-                    std::cout << "ground beam\n";
 
                 if (!(is_equal(y1, 0.0) && is_equal(y2, 0.0)))
                     this->addBeam(face.i1() - 1, face.i2() - 1);
-                else
-                    std::cout << "ground beam\n";
 
                 if (!(is_equal(y2, 0.0) && is_equal(y0, 0.0)))
                     this->addBeam(face.i2() - 1, face.i0() - 1);
-                else
-                    std::cout << "ground beam\n";
             }
         }
     }
@@ -1921,6 +1951,16 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
     script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCGround, this), "assignNodeFixedBCGround");
     script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCGround, this), "assignNodePosBCGround");
     script.add(chaiscript::fun(&FemViewWindow::addLastNodeToSelection, this), "addLastNodeToSelection");
+    script.add(chaiscript::fun(&FemViewWindow::nodePos, this), "nodeCoord");
+    script.add(chaiscript::fun(&FemViewWindow::updateNodePos, this), "updateNodePos");
+    script.add(chaiscript::fun(&FemViewWindow::nodePosAt, this), "nodePosAt");
+    script.add(chaiscript::fun(&FemViewWindow::updateNodePosAt, this), "updateNodePosAt");
+    script.add(chaiscript::fun(&FemViewWindow::nodeAt, this), "nodeAt");
+    script.add(chaiscript::fun(&FemViewWindow::isNodeSelected, this), "isNodeSelected");
+    script.add(chaiscript::fun(&FemViewWindow::isNodeSelectedAt, this), "isNodeSelectedAt");
+    script.add(chaiscript::fun(&FemViewWindow::randFloat, this), "randFloat");
+    script.add(chaiscript::fun(&FemViewWindow::randInt, this), "randInt");
+    script.add(chaiscript::fun(&FemViewWindow::randSeed, this), "randSeed");
 }
 
 void FemViewWindow::setupPlugins()
@@ -2525,6 +2565,68 @@ vfem::Beam *FemViewWindow::addBeam(int i0, int i1)
 size_t FemViewWindow::nodeCount()
 {
     return m_beamModel->getNodeSet()->getSize();
+}
+
+void FemViewWindow::nodePos(vfem::Node *node, double &x, double &y, double &z)
+{
+    node->getPosition(x, y, z);
+}
+
+void FemViewWindow::nodePosAt(int i, double &x, double &y, double &z)
+{
+    if (i < m_beamModel->getNodeSet()->getSize())
+    {
+        auto node = m_beamModel->getNodeSet()->getNode(i);
+        auto ivfNode = static_cast<vfem::Node *>(node->getUser());
+        ivfNode->getPosition(x, y, z);
+    }
+}
+
+void FemViewWindow::updateNodePos(vfem::Node *node, double x, double y, double z)
+{
+    node->setPosition(x, y, z);
+}
+
+void FemViewWindow::updateNodePosAt(int i, double x, double y, double z)
+{
+    if (i < m_beamModel->getNodeSet()->getSize())
+    {
+        auto node = m_beamModel->getNodeSet()->getNode(i);
+        auto ivfNode = static_cast<vfem::Node *>(node->getUser());
+        ivfNode->setPosition(x, y, z);
+    }
+}
+
+vfem::Node *FemViewWindow::nodeAt(int i)
+{
+    return static_cast<vfem::Node *>(m_beamModel->getNodeSet()->getNode(i)->getUser());
+}
+
+bool FemViewWindow::isNodeSelected(vfem::Node *node)
+{
+    return node->getSelect() == ivf::Shape::SS_ON;
+}
+
+bool FemViewWindow::isNodeSelectedAt(int i)
+{
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    auto ivfNode = static_cast<vfem::Node *>(node->getUser());
+    return ivfNode->getSelect() == ivf::Shape::SS_ON;
+}
+
+double FemViewWindow::randFloat(double min, double max)
+{
+    return ofutil::rand_float(min, max);
+}
+
+int FemViewWindow::randInt(int min, int max)
+{
+    return ofutil::rand_int(min, max);
+}
+
+void FemViewWindow::randSeed()
+{
+    ofutil::rand_seed();
 }
 
 void FemViewWindow::startService()
@@ -3182,6 +3284,12 @@ void FemViewWindow::onInit()
     m_loadMixerWindow->setVisible(false);
 
     m_windowList->add(m_loadMixerWindow);
+
+    m_scriptWindow = ScriptWindow::create("Script");
+    m_scriptWindow->setView(this);
+    m_scriptWindow->setVisible(false);
+
+    m_windowList->add(m_scriptWindow);
 
     m_startPopup = StartPopup::create("Start window", true);
     m_startPopup->setVersionString(OBJFRAME_VERSION_STRING);
@@ -4338,29 +4446,34 @@ void FemViewWindow::onHighlightFilter(Shape *shape, bool &highlight)
 
 void FemViewWindow::onKeyboard(int key)
 {
-    log("onKeyboard: " + std::to_string(key));
+    // log("onKeyboard: " + std::to_string(key));
 
-    if (key == 256)
+    if ((!m_windowList->isAnyFocused()) && (!m_scriptWindow->isEditorActive()))
     {
-        m_editButtons->clearChecked();
-        m_objectButtons->clearChecked();
-        m_editButtons->check(0);
-        this->setEditMode(WidgetMode::Select);
-        this->setUseBlending(false);
-        this->redraw();
+        if (key == 256)
+        {
+            m_editButtons->clearChecked();
+            m_objectButtons->clearChecked();
+            m_editButtons->check(0);
+            this->setEditMode(WidgetMode::Select);
+            this->setUseBlending(false);
+            this->redraw();
+        }
+
+        if (key == 78)
+            this->setEditMode(WidgetMode::CreateNode);
+
+        if (key == 77)
+            this->setEditMode(WidgetMode::Move);
+
+        if (key == 66)
+            this->setEditMode(WidgetMode::CreateLine);
+
+        if (key == 261)
+            this->deleteSelected();
     }
-
-    if (key == 78)
-        this->setEditMode(WidgetMode::CreateNode);
-
-    if (key == 77)
-        this->setEditMode(WidgetMode::Move);
-
-    if (key == 66)
-        this->setEditMode(WidgetMode::CreateLine);
-
-    if (key == 261)
-        this->deleteSelected();
+    else
+        log("windows active / script active");
 }
 
 ivf::Shape *FemViewWindow::onPick(int x, int y)
@@ -4429,6 +4542,17 @@ void FemViewWindow::onDrawImGui()
 
             if (ImGui::MenuItem("Open from CALFEM...", ""))
                 m_openFromCalfemDialog = true;
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("New script...", ""))
+                m_newScriptDialog = true;
+
+            if (ImGui::MenuItem("Open script...", ""))
+                m_openEditScriptDialog = true;
+
+            if (ImGui::MenuItem("Run script...", ""))
+                m_openScriptDialog = true;
 
             ImGui::Separator();
 
@@ -4534,6 +4658,14 @@ void FemViewWindow::onDrawImGui()
                 this->setNeedRecalc(true);
             }
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Script editor...", ""))
+            {
+                m_scriptWindow->show();
+                m_scriptWindow->center();
+            }
+
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Mode"))
@@ -4627,6 +4759,11 @@ void FemViewWindow::onDrawImGui()
                 m_logWindow->center();
             }
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Diagnostics", ""))
+                m_showDiagnostics = !m_showDiagnostics;
+
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -4666,6 +4803,9 @@ void FemViewWindow::onDrawImGui()
     if (m_showMetricsWindow)
         ImGui::ShowMetricsWindow(&m_showMetricsWindow);
 
+    if (m_showDiagnostics)
+        ImGui::ShowDemoWindow(&m_showDiagnostics);
+
     if (m_useImGuiFileDialogs)
     {
         if (m_openDialog)
@@ -4694,6 +4834,7 @@ void FemViewWindow::onDrawImGui()
             ImGuiFileDialog::Instance()->Close();
             m_openDialog = false;
         }
+
         if (m_saveDialog)
         {
             IGFD::FileDialogConfig config;
@@ -4757,6 +4898,45 @@ void FemViewWindow::onDrawImGui()
             ImGuiFileDialog::Instance()->OpenDialog("Open from CALFEM", "Choose File", ".py", config);
         }
 
+        if (m_openScriptDialog)
+        {
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
+            ImGuiFileDialog::Instance()->OpenDialog("Open script", "Choose File", ".chai", config);
+        }
+
+        if (m_openEditScriptDialog)
+        {
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
+            ImGuiFileDialog::Instance()->OpenDialog("Edit script", "Choose File", ".chai", config);
+        }
+
+        if (m_newScriptDialog)
+        {
+            IGFD::FileDialogConfig config;
+            config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
+
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
+            ImGuiFileDialog::Instance()->OpenDialog("New script", "Choose File", ".chai", config);
+        }
+
         if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
         {
             if (ImGuiFileDialog::Instance()->IsOk())
@@ -4814,6 +4994,64 @@ void FemViewWindow::onDrawImGui()
 
             ImGuiFileDialog::Instance()->Close();
             m_openFromCalfemDialog = false;
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("Open script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_script_dir", filePath);
+
+                if (filePathName != "")
+                {
+                    this->runScript(filePathName);
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_openScriptDialog = false;
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("Edit script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_script_dir", filePath);
+
+                if (filePathName != "")
+                {
+                    m_scriptWindow->open(filePathName);
+                    m_scriptWindow->show();
+                    m_scriptWindow->center();
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_openEditScriptDialog = false;
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("New script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                ofutil::set_config_value("last_script_dir", filePath);
+
+                if (filePathName != "")
+                {
+                    m_scriptWindow->open(filePathName);
+                    m_scriptWindow->show();
+                    m_scriptWindow->center();
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+            m_newScriptDialog = false;
         }
     }
 

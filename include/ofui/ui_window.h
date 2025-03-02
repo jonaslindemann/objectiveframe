@@ -28,6 +28,8 @@ private:
     bool m_newPos;
     bool m_newBottomPos;
 
+    bool m_isFocused;
+
 public:
     UiWindow(const std::string name);
     virtual ~UiWindow();
@@ -49,6 +51,8 @@ public:
     bool autoPlacement();
     void setAutoPlacement(bool flag);
 
+    bool isFocused();
+
     bool canClose();
     void setCanClose(bool flag);
 
@@ -59,6 +63,8 @@ public:
     void setPosition(int x, int y);
 
     void setPositionFromBottom(int x, int y);
+
+    void enableMenuBar();
 
     int x();
     int y();

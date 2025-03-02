@@ -1,0 +1,76 @@
+// Building Structure Generator
+// Creates a 10m x 10m building with an angled roof and absolutely minimal elements
+// Ground level is on the XZ plane (Y represents height)
+// Building is centered around origin point (0,0,0)
+// Severely optimized to eliminate all redundant beams and nodes
+
+// Define building dimensions
+var width = 10.0;    // X direction
+var length = 10.0;   // Z direction
+var wallHeight = 4.0;  // Y direction
+var roofPeakHeight = 6.0;  // Peak of the roof is 2m above the wall tops
+
+// Function to create node and return its index
+def createNodeAndGetIndex(x, y, z) {
+    var node = addNode(x, y, z);
+    return nodeCount() - 1;  // Return the index of the newly created node
+}
+
+print("Creating minimal building structure...");
+
+// Ground floor corners
+var n0 = createNodeAndGetIndex(-width/2, 0.0, -length/2);     // Front left
+var n1 = createNodeAndGetIndex(width/2, 0.0, -length/2);      // Front right
+var n2 = createNodeAndGetIndex(width/2, 0.0, length/2);       // Back right
+var n3 = createNodeAndGetIndex(-width/2, 0.0, length/2);      // Back left
+
+// Top of walls (directly above ground floor corners)
+var n4 = createNodeAndGetIndex(-width/2, wallHeight, -length/2);     // Front left top
+var n5 = createNodeAndGetIndex(width/2, wallHeight, -length/2);      // Front right top
+var n6 = createNodeAndGetIndex(width/2, wallHeight, length/2);       // Back right top
+var n7 = createNodeAndGetIndex(-width/2, wallHeight, length/2);      // Back left top
+
+// Single central ridge node - absolute minimum
+var ridge = createNodeAndGetIndex(0.0, roofPeakHeight, 0.0);         // Center ridge point
+
+// Primary structure
+print("Creating primary structure...");
+
+// Ground floor frame
+addBeam(n0, n1);  // Front
+addBeam(n1, n2);  // Right
+addBeam(n2, n3);  // Back
+addBeam(n3, n0);  // Left
+
+// Columns
+addBeam(n0, n4);  // Front left 
+addBeam(n1, n5);  // Front right
+addBeam(n2, n6);  // Back right
+addBeam(n3, n7);  // Back left
+
+// Top wall frame
+addBeam(n4, n5);  // Front
+addBeam(n5, n6);  // Right
+addBeam(n6, n7);  // Back
+addBeam(n7, n4);  // Left
+
+// Only the essential roof beams
+print("Creating minimal roof structure...");
+
+// Connect corners to ridge - these form the roof planes
+addBeam(n4, ridge);  // Front left to ridge
+addBeam(n5, ridge);  // Front right to ridge
+addBeam(n6, ridge);  // Back right to ridge
+addBeam(n7, ridge);  // Back left to ridge
+
+// Absolute minimum stability diagonals (only where structurally necessary)
+print("Adding minimal stabilization...");
+
+// One diagonal per wall - bare minimum for lateral stability
+addBeam(n0, n5);  // Front wall - prevents racking
+addBeam(n6, n3);  // Back wall
+addBeam(n0, n7);  // Left wall
+addBeam(n1, n6);  // Right wall
+
+print("Building structure complete!");
+print("Total nodes: " + to_string(nodeCount()));

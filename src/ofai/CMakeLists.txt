@@ -1,0 +1,10 @@
+file(GLOB SOURCE_FILES *.cpp)
+file(GLOB INCLUDE_FILES *.h ${PROJECT_SOURCE_DIR}/include/ofai/*.h)
+
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+	add_library(ofaid ${INCLUDE_FILES} ${SOURCE_FILES})
+	target_include_directories(ofaid PRIVATE ${CURL_INCLUDE_DIRS} ${nlohmann_json_INCLUDE_DIRS})
+ELSE()
+	add_library(ofai ${INCLUDE_FILES} ${SOURCE_FILES})
+	target_include_directories(ofai PRIVATE ${CURL_INCLUDE_DIRS} ${nlohmann_json_INCLUDE_DIRS})
+endif()

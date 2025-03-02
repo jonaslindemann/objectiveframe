@@ -1,8 +1,8 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.2.0";
-constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2024\nDivision of Structural Mechanics, Lund university";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.3.0";
+constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2025\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de/software/index.jsp?id=TetGen&lang=1";
@@ -73,6 +73,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/start_popup.h>
 #include <ofui/toolbar_window.h>
 #include <ofui/window_list.h>
+#include <ofui/script_window.h>
 
 #include <ofservice/ofservice.h>
 
@@ -285,6 +286,7 @@ private:
     ofui::ToolbarWindowPtr m_mainToolbarWindow;
     ofui::ToolbarWindowPtr m_editToolbarWindow;
     ofui::StartPopupPtr m_startPopup;
+    ofui::ScriptWindowPtr m_scriptWindow;
 
     ofui::WindowListPtr m_windowList;
 
@@ -293,12 +295,16 @@ private:
     bool m_showNewFileDlg;
     bool m_showNodeBCsWindow;
     bool m_showBCPropPopup;
+    bool m_showDiagnostics;
 
     bool m_openDialog;
     bool m_saveDialog;
     bool m_saveAsDialog;
     bool m_saveAsCalfemDialog;
     bool m_openFromCalfemDialog;
+    bool m_openScriptDialog;
+    bool m_openEditScriptDialog;
+    bool m_newScriptDialog;
 
     float m_uiScale;
 
@@ -479,6 +485,16 @@ public:
     vfem::Node *addNode(double x, double y, double z);
     vfem::Beam *addBeam(int i0, int i1);
     size_t nodeCount();
+    void nodePos(vfem::Node *node, double &x, double &y, double &z);
+    void nodePosAt(int i, double &x, double &y, double &z);
+    void updateNodePos(vfem::Node *node, double x, double y, double z);
+    void updateNodePosAt(int i, double x, double y, double z);
+    vfem::Node *nodeAt(int i);
+    bool isNodeSelected(vfem::Node *node);
+    bool isNodeSelectedAt(int i);
+    double randFloat(double min, double max);
+    int randInt(int min, int max);
+    void randSeed();
 
     // Service related methods
 
@@ -543,4 +559,9 @@ public:
     // Plugin handling
 
     void runPlugin(ScriptPlugin *plugin);
+
+    // Script running
+
+    void runScript(std::string scriptFilename);
+    void runScriptFromText(std::string scriptText);
 };

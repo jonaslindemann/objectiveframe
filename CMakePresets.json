@@ -2,8 +2,12 @@
     "version": 3,
     "configurePresets": [
       {
-        "name": "default",
+        "name": "default_c",
         "toolchainFile": "c:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      },
+      {
+        "name": "default_e",
+        "toolchainFile": "e:/vcpkg/scripts/buildsystems/vcpkg.cmake"
       },
       {
         "name": "linux",

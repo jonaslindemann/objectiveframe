@@ -12,7 +12,7 @@ echo.
 echo.
 echo *** Configuring debug build
 echo.
-cmake -B %DEBUG_DIR% -DCMAKE_BUILD_TYPE=Debug --preset default
+cmake -B %DEBUG_DIR% -DCMAKE_BUILD_TYPE=Debug --preset default_e
 echo.
 echo *** Building debug build
 echo.
@@ -20,7 +20,7 @@ cmake --build %DEBUG_DIR% --config Debug -- /m
 echo.
 echo *** Configuring release build
 echo.
-cmake -B %RELEASE_DIR% -DCMAKE_BUILD_TYPE=Release --preset default
+cmake -B %RELEASE_DIR% -DCMAKE_BUILD_TYPE=Release --preset default_e
 echo.
 echo *** Building release build
 echo.

@@ -1,0 +1,41 @@
+global nodes = [];
+global beams = [];
+
+def createNodes() {
+    for (var x = 0; x <= 10; x += 1.0) {
+        nodes.push_back(addNode(x, 0, 0));    // Bottom front
+        nodes.push_back(addNode(x, 1, 0));    // Top front
+        nodes.push_back(addNode(x, 0, 1));    // Bottom back
+        nodes.push_back(addNode(x, 1, 1));    // Top back
+    }
+}
+
+def connectLongitudinals() {
+    for (var i = 0; i < nodeCount() - 4; i += 4) {
+        addBeam(i, i + 4);    // Bottom front
+        addBeam(i + 1, i + 5);// Top front
+        addBeam(i + 2, i + 6);// Bottom back
+        addBeam(i + 3, i + 7);// Top back
+    }
+}
+
+def connectVerticalsTransverse() {
+    for (var i = 0; i < nodeCount(); i += 4) {
+        addBeam(i, i + 1);    // Front vertical
+        addBeam(i + 2, i + 3);// Back vertical
+        addBeam(i, i + 2);    // Bottom transverse
+        addBeam(i + 1, i + 3);// Top transverse
+    }
+}
+
+def addDiagonals() {
+    for (var i = 0; i < nodeCount() - 4; i += 4) {
+        addBeam(i, i + 7);    // Bottom front to top back diagonal
+        addBeam(i + 2, i + 5);// Bottom back to top front diagonal
+    }
+}
+
+createNodes();
+connectLongitudinals();
+connectVerticalsTransverse();
+addDiagonals();

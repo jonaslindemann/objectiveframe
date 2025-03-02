@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.23)
-# set(CMAKE_TOOLCHAIN_FILE
-# E:/Users/Jonas/Development/vcpkg/scripts/buildsystems/vcpkg.cmake)
+cmake_minimum_required(VERSION 3.24)
 
 project(objframe2)
- 
+enable_language(CXX)
+enable_language(C)
 set(CMAKE_CXX_STANDARD 20)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
@@ -12,17 +11,18 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 find_package(PNG REQUIRED) 
 find_package(JPEG REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(FLTK CONFIG REQUIRED)
+#find_package(FLTK CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(CURL CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 find_path(CHAISCRIPT_INCLUDE_DIRS "chaiscript/chaiscript.hpp")
 
 option(USE_LEAP "Build with support for LeapMotion" OFF)
 
 set(IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus")
-
 set(IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -60,9 +60,11 @@ set(OBJFRAME_INCLUDE_DIR
     ${PROJECT_SOURCE_DIR}/src/imgui_fltk
     ${PROJECT_SOURCE_DIR}/src/objframe)
 
+
 include_directories(
   ${DEPENDS_INCLUDE_DIR} ${OBJFRAME_INCLUDE_DIR} ${IVF_INCLUDE_DIR}
   ${OBJFRAME_INCLUDE} ${CHAISCRIPT_EXTRAS_INCLUDE})
+
 
 if(WIN32)
   link_directories(${PROJECT_SOURCE_DIR}/lib ${IVF_LIBS} ${LEAP_LIBS})

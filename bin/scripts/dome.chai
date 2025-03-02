@@ -1,0 +1,35 @@
+
+// Parameters
+
+var stacks = 8;
+var slices = 8;
+var radius = 4.0;
+
+// Nodes
+
+var startNodeIdx = nodeCount();
+
+var pi = 3.14159265358979323846;
+
+var node_count = startNodeIdx;
+
+clearSelection();
+
+addNode(0.0, radius, 0.0);
+addLastNodeToSelection();
+
+for (var i=0; i<stacks; ++i)
+{
+	var phi = pi * double(i+1)/double(stacks) / 2.0;
+	for (var j=0; j<slices; ++j)
+	{
+		var theta = 2.0*pi*double(j)/double(slices);
+		var x = radius * sin(phi) * cos(theta);
+		var y = radius * cos(phi);
+		var z = radius * sin(phi) * sin(theta);
+		addNode(x, y, z);
+		addLastNodeToSelection();
+	}
+}
+
+surfaceSelectedNodes(false);

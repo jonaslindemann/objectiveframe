@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    "glew",
+    "glfw3",
+    "libjpeg-turbo",
+    "libpng",
+    "zlib",
+    "opengl",
+    "chaiscript",
+    "curl",
+    "nlohmann-json"
+  ]
+}

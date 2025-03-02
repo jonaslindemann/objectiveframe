@@ -71,6 +71,16 @@ void ofui::WindowList::showAll()
         window->show();
 }
 
+bool ofui::WindowList::isAnyFocused()
+{
+    for (auto &window : m_windows)
+    {
+        if (window->isFocused())
+            return true;
+    }
+    return false;
+}
+
 void WindowList::draw()
 {
     for (auto &window : m_windows)

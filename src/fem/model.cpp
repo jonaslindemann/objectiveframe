@@ -309,9 +309,13 @@ void Model::save()
 
 void Model::snapShot()
 {
+    ofem::ModelStateInfo::getInstance().setReadVersion(m_version);
+    ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
+
     std::stringstream ss;
     this->saveToStream(ss);
     m_snapShots.push_back(ss.str());
+
     m_restoredSnapShots.clear();
 }
 
@@ -320,6 +324,9 @@ void Model::restoreLastSnapShot()
     if (m_snapShots.size() > 0)
     {
         // Snapshot current model
+
+        ofem::ModelStateInfo::getInstance().setReadVersion(m_version);
+        ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
 
         std::stringstream cs;
         this->saveToStream(cs);
@@ -339,6 +346,9 @@ void Model::revertLastSnapShot()
 {
     if (m_restoredSnapShots.size() > 0)
     {
+        ofem::ModelStateInfo::getInstance().setReadVersion(m_version);
+        ofem::ModelStateInfo::getInstance().setWriteVersion(m_version);
+
         // Current model to snapshot
 
         std::stringstream ss;

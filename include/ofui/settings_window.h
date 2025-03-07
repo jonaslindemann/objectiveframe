@@ -26,6 +26,8 @@ private:
     bool m_useImGuiFileDialogs;
     bool m_saveScreenShot;
     int m_lineSides;
+    std::string m_aiApiKey;
+    char m_aiApiKeyBuf[512];
 
 #ifdef USE_FEMVIEW
     FemViewWindow *m_view;

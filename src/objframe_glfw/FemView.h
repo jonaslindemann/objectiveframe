@@ -265,6 +265,10 @@ private:
     bool m_useBlending;
     bool m_useImGuiFileDialogs;
 
+    // AI
+
+    std::string m_aiApiKey;
+
     // Dialogs
 
     ofui::CoordWindowPtr m_coordWindow;
@@ -411,6 +415,10 @@ public:
 
     void setSaveScreenShot(bool flag);
     bool getSaveScreenShot();
+
+    // AI
+
+    void setAiApiKey(const std::string &apiKey);
 
     // Methods
 

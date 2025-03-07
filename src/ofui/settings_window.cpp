@@ -14,7 +14,7 @@ using namespace ofui;
 SettingsWindow::SettingsWindow(const std::string name)
     : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f}, m_loadSize{7.0f},
       m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false}, m_showNodeNumbers{true}, m_uiScale{1.0f},
-      m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}, m_saveScreenShot{false}
+      m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}, m_saveScreenShot{false}, m_aiApiKey{""}
 {}
 
 SettingsWindow::~SettingsWindow()
@@ -80,6 +80,12 @@ void SettingsWindow::update()
 
     m_view->setUseImGuiFileDialogs(m_useImGuiFileDialogs);
     m_view->setSaveScreenShot(m_saveScreenShot);
+
+    if (m_aiApiKey != m_aiApiKeyBuf)
+    {
+        m_aiApiKey = m_aiApiKeyBuf;
+        m_view->setAiApiKey(m_aiApiKey);
+    }
 }
 
 std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
@@ -159,4 +165,9 @@ void SettingsWindow::doDraw()
 
         static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     }
+
+    ImGui::Dummy(ImVec2(0.0, 10.0));
+
+    ImGui::Text("AI API key:");
+    ImGui::InputText("##ai_api_key", m_aiApiKeyBuf, sizeof(m_aiApiKeyBuf));
 }

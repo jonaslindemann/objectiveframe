@@ -301,16 +301,16 @@ unsigned int fl_cmap[256] = {
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
     : IvfViewWindow(width, height, title, monitor, shared), m_uiScale{1.0f}, m_service{nullptr}, m_width{width},
       m_height{height}, m_tactileForce{nullptr}, m_currentSolver{nullptr}, m_relNodeSize{0.004},
-      m_relLineRadius{0.0015}, m_relLoadSize{0.06}, m_customMode{CustomMode::Feedback},
-      m_customModeSet{false}, m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
-      m_haveScaleFactor{false}, m_needRecalc{true}, m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All},
-      m_highlightFilter{HighlightMode::All}, m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},
-      m_lockScaleFactor{false}, m_saneModel{false}, m_selectedPos{0.0, 0.0, 0.0}, m_useSphereCursor{false},
-      m_useBlending{false}, m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""},
-      m_showNodeBCsWindow{false}, m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false},
-      m_elementSelection{false}, m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false},
-      m_saveAsDialog{false}, m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false},
-      m_openScriptDialog{false}, m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}
+      m_relLineRadius{0.0015}, m_relLoadSize{0.06}, m_customMode{CustomMode::Feedback}, m_customModeSet{false},
+      m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0}, m_haveScaleFactor{false}, m_needRecalc{true},
+      m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All}, m_highlightFilter{HighlightMode::All},
+      m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true}, m_lockScaleFactor{false},
+      m_saneModel{false}, m_selectedPos{0.0, 0.0, 0.0}, m_useSphereCursor{false}, m_useBlending{false},
+      m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""}, m_showNodeBCsWindow{false},
+      m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false}, m_elementSelection{false},
+      m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false}, m_saveAsDialog{false},
+      m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}, m_openScriptDialog{false},
+      m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}, m_aiApiKey{""}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -2771,6 +2771,11 @@ void FemViewWindow::setSaveScreenShot(bool flag)
 bool FemViewWindow::getSaveScreenShot()
 {
     return m_saveScreenShot;
+}
+
+void FemViewWindow::setAiApiKey(const std::string &apiKey)
+{
+    m_aiApiKey = apiKey;
 }
 
 void FemViewWindow::setInteractionNode(vfem::Node *interactionNode)

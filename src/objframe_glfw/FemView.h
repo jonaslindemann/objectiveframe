@@ -74,8 +74,11 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/toolbar_window.h>
 #include <ofui/window_list.h>
 #include <ofui/script_window.h>
+#include <ofui/prompt_window.h>
 
 #include <ofservice/ofservice.h>
+
+#include <ofai/structure_generator.h>
 
 #include "Area2D.h"
 #include "ButtonGroup.h"
@@ -291,6 +294,7 @@ private:
     ofui::ToolbarWindowPtr m_editToolbarWindow;
     ofui::StartPopupPtr m_startPopup;
     ofui::ScriptWindowPtr m_scriptWindow;
+    ofui::PromptWindowPtr m_promptWindow;
 
     ofui::WindowListPtr m_windowList;
 
@@ -327,8 +331,12 @@ private:
     // Web service
 
     ofservice::ServicePtr m_service;
-
     std::mutex m_drawMutex;
+
+    // Ai
+
+    ofai::StructureGenerator m_structureGenerator;
+    bool m_isProcessingAiRequest;
 
     // Handle mouse updates
 
@@ -419,6 +427,7 @@ public:
     // AI
 
     void setAiApiKey(const std::string &apiKey);
+    std::string getAiApiKey();
 
     // Methods
 
@@ -503,6 +512,8 @@ public:
     double randFloat(double min, double max);
     int randInt(int min, int max);
     void randSeed();
+    size_t nodeIdx(vfem::Node *node);
+    size_t beamIdx(vfem::Beam *beam);
 
     // Service related methods
 
@@ -572,4 +583,10 @@ public:
 
     void runScript(std::string scriptFilename);
     void runScriptFromText(std::string scriptText);
+
+    // AI methods
+
+    void makeAiRequest(const std::string &userPrompt);
+    void onGenerationComplete(const std::string &result, bool success);
+    bool isProcessingAiRequest() const;
 };

@@ -28,6 +28,8 @@
 #include <imguifd/ImGuiFileDialog.h>
 #include <imguifd/ImGuiFileDialogConfig.h>
 
+#include <ofai/structure_generator.h>
+
 using namespace ivf;
 using namespace std;
 using namespace ofui;
@@ -310,10 +312,13 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
       m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false}, m_elementSelection{false},
       m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false}, m_saveAsDialog{false},
       m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}, m_openScriptDialog{false},
-      m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}, m_aiApiKey{""}
+      m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}, m_aiApiKey{""},
+      m_structureGenerator(""), m_isProcessingAiRequest{false}, m_pluginRunning{false}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
+
+    m_aiApiKey = ofutil::get_config_value("ai_api_key", "");
 }
 
 std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, const std::string title,
@@ -324,6 +329,7 @@ std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, cons
 
 FemViewWindow::~FemViewWindow()
 {
+    ofutil::set_config_value("ai_api_key", m_aiApiKey);
     log("Destructor.");
 }
 
@@ -351,6 +357,10 @@ void FemViewWindow::runPlugin(ScriptPlugin *plugin)
 void FemViewWindow::runScript(std::string scriptFilename)
 {
     this->snapShot();
+
+    m_selectedPos[0] = 0.0;
+    m_selectedPos[1] = 0.0;
+    m_selectedPos[2] = 0.0;
 
     chaiscript::ChaiScript chai;
     this->setupScript(chai);
@@ -388,6 +398,43 @@ void FemViewWindow::runScriptFromText(std::string scriptText)
     this->redraw();
 }
 
+void FemViewWindow::makeAiRequest(const std::string &userPrompt)
+{
+    if (m_aiApiKey.empty())
+    {
+        log("No API key set for AI service.");
+        return;
+    }
+
+    m_structureGenerator.setApiKey(m_aiApiKey);
+    m_structureGenerator.generateStructureAsync(userPrompt, std::bind(&FemViewWindow::onGenerationComplete, this,
+                                                                      std::placeholders::_1, std::placeholders::_2));
+
+    m_isProcessingAiRequest = true;
+}
+
+void FemViewWindow::onGenerationComplete(const std::string &result, bool success)
+{
+    if (success)
+    {
+        log("AI generation successful.");
+        m_promptWindow->clearOutput();
+        m_promptWindow->addOutput(result);
+        runScriptFromText(result);
+        m_isProcessingAiRequest = false;
+    }
+    else
+    {
+        log("AI generation failed.");
+    }
+    m_isProcessingAiRequest = false;
+}
+
+bool FemViewWindow::isProcessingAiRequest() const
+{
+    return m_isProcessingAiRequest;
+}
+
 // Get/set methods
 
 void FemViewWindow::setFileName(const std::string &name)
@@ -407,6 +454,7 @@ void FemViewWindow::updateAxisLabels()
     m_textLayer->clear();
 
     auto axisLabelPlusX = ivf::TextLabel::create();
+
     axisLabelPlusX->setCamera(this->getCamera());
     axisLabelPlusX->setFont(m_redFont);
     axisLabelPlusX->setText("+X", 0.5);
@@ -2629,6 +2677,16 @@ void FemViewWindow::randSeed()
     ofutil::rand_seed();
 }
 
+size_t FemViewWindow::nodeIdx(vfem::Node *node)
+{
+    return node->getFemNode()->getNumber();
+}
+
+size_t FemViewWindow::beamIdx(vfem::Beam *beam)
+{
+    return beam->getBeam()->getNumber();
+}
+
 void FemViewWindow::startService()
 {
     if (m_service == nullptr)
@@ -2776,6 +2834,11 @@ bool FemViewWindow::getSaveScreenShot()
 void FemViewWindow::setAiApiKey(const std::string &apiKey)
 {
     m_aiApiKey = apiKey;
+}
+
+std::string FemViewWindow::getAiApiKey()
+{
+    return m_aiApiKey;
 }
 
 void FemViewWindow::setInteractionNode(vfem::Node *interactionNode)
@@ -3295,6 +3358,12 @@ void FemViewWindow::onInit()
     m_scriptWindow->setVisible(false);
 
     m_windowList->add(m_scriptWindow);
+
+    m_promptWindow = PromptWindow::create("Prompt");
+    m_promptWindow->setView(this);
+    m_promptWindow->setVisible(false);
+
+    m_windowList->add(m_promptWindow);
 
     m_startPopup = StartPopup::create("Start window", true);
     m_startPopup->setVersionString(OBJFRAME_VERSION_STRING);
@@ -4687,6 +4756,11 @@ void FemViewWindow::onDrawImGui()
         }
         if (ImGui::BeginMenu("Create"))
         {
+            if (ImGui::MenuItem("Create using AI", ""))
+            {
+                m_promptWindow->show();
+            }
+            ImGui::Separator();
             for (auto &p : m_plugins)
             {
                 if (ImGui::MenuItem(p->name().c_str(), ""))

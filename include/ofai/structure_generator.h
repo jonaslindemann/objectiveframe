@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <future>
+#include <functional>
 
 namespace ofai {
 
@@ -10,6 +12,10 @@ namespace ofai {
  * for structural modeling based on natural language prompts.
  */
 class StructureGenerator {
+public:
+    // Define a callback type for asynchronous operations
+    using GenerationCallback = std::function<void(const std::string &, bool)>;
+
 private:
     std::string apiKey;
     std::string apiUrl;
@@ -27,16 +33,35 @@ public:
      * @param apiKey The Claude API key
      */
     StructureGenerator(const std::string &apiKey);
-
     ~StructureGenerator();
+
+    void setApiKey(const std::string &apiKey);
 
     /**
      * Generates ChaiScript code for a structure based on a natural language prompt.
+     * This is the synchronous version.
      *
      * @param prompt The natural language description of the structure
      * @return A string containing the generated ChaiScript code
      */
     std::string generateStructure(const std::string &prompt);
+
+    /**
+     * Generates ChaiScript code asynchronously for a structure based on a natural language prompt.
+     * Returns immediately and executes the callback when complete.
+     *
+     * @param prompt The natural language description of the structure
+     * @param callback Function to call when generation is complete, with result and success flag
+     */
+    void generateStructureAsync(const std::string &prompt, GenerationCallback callback);
+
+    /**
+     * Generates ChaiScript code asynchronously and returns a future.
+     *
+     * @param prompt The natural language description of the structure
+     * @return A future containing the generated ChaiScript code
+     */
+    std::future<std::string> generateStructureAsync(const std::string &prompt);
 
     /**
      * Sets the model to use for generation.

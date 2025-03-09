@@ -4,6 +4,7 @@
 #include <iostream>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#include <thread>
 
 using json = nlohmann::json;
 
@@ -13,7 +14,6 @@ using namespace ofai;
 StructureGenerator::StructureGenerator(const std::string &apiKey)
     : apiKey(apiKey), apiUrl("https://api.anthropic.com/v1/messages"), model("claude-3-7-sonnet-20250219")
 {
-
     curl_global_init(CURL_GLOBAL_DEFAULT);
 }
 
@@ -21,6 +21,11 @@ StructureGenerator::StructureGenerator(const std::string &apiKey)
 StructureGenerator::~StructureGenerator()
 {
     curl_global_cleanup();
+}
+
+void ofai::StructureGenerator::setApiKey(const std::string &apiKey)
+{
+    this->apiKey = apiKey;
 }
 
 // Static callback function for cURL to store API response
@@ -44,6 +49,8 @@ The code you generate should follow these guidelines:
 1. COORDINATE SYSTEM:
    - XZ is the ground plane, Y is height
    - Origin (0,0,0) is at center of structure base unless specified otherwise
+   - All dimensions are in meters
+   - Try centering the structure around the origin
 
 2. OPTIMIZATION PRINCIPLES:
    - Minimize redundant elements
@@ -72,6 +79,35 @@ The code you generate should follow these guidelines:
    - double randFloat(double min, double max);
    - int randInt(int min, int max);
    - void randSeed();
+   - newModel();
+
+5. APPLICATION INFORMATION
+   - Nodes are created consequentially, starting from 0. They are note reorderd after creation.
+   - Beams are created by specifying the indices of the nodes they connect.
+   - Don't use the return value from addNode or addBeam functions as indices.
+   - Node indices start from 0 and increase by 1 for each new node.
+   - Start models with newModel() to clear the workspace.
+
+6. CHAISCRIPT TYPES:
+    - Vectors and Maps are used in the following way:
+    
+        var v = [1,2,3u,4ll,"16", `+`]; // creates vector of heterogenous values
+        var m = ["a":1, "b":2]; // map of string:value pairs
+
+        // Add a value to the vector by value.
+        v.push_back(123);
+
+        // Add an object to the vector by reference.
+        v.push_back_ref(m);
+
+    - Declare variables required in functions with the global keyword instead of var.
+    - Functions are defined using the def keyword.
+    - The PI constant is not defined in ChaiScript, so you can define it as a global variable using the global keyword.
+    - All declared variables must be initialized with a value.
+
+Avoid calling methods on vfem::Node or vfem::Beam objects directly. Use the provided functions instead.
+
+No need to store generated nodes in separate data structures. Generate them as needed.
 
 Provide only ChaiScript code with minimal comments explaining the structure. Do not include explanations outside the code.
 )";
@@ -163,7 +199,7 @@ std::string StructureGenerator::extractChaiScript(const std::string &claudeRespo
     }
 }
 
-// Public method to generate ChaiScript code from a prompt
+// Public method to generate ChaiScript code from a prompt (synchronous)
 std::string StructureGenerator::generateStructure(const std::string &prompt)
 {
     // Construct a full prompt with the user's input
@@ -182,6 +218,30 @@ std::string StructureGenerator::generateStructure(const std::string &prompt)
 
     // Extract ChaiScript from the response
     return extractChaiScript(claudeResponse);
+}
+
+// Asynchronous version with callback
+void StructureGenerator::generateStructureAsync(const std::string &prompt, GenerationCallback callback)
+{
+    // Create a new thread that will execute the request and call the callback when done
+    std::thread([this, prompt, callback]() {
+        try
+        {
+            std::string result = generateStructure(prompt);
+            callback(result, true);
+        } catch (const std::exception &e)
+        {
+            std::string errorMsg = std::string("Error generating structure: ") + e.what();
+            callback(errorMsg, false);
+        }
+    }).detach(); // Detach the thread so it runs independently
+}
+
+// Asynchronous version with future
+std::future<std::string> StructureGenerator::generateStructureAsync(const std::string &prompt)
+{
+    // Use std::async to run the generateStructure function asynchronously
+    return std::async(std::launch::async, [this, prompt]() { return generateStructure(prompt); });
 }
 
 // Set the model to use for generation

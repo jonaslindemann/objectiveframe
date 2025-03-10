@@ -30,6 +30,8 @@ private:
 
     bool m_isFocused;
 
+    bool m_ignoreFocusCheck;
+
 public:
     UiWindow(const std::string name);
     virtual ~UiWindow();
@@ -50,6 +52,8 @@ public:
     int height();
     bool autoPlacement();
     void setAutoPlacement(bool flag);
+    void setIgnoreFocusCheck(bool flag);
+    std::string name();
 
     bool isFocused();
 

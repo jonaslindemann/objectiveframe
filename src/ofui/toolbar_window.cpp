@@ -13,6 +13,8 @@ ToolbarWindow::ToolbarWindow(const std::string name)
 
     m_color = ImGui::GetStyle().Colors[ImGuiCol_Button];
     m_selectedColor = {1.0, 1.0, 1.0, 1.0};
+
+    this->setIgnoreFocusCheck(true);
 }
 
 ToolbarWindow::~ToolbarWindow()

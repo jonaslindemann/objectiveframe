@@ -8,7 +8,7 @@ UiWindow::UiWindow(const std::string name)
     : m_name{name}, m_visible{true}, m_windowFlags{ImGuiWindowFlags_AlwaysAutoResize}, m_updatePos{false},
       m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false},
       m_firstDraw{true}, m_width{-1}, m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false},
-      m_autoPlacement{true}, m_newBottomPos{false}, m_isFocused{false}
+      m_autoPlacement{true}, m_newBottomPos{false}, m_isFocused{false}, m_ignoreFocusCheck{false}
 {}
 
 UiWindow::~UiWindow()
@@ -189,8 +189,21 @@ void ofui::UiWindow::setAutoPlacement(bool flag)
     m_autoPlacement = flag;
 }
 
+void ofui::UiWindow::setIgnoreFocusCheck(bool flag)
+{
+    m_ignoreFocusCheck = flag;
+}
+
+std::string ofui::UiWindow::name()
+{
+    return m_name;
+}
+
 bool ofui::UiWindow::isFocused()
 {
+    if (m_ignoreFocusCheck)
+        return false;
+
     return m_isFocused;
 }
 

@@ -74,7 +74,7 @@ public:
         return m_content;
     }
 
-    bool isEditorActive() const;
+    bool isEditorActive();
 };
 
 typedef std::shared_ptr<ScriptWindow> ScriptWindowPtr;

@@ -2009,6 +2009,9 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
     script.add(chaiscript::fun(&FemViewWindow::randFloat, this), "randFloat");
     script.add(chaiscript::fun(&FemViewWindow::randInt, this), "randInt");
     script.add(chaiscript::fun(&FemViewWindow::randSeed, this), "randSeed");
+    script.add(chaiscript::fun(&FemViewWindow::addNodeWithIdx, this), "addNodeWithIdx");
+    script.add(chaiscript::fun(&FemViewWindow::addBeamWithIdx, this), "addBeamWithIdx");
+    script.add(chaiscript::fun(&FemViewWindow::beamCount, this), "beamCount");
 }
 
 void FemViewWindow::setupPlugins()
@@ -2610,9 +2613,26 @@ vfem::Beam *FemViewWindow::addBeam(int i0, int i1)
         return nullptr;
 }
 
+size_t FemViewWindow::addNodeWithIdx(double x, double y, double z)
+{
+    auto node = addNode(x, y, z);
+    return m_beamModel->getNodeSet()->getSize() - 1;
+}
+
+size_t FemViewWindow::addBeamWithIdx(int i0, int i1)
+{
+    auto beam = addBeam(i0, i1);
+    return m_beamModel->getElementSet()->getSize() - 1;
+}
+
 size_t FemViewWindow::nodeCount()
 {
     return m_beamModel->getNodeSet()->getSize();
+}
+
+size_t FemViewWindow::beamCount()
+{
+    return m_beamModel->getElementSet()->getSize();
 }
 
 void FemViewWindow::nodePos(vfem::Node *node, double &x, double &y, double &z)
@@ -4230,6 +4250,10 @@ void FemViewWindow::onOverButton(int objectName, PlaneButton *button)
 
 void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 {
+    if (m_windowList->isAnyFocused())
+    {
+        return;
+    }
     if ((modifier == ModifierKey::mkCtrl) && (key == 'O'))
     {
         m_openDialog = true;

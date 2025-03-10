@@ -76,7 +76,10 @@ bool ofui::WindowList::isAnyFocused()
     for (auto &window : m_windows)
     {
         if (window->isFocused())
+        {
+            std::cout << "Window " << window->name() << " is focused " << std::endl;
             return true;
+        }
     }
     return false;
 }

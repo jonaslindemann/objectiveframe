@@ -63,9 +63,9 @@ void ScriptWindow::setContent(const std::string &newContent)
     // Make sure to update the input buffer at the next render cycle
 }
 
-bool ofui::ScriptWindow::isEditorActive() const
+bool ofui::ScriptWindow::isEditorActive()
 {
-    return m_textEditorActive;
+    return m_textEditorActive && visible();
 }
 
 void ScriptWindow::addUndoState(const std::string &text, int cursorPos)

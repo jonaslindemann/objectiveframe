@@ -501,17 +501,24 @@ public:
 
     vfem::Node *addNode(double x, double y, double z);
     vfem::Beam *addBeam(int i0, int i1);
+    size_t addNodeWithIdx(double x, double y, double z);
+    size_t addBeamWithIdx(int i0, int i1);
     size_t nodeCount();
+    size_t beamCount();
+
     void nodePos(vfem::Node *node, double &x, double &y, double &z);
     void nodePosAt(int i, double &x, double &y, double &z);
     void updateNodePos(vfem::Node *node, double x, double y, double z);
     void updateNodePosAt(int i, double x, double y, double z);
     vfem::Node *nodeAt(int i);
+
     bool isNodeSelected(vfem::Node *node);
     bool isNodeSelectedAt(int i);
+
     double randFloat(double min, double max);
     int randInt(int min, int max);
     void randSeed();
+
     size_t nodeIdx(vfem::Node *node);
     size_t beamIdx(vfem::Beam *beam);
 

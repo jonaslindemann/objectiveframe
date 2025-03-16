@@ -313,7 +313,7 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
       m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false}, m_saveAsDialog{false},
       m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}, m_openScriptDialog{false},
       m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}, m_aiApiKey{""},
-      m_structureGenerator(""), m_isProcessingAiRequest{false}, m_pluginRunning{false}
+      m_structureGenerator(""), m_isProcessingAiRequest{false}, m_pluginRunning{false}, m_autoRunAiScript{true}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -352,6 +352,8 @@ void FemViewWindow::runPlugin(ScriptPlugin *plugin)
         log(e.pretty_print());
     }
     script.set_state(s);
+
+    m_beamModel->enumerate();
 }
 
 void FemViewWindow::runScript(std::string scriptFilename)
@@ -375,12 +377,16 @@ void FemViewWindow::runScript(std::string scriptFilename)
         log(e.pretty_print());
     }
 
+    m_beamModel->enumerate();
+
     this->set_changed();
     this->redraw();
 }
 
 void FemViewWindow::runScriptFromText(std::string scriptText)
 {
+    m_beamModel->enumerate();
+
     this->snapShot();
 
     chaiscript::ChaiScript chai;
@@ -393,6 +399,8 @@ void FemViewWindow::runScriptFromText(std::string scriptText)
     {
         log(e.pretty_print());
     }
+
+    m_beamModel->enumerate();
 
     this->set_changed();
     this->redraw();
@@ -420,7 +428,8 @@ void FemViewWindow::onGenerationComplete(const std::string &result, bool success
         log("AI generation successful.");
         m_promptWindow->clearOutput();
         m_promptWindow->addOutput(result);
-        runScriptFromText(result);
+        if (m_autoRunAiScript)
+            this->runScriptFromText(result);
         m_isProcessingAiRequest = false;
     }
     else
@@ -433,6 +442,16 @@ void FemViewWindow::onGenerationComplete(const std::string &result, bool success
 bool FemViewWindow::isProcessingAiRequest() const
 {
     return m_isProcessingAiRequest;
+}
+
+void FemViewWindow::setAutoRunAiScript(bool autoRun)
+{
+    m_autoRunAiScript = autoRun;
+}
+
+bool FemViewWindow::autoRunAiScript() const
+{
+    return m_autoRunAiScript;
 }
 
 // Get/set methods
@@ -2012,6 +2031,8 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
     script.add(chaiscript::fun(&FemViewWindow::addNodeWithIdx, this), "addNodeWithIdx");
     script.add(chaiscript::fun(&FemViewWindow::addBeamWithIdx, this), "addBeamWithIdx");
     script.add(chaiscript::fun(&FemViewWindow::beamCount, this), "beamCount");
+    script.add(chaiscript::fun(&FemViewWindow::beamAt, this), "beamAt");
+    script.add(chaiscript::fun(&FemViewWindow::updateBeamAt, this), "updateBeamAt");
 }
 
 void FemViewWindow::setupPlugins()
@@ -2663,6 +2684,25 @@ void FemViewWindow::updateNodePosAt(int i, double x, double y, double z)
         auto ivfNode = static_cast<vfem::Node *>(node->getUser());
         ivfNode->setPosition(x, y, z);
     }
+}
+
+void FemViewWindow::beamAt(int i, int &i0, int &i1)
+{
+    auto beam = m_beamModel->getElementSet()->getElement(i);
+
+    auto n0 = beam->getNode(0);
+    auto n1 = beam->getNode(1);
+
+    i0 = m_beamModel->getNodeSet()->indexOf(n0);
+    i1 = m_beamModel->getNodeSet()->indexOf(n1);
+}
+
+void FemViewWindow::updateBeamAt(int i, int i0, int i1)
+{
+    auto beam = m_beamModel->getElementSet()->getElement(i);
+    beam->clear();
+    beam->addNode(m_beamModel->getNodeSet()->getNode(i0));
+    beam->addNode(m_beamModel->getNodeSet()->getNode(i1));
 }
 
 vfem::Node *FemViewWindow::nodeAt(int i)
@@ -4644,7 +4684,10 @@ void FemViewWindow::onDrawImGui()
             ImGui::Separator();
 
             if (ImGui::MenuItem("New script...", ""))
-                m_newScriptDialog = true;
+            {
+                m_scriptWindow->newScript();
+                m_scriptWindow->show();
+            }
 
             if (ImGui::MenuItem("Open script...", ""))
                 m_openEditScriptDialog = true;
@@ -5184,6 +5227,10 @@ void FemViewWindow::onInitImGui()
     fs::path filename = m_fontPath / fs::path("RopaSans-Regular.ttf");
 
     io.Fonts->AddFontFromFileTTF(filename.string().c_str(), 22);
+
+    fs::path monoFilename = m_fontPath / fs::path("JetBrainsMono-Regular.ttf");
+
+    io.Fonts->AddFontFromFileTTF(monoFilename.string().c_str(), 20);
 
     this->refreshUiStyle();
 }

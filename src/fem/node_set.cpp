@@ -3,8 +3,7 @@
 using namespace ofem;
 
 NodeSet::NodeSet() : Base()
-{
-}
+{}
 
 NodeSet::~NodeSet()
 {
@@ -22,6 +21,7 @@ void NodeSet::print(std::ostream &out)
 void NodeSet::addNode(Node *node)
 {
     m_nodes.push_back(NodePtr(node));
+    m_nodeIndex[node] = m_nodes.size() - 1;
 }
 
 Node *NodeSet::getNode(long i)
@@ -34,8 +34,11 @@ Node *NodeSet::getNode(long i)
 
 bool NodeSet::deleteNode(long i)
 {
-    if ((i >= 0) && (i < (long)m_nodes.size())) {
-        if (m_nodes[i]->getRefCount() == 1) {
+    if ((i >= 0) && (i < (long)m_nodes.size()))
+    {
+        if (m_nodes[i]->getRefCount() == 1)
+        {
+            m_nodeIndex.erase(m_nodes[i].get());
             m_nodes.erase(m_nodes.begin() + i);
             return true;
         }
@@ -47,9 +50,12 @@ bool NodeSet::deleteNode(long i)
 
 bool NodeSet::removeNode(long i)
 {
-    if ((i >= 0) && (i < (long)m_nodes.size())) {
-        if (m_nodes[i]->getRefCount() == 1) {
+    if ((i >= 0) && (i < (long)m_nodes.size()))
+    {
+        if (m_nodes[i]->getRefCount() == 1)
+        {
             NodePtr node = m_nodes[i];
+            m_nodeIndex.erase(node.get());
             m_nodes.erase(m_nodes.begin() + i);
             return true;
         }
@@ -62,9 +68,13 @@ bool NodeSet::removeNode(long i)
 
 bool NodeSet::removeNode(Node *node)
 {
-    for (unsigned int i = 0; i < m_nodes.size(); i++) {
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
         if (node == m_nodes[i].get())
+        {
+            m_nodeIndex.erase(node);
             return this->deleteNode(i);
+        }
     }
     return false;
 }
@@ -72,16 +82,19 @@ bool NodeSet::removeNode(Node *node)
 void NodeSet::deleteAll()
 {
     m_nodes.clear();
+    m_nodeIndex.clear();
 }
 
 void NodeSet::clear()
 {
     m_nodes.clear();
+    m_nodeIndex.clear();
 }
 
 void NodeSet::clearNodeValues()
 {
-    for (unsigned int i = 0; i < m_nodes.size(); i++) {
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
         NodePtr node = m_nodes[i];
         node->clearValues();
     }
@@ -112,12 +125,23 @@ void ofem::NodeSet::resetNodeKind(NodeKind newKind)
         node->setKind(newKind);
 }
 
+int ofem::NodeSet::indexOf(Node *node)
+{
+    auto it = m_nodeIndex.find(node);
+
+    if (it != m_nodeIndex.end())
+        return it->second;
+
+    return -1;
+}
+
 void NodeSet::saveToStream(std::ostream &out)
 {
     using namespace std;
     Base::saveToStream(out);
     out << m_nodes.size() << endl;
-    for (unsigned int i = 0; i < m_nodes.size(); i++) {
+    for (unsigned int i = 0; i < m_nodes.size(); i++)
+    {
         NodePtr node = m_nodes[i];
         node->saveToStream(out);
     }
@@ -144,7 +168,8 @@ void NodeSet::readFromStream(std::istream &in)
     Base::readFromStream(in);
     deleteAll();
     in >> nNodes;
-    for (int i = 0; i < nNodes; i++) {
+    for (int i = 0; i < nNodes; i++)
+    {
         NodePtr node = Node::create();
         node->readFromStream(in);
         m_nodes.push_back(node);

@@ -26,7 +26,7 @@ private:
     char m_inputBuffer[BUFFER_SIZE];
 
     // Line numbers
-    bool m_showLineNumbers = true;
+    bool m_showLineNumbers = false;
 
     bool m_textEditorActive = false;
 
@@ -39,6 +39,7 @@ private:
     std::vector<UndoState> m_undoBuffer;
     int m_undoIndex = -1;
     const int maxUndoStates = 100;
+    bool m_saveDialog;
 
     void addUndoState(const std::string &text, int cursorPos);
 
@@ -59,6 +60,7 @@ public:
 
     static std::shared_ptr<ScriptWindow> create(const std::string name);
 
+    void newScript();
     void open(const std::string &filename);
     void save();
 

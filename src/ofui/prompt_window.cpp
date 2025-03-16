@@ -9,7 +9,7 @@
 
 using namespace ofui;
 
-PromptWindow::PromptWindow(const std::string name) : UiWindow(name), m_view(nullptr)
+PromptWindow::PromptWindow(const std::string name) : UiWindow(name), m_view(nullptr), m_autoRunScript(true)
 {
     setWindowFlags(ImGuiWindowFlags_None);
     enableMenuBar();
@@ -36,6 +36,13 @@ std::string ofui::PromptWindow::prompt()
     std::string prompt = m_inputBuffer;
     m_prompt = prompt;
     return m_prompt;
+}
+
+std::string ofui::PromptWindow::output()
+{
+    std::string output = m_outputBuffer;
+    m_output = output;
+    return m_output;
 }
 
 void ofui::PromptWindow::addOutput(const std::string &output)
@@ -97,7 +104,7 @@ void ofui::PromptWindow::doDraw()
 
     if (isProcessing)
     {
-        ImGui::Text("Processing...");
+        ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), ImVec2(contentSize.x, 0.0f), "Processing...");
         ImGui::Dummy(ImVec2(0.0, 10.0));
         ImGui::Text(m_inputBuffer);
     }
@@ -109,14 +116,14 @@ void ofui::PromptWindow::doDraw()
                                       flags))
         {}
 
-        if (ImGui::Button("Clear prompt", ImVec2(contentSize.x * 0.33, 0)))
+        if (ImGui::Button("Clear prompt", ImVec2(contentSize.x * 0.2, 0)))
         {
             clear();
         }
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Clear model", ImVec2(contentSize.x * 0.33, 0)))
+        if (ImGui::Button("Clear model", ImVec2(contentSize.x * 0.2, 0)))
         {
             if (m_view)
             {
@@ -126,11 +133,32 @@ void ofui::PromptWindow::doDraw()
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Generate", ImVec2(contentSize.x * 0.33, 0)))
+        if (ImGui::Button("Generate", ImVec2(contentSize.x * 0.2, 0)))
         {
             if (m_view)
             {
+                clearOutput();
                 m_view->makeAiRequest(prompt());
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Checkbox("Auto run", &m_autoRunScript))
+        {
+            if (m_view)
+            {
+                m_view->setAutoRunAiScript(m_autoRunScript);
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Run", ImVec2(contentSize.x * 0.2, 0)))
+        {
+            if (m_view)
+            {
+                m_view->runScriptFromText(output());
             }
         }
     }
@@ -138,8 +166,13 @@ void ofui::PromptWindow::doDraw()
     ImGui::Dummy(ImVec2(0.0, 10.0));
 
     ImGui::Text("Response:");
+
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+
     if (ImGui::InputTextMultiline("##output", m_outputBuffer, BUFFER_SIZE, ImVec2(-1, -1), flags))
     {}
+
+    ImGui::PopFont();
 }
 
 void ofui::PromptWindow::doPreDraw()

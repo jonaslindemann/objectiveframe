@@ -337,6 +337,7 @@ private:
 
     ofai::StructureGenerator m_structureGenerator;
     bool m_isProcessingAiRequest;
+    bool m_autoRunAiScript;
 
     // Handle mouse updates
 
@@ -510,6 +511,10 @@ public:
     void nodePosAt(int i, double &x, double &y, double &z);
     void updateNodePos(vfem::Node *node, double x, double y, double z);
     void updateNodePosAt(int i, double x, double y, double z);
+
+    void beamAt(int i, int &i0, int &i1);
+    void updateBeamAt(int i, int i0, int i1);
+
     vfem::Node *nodeAt(int i);
 
     bool isNodeSelected(vfem::Node *node);
@@ -596,4 +601,6 @@ public:
     void makeAiRequest(const std::string &userPrompt);
     void onGenerationComplete(const std::string &result, bool success);
     bool isProcessingAiRequest() const;
+    void setAutoRunAiScript(bool autoRun);
+    bool autoRunAiScript() const;
 };

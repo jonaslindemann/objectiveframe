@@ -7,9 +7,12 @@
 #include <cstring> // For strncpy
 #include <fstream>
 
+#include <imguifd/ImGuiFileDialog.h>
+#include <imguifd/ImGuiFileDialogConfig.h>
+
 using namespace ofui;
 
-ScriptWindow::ScriptWindow(const std::string name) : UiWindow(name), m_view(nullptr)
+ScriptWindow::ScriptWindow(const std::string name) : UiWindow(name), m_view(nullptr), m_saveDialog(false)
 {
     setWindowFlags(ImGuiWindowFlags_None);
     enableMenuBar();
@@ -25,6 +28,15 @@ ScriptWindow::ScriptWindow(const std::string name) : UiWindow(name), m_view(null
 std::shared_ptr<ScriptWindow> ofui::ScriptWindow::create(const std::string name)
 {
     return std::make_shared<ScriptWindow>(name);
+}
+
+void ofui::ScriptWindow::newScript()
+{
+    m_filename = "";
+    m_content = "";
+    m_modified = false;
+    m_undoBuffer.clear();
+    m_undoIndex = -1;
 }
 
 void ofui::ScriptWindow::open(const std::string &filename)
@@ -135,7 +147,13 @@ void ofui::ScriptWindow::doDraw()
             }
             if (ImGui::MenuItem("Save", "Ctrl+S"))
             {
-                save();
+                if (m_filename.empty())
+                {
+                    // Open save dialog
+                    m_saveDialog = true;
+                }
+                else
+                    save();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Close"))
@@ -195,7 +213,13 @@ void ofui::ScriptWindow::doDraw()
 
     if (ImGui::Button("Save"))
     {
-        save();
+        if (m_filename.empty())
+        {
+            // Open save dialog
+            m_saveDialog = true;
+        }
+        else
+            save();
     }
 
     ImGui::SameLine();
@@ -262,6 +286,8 @@ void ofui::ScriptWindow::doDraw()
     strncpy(m_inputBuffer, m_content.c_str(), BUFFER_SIZE - 1);
     m_inputBuffer[BUFFER_SIZE - 1] = 0; // Ensure null termination
 
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+
     if (ImGui::InputTextMultiline("##source", m_inputBuffer, BUFFER_SIZE, ImVec2(contentSize.x, contentSize.y), flags,
                                   InputTextCallback, this))
     {
@@ -279,10 +305,46 @@ void ofui::ScriptWindow::doDraw()
         }
     }
 
+    ImGui::PopFont();
+
     m_textEditorActive = ImGui::IsItemActive();
 
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
+
+    // Save dialog
+
+    if (m_saveDialog)
+    {
+        IGFD::FileDialogConfig config;
+        config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
+
+        auto viewport = ImGui::GetMainViewport();
+        ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+        ImVec2 work_size = viewport->WorkSize;
+        ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
+
+        ImGuiFileDialog::Instance()->OpenDialog("Save script", "Choose File", ".chai", config);
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Save script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            ofutil::set_config_value("last_script_dir", filePath);
+
+            if (filePathName != "")
+            {
+                m_filename = filePathName;
+                save();
+            }
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+        m_saveDialog = false;
+    }
 }
 
 void ofui::ScriptWindow::doPreDraw()

@@ -1,0 +1,78 @@
+// Geodesic dome structure 5x5m
+newModel();
+
+// Constants
+global PI = 3.14159265359;
+global radius = 2.5; // 5m diameter
+global height = 2.0; // Height of the dome
+global numRadialSegments = 8; // Number of segments around the circumference
+global numRings = 4; // Number of horizontal rings excluding the top point
+
+// Create top point
+addNode(0, height, 0);
+global topNodeIdx = 0;
+
+// Create rings of nodes
+def createRings() {
+    global ringStartIndices = [1]; // Track starting index of each ring
+    
+    for (var ring = 1; ring <= numRings; ++ring) {
+        global ringHeight = height * (1 - ring / numRings);
+        global ringRadius = radius * sin(PI/2 * ring / numRings);
+        
+        for (var segment = 0; segment < numRadialSegments; ++segment) {
+            global angle = 2 * PI * segment / numRadialSegments;
+            global x = ringRadius * cos(angle);
+            global z = ringRadius * sin(angle);
+            addNode(x, ringHeight, z);
+        }
+        
+        if (ring < numRings) {
+            ringStartIndices.push_back(ringStartIndices[ring-1] + numRadialSegments);
+        }
+    }
+}
+
+// Create vertical and diagonal beams
+def createVerticalAndDiagonalBeams() {
+    // Connect top node to first ring
+    for (var i = 0; i < numRadialSegments; ++i) {
+        addBeam(topNodeIdx, i + 1);
+    }
+    
+    // Connect between rings
+    for (var ring = 1; ring < numRings; ++ring) {
+        global currentRingStart = ringStartIndices[ring-1];
+        global nextRingStart = ringStartIndices[ring];
+        
+        for (var i = 0; i < numRadialSegments; ++i) {
+            global currentNode = currentRingStart + i;
+            global nextNode = nextRingStart + i;
+            
+            // Vertical beam between rings
+            addBeam(currentNode, nextNode);
+            
+            // Diagonal beam to next segment
+            global nextSegment = (i + 1) % numRadialSegments;
+            addBeam(currentNode, nextRingStart + nextSegment);
+        }
+    }
+}
+
+// Create horizontal beams in each ring
+def createHorizontalBeams() {
+    for (var ring = 0; ring < numRings; ++ring) {
+        global ringStart = ring == 0 ? 1 : ringStartIndices[ring-1];
+        
+        for (var i = 0; i < numRadialSegments; ++i) {
+            global currentNode = ringStart + i;
+            global nextNode = ringStart + ((i + 1) % numRadialSegments);
+            addBeam(currentNode, nextNode);
+        }
+    }
+}
+
+// Execute the construction
+createRings();
+createVerticalAndDiagonalBeams();
+createHorizontalBeams();

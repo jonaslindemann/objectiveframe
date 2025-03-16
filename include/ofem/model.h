@@ -108,6 +108,8 @@ public:
     NodeBCSet *getNodeBCSet();
     NodeBCSet *nodeBCSet();
 
+    void enumerate();
+
     const std::string getFileName();
     void setFileName(const std::string &fname);
 

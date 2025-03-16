@@ -441,3 +441,14 @@ NodeBCSet *Model::nodeBCSet()
 {
     return m_bcSet.get();
 }
+
+void ofem::Model::enumerate()
+{
+    m_materialSet->enumerateMaterials();
+    m_nodeSet->enumerateNodes();
+    m_nodeSet->enumerateDofs();
+    m_elementSet->enumerateElements();
+    m_nodeLoadSet->enumerateLoads();
+    m_elementLoadSet->enumerateLoads();
+    m_bcSet->enumerateBCs();
+}

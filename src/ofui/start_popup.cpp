@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <ofutil/util_functions.h>
+
 #include <format>
 
 using namespace ofui;
@@ -90,7 +92,9 @@ void StartPopup::doPopup()
                     if (imageIdx < m_exampleImage.size())
                     {
                         m_exampleImage[imageIdx]->bind();
-                        if (ImGui::ImageButton((ImTextureID)m_exampleImage[imageIdx]->id(), ImVec2(180, 180)))
+                        auto id = "##" + ofutil::to_string(i) + ofutil::to_string(j);
+                        if (ImGui::ImageButton(id.c_str(), (ImTextureID)m_exampleImage[imageIdx]->id(),
+                                               ImVec2(180, 180)))
                         {
                             if (m_exampleClickedFunc)
                                 m_exampleClickedFunc(m_exampleFilename[imageIdx]);

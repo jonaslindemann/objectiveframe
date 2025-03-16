@@ -122,7 +122,7 @@ void ToolbarWindow::doDraw()
 
         if (button.type() == OfToolbarButtonType::Button)
         {
-            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4, m_color,
+            if (ImGui::ImageButton("", (ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), m_color,
                                    m_selectedColor))
             {
                 if (m_onButtonClicked)
@@ -146,7 +146,7 @@ void ToolbarWindow::doDraw()
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0.5, 1.0});
             }
-            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4, m_color,
+            if (ImGui::ImageButton("", (ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), m_color,
                                    m_selectedColor))
             {
                 button.toggleSelected();
@@ -173,7 +173,7 @@ void ToolbarWindow::doDraw()
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, m_color);
             }
-            if (ImGui::ImageButton((ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), 4, m_color,
+            if (ImGui::ImageButton("", (ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), m_color,
                                    m_selectedColor))
             {
                 this->selectButton(id - 1, button.group());

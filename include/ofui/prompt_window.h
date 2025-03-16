@@ -24,6 +24,8 @@ private:
     std::string m_prompt;
     std::string m_output;
 
+    bool m_autoRunScript;
+
     ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput; // | ImGuiInputTextFlags_CtrlEnterForNewLine;
 
 public:
@@ -34,6 +36,8 @@ public:
     void setView(FemViewWindow *view);
 
     std::string prompt();
+    std::string output();
+
     void addOutput(const std::string &output);
 
     void clearOutput();

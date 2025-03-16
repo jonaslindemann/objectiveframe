@@ -4,6 +4,7 @@
 #include <ofem/node.h>
 
 #include <vector>
+#include <map>
 
 namespace ofem {
 
@@ -12,6 +13,7 @@ SmartPointer(NodeSet);
 class NodeSet : public Base {
 private:
     std::vector<NodePtr> m_nodes;
+    std::map<Node *, int> m_nodeIndex;
 
 public:
     NodeSet();
@@ -38,6 +40,8 @@ public:
     long enumerateDofs(long count = 1);
 
     void resetNodeKind(NodeKind newKind);
+
+    int indexOf(Node *node);
 
     // Get/set methods
 

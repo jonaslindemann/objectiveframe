@@ -166,6 +166,7 @@ private:
     std::filesystem::path m_mapPath;
     std::filesystem::path m_pythonPath;
     std::filesystem::path m_examplePath;
+    std::filesystem::path m_aiPath;
 
     bool m_overlaySelected;
     bool m_haveScaleFactor;
@@ -338,6 +339,7 @@ private:
     ofai::StructureGenerator m_structureGenerator;
     bool m_isProcessingAiRequest;
     bool m_autoRunAiScript;
+    std::string m_systemPromptFilename;
 
     // Handle mouse updates
 
@@ -357,6 +359,7 @@ private:
     void setupOverlay();
     void setupPlugins();
     void setupExamples();
+    void setupAi();
 
     void refreshUiStyle();
 

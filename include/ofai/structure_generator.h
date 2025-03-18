@@ -17,9 +17,10 @@ public:
     using GenerationCallback = std::function<void(const std::string &, bool)>;
 
 private:
-    std::string apiKey;
-    std::string apiUrl;
-    std::string model;
+    std::string m_apiKey;
+    std::string m_apiUrl;
+    std::string m_model;
+    std::string m_systemPrompt;
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *output);
     std::string buildSystemPrompt() const;
@@ -36,6 +37,7 @@ public:
     ~StructureGenerator();
 
     void setApiKey(const std::string &apiKey);
+    void loadSystemPromptFrom(const std::string &filename);
 
     /**
      * Generates ChaiScript code for a structure based on a natural language prompt.

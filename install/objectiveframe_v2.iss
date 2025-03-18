@@ -47,7 +47,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "..\bin\*.df3"; DestDir: "{userdocs}\ObjectiveFrame Samples"; Flags: ignoreversion; Components: samples
+Source: "..\bin\examples_misc\*.df3"; DestDir: "{userdocs}\ObjectiveFrame Samples"; Flags: ignoreversion; Components: samples
 Source: "vc_redist\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Components: main
 Source: "..\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion signonce; Components: main
 Source: "..\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion signonce; Components: main
@@ -58,6 +58,7 @@ Source: "..\bin\maps\*"; DestDir: "{app}\maps"; Flags: ignoreversion recursesubd
 Source: "..\bin\plugins\*"; DestDir: "{app}\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\python\*"; DestDir: "{app}\python"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "..\bin\examples\*"; DestDir: "{app}\examples"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "..\bin\ai\*"; DestDir: "{app}\ai"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

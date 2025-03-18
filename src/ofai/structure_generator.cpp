@@ -5,6 +5,7 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <thread>
+#include <ofutil/util_functions.h>
 
 using json = nlohmann::json;
 
@@ -12,7 +13,8 @@ using namespace ofai;
 
 // Constructor
 StructureGenerator::StructureGenerator(const std::string &apiKey)
-    : apiKey(apiKey), apiUrl("https://api.anthropic.com/v1/messages"), model("claude-3-7-sonnet-20250219")
+    : m_apiKey(apiKey), m_apiUrl("https://api.anthropic.com/v1/messages"), m_model("claude-3-7-sonnet-20250219"),
+      m_systemPrompt(buildSystemPrompt())
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
 }
@@ -25,7 +27,7 @@ StructureGenerator::~StructureGenerator()
 
 void ofai::StructureGenerator::setApiKey(const std::string &apiKey)
 {
-    this->apiKey = apiKey;
+    this->m_apiKey = apiKey;
 }
 
 // Static callback function for cURL to store API response
@@ -134,22 +136,22 @@ std::string StructureGenerator::makeClaudeRequest(const std::string &userPrompt)
     if (curl)
     {
         // Prepare the request payload
-        json requestData = {{"model", model},
+        json requestData = {{"model", m_model},
                             {"max_tokens", 4000},
                             {"messages", json::array({{{"role", "user"}, {"content", userPrompt}}})},
-                            {"system", buildSystemPrompt()}};
+                            {"system", m_systemPrompt}};
 
         std::string requestBody = requestData.dump(-1, ' ', false, json::error_handler_t::replace);
 
         // Set up headers
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
-        std::string authHeader = "x-api-key: " + apiKey;
+        std::string authHeader = "x-api-key: " + m_apiKey;
         headers = curl_slist_append(headers, authHeader.c_str());
         headers = curl_slist_append(headers, "anthropic-version: 2023-06-01");
 
         // Configure the request
-        curl_easy_setopt(curl, CURLOPT_URL, apiUrl.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, m_apiUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -211,6 +213,11 @@ std::string StructureGenerator::extractChaiScript(const std::string &claudeRespo
     }
 }
 
+void ofai::StructureGenerator::loadSystemPromptFrom(const std::string &filename)
+{
+    m_systemPrompt = ofutil::read_file(filename);
+}
+
 // Public method to generate ChaiScript code from a prompt (synchronous)
 std::string StructureGenerator::generateStructure(const std::string &prompt)
 {
@@ -259,5 +266,5 @@ std::future<std::string> StructureGenerator::generateStructureAsync(const std::s
 // Set the model to use for generation
 void StructureGenerator::setModel(const std::string &modelName)
 {
-    model = modelName;
+    m_model = modelName;
 }

@@ -313,7 +313,8 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
       m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false}, m_saveAsDialog{false},
       m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}, m_openScriptDialog{false},
       m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}, m_aiApiKey{""},
-      m_structureGenerator(""), m_isProcessingAiRequest{false}, m_pluginRunning{false}, m_autoRunAiScript{true}
+      m_structureGenerator(""), m_isProcessingAiRequest{false}, m_pluginRunning{false}, m_autoRunAiScript{true},
+      m_systemPromptFilename{""}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -953,6 +954,7 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
     m_mapPath = m_progPath / fs::path("maps");
     m_pythonPath = m_progPath / fs::path("python");
     m_examplePath = m_progPath / fs::path("examples");
+    m_aiPath = m_progPath / fs::path("ai");
 }
 
 const std::string FemViewWindow::getProgPath()
@@ -2080,6 +2082,30 @@ void FemViewWindow::setupExamples()
     }
     else
         log("Couldn't find load any examples...");
+}
+
+void FemViewWindow::setupAi()
+{
+    log("Setting up system prompt...");
+
+    namespace fs = std::filesystem;
+
+    if (std::filesystem::is_directory(m_aiPath))
+    {
+        auto filename = m_aiPath / fs::path("system_prompt.md");
+        if (std::filesystem::exists(filename))
+        {
+            m_systemPromptFilename = filename.string();
+            m_structureGenerator.loadSystemPromptFrom(m_systemPromptFilename);
+        }
+        else
+        {
+            log("Couldn't find system prompt file...");
+            m_systemPromptFilename = "";
+        }
+    }
+    else
+        log("Couldn't find AI directory");
 }
 
 void FemViewWindow::refreshUiStyle()
@@ -3516,6 +3542,7 @@ void FemViewWindow::onInit()
     this->setEditMode(WidgetMode::Select);
 
     this->setupPlugins();
+    this->setupAi();
 
     if (m_argc > 1)
     {

@@ -398,6 +398,8 @@ void FemViewWindow::runScriptFromText(std::string scriptText)
         chai.eval(scriptText);
     } catch (const chaiscript::exception::eval_error &e)
     {
+        m_promptWindow->clearError();
+        m_promptWindow->addError(e.pretty_print());
         log(e.pretty_print());
     }
 
@@ -2097,6 +2099,7 @@ void FemViewWindow::setupAi()
         {
             m_systemPromptFilename = filename.string();
             m_structureGenerator.loadSystemPromptFrom(m_systemPromptFilename);
+            log("Loaded system prompt - " + m_systemPromptFilename);
         }
         else
         {

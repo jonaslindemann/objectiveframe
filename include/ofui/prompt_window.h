@@ -18,11 +18,12 @@ private:
 
     static const size_t BUFFER_SIZE = 1024 * 1024; // 1MB buffer, adjust as needed
     char m_inputBuffer[BUFFER_SIZE];
-
     char m_outputBuffer[BUFFER_SIZE];
+    char m_errorBuffer[BUFFER_SIZE];
 
     std::string m_prompt;
     std::string m_output;
+    std::string m_error;
 
     bool m_autoRunScript;
 
@@ -37,11 +38,14 @@ public:
 
     std::string prompt();
     std::string output();
+    std::string error();
 
     void addOutput(const std::string &output);
+    void addError(const std::string &error);
 
     void clearOutput();
     void clearPrompt();
+    void clearError();
 
     void clear();
 

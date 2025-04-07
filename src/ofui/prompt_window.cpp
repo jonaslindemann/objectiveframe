@@ -17,8 +17,9 @@ PromptWindow::PromptWindow(const std::string name) : UiWindow(name), m_view(null
 
     memset(m_inputBuffer, 0, BUFFER_SIZE);  // Clear the input buffer
     memset(m_outputBuffer, 0, BUFFER_SIZE); // Clear the input buffer
+    memset(m_errorBuffer, 0, BUFFER_SIZE);  // Clear the input buffer
 
-    this->setSize(800, 600);
+    this->setSize(800, 730);
 }
 
 std::shared_ptr<PromptWindow> ofui::PromptWindow::create(const std::string name)
@@ -45,11 +46,25 @@ std::string ofui::PromptWindow::output()
     return m_output;
 }
 
+std::string ofui::PromptWindow::error()
+{
+    std::string error = m_errorBuffer;
+    m_error = error;
+    return m_error;
+}
+
 void ofui::PromptWindow::addOutput(const std::string &output)
 {
     m_output += output;
     strncpy(m_outputBuffer, m_output.c_str(), BUFFER_SIZE - 1);
     m_outputBuffer[BUFFER_SIZE - 1] = '\0';
+}
+
+void ofui::PromptWindow::addError(const std::string &error)
+{
+    m_error += error;
+    strncpy(m_errorBuffer, m_error.c_str(), BUFFER_SIZE - 1);
+    m_errorBuffer[BUFFER_SIZE - 1] = '\0';
 }
 
 void ofui::PromptWindow::clearOutput()
@@ -62,6 +77,12 @@ void ofui::PromptWindow::clearPrompt()
 {
     m_prompt = "";
     memset(m_inputBuffer, 0, BUFFER_SIZE);
+}
+
+void ofui::PromptWindow::clearError()
+{
+    m_error = "";
+    memset(m_errorBuffer, 0, BUFFER_SIZE);
 }
 
 void ofui::PromptWindow::clear()
@@ -169,7 +190,16 @@ void ofui::PromptWindow::doDraw()
 
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
 
-    if (ImGui::InputTextMultiline("##output", m_outputBuffer, BUFFER_SIZE, ImVec2(-1, -1), flags))
+    if (ImGui::InputTextMultiline("##output", m_outputBuffer, BUFFER_SIZE, ImVec2(-1, contentSize.y * 2), flags))
+    {}
+
+    ImGui::PopFont();
+
+    ImGui::Text("Error:");
+
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+
+    if (ImGui::InputTextMultiline("##error", m_errorBuffer, BUFFER_SIZE, ImVec2(-1, -1), flags))
     {}
 
     ImGui::PopFont();

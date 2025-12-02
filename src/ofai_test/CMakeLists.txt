@@ -1,33 +1,23 @@
-file(GLOB SOURCE_FILES *.cpp	)
+file(GLOB SOURCE_FILES *.cpp)
 file(GLOB INCLUDE_FILES *.h) 
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/ofai_test ${PROJECT_SOURCE_DIR}/include/ofai)
-	add_definitions(-DUSE_FEMVIEW)
-	if (WIN32)
-		add_compile_options(/bigobj)
-	endif()
-	add_executable(ofai_testd ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES})
-	target_include_directories(ofai_testd PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
-else()
-	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/ofai_test)
-	if (WIN32)
-		add_compile_options(/bigobj)
-	endif()
-	add_definitions(-DUSE_FEMVIEW)
-	add_executable(ofai_test WIN32 ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES} ${APP_ICON_RESOURCE_WINDOWS})
-	target_include_directories(ofai_test PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
-	if (WIN32)
-		set_target_properties(ofai_test PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
-	endif()
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/ofai_test ${PROJECT_SOURCE_DIR}/include/ofai)
+add_definitions(-DUSE_FEMVIEW)
+
+if (WIN32)
+	add_compile_options(/bigobj)
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    if (WIN32)
-        target_link_libraries(ofai_testd ofaid utild PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl)
-    else()
-        target_link_libraries(ofai_testd ofaid utild PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl)
-    endif()
-else()
-	target_link_libraries(ofai_test ofai util PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl)
-endif() 
+add_executable(ofai_test ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES})
+target_include_directories(ofai_test PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
+set_target_properties(ofai_test PROPERTIES DEBUG_POSTFIX d)
+
+if (WIN32)
+	# Set WIN32 subsystem only for Release builds
+	set_target_properties(ofai_test PROPERTIES 
+		WIN32_EXECUTABLE $<CONFIG:Release>
+		LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS"
+	)
+endif()
+
+target_link_libraries(ofai_test ofai util PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl) 

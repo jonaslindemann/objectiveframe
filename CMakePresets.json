@@ -1,17 +1,6 @@
 {
-    "version": 3,
-    "configurePresets": [
-      {
-        "name": "default_c",
-        "toolchainFile": "c:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-      },
-      {
-        "name": "default_e",
-        "toolchainFile": "e:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-      },
-      {
-        "name": "linux",
-        "toolchainFile": "/home/lindemann/vcpkg/scripts/buildsystems/vcpkg.cmake"
-      }
-    ]
-  }
+  "version": 3,
+  "comment": "This file is no longer required. The CMakeLists.txt now auto-detects vcpkg.",
+  "comment2": "You can safely delete this file or keep it for custom presets if needed.",
+  "configurePresets": []
+}

@@ -1,36 +1,41 @@
-file(GLOB SOURCE_FILES *.cpp	)
+file(GLOB SOURCE_FILES *.cpp)
 file(GLOB INCLUDE_FILES *.h) 
 
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
 
- 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include/ofui )
-	add_definitions(-DUSE_FEMVIEW)
-	if (WIN32)
-		add_compile_options(/bigobj)
-	endif()
-	add_executable(objframe_glfwd ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES})
-	target_include_directories(objframe_glfwd PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
-else()
-	include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw)
-	if (WIN32)
-		add_compile_options(/bigobj)
-	endif()
-	add_definitions(-DUSE_FEMVIEW)
-	add_executable(objframe_glfw WIN32 ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES} ${APP_ICON_RESOURCE_WINDOWS})
-	target_include_directories(objframe_glfw PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
-	if (WIN32)
-		set_target_properties(objframe_glfw PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
-	endif()
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe_glfw ${PROJECT_SOURCE_DIR}/include/ofui)
+add_definitions(-DUSE_FEMVIEW)
+
+if (WIN32)
+	add_compile_options(/bigobj)
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    if (WIN32)
-        target_link_libraries(objframe_glfwd femd ofsolved ofaid ofserviced visfemd utild ofmathd ivfd ivfgled ivfmathd ivfimaged ofui_glfwd gleivfd gladd newmatd imguifdd civetwebd PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl)
-    else()
-        target_link_libraries(objframe_glfwd femd ofsolved ofaid ofserviced visfemd utild ofmathd ivf ivfgle ivfmath ivfimage ofui_glfwd gleivf glad newmatd imguifdd civetwebd PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl)
-    endif()
+# Create a single executable that works for both Debug and Release
+# Use WIN32 flag only for Release builds using generator expressions
+add_executable(objframe_glfw ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES} ${APP_ICON_RESOURCE_WINDOWS})
+target_include_directories(objframe_glfw PRIVATE ${CHAISCRIPT_INCLUDE_DIRS})
+
+if (WIN32)
+	# Set WIN32 subsystem only for Release builds
+	set_target_properties(objframe_glfw PROPERTIES 
+		WIN32_EXECUTABLE $<CONFIG:Release>
+		LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS"
+	)
+endif()
+
+# Link libraries with automatic debug postfix handling
+if (WIN32)
+	target_link_libraries(objframe_glfw 
+		fem ofsolve ofai ofservice visfem util ofmath 
+		ivf ivfgle ivfmath ivfimage 
+		ofui_glfw gleivf glad newmat imguifd civetweb 
+		PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl
+	)
 else()
-    target_link_libraries(objframe_glfw fem ofsolve ofservice ofai visfem util ofmath ivf ivfgle ivfmath ivfimage ofui_glfw gleivf glad newmat imguifd civetweb PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl)
+	target_link_libraries(objframe_glfw 
+		fem ofsolve ofai ofservice visfem util ofmath 
+		ivf ivfgle ivfmath ivfimage 
+		ofui_glfw gleivf glad newmat imguifd civetweb 
+		PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl
+	)
 endif() 

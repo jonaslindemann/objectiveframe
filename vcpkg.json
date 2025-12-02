@@ -1,4 +1,7 @@
 {
+  "name": "objectiveframe",
+  "version": "2.0.0",
+  "builtin-baseline": "a11dd074dac3fa168aa8efb992cbb0220a3dc481",
   "dependencies": [
     "glew",
     "glfw3",

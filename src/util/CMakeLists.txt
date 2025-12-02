@@ -1,10 +1,6 @@
 FILE(GLOB SOURCE_FILES *.cpp)  
-FILE(GLOB INCLUDE_FILES *.h ${PROJECT_SOURCE_DIR}/include/ofutil/*.h)  
+FILE(GLOB INCLUDE_FILES ${PROJECT_SOURCE_DIR}/include/ofutil/*.h)   
 
-IF(CMAKE_BUILD_TYPE STREQUAL Debug)  
-ADD_LIBRARY(utild ${INCLUDE_FILES} ${SOURCE_FILES})  
-target_include_directories(utild PRIVATE ${PROJECT_SOURCE_DIR}/include)  
-ELSE(CMAKE_BUILD_TYPE STREQUAL Debug)  
 ADD_LIBRARY(util ${INCLUDE_FILES} ${SOURCE_FILES})  
-target_include_directories(util PRIVATE ${PROJECT_SOURCE_DIR}/include)  
-ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug)
+target_include_directories(util PUBLIC ${PROJECT_SOURCE_DIR}/include/ofutil)
+set_target_properties(util PROPERTIES DEBUG_POSTFIX d)

@@ -1,22 +1,89 @@
 cmake_minimum_required(VERSION 3.24)
 
+# Auto-detect vcpkg toolchain file, preferring standalone installations over VS bundled vcpkg
+# Check if Visual Studio's bundled vcpkg is being used and override with local installations
+set(_VS_VCPKG_DETECTED FALSE)
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    string(FIND "${CMAKE_TOOLCHAIN_FILE}" "Microsoft Visual Studio" _VS_VCPKG_POS)
+    if(NOT _VS_VCPKG_POS EQUAL -1)
+        set(_VS_VCPKG_DETECTED TRUE)
+        message(STATUS "Visual Studio bundled vcpkg detected, checking for local installations...")
+    endif()
+endif()
+
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE OR _VS_VCPKG_DETECTED)
+    # Check for VCPKG_ROOT environment variable first
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file" FORCE)
+        message(STATUS "Using vcpkg from VCPKG_ROOT: $ENV{VCPKG_ROOT}")
+    # Try common vcpkg installation locations
+    elseif(WIN32)
+        if(EXISTS "c:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "c:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file" FORCE)
+            message(STATUS "Found and using vcpkg at: c:/vcpkg")
+        elseif(EXISTS "e:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "e:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file" FORCE)
+            message(STATUS "Found and using vcpkg at: e:/vcpkg")
+        elseif(_VS_VCPKG_DETECTED)
+            message(STATUS "No local vcpkg found, using Visual Studio bundled vcpkg: ${CMAKE_TOOLCHAIN_FILE}")
+        endif()
+    elseif(UNIX AND NOT APPLE)
+        if(EXISTS "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file" FORCE)
+            message(STATUS "Found and using vcpkg at: $ENV{HOME}/vcpkg")
+        elseif(EXISTS "/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file" FORCE)
+            message(STATUS "Found and using vcpkg at: /usr/local/vcpkg")
+        endif()
+    elseif(APPLE)
+        if(EXISTS "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file" FORCE)
+            message(STATUS "Found and using vcpkg at: $ENV{HOME}/vcpkg")
+        elseif(EXISTS "/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file" FORCE)
+            message(STATUS "Found and using vcpkg at: /usr/local/vcpkg")
+        endif()
+    endif()
+
+    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        message(WARNING "vcpkg toolchain file not found. Please set VCPKG_ROOT environment variable or CMAKE_TOOLCHAIN_FILE.")
+    endif()
+endif()
+
+# Share vcpkg installed packages across all build directories to save disk space
+# This puts vcpkg_installed/ in the project root instead of each build directory
+set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed" CACHE PATH "vcpkg installed directory")
+
 project(objframe2)
+
 enable_language(CXX)
 enable_language(C)
 set(CMAKE_CXX_STANDARD 20)
 
+# Enable automatic debug postfix for all targets
+set(CMAKE_DEBUG_POSTFIX d)
+
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+IF(MSVC)
+  SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+ENDIF()
 
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(ZLIB REQUIRED)
-#find_package(FLTK CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(CURL CONFIG REQUIRED)
-#find_package(nlohmann_json CONFIG REQUIRED) 
+find_package(CURL CONFIG REQUIRED) 
 
 find_path(CHAISCRIPT_INCLUDE_DIRS "chaiscript/chaiscript.hpp")
 
@@ -25,10 +92,23 @@ option(USE_LEAP "Build with support for LeapMotion" OFF)
 set(IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus")
 set(IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(IVF_LIBS ${IVF_ROOT}/lib/Debug)
+# Support both single-config (Makefile, Ninja) and multi-config (Visual Studio, Xcode) generators
+if(CMAKE_CONFIGURATION_TYPES)
+  # Multi-config generator (Visual Studio, Xcode)
+  set(IVF_LIBS ${IVF_ROOT}/lib)
+  link_directories(${IVF_ROOT}/lib/Debug ${IVF_ROOT}/lib/Release)
 else()
-  set(IVF_LIBS ${IVF_ROOT}/lib/Release)
+  # Single-config generator (Makefile, Ninja)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(IVF_LIBS ${IVF_ROOT}/lib/Debug)
+  else()
+    set(IVF_LIBS ${IVF_ROOT}/lib/Release)
+  endif()
+endif()
+
+if (APPLE OR UNIX)
+  # Use generator expression to define _DEBUG for debug configurations
+  add_compile_definitions($<$<CONFIG:Debug>:_DEBUG>)
 endif()
 
 if (LINUX)
@@ -80,3 +160,37 @@ endif()
 
 
 add_subdirectory(src)
+
+# Create unified objframe interface library target
+# This bundles all objframe libraries and dependencies for easier linking
+add_library(objframe INTERFACE)
+add_library(objframe::objframe ALIAS objframe)
+
+target_link_libraries(objframe INTERFACE
+    ofui_glfw
+    ofservice
+    ofai
+    ofsolve
+    visfem
+    util
+    ofmath
+    fem
+    newmat
+    imguifd
+    civetweb
+    glad
+    PNG::PNG
+    JPEG::JPEG
+    ZLIB::ZLIB
+    glfw
+    GLEW::GLEW
+    OpenGL::GL
+    CURL::libcurl
+)
+
+target_include_directories(objframe INTERFACE
+    ${PROJECT_SOURCE_DIR}/include
+    ${OBJFRAME_INCLUDE_DIR}
+    ${IVF_INCLUDE_DIR}
+    ${CHAISCRIPT_EXTRAS_INCLUDE}
+)

@@ -70,8 +70,30 @@ set(CMAKE_CXX_STANDARD 20)
 # Enable automatic debug postfix for all targets
 set(CMAKE_DEBUG_POSTFIX d)
 
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+# Set output directories with proper Debug/Release structure on Windows
+if(WIN32)
+  # On Windows, separate Debug and Release libraries into subdirectories
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/lib/Debug)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/lib/Debug)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin/Debug)
+  
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/lib/Release)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/lib/Release)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin/Release)
+  
+  # Also set for other configurations
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_SOURCE_DIR}/lib/RelWithDebInfo)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_SOURCE_DIR}/lib/RelWithDebInfo)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_SOURCE_DIR}/bin/RelWithDebInfo)
+  
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_SOURCE_DIR}/lib/MinSizeRel)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_SOURCE_DIR}/lib/MinSizeRel)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_SOURCE_DIR}/bin/MinSizeRel)
+else()
+  # On Unix/Linux, use simple directory structure
+  set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+endif()
 
 IF(MSVC)
   SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -92,19 +114,24 @@ option(USE_LEAP "Build with support for LeapMotion" OFF)
 set(IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus")
 set(IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include)
 
-# Support both single-config (Makefile, Ninja) and multi-config (Visual Studio, Xcode) generators
-if(CMAKE_CONFIGURATION_TYPES)
-  # Multi-config generator (Visual Studio, Xcode)
-  set(IVF_LIBS ${IVF_ROOT}/lib)
-  link_directories(${IVF_ROOT}/lib/Debug ${IVF_ROOT}/lib/Release)
-else()
-  # Single-config generator (Makefile, Ninja)
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(IVF_LIBS ${IVF_ROOT}/lib/Debug)
-  else()
-    set(IVF_LIBS ${IVF_ROOT}/lib/Release)
+# Create imported targets for IVF++ libraries with proper debug postfix handling
+# This works with both single-config and multi-config generators
+set(IVF_LIBRARIES ivf ivfgle ivfmath ivfimage gleivf glad)
+
+foreach(lib ${IVF_LIBRARIES})
+  add_library(${lib} STATIC IMPORTED)
+  set_target_properties(${lib} PROPERTIES
+    IMPORTED_LOCATION_RELEASE "${IVF_ROOT}/lib/Release/${lib}.lib"
+    IMPORTED_LOCATION_DEBUG "${IVF_ROOT}/lib/Debug/${lib}d.lib"
+    INTERFACE_INCLUDE_DIRECTORIES "${IVF_INCLUDE_DIR}"
+  )
+  # For single-config generators on Unix/Linux (if needed)
+  if(NOT WIN32)
+    set_target_properties(${lib} PROPERTIES
+      IMPORTED_LOCATION "${IVF_ROOT}/lib/${lib}.a"
+    )
   endif()
-endif()
+endforeach()
 
 if (APPLE OR UNIX)
   # Use generator expression to define _DEBUG for debug configurations
@@ -142,13 +169,19 @@ set(OBJFRAME_INCLUDE_DIR
 
 include_directories(
   ${DEPENDS_INCLUDE_DIR} ${OBJFRAME_INCLUDE_DIR} ${IVF_INCLUDE_DIR}
-  ${OBJFRAME_INCLUDE} ${CHAISCRIPT_EXTRAS_INCLUDE})  # Add this line
+  ${OBJFRAME_INCLUDE} ${CHAISCRIPT_EXTRAS_INCLUDE})
 
+# Link directories for ObjectiveFrame libraries (with Debug/Release subfolders on Windows)
 if(WIN32)
-  link_directories(${PROJECT_SOURCE_DIR}/lib ${IVF_LIBS} ${LEAP_LIBS})
+  # On Windows, libraries are in lib/Debug and lib/Release with 'd' suffix for debug
+  link_directories(
+    ${PROJECT_SOURCE_DIR}/lib/Debug
+    ${PROJECT_SOURCE_DIR}/lib/Release
+    ${LEAP_LIBS}
+  )
 else()
-  link_directories(${PROJECT_SOURCE_DIR}/lib ${DEPENDS_LIB_DIR} ${IVF_LIBS}
-                   ${LEAP_LIBS})
+  # On Unix/Linux, typically in a single lib directory
+  link_directories(${PROJECT_SOURCE_DIR}/lib ${DEPENDS_LIB_DIR} ${LEAP_LIBS})
 endif()
 
 if(WIN32)

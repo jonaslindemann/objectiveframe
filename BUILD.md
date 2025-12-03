@@ -125,8 +125,16 @@ python build-of.py --build --jobs 8
 ## Output
 
 After building, the binaries will be in:
-- `bin/` - Executables (Debug builds have 'd' suffix, e.g., `objframe_glfwd.exe`)
-- `lib/` - Libraries (Debug libraries have 'd' suffix, e.g., `femd.lib`)
+
+**Windows:**
+- `bin/Debug/` - Debug executables (with 'd' suffix, e.g., `objframe_glfwd.exe`)
+- `bin/Release/` - Release executables (e.g., `objframe_glfw.exe`)
+- `lib/Debug/` - Debug libraries (with 'd' suffix, e.g., `femd.lib`)
+- `lib/Release/` - Release libraries (e.g., `fem.lib`)
+
+**Linux/macOS:**
+- `bin/` - Executables
+- `lib/` - Libraries (debug builds have 'd' suffix)
 
 ## Using ObjectiveFrame as a Dependency
 
@@ -157,6 +165,12 @@ git pull
 
 ### Build errors with IVF++
 ObjectiveFrame depends on the IVF++ library which should be located at `../ivfplusplus` relative to the ObjectiveFrame directory. Make sure you have it cloned and built.
+
+**Windows:** IVF++ libraries must be in:
+- `../ivfplusplus/lib/Debug/` - Debug libraries (with 'd' suffix, e.g., `ivfd.lib`)
+- `../ivfplusplus/lib/Release/` - Release libraries (e.g., `ivf.lib`)
+
+**Linux/macOS:** IVF++ libraries should be in `../ivfplusplus/lib/`
 
 ## Platform-Specific Notes
 

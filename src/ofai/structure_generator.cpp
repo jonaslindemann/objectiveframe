@@ -13,7 +13,7 @@ using namespace ofai;
 
 // Constructor
 StructureGenerator::StructureGenerator(const std::string &apiKey)
-    : m_apiKey(apiKey), m_apiUrl("https://api.anthropic.com/v1/messages"), m_model("claude-3-7-sonnet-20250219"),
+    : m_apiKey(apiKey), m_apiUrl("https://api.anthropic.com/v1/messages"), m_model("claude-sonnet-4-5"),
       m_systemPrompt(buildSystemPrompt())
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);

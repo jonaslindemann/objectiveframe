@@ -2,6 +2,8 @@
 
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <thread>
@@ -10,6 +12,227 @@
 using json = nlohmann::json;
 
 using namespace ofai;
+
+// ============================================================================
+// PromptDatabase Implementation
+// ============================================================================
+
+void PromptDatabase::parseCategories()
+{
+    m_categories.clear();
+    
+    if (!m_data.contains("categories") || !m_data["categories"].is_array())
+    {
+        return;
+    }
+    
+    for (const auto& catJson : m_data["categories"])
+    {
+        PromptCategory category;
+        category.id = catJson.value("id", "");
+        category.name = catJson.value("name", "");
+        category.description = catJson.value("description", "");
+        
+        if (catJson.contains("examples") && catJson["examples"].is_array())
+        {
+            for (const auto& exJson : catJson["examples"])
+            {
+                PromptExample example;
+                example.id = exJson.value("id", "");
+                example.name = exJson.value("name", "");
+                example.prompt = exJson.value("prompt", "");
+                example.difficulty = exJson.value("difficulty", "");
+                
+                if (exJson.contains("tags") && exJson["tags"].is_array())
+                {
+                    for (const auto& tag : exJson["tags"])
+                    {
+                        if (tag.is_string())
+                        {
+                            example.tags.push_back(tag.get<std::string>());
+                        }
+                    }
+                }
+                
+                category.examples.push_back(example);
+            }
+        }
+        
+        m_categories.push_back(category);
+    }
+}
+
+bool PromptDatabase::loadFromFile(const std::string& filename)
+{
+    try
+    {
+        std::ifstream file(filename);
+        if (!file.is_open())
+        {
+            std::cerr << "Failed to open file: " << filename << std::endl;
+            return false;
+        }
+        
+        file >> m_data;
+        file.close();
+        
+        m_version = m_data.value("version", "");
+        m_description = m_data.value("description", "");
+        
+        parseCategories();
+        
+        return true;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Error loading prompt database: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+bool PromptDatabase::loadFromString(const std::string& jsonString)
+{
+    try
+    {
+        m_data = json::parse(jsonString);
+        
+        m_version = m_data.value("version", "");
+        m_description = m_data.value("description", "");
+        
+        parseCategories();
+        
+        return true;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Error parsing JSON string: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+std::vector<PromptCategory> PromptDatabase::getCategories() const
+{
+    return m_categories;
+}
+
+PromptCategory PromptDatabase::getCategoryById(const std::string& categoryId) const
+{
+    for (const auto& category : m_categories)
+    {
+        if (category.id == categoryId)
+        {
+            return category;
+        }
+    }
+    return PromptCategory(); // Return empty category if not found
+}
+
+PromptExample PromptDatabase::getExampleById(const std::string& exampleId) const
+{
+    for (const auto& category : m_categories)
+    {
+        for (const auto& example : category.examples)
+        {
+            if (example.id == exampleId)
+            {
+                return example;
+            }
+        }
+    }
+    return PromptExample(); // Return empty example if not found
+}
+
+std::vector<PromptExample> PromptDatabase::getExamplesByCategory(const std::string& categoryId) const
+{
+    PromptCategory category = getCategoryById(categoryId);
+    return category.examples;
+}
+
+std::vector<PromptExample> PromptDatabase::getExamplesByTag(const std::string& tag) const
+{
+    std::vector<PromptExample> results;
+    
+    for (const auto& category : m_categories)
+    {
+        for (const auto& example : category.examples)
+        {
+            for (const auto& exampleTag : example.tags)
+            {
+                if (exampleTag == tag)
+                {
+                    results.push_back(example);
+                    break; // Don't add the same example multiple times
+                }
+            }
+        }
+    }
+    
+    return results;
+}
+
+std::vector<PromptExample> PromptDatabase::getExamplesByDifficulty(const std::string& difficulty) const
+{
+    std::vector<PromptExample> results;
+    
+    for (const auto& category : m_categories)
+    {
+        for (const auto& example : category.examples)
+        {
+            if (example.difficulty == difficulty)
+            {
+                results.push_back(example);
+            }
+        }
+    }
+    
+    return results;
+}
+
+std::vector<PromptExample> PromptDatabase::searchExamplesByName(const std::string& searchTerm) const
+{
+    std::vector<PromptExample> results;
+    
+    // Convert search term to lowercase for case-insensitive search
+    std::string lowerSearchTerm = searchTerm;
+    std::transform(lowerSearchTerm.begin(), lowerSearchTerm.end(), lowerSearchTerm.begin(), ::tolower);
+    
+    for (const auto& category : m_categories)
+    {
+        for (const auto& example : category.examples)
+        {
+            // Convert example name to lowercase
+            std::string lowerName = example.name;
+            std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+            
+            // Check if search term is found in the name
+            if (lowerName.find(lowerSearchTerm) != std::string::npos)
+            {
+                results.push_back(example);
+            }
+        }
+    }
+    
+    return results;
+}
+
+std::vector<PromptExample> PromptDatabase::getAllExamples() const
+{
+    std::vector<PromptExample> allExamples;
+    
+    for (const auto& category : m_categories)
+    {
+        for (const auto& example : category.examples)
+        {
+            allExamples.push_back(example);
+        }
+    }
+    
+    return allExamples;
+}
+
+// ============================================================================
+// StructureGenerator Implementation
+// ============================================================================
 
 // Constructor
 StructureGenerator::StructureGenerator(const std::string &apiKey)

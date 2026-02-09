@@ -27,7 +27,23 @@ private:
 
     bool m_autoRunScript;
 
-    ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput; // | ImGuiInputTextFlags_CtrlEnterForNewLine;
+    ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_WordWrap;
+    
+    // Line rendering for output
+    std::vector<int> m_lineOffsets;
+    void updateLineOffsets();
+    void renderTextWithLineNumbers(const char* label, char* buffer, const ImVec2& size, ImGuiInputTextFlags flags);
+
+    // Prompt database UI
+    int m_selectedCategoryIndex;
+    int m_selectedExampleIndex;
+    char m_searchBuffer[256];
+    std::string m_currentDifficultyFilter;
+    bool m_switchToGenerateTab;
+    
+    void renderPromptBrowser();
+    void renderGenerateTab();
+    void loadPromptIntoInput(const std::string& prompt);
 
 public:
     PromptWindow(const std::string name);

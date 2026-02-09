@@ -457,6 +457,11 @@ bool FemViewWindow::autoRunAiScript() const
     return m_autoRunAiScript;
 }
 
+ofai::PromptDatabase &FemViewWindow::getPromptDatabase()
+{
+    return m_promptDatabase;
+}
+
 // Get/set methods
 
 void FemViewWindow::setFileName(const std::string &name)
@@ -2105,6 +2110,17 @@ void FemViewWindow::setupAi()
         {
             log("Couldn't find system prompt file...");
             m_systemPromptFilename = "";
+        }
+
+        filename = m_aiPath / fs::path("prompts_db.json");
+        if (std::filesystem::exists(filename))
+        {
+            m_promptDatabase.loadFromFile(filename.string());
+            log("Loaded prompts database - " + filename.string());
+        }
+        else
+        {
+            log("Couldn't find prompts database file...");
         }
     }
     else

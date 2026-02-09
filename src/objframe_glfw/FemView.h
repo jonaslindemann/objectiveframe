@@ -1,8 +1,8 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.3.1";
-constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2025\nDivision of Structural Mechanics, Lund university";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.4.0";
+constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2026\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de/software/index.jsp?id=TetGen&lang=1";
@@ -337,6 +337,7 @@ private:
     // Ai
 
     ofai::StructureGenerator m_structureGenerator;
+    ofai::PromptDatabase m_promptDatabase;
     bool m_isProcessingAiRequest;
     bool m_autoRunAiScript;
     std::string m_systemPromptFilename;
@@ -606,4 +607,5 @@ public:
     bool isProcessingAiRequest() const;
     void setAutoRunAiScript(bool autoRun);
     bool autoRunAiScript() const;
+    ofai::PromptDatabase &getPromptDatabase();
 };

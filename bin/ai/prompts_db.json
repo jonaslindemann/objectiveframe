@@ -1,0 +1,392 @@
+{
+  "version": "1.0",
+  "description": "Example prompts for ObjectiveFrame structural engineering code generator",
+  "categories": [
+    {
+      "id": "basic",
+      "name": "Basic Structures",
+      "description": "Simple frames and grids for learning and testing",
+      "examples": [
+        {
+          "id": "basic_001",
+          "name": "Simple Rectangular Frame",
+          "prompt": "Create a simple rectangular frame that is 10 meters wide, 8 meters deep, and 6 meters tall.",
+          "difficulty": "beginner",
+          "tags": ["frame", "rectangular", "simple"]
+        },
+        {
+          "id": "basic_002",
+          "name": "Cubic Frame",
+          "prompt": "Generate a cubic frame structure with 5 meter sides.",
+          "difficulty": "beginner",
+          "tags": ["frame", "cube", "simple"]
+        },
+        {
+          "id": "basic_003",
+          "name": "Braced Building Frame",
+          "prompt": "Make a rectangular building frame: 15m wide, 20m deep, 12m tall, with diagonal bracing on two opposite faces.",
+          "difficulty": "beginner",
+          "tags": ["frame", "braced", "building"]
+        },
+        {
+          "id": "basic_004",
+          "name": "Ground Grid",
+          "prompt": "Create a flat grid structure at ground level, 20x20 meters, with 4 divisions in each direction.",
+          "difficulty": "beginner",
+          "tags": ["grid", "flat", "simple"]
+        },
+        {
+          "id": "basic_005",
+          "name": "Roof Grid",
+          "prompt": "Generate a roof grid that is 30 meters wide and 40 meters long at 5 meters height, divided into 6x8 panels.",
+          "difficulty": "beginner",
+          "tags": ["grid", "roof", "elevated"]
+        }
+      ]
+    },
+    {
+      "id": "bridges",
+      "name": "Bridges",
+      "description": "Various bridge types including arch, truss, and suspension designs",
+      "examples": [
+        {
+          "id": "bridge_001",
+          "name": "Parabolic Arch Bridge",
+          "prompt": "Design a parabolic arch bridge spanning 50 meters with a rise of 10 meters and a deck width of 8 meters. Include vertical spandrel columns every 5 meters connecting the arch to a deck 2 meters above the arch peak.",
+          "difficulty": "intermediate",
+          "tags": ["bridge", "arch", "parabolic", "deck"]
+        },
+        {
+          "id": "bridge_002",
+          "name": "Semi-Circular Arch Bridge",
+          "prompt": "Create a semi-circular arch bridge with a 30 meter span, 12 meter rise, and 6 meter width. Add cross-bracing every 10 segments.",
+          "difficulty": "intermediate",
+          "tags": ["bridge", "arch", "circular"]
+        },
+        {
+          "id": "bridge_003",
+          "name": "Three-Hinged Arch Bridge",
+          "prompt": "Generate a three-hinged arch bridge spanning 80 meters with a rise of 16 meters. Use a parabolic curve and include the deck structure.",
+          "difficulty": "intermediate",
+          "tags": ["bridge", "arch", "hinged", "parabolic"]
+        },
+        {
+          "id": "bridge_004",
+          "name": "Warren Truss Bridge",
+          "prompt": "Design a Warren truss bridge spanning 60 meters with a truss depth of 6 meters. Use 12 panels and make it 10 meters wide.",
+          "difficulty": "intermediate",
+          "tags": ["bridge", "truss", "warren"]
+        },
+        {
+          "id": "bridge_005",
+          "name": "Pratt Truss Bridge",
+          "prompt": "Create a Pratt truss bridge 40 meters long, 5 meters tall, with vertical members at supports and alternating diagonal web members. Make it 8 meters wide.",
+          "difficulty": "intermediate",
+          "tags": ["bridge", "truss", "pratt"]
+        },
+        {
+          "id": "bridge_006",
+          "name": "Double-Deck Truss Bridge",
+          "prompt": "Generate a double-deck truss bridge: 100m span, 12m depth, 15m wide, with the upper deck for vehicles and lower deck for trains.",
+          "difficulty": "advanced",
+          "tags": ["bridge", "truss", "double-deck"]
+        },
+        {
+          "id": "bridge_007",
+          "name": "Simple Suspension Bridge",
+          "prompt": "Design a simple suspension bridge with two towers 80 meters apart, each 30 meters tall. Include a main catenary cable with a sag of 8 meters and vertical hangers every 4 meters supporting a deck at 5 meters above ground.",
+          "difficulty": "advanced",
+          "tags": ["bridge", "suspension", "cable", "catenary"]
+        },
+        {
+          "id": "bridge_008",
+          "name": "Cable-Stayed Bridge",
+          "prompt": "Create a cable-stayed bridge with two towers 50 meters apart, towers 40m tall, and fan-pattern cables connecting to a deck 100 meters long and 12 meters wide.",
+          "difficulty": "advanced",
+          "tags": ["bridge", "cable-stayed", "fan-pattern"]
+        }
+      ]
+    },
+    {
+      "id": "buildings",
+      "name": "Buildings",
+      "description": "Building structures from low-rise to skyscrapers",
+      "examples": [
+        {
+          "id": "building_001",
+          "name": "3-Story Office Building",
+          "prompt": "Generate a 3-story office building frame: 24m wide, 30m deep, each floor 4m tall. Include perimeter columns and floor grids with 6m spacing.",
+          "difficulty": "intermediate",
+          "tags": ["building", "office", "multi-story", "frame"]
+        },
+        {
+          "id": "building_002",
+          "name": "Single-Story Warehouse",
+          "prompt": "Create a single-story warehouse structure: 40m x 60m footprint, 8m height, with a grid of columns at 10m intervals and roof trusses.",
+          "difficulty": "intermediate",
+          "tags": ["building", "warehouse", "industrial", "single-story"]
+        },
+        {
+          "id": "building_003",
+          "name": "2-Story Residential Building",
+          "prompt": "Design a 2-story residential building: 12m x 16m, ground floor 3.5m tall, second floor 3m tall, with simple rectangular frames.",
+          "difficulty": "beginner",
+          "tags": ["building", "residential", "simple"]
+        },
+        {
+          "id": "building_004",
+          "name": "10-Story Building with Core",
+          "prompt": "Generate a 10-story building: 30m x 40m footprint, 3.5m floor height. Include perimeter frame, central core (8m x 12m), and X-bracing on two faces.",
+          "difficulty": "advanced",
+          "tags": ["building", "office", "core", "braced"]
+        },
+        {
+          "id": "building_005",
+          "name": "15-Story Office Tower",
+          "prompt": "Create a 15-story office tower: 25m x 25m, 4m per floor, with corner columns, edge beams at each floor, and diagonal bracing every 5 floors.",
+          "difficulty": "advanced",
+          "tags": ["building", "tower", "office", "braced"]
+        },
+        {
+          "id": "building_006",
+          "name": "30-Story Skyscraper",
+          "prompt": "Design a 30-story skyscraper with a 40m x 40m footprint, 3.8m floor heights, tube-in-tube structure with perimeter columns every 5m and a central 15m x 15m core. Add outrigger trusses at floors 10, 20, and 30.",
+          "difficulty": "expert",
+          "tags": ["building", "skyscraper", "tube", "outrigger"]
+        },
+        {
+          "id": "building_007",
+          "name": "50-Story Tapered Tower",
+          "prompt": "Generate a 50-story tapered tower: base 50m x 50m, top 30m x 30m, 4m floor heights. Include bundled tube structure and mega-bracing every 10 floors.",
+          "difficulty": "expert",
+          "tags": ["building", "skyscraper", "tapered", "bundled-tube"]
+        }
+      ]
+    },
+    {
+      "id": "towers",
+      "name": "Towers",
+      "description": "Lattice towers, transmission towers, and observation structures",
+      "examples": [
+        {
+          "id": "tower_001",
+          "name": "Transmission Tower",
+          "prompt": "Create a 60-meter tall transmission tower with a square cross-section, 10m wide at base, tapering to 4m at top. Use X-bracing in each panel and 6-meter panel heights.",
+          "difficulty": "intermediate",
+          "tags": ["tower", "transmission", "lattice", "tapered"]
+        },
+        {
+          "id": "tower_002",
+          "name": "Triangular Lattice Tower",
+          "prompt": "Design a triangular lattice tower: 40m tall, 8m base width, 3m top width, with diagonal bracing in a zig-zag pattern.",
+          "difficulty": "intermediate",
+          "tags": ["tower", "lattice", "triangular", "tapered"]
+        },
+        {
+          "id": "tower_003",
+          "name": "Telecommunication Tower",
+          "prompt": "Generate a 100m telecommunication tower with square section, 15m base, 5m top, divided into 10 sections with progressive tapering.",
+          "difficulty": "advanced",
+          "tags": ["tower", "telecommunication", "lattice", "tall"]
+        },
+        {
+          "id": "tower_004",
+          "name": "Eiffel-Style Tower",
+          "prompt": "Create an Eiffel-style observation tower: 80m tall, 40m square base tapering to 10m square at top, with 3 viewing platforms at 25m, 50m, and 75m heights.",
+          "difficulty": "advanced",
+          "tags": ["tower", "observation", "eiffel", "platforms"]
+        },
+        {
+          "id": "tower_005",
+          "name": "Modern Observation Tower",
+          "prompt": "Design a modern observation tower with four corner legs, 50m tall, 20m square base, 8m top, with a viewing platform at 45m height.",
+          "difficulty": "intermediate",
+          "tags": ["tower", "observation", "modern", "platform"]
+        }
+      ]
+    },
+    {
+      "id": "domes",
+      "name": "Domes & Shells",
+      "description": "Curved structures including domes, shells, and vaults",
+      "examples": [
+        {
+          "id": "dome_001",
+          "name": "Geodesic Dome",
+          "prompt": "Generate a geodesic dome with 20-meter radius, using 16 meridians and 8 latitude rings.",
+          "difficulty": "advanced",
+          "tags": ["dome", "geodesic", "spherical"]
+        },
+        {
+          "id": "dome_002",
+          "name": "Ribbed Dome",
+          "prompt": "Create a ribbed dome: 30m radius, with 24 radial ribs and 6 horizontal ring beams at equal vertical intervals.",
+          "difficulty": "intermediate",
+          "tags": ["dome", "ribbed", "radial"]
+        },
+        {
+          "id": "dome_003",
+          "name": "Lattice Dome",
+          "prompt": "Design a lattice dome, 25m diameter at base, with triangular facets for a geodesic pattern. Use frequency 3 subdivision.",
+          "difficulty": "advanced",
+          "tags": ["dome", "lattice", "geodesic", "triangulated"]
+        },
+        {
+          "id": "dome_004",
+          "name": "Barrel Vault",
+          "prompt": "Create a barrel vault structure: 20m span, 40m length, 8m rise, with arched ribs every 4 meters and horizontal purlins connecting them.",
+          "difficulty": "intermediate",
+          "tags": ["shell", "vault", "barrel", "arched"]
+        },
+        {
+          "id": "dome_005",
+          "name": "Hyperbolic Paraboloid Shell",
+          "prompt": "Generate a hyperbolic paraboloid shell: 30m x 30m base, 15m height at corners, with a grid pattern following the surface curvature.",
+          "difficulty": "advanced",
+          "tags": ["shell", "hyperbolic", "paraboloid", "curved"]
+        }
+      ]
+    },
+    {
+      "id": "spaceframes",
+      "name": "Space Frames",
+      "description": "Three-dimensional truss systems for roofs and large spans",
+      "examples": [
+        {
+          "id": "space_001",
+          "name": "Double-Layer Space Frame",
+          "prompt": "Design a double-layer space frame: 40m x 40m, with bottom layer at ground level, top layer at 3m height. Use a square-on-square offset pattern with 4m grid spacing.",
+          "difficulty": "advanced",
+          "tags": ["spaceframe", "double-layer", "roof"]
+        },
+        {
+          "id": "space_002",
+          "name": "Flat Space Truss Roof",
+          "prompt": "Create a flat space truss roof: 60m x 80m, 4m deep, with top and bottom chords in a 5m grid pattern and diagonal web members.",
+          "difficulty": "advanced",
+          "tags": ["spaceframe", "roof", "truss"]
+        },
+        {
+          "id": "space_003",
+          "name": "Barrel Vault Space Frame",
+          "prompt": "Generate a barrel vault space frame: 30m span, 50m length, 12m rise, using a double-layer triangulated grid following the curved surface.",
+          "difficulty": "expert",
+          "tags": ["spaceframe", "vault", "curved", "double-layer"]
+        }
+      ]
+    },
+    {
+      "id": "specialized",
+      "name": "Specialized Structures",
+      "description": "Stadium roofs, industrial structures, and agricultural buildings",
+      "examples": [
+        {
+          "id": "special_001",
+          "name": "Cantilever Stadium Roof",
+          "prompt": "Create a cantilever stadium roof: rectangular 80m x 120m with one long edge supported and the opposite edge cantilevering 40m. Use deep trusses every 10m along the supported edge.",
+          "difficulty": "expert",
+          "tags": ["stadium", "roof", "cantilever"]
+        },
+        {
+          "id": "special_002",
+          "name": "Dome Stadium Roof",
+          "prompt": "Design a dome stadium roof covering a 100m diameter circle, with a central oculus of 20m diameter. Use radial trusses and ring beams.",
+          "difficulty": "expert",
+          "tags": ["stadium", "dome", "roof", "oculus"]
+        },
+        {
+          "id": "special_003",
+          "name": "Crane Gantry",
+          "prompt": "Generate a crane gantry structure: 30m span, 12m height, 60m length, with rails on top beams and X-braced portal frames every 10m.",
+          "difficulty": "advanced",
+          "tags": ["industrial", "crane", "gantry"]
+        },
+        {
+          "id": "special_004",
+          "name": "Cooling Tower",
+          "prompt": "Create a cooling tower hyperboloid structure: 40m base diameter, 25m throat diameter at mid-height, 60m total height, 45m top diameter.",
+          "difficulty": "expert",
+          "tags": ["industrial", "cooling-tower", "hyperboloid"]
+        },
+        {
+          "id": "special_005",
+          "name": "Greenhouse Frame",
+          "prompt": "Design a greenhouse frame: 20m wide (arched roof), 50m long, 6m height at peak, with arched trusses every 5m.",
+          "difficulty": "intermediate",
+          "tags": ["agricultural", "greenhouse", "arched"]
+        },
+        {
+          "id": "special_006",
+          "name": "Grain Silo Support",
+          "prompt": "Create a grain silo support structure: circular array of 8 columns around a 12m diameter circle, 20m tall, with ring beams every 5m and diagonal bracing.",
+          "difficulty": "intermediate",
+          "tags": ["agricultural", "silo", "support", "circular"]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "name": "Advanced & Complex",
+      "description": "Hybrid structures, parametric designs, and artistic concepts",
+      "examples": [
+        {
+          "id": "advanced_001",
+          "name": "Cable-Stayed Arch Bridge",
+          "prompt": "Design a cable-stayed arch bridge: 120m span with a central arch (rise 20m) and cable stays from arch peak to deck every 6m. Deck at 8m height, 15m wide.",
+          "difficulty": "expert",
+          "tags": ["bridge", "hybrid", "arch", "cable-stayed"]
+        },
+        {
+          "id": "advanced_002",
+          "name": "Diagrid Tower",
+          "prompt": "Create a diagrid tower: 50m tall, 25m x 25m base, with diagonal grid pattern at 60-degree angles forming triangular modules. No vertical columns except at corners.",
+          "difficulty": "expert",
+          "tags": ["tower", "diagrid", "parametric"]
+        },
+        {
+          "id": "advanced_003",
+          "name": "Twisted Tower",
+          "prompt": "Generate a twisted tower: rectangular base 20m x 30m at ground, rotates 90 degrees over 80m height (10 floors, 8m each), maintaining same footprint dimensions.",
+          "difficulty": "expert",
+          "tags": ["tower", "twisted", "parametric", "rotation"]
+        },
+        {
+          "id": "advanced_004",
+          "name": "Branching Tree Structure",
+          "prompt": "Design a branching tree structure: single central column at base (2m x 2m), splitting into 4 branches at 10m height, each branch extending 15m further and spreading 8m from center.",
+          "difficulty": "expert",
+          "tags": ["parametric", "branching", "organic"]
+        },
+        {
+          "id": "advanced_005",
+          "name": "Mobius Strip",
+          "prompt": "Create a mobius strip structure: 30m outer diameter, 3m strip width, using triangulated beam elements following the twisted surface.",
+          "difficulty": "expert",
+          "tags": ["artistic", "mobius", "twisted", "complex"]
+        },
+        {
+          "id": "advanced_006",
+          "name": "Tensegrity Tower",
+          "prompt": "Design a tensegrity tower: 40m tall, using compression members (vertical and diagonal) and tension cables in a stacked module pattern. Each module 8m tall with 10m diameter.",
+          "difficulty": "expert",
+          "tags": ["tensegrity", "tower", "cable", "compression"]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "difficulty_levels": {
+      "beginner": "Simple structures with basic geometry",
+      "intermediate": "Moderate complexity with standard structural patterns",
+      "advanced": "Complex structures requiring careful engineering",
+      "expert": "Highly complex or innovative structural systems"
+    },
+    "tips": [
+      "Always include key dimensions (width, depth, height, span)",
+      "Specify subdivision details (number of panels, segments, divisions)",
+      "Mention bracing patterns for clarity (X-bracing, Warren, Pratt)",
+      "Include member spacing when relevant (every 5m, at 10m intervals)",
+      "For curved structures, specify curve type (parabolic, circular, catenary)"
+    ]
+  }
+}

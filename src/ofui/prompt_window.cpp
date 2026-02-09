@@ -253,13 +253,22 @@ void ofui::PromptWindow::renderGenerateTab()
         ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), ImVec2(contentSize.x, 0.0f), "Processing...");
         ImGui::Dummy(ImVec2(0.0, 10.0));
         
-        // Display input buffer (make a copy to avoid holding lock)
-        std::string inputCopy;
+        ImGui::Text("Prompt:");
+
+        float promptHeight;
+        if (hasResponse || hasError)
         {
-            std::lock_guard<std::mutex> lock(m_mutex);
-            inputCopy = m_inputBuffer;
+            promptHeight = contentSize.y * 0.25f;
         }
-        ImGui::Text("%s", inputCopy.c_str());
+        else
+        {
+            promptHeight = contentSize.y - ImGui::GetTextLineHeightWithSpacing() * 3;
+        }
+
+        if (ImGui::InputTextMultiline("##prompt", m_inputBuffer, BUFFER_SIZE, ImVec2(contentSize.x, promptHeight),
+                                      ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_WordWrap | ImGuiInputTextFlags_ReadOnly))
+        {
+        }
     }
     else
     {

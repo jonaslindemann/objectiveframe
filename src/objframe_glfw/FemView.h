@@ -15,6 +15,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 
 #include <filesystem>
 #include <mutex>
+#include <queue>
 #include <sstream>
 #include <string>
 
@@ -341,6 +342,10 @@ private:
     bool m_isProcessingAiRequest;
     bool m_autoRunAiScript;
     std::string m_systemPromptFilename;
+    
+    // Script queue for executing on main thread
+    std::mutex m_scriptQueueMutex;
+    std::queue<std::string> m_pendingScripts;
 
     // Handle mouse updates
 

@@ -47,15 +47,16 @@ global beamRegistry = Map();  // Maps "i0,i1" -> true
 ### 1. Overlap Prevention (HIGHEST PRIORITY)
 ```chaiscript
 def addNodeSafe(x, y, z) {
-    var key = to_string(x) + "," + to_string(y) + "," + to_string(z);
-    var result = 0;
+    //var key = to_string(x) + "," + to_string(y) + "," + to_string(z);
+    //var result = 0;
     
-    if (nodeRegistry.contains(key)) {
-        result = nodeRegistry[key];
-    } else {
-        result = addNodeWithIdx(x, y, z);
-        nodeRegistry[key] = result;
-    }
+    //if (nodeRegistry.contains(key)) {
+    //    result = nodeRegistry[key];
+    //} else {
+    //    result = addNodeWithIdx(x, y, z);
+    //    nodeRegistry[key] = result;
+    //}
+    result = addNodeWithIdx(x, y, z);
     
     return result;
 }
@@ -69,14 +70,14 @@ def addBeamSafe(i0, i1) {
     
     var min_idx = i0 < i1 ? i0 : i1;
     var max_idx = i0 < i1 ? i1 : i0;
-    var key = to_string(min_idx) + "," + to_string(max_idx);
+    //var key = to_string(min_idx) + "," + to_string(max_idx);
     
-    if (beamRegistry.contains(key)) {
-        return;
-    }
+    //if (beamRegistry.contains(key)) {
+    //    return;
+    //}
     
     addBeam(min_idx, max_idx);
-    beamRegistry[key] = true;
+    //beamRegistry[key] = true;
 }
 ```
 

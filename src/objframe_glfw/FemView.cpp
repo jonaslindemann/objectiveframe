@@ -192,14 +192,6 @@ unsigned int fl_cmap[256] = {
     0x3fb67f00, // 149
     0x3fda7f00, // 150
     0x3fff7f00, // 151
-    0x7f007f00, // 152
-    0x7f247f00, // 153
-    0x7f487f00, // 154
-    0x7f6d7f00, // 155
-    0x7f917f00, // 156
-    0x7fb67f00, // 157
-    0x7fda7f00, // 158
-    0x7fff7f00, // 159
     0xbf007f00, // 160
     0xbf247f00, // 161
     0xbf487f00, // 162
@@ -434,28 +426,9 @@ void FemViewWindow::onGenerationComplete(const std::string &result, bool success
         
         if (m_autoRunAiScript)
         {
-            // Execute script on background thread with rendering locked
-            std::thread([this, result]() {
-                try
-                {
-                    // Lock rendering to prevent race conditions
-                    this->lockSceneRendering();
-                    
-                    // Execute script on background thread
-                    runScriptFromText(result);
-                    
-                    // Unlock rendering
-                    this->unlockSceneRendering();
-                    
-                    // Queue a redraw
-                    this->redraw();
-                } 
-                catch (const std::exception &e)
-                {
-                    this->unlockSceneRendering();
-                    log("Script execution error: " + std::string(e.what()));
-                }
-            }).detach();
+            std::lock_guard<std::mutex> lock(m_scriptQueueMutex);
+            m_pendingScripts.push(result);
+            log("Script queued for execution on main thread.");
         }
         m_isProcessingAiRequest = false;
     }
@@ -3003,26 +2976,32 @@ void FemViewWindow::refreshToolbars()
     m_editButtons->clearChecked();
     m_objectButtons->clearChecked();
 
-    switch (getEditMode())
+    switch (this->getEditMode())
     {
     case WidgetMode::Select:
         m_editButtons->check(0);
         break;
-    case WidgetMode::Move:
+    case WidgetMode::BoxSelection:
         m_editButtons->check(1);
         break;
-    case WidgetMode::CreateLine:
-        m_objectButtons->check(1);
+    case WidgetMode::Move:
+        m_editButtons->check(2);
         break;
     case WidgetMode::CreateNode:
         m_objectButtons->check(0);
         break;
+    case WidgetMode::CreateLine:
+        m_objectButtons->check(1);
+        break;
     default:
-
         break;
     }
 
-    this->redraw();
+    if ((m_customMode == CustomMode::Feedback))
+    {
+        m_editButtons->clearChecked();
+        m_editButtons->check(5);
+    }
 }
 
 void FemViewWindow::removeNodeLoadsFromSelected()
@@ -3150,6 +3129,7 @@ void FemViewWindow::hideAllDialogs()
     m_loadMixerWindow->hide();
     m_scaleWindow->hide();
     m_settingsWindow->hide();
+    m_aboutWindow->hide();
 }
 
 // Widget events
@@ -4279,28 +4259,28 @@ void FemViewWindow::onButton(int objectName, PlaneButton *button)
     case ToolbarButton::NodeLoad:
         m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_nodeLoadsWindow->setVisible(true);
+        m_nodeLoadsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
         break;
     case ToolbarButton::BeamLoad:
         m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet *)m_beamModel->getElementLoadSet());
         m_elementLoadsWindow->setVisible(true);
+        m_elementLoadsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
         break;
     case ToolbarButton::Materials:
         m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet *)m_beamModel->getMaterialSet());
         m_materialsWindow->setVisible(true);
+        m_materialsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
         break;
     case ToolbarButton::NodeBC:
         m_nodeBCsWindow->setFemNodeBCSet((ofem::BeamNodeBCSet *)m_beamModel->getNodeBCSet());
         m_nodeBCsWindow->setVisible(true);
+        m_nodeBCsWindow->setPosition(100, 20);
         this->setNeedRecalc(true);
         break;
-    default:
-        break;
     }
-
-    this->redraw();
 #endif
 }
 
@@ -4712,6 +4692,18 @@ void FemViewWindow::onDrawImGui()
     bool runScriptDialog = false;
     bool snapShot = false;
     bool restoreLastSnapShot = false;
+
+    {
+        std::lock_guard<std::mutex> lock(m_scriptQueueMutex);
+
+        if (!m_pendingScripts.empty())
+        {
+            auto scriptFunc = m_pendingScripts.front();
+            m_pendingScripts.pop();
+            this->runScriptFromText(scriptFunc);
+        }
+    }
+
 
     if (ImGui::BeginMainMenuBar())
     {

@@ -20,6 +20,7 @@
 #include <cstring> // For strncpy
 #include <fstream>
 #include <algorithm>
+#include <mutex>
 
 using namespace ofui;
 
@@ -44,11 +45,13 @@ std::shared_ptr<PromptWindow> ofui::PromptWindow::create(const std::string name)
 
 void ofui::PromptWindow::setView(FemViewWindow *view)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_view = view;
 }
 
 std::string ofui::PromptWindow::prompt()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     std::string prompt = m_inputBuffer;
     m_prompt = prompt;
     return m_prompt;
@@ -56,6 +59,7 @@ std::string ofui::PromptWindow::prompt()
 
 std::string ofui::PromptWindow::output()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     std::string output = m_outputBuffer;
     m_output = output;
     return m_output;
@@ -63,6 +67,7 @@ std::string ofui::PromptWindow::output()
 
 std::string ofui::PromptWindow::error()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     std::string error = m_errorBuffer;
     m_error = error;
     return m_error;
@@ -70,14 +75,16 @@ std::string ofui::PromptWindow::error()
 
 void ofui::PromptWindow::addOutput(const std::string &output)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_output += output;
     strncpy(m_outputBuffer, m_output.c_str(), BUFFER_SIZE - 1);
     m_outputBuffer[BUFFER_SIZE - 1] = '\0';
-    updateLineOffsets();
+    updateLineOffsets(); // Called while holding lock
 }
 
 void ofui::PromptWindow::addError(const std::string &error)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_error += error;
     strncpy(m_errorBuffer, m_error.c_str(), BUFFER_SIZE - 1);
     m_errorBuffer[BUFFER_SIZE - 1] = '\0';
@@ -85,6 +92,7 @@ void ofui::PromptWindow::addError(const std::string &error)
 
 void ofui::PromptWindow::clearOutput()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_output = "";
     memset(m_outputBuffer, 0, BUFFER_SIZE);
     m_lineOffsets.clear();
@@ -92,24 +100,34 @@ void ofui::PromptWindow::clearOutput()
 
 void ofui::PromptWindow::clearPrompt()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_prompt = "";
     memset(m_inputBuffer, 0, BUFFER_SIZE);
 }
 
 void ofui::PromptWindow::clearError()
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_error = "";
     memset(m_errorBuffer, 0, BUFFER_SIZE);
 }
 
 void ofui::PromptWindow::clear()
 {
-    clearOutput();
-    clearPrompt();
+    // Single lock to avoid deadlock - don't call other clear methods
+    std::lock_guard<std::mutex> lock(m_mutex);
+    
+    m_output = "";
+    memset(m_outputBuffer, 0, BUFFER_SIZE);
+    m_lineOffsets.clear();
+    
+    m_prompt = "";
+    memset(m_inputBuffer, 0, BUFFER_SIZE);
 }
 
 void ofui::PromptWindow::updateLineOffsets()
 {
+    // NOTE: Must be called while m_mutex is already locked!
     m_lineOffsets.clear();
     m_lineOffsets.push_back(0);
     
@@ -126,8 +144,11 @@ void ofui::PromptWindow::renderTextWithLineNumbers(const char* label, char* buff
     const float lineNumberWidth = 50.0f;
     ImGuiStyle& style = ImGui::GetStyle();
     
-    // Update line offsets before rendering
-    updateLineOffsets();
+    // Update line offsets before rendering (with lock)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        updateLineOffsets();
+    }
     
     ImGui::BeginGroup();
     
@@ -143,6 +164,7 @@ void ofui::PromptWindow::renderTextWithLineNumbers(const char* label, char* buff
     ImFont* font = ImGui::GetFont();
     float fontSize = ImGui::GetFontSize();
     
+    // DON'T lock here - ImGui needs to access the buffer without locks
     ImGui::InputTextMultiline(label, buffer, BUFFER_SIZE, size, inputFlags);
     
     // Get the scroll position from the InputText state
@@ -162,20 +184,22 @@ void ofui::PromptWindow::renderTextWithLineNumbers(const char* label, char* buff
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
         
-        // Use the same line height calculation as ImGui uses internally for text
-        // This is fontSize (not GetTextLineHeightWithSpacing which adds extra spacing)
         float lineHeight = fontSize;
         
-        // Calculate text area position - must match ImGui's internal text rendering position
         ImVec2 textPos = cursorScreenPos;
-        textPos.x += 5.0f;  // Small left margin for line numbers
-        textPos.y += style.FramePadding.y;  // Top padding
+        textPos.x += 5.0f;
+        textPos.y += style.FramePadding.y;
         
-        // Draw line numbers
-        int lineCount = (int)m_lineOffsets.size();
+        // Copy line offsets with lock
+        std::vector<int> lineOffsetsCopy;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            lineOffsetsCopy = m_lineOffsets;
+        }
+        
+        int lineCount = (int)lineOffsetsCopy.size();
         ImU32 lineNumberColor = ImGui::GetColorU32(ImGuiCol_TextDisabled);
         
-        // Calculate visible range to avoid drawing too many lines
         int firstVisibleLine = (int)(scrollY / lineHeight);
         int lastVisibleLine = (int)((scrollY + size.y) / lineHeight) + 2;
         
@@ -186,7 +210,6 @@ void ofui::PromptWindow::renderTextWithLineNumbers(const char* label, char* buff
             char lineNumStr[16];
             snprintf(lineNumStr, sizeof(lineNumStr), "%d", i + 1);
             
-            // Position each line number: base position + (line index * line height) - scroll offset
             ImVec2 linePos = ImVec2(textPos.x, textPos.y + (i * lineHeight) - scrollY);
             drawList->AddText(linePos, lineNumberColor, lineNumStr);
         }
@@ -199,6 +222,7 @@ void ofui::PromptWindow::renderTextWithLineNumbers(const char* label, char* buff
 
 void ofui::PromptWindow::loadPromptIntoInput(const std::string& prompt)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     strncpy(m_inputBuffer, prompt.c_str(), BUFFER_SIZE - 1);
     m_inputBuffer[BUFFER_SIZE - 1] = '\0';
     m_prompt = prompt;
@@ -207,8 +231,15 @@ void ofui::PromptWindow::loadPromptIntoInput(const std::string& prompt)
 void ofui::PromptWindow::renderGenerateTab()
 {
     bool isProcessing = false;
-    bool hasResponse = strlen(m_outputBuffer) > 0;
-    bool hasError = strlen(m_errorBuffer) > 0;
+    bool hasResponse = false;
+    bool hasError = false;
+    
+    // Read buffer states without holding lock during UI operations
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        hasResponse = strlen(m_outputBuffer) > 0;
+        hasError = strlen(m_errorBuffer) > 0;
+    }
 
     if (m_view != nullptr)
     {
@@ -221,28 +252,33 @@ void ofui::PromptWindow::renderGenerateTab()
     {
         ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), ImVec2(contentSize.x, 0.0f), "Processing...");
         ImGui::Dummy(ImVec2(0.0, 10.0));
-        ImGui::Text("%s", m_inputBuffer);
+        
+        // Display input buffer (make a copy to avoid holding lock)
+        std::string inputCopy;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            inputCopy = m_inputBuffer;
+        }
+        ImGui::Text("%s", inputCopy.c_str());
     }
     else
     {
         ImGui::Text("Prompt:");
 
-        // Calculate prompt height based on whether we have response/error
         float promptHeight;
         if (hasResponse || hasError)
         {
-            promptHeight = contentSize.y * 0.25f; // 25% when showing response/error
+            promptHeight = contentSize.y * 0.25f;
         }
         else
         {
-            promptHeight = contentSize.y - ImGui::GetTextLineHeightWithSpacing() * 3; // Most of the space when no response/error
+            promptHeight = contentSize.y - ImGui::GetTextLineHeightWithSpacing() * 3;
         }
 
-        if (ImGui::InputTextMultiline("##prompt", m_inputBuffer, BUFFER_SIZE, ImVec2(contentSize.x, promptHeight),
-                                      flags))
+        // Access buffer directly - ImGui handles it
+        if (ImGui::InputTextMultiline("##prompt", m_inputBuffer, BUFFER_SIZE, ImVec2(contentSize.x, promptHeight), flags))
         {}
 
-        // Button row - always visible
         float buttonWidth = contentSize.x * 0.14f;
         
         if (ImGui::Button("Clear prompt", ImVec2(buttonWidth, 0)))
@@ -294,22 +330,18 @@ void ofui::PromptWindow::renderGenerateTab()
         }
     }
 
-    // Only show response section if there's a response
     if (hasResponse)
     {
         ImGui::Dummy(ImVec2(0.0, 10.0));
         ImGui::Separator();
         ImGui::Text("Response:");
 
-        // Calculate remaining space for response
         ImVec2 remainingSize = ImGui::GetContentRegionAvail();
         float responseHeight = hasError ? remainingSize.y * 0.6f : remainingSize.y;
         
-        // Render response with line numbers
         renderTextWithLineNumbers("##output", m_outputBuffer, ImVec2(-1, responseHeight), flags);
     }
 
-    // Only show error section if there's an error
     if (hasError)
     {
         ImGui::Dummy(ImVec2(0.0, 10.0));
@@ -318,7 +350,6 @@ void ofui::PromptWindow::renderGenerateTab()
 
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
 
-        // Use remaining space for error
         ImVec2 remainingSize = ImGui::GetContentRegionAvail();
         
         if (ImGui::InputTextMultiline("##error", m_errorBuffer, BUFFER_SIZE, ImVec2(-1, remainingSize.y), flags))
@@ -341,18 +372,19 @@ void ofui::PromptWindow::renderPromptBrowser()
         return;
     }
 
-    // Search bar
     ImGui::Text("Search:");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(300.0f);
+    
+    // Access search buffer directly for ImGui
     if (ImGui::InputText("##search", m_searchBuffer, sizeof(m_searchBuffer)))
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_selectedExampleIndex = -1;
     }
 
     ImGui::SameLine();
 
-    // Difficulty filter
     const char* difficulties[] = { "All", "beginner", "intermediate", "advanced", "expert" };
     static int currentDifficulty = 0;
     
@@ -361,6 +393,7 @@ void ofui::PromptWindow::renderPromptBrowser()
     ImGui::SetNextItemWidth(150.0f);
     if (ImGui::Combo("##difficulty", &currentDifficulty, difficulties, IM_ARRAYSIZE(difficulties)))
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_currentDifficultyFilter = difficulties[currentDifficulty];
         m_selectedExampleIndex = -1;
     }
@@ -369,10 +402,8 @@ void ofui::PromptWindow::renderPromptBrowser()
 
     ImVec2 contentSize = ImGui::GetContentRegionAvail();
 
-    // Two-column layout
     ImGui::BeginChild("LeftPane", ImVec2(250, contentSize.y - 50), true);
     
-    // Categories list
     ImGui::Text("Categories:");
     ImGui::Separator();
 
@@ -382,9 +413,16 @@ void ofui::PromptWindow::renderPromptBrowser()
     {
         const auto& category = categories[i];
         
-        bool isSelected = (m_selectedCategoryIndex == static_cast<int>(i));
+        int selectedIndex;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            selectedIndex = m_selectedCategoryIndex;
+        }
+        
+        bool isSelected = (selectedIndex == static_cast<int>(i));
         if (ImGui::Selectable(category.name.c_str(), isSelected))
         {
+            std::lock_guard<std::mutex> lock(m_mutex);
             m_selectedCategoryIndex = static_cast<int>(i);
             m_selectedExampleIndex = -1;
         }
@@ -399,35 +437,37 @@ void ofui::PromptWindow::renderPromptBrowser()
 
     ImGui::SameLine();
 
-    // Examples list
     ImGui::BeginChild("RightPane", ImVec2(0, contentSize.y - 50), true);
     
     std::vector<ofai::PromptExample> examples;
     
     // Get examples based on filters
-    if (strlen(m_searchBuffer) > 0)
     {
-        examples = promptDb.searchExamplesByName(m_searchBuffer);
-    }
-    else if (m_selectedCategoryIndex >= 0 && m_selectedCategoryIndex < static_cast<int>(categories.size()))
-    {
-        examples = promptDb.getExamplesByCategory(categories[m_selectedCategoryIndex].id);
-    }
-    else
-    {
-        examples = promptDb.getAllExamples();
-    }
+        std::lock_guard<std::mutex> lock(m_mutex);
+        
+        if (strlen(m_searchBuffer) > 0)
+        {
+            examples = promptDb.searchExamplesByName(m_searchBuffer);
+        }
+        else if (m_selectedCategoryIndex >= 0 && m_selectedCategoryIndex < static_cast<int>(categories.size()))
+        {
+            examples = promptDb.getExamplesByCategory(categories[m_selectedCategoryIndex].id);
+        }
+        else
+        {
+            examples = promptDb.getAllExamples();
+        }
 
-    // Apply difficulty filter
-    if (m_currentDifficultyFilter != "All")
-    {
-        examples.erase(
-            std::remove_if(examples.begin(), examples.end(),
-                [this](const ofai::PromptExample& ex) {
-                    return ex.difficulty != m_currentDifficultyFilter;
-                }),
-            examples.end()
-        );
+        if (m_currentDifficultyFilter != "All")
+        {
+            examples.erase(
+                std::remove_if(examples.begin(), examples.end(),
+                    [this](const ofai::PromptExample& ex) {
+                        return ex.difficulty != m_currentDifficultyFilter;
+                    }),
+                examples.end()
+            );
+        }
     }
 
     ImGui::Text("Examples (%zu):", examples.size());
@@ -437,12 +477,19 @@ void ofui::PromptWindow::renderPromptBrowser()
     {
         const auto& example = examples[i];
         
-        bool isSelected = (m_selectedExampleIndex == static_cast<int>(i));
+        int selectedExampleIndex;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            selectedExampleIndex = m_selectedExampleIndex;
+        }
+        
+        bool isSelected = (selectedExampleIndex == static_cast<int>(i));
         
         ImGui::PushID(static_cast<int>(i));
         
         if (ImGui::Selectable(example.name.c_str(), isSelected))
         {
+            std::lock_guard<std::mutex> lock(m_mutex);
             m_selectedExampleIndex = static_cast<int>(i);
         }
         
@@ -450,7 +497,6 @@ void ofui::PromptWindow::renderPromptBrowser()
         {
             ImGui::SetItemDefaultFocus();
             
-            // Show details
             ImGui::Indent();
             ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Difficulty: %s", example.difficulty.c_str());
             
@@ -480,10 +526,15 @@ void ofui::PromptWindow::renderPromptBrowser()
 
     ImGui::EndChild();
 
-    // Bottom buttons
     ImGui::Separator();
     
-    bool canUsePrompt = m_selectedExampleIndex >= 0 && m_selectedExampleIndex < static_cast<int>(examples.size());
+    int selectedExampleIndex;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        selectedExampleIndex = m_selectedExampleIndex;
+    }
+    
+    bool canUsePrompt = selectedExampleIndex >= 0 && selectedExampleIndex < static_cast<int>(examples.size());
     
     if (!canUsePrompt)
     {
@@ -494,10 +545,12 @@ void ofui::PromptWindow::renderPromptBrowser()
     {
         if (canUsePrompt)
         {
-            loadPromptIntoInput(examples[m_selectedExampleIndex].prompt);
+            loadPromptIntoInput(examples[selectedExampleIndex].prompt);
             clearOutput();
             clearError();
-            m_switchToGenerateTab = true; // Signal to switch to Generate tab
+            
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_switchToGenerateTab = true;
         }
     }
     
@@ -511,11 +564,13 @@ void ofui::PromptWindow::doDraw()
 {
     if (ImGui::BeginTabBar("PromptTabs", ImGuiTabBarFlags_None))
     {
-        // Check if we should switch to Generate tab
-        if (m_switchToGenerateTab)
         {
-            ImGui::SetTabItemClosed("Prompts");
-            m_switchToGenerateTab = false;
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_switchToGenerateTab)
+            {
+                ImGui::SetTabItemClosed("Prompts");
+                m_switchToGenerateTab = false;
+            }
         }
         
         if (ImGui::BeginTabItem("Generate"))

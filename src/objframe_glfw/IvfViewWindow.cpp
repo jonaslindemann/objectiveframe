@@ -209,7 +209,14 @@ void IvfViewWindow::onGlfwDraw()
 
     glPopMatrix();
 
-    if (!m_lockSceneRendering)
+    bool shouldRender;
+    {
+        std::lock_guard<std::mutex> lock(m_sceneLockMutex);
+        shouldRender = !m_lockSceneRendering;
+        //cout << "Lock scene rendering: " << m_lockSceneRendering << "\n";
+    }
+    
+    if (shouldRender)
         m_scene->render();
 
     glPushMatrix();
@@ -478,16 +485,19 @@ bool IvfViewWindow::useCustomPick()
 
 void IvfViewWindow::lockSceneRendering()
 {
+    std::lock_guard<std::mutex> lock(m_sceneLockMutex);
     m_lockSceneRendering = true;
 }
 
 void IvfViewWindow::unlockSceneRendering()
 {
+    std::lock_guard<std::mutex> lock(m_sceneLockMutex);
     m_lockSceneRendering = false;
 }
 
 bool IvfViewWindow::isSceneRenderingLocked()
 {
+    std::lock_guard<std::mutex> lock(m_sceneLockMutex);
     return m_lockSceneRendering;
 }
 

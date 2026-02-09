@@ -431,15 +431,39 @@ void FemViewWindow::onGenerationComplete(const std::string &result, bool success
         log("AI generation successful.");
         m_promptWindow->clearOutput();
         m_promptWindow->addOutput(result);
+        
         if (m_autoRunAiScript)
-            this->runScriptFromText(result);
+        {
+            // Execute script on background thread with rendering locked
+            std::thread([this, result]() {
+                try
+                {
+                    // Lock rendering to prevent race conditions
+                    this->lockSceneRendering();
+                    
+                    // Execute script on background thread
+                    runScriptFromText(result);
+                    
+                    // Unlock rendering
+                    this->unlockSceneRendering();
+                    
+                    // Queue a redraw
+                    this->redraw();
+                } 
+                catch (const std::exception &e)
+                {
+                    this->unlockSceneRendering();
+                    log("Script execution error: " + std::string(e.what()));
+                }
+            }).detach();
+        }
         m_isProcessingAiRequest = false;
     }
     else
     {
         log("AI generation failed.");
+        m_isProcessingAiRequest = false;
     }
-    m_isProcessingAiRequest = false;
 }
 
 bool FemViewWindow::isProcessingAiRequest() const
@@ -5198,7 +5222,28 @@ void FemViewWindow::onDrawImGui()
 
                 if (filePathName != "")
                 {
-                    this->runScript(filePathName);
+                    std::thread([this, filePathName]() {
+                        try
+                        {
+                            // Lock rendering to prevent race conditions
+                            this->lockSceneRendering();
+
+                            // Execute script on background thread
+                            this->runScript(filePathName);
+
+                            // Unlock rendering
+                            this->unlockSceneRendering();
+
+                            // Queue a redraw
+                            this->redraw();
+                        } catch (const std::exception &e)
+                        {
+                            this->unlockSceneRendering();
+                            log("Script execution error: " + std::string(e.what()));
+                        }
+                    }).detach();
+
+                    // this->runScript(filePathName);
                 }
             }
 

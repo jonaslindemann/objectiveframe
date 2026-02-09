@@ -700,7 +700,7 @@ std::string StructureGenerator::makeClaudeRequest(const std::string &userPrompt)
     {
         // Prepare the request payload
         json requestData = {{"model", m_model},
-                            {"max_tokens", 4000},
+                            {"max_tokens", 10000},
                             {"messages", json::array({{{"role", "user"}, {"content", userPrompt}}})},
                             {"system", m_systemPrompt}};
 

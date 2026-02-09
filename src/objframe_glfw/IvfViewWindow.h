@@ -118,6 +118,7 @@ private:
     bool m_offScreenRendering;
     bool m_customPick;
     bool m_lockSceneRendering;
+    std::mutex m_sceneLockMutex;
 
     GLuint m_screenTexture;
     GLuint m_multiFbo, m_stdFbo, m_colorBuffer, m_depthBuffer;

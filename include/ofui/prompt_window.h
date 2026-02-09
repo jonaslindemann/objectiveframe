@@ -7,6 +7,7 @@
 #include <regex>
 #include <unordered_map>
 #include <iostream>
+#include <mutex>
 
 class FemViewWindow;
 
@@ -14,6 +15,7 @@ namespace ofui {
 
 class PromptWindow : public UiWindow {
 private:
+    mutable std::mutex m_mutex; 
     FemViewWindow *m_view;
 
     static const size_t BUFFER_SIZE = 1024 * 1024; // 1MB buffer, adjust as needed

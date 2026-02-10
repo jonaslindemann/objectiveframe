@@ -1408,6 +1408,9 @@ void FemViewWindow::fitWorkspaceToModel(double padding)
     // Apply padding
     double newWorkspaceSize = maxExtent * padding;
     
+    // Round up to whole meters
+    newWorkspaceSize = std::ceil(newWorkspaceSize);
+    
     // Ensure minimum workspace size
     if (newWorkspaceSize < 1.0)
         newWorkspaceSize = 10.0;

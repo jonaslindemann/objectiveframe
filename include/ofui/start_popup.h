@@ -16,6 +16,7 @@ enum class OfStartButton {
     NewModel,
     OpenModel,
     OpenPythonModel,
+    OpenAIPrompt,
     Documentation,
     StartAPI
 };

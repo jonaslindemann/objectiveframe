@@ -455,6 +455,7 @@ public:
     bool isScaleFactorLocked();
 
     double autoScaleFactor();
+    void fitWorkspaceToModel(double padding = 1.2);
 
     virtual void setWorkspace(double size, bool resetCamera = true);
 

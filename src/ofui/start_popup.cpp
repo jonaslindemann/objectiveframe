@@ -133,6 +133,18 @@ void StartPopup::doPopup()
                 m_startButtonClickedFunc(button);
             }
         }
+
+        if (ImGui::Button("Open AI prompt...", ImVec2(180, 0)))
+        {
+            this->close(PopupResult::OK);
+            ImGui::CloseCurrentPopup();
+            if (m_startButtonClickedFunc)
+            {
+                OfStartButton button = OfStartButton::OpenAIPrompt;
+                m_startButtonClickedFunc(button);
+            }
+        }
+
         if (ImGui::Button("Open Python model...", ImVec2(180, 0)))
         {
             this->close(PopupResult::OK);

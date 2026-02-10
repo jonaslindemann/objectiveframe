@@ -1363,6 +1363,85 @@ void FemViewWindow::newModel()
     this->redraw();
 }
 
+void FemViewWindow::fitWorkspaceToModel(double padding)
+{
+    // Calculate bounding box of all nodes in the model
+    
+    auto nodeSet = m_beamModel->getNodeSet();
+    
+    if (nodeSet->getSize() == 0)
+    {
+        log("No nodes in model, cannot fit workspace.");
+        return;
+    }
+    
+    double minX = std::numeric_limits<double>::max();
+    double minY = std::numeric_limits<double>::max();
+    double minZ = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::lowest();
+    double maxY = std::numeric_limits<double>::lowest();
+    double maxZ = std::numeric_limits<double>::lowest();
+    
+    // Find bounding box
+    for (size_t i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        double x, y, z;
+        node->getCoord(x, y, z);
+        
+        minX = std::min(minX, x);
+        minY = std::min(minY, y);
+        minZ = std::min(minZ, z);
+        maxX = std::max(maxX, x);
+        maxY = std::max(maxY, y);
+        maxZ = std::max(maxZ, z);
+    }
+    
+    // Calculate extent in each direction
+    double extentX = maxX - minX;
+    double extentY = maxY - minY;
+    double extentZ = maxZ - minZ;
+    
+    // Find maximum extent (for square workspace)
+    double maxExtent = std::max({extentX, extentY, extentZ});
+    
+    // Apply padding
+    double newWorkspaceSize = maxExtent * padding;
+    
+    // Ensure minimum workspace size
+    if (newWorkspaceSize < 1.0)
+        newWorkspaceSize = 10.0;
+    
+    log("Fitting workspace to model. Extent: " + std::to_string(maxExtent) + 
+        ", New workspace: " + std::to_string(newWorkspaceSize));
+    
+    // Set the new workspace size
+    this->setWorkspace(newWorkspaceSize, true);
+    
+    // Update beam model properties based on new workspace
+    m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
+    m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
+    m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
+    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
+    
+    // Update tactile force size
+    double loadSize = m_beamModel->getLoadSize();
+    m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
+    m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
+    
+    // Update cursor sizes
+    m_sphereCursor->setRadius(m_beamModel->getNodeSize());
+    m_cubeCursor->setSize(m_beamModel->getNodeSize() * 1.5);
+    
+    // Update axis labels
+    this->updateAxisLabels();
+    
+    // Mark for recalculation and redraw
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
 void FemViewWindow::assignMaterialToSelected()
 {
     // Assigns a material to selected shapes
@@ -4582,6 +4661,10 @@ void FemViewWindow::onStartButtonClicked(ofui::OfStartButton &button)
     {
         m_openDialog = true;
     }
+    if (button == OfStartButton::OpenAIPrompt)
+    {
+        m_promptWindow->show();
+    }
     if (button == OfStartButton::OpenPythonModel)
     {
         m_openFromCalfemDialog = true;
@@ -4701,6 +4784,9 @@ void FemViewWindow::onDrawImGui()
             auto scriptFunc = m_pendingScripts.front();
             m_pendingScripts.pop();
             this->runScriptFromText(scriptFunc);
+            
+            // Auto-fit workspace after AI-generated script execution
+            this->fitWorkspaceToModel(1.2);
         }
     }
 

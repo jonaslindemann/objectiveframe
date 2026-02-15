@@ -2,6 +2,9 @@
 
 #include <ofem/beam_model.h>
 
+#include <Eigen/Dense>
+#include <string>
+
 namespace ofsolver {
 
 enum class ModelState {
@@ -37,6 +40,14 @@ public:
     virtual double getMaxReactionMoment() = 0;
 
     virtual ModelState modelState() = 0;
+    
+    // Eigenvalue analysis methods
+    virtual bool computeEigenModes(int numModes = 5) = 0;
+    virtual bool hasEigenModes() const = 0;
+    virtual int getNumEigenModes() const = 0;
+    virtual double getEigenValue(int mode) const = 0;
+    virtual void getEigenVector(int mode, Eigen::VectorXd& eigenVector) const = 0;
+    virtual void clearEigenModes() = 0;
 };
 
 std::string float2str(double value);

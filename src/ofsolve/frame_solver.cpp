@@ -625,7 +625,7 @@ void FrameSolver::execute()
                 for (j = 0; j < 3; j++)
                     DofTopo_b(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
 
-                for (j = 0; j < 3; j++)
+                for (j = 0; j < 3; j)
                     DofTopo_b(j + 4) = beam->getNode(1)->getDof(j)->getNumber();
 
                 double eq = 0.0;
@@ -1017,12 +1017,12 @@ double FrameSolver::getMaxNodeValue()
 
 double FrameSolver::getMaxReactionForce()
 {
-    return 0.0;
+    return 0.0;  // Not implemented for FrameSolver
 }
 
 double FrameSolver::getMaxReactionMoment()
 {
-    return 0.0;
+    return 0.0;  // Not implemented for FrameSolver
 }
 
 void FrameSolver::recompute()
@@ -1186,76 +1186,6 @@ void FrameSolver::update()
 
     initMaxMin();
 
-    /*
-    for (i = 1; i <= elementSet->getSize(); i++)
-    {
-
-        double x1, y1, z1;
-        double x2, y2, z2;
-        double ex, ey, ez;
-
-        Beam* beam = (Beam*)elementSet->getElement(i - 1);
-        n = beam->getEvaluationPoints();
-        beam->setValueSize(n * 10);
-
-        beam->getNode(0)->getCoord(x1, y1, z1);
-        beam->getNode(1)->getCoord(x2, y2, z2);
-
-        Ex(1) = x1;
-        Ey(1) = y1;
-        Ez(1) = z1;
-        Ex(2) = x2;
-        Ey(2) = y2;
-        Ez(2) = z2;
-
-        beam->getOrientationZ(ex, ey, ez);
-        Eo(1) = ex;
-        Eo(2) = ey;
-        Eo(3) = ez;
-
-        beam->getMaterial()->getProperties(E, G, A, Iy, Iz, Kv);
-        Ep(1) = E;
-        Ep(2) = G;
-        Ep(3) = A;
-        Ep(4) = Iy;
-        Ep(5) = Iz;
-        Ep(6) = Kv;
-
-        for (j = 0; j < 6; j++)
-        {
-            DofTopo(j + 1) = beam->getNode(0)->getDof(j)->getNumber();
-            DofTopo(j + 7) = beam->getNode(1)->getDof(j)->getNumber();
-            Ed(j + 1) = m_GlobalA((int)DofTopo(j + 1));
-            Ed(j + 7) = m_GlobalA((int)DofTopo(j + 7));
-        }
-
-        RowVector RowEq(4);
-        RowEq = Eq.Row(i);
-        beam3s(Ex, Ey, Ez, Eo, Ep, Ed, RowEq, n, Es, Edi, Eci);
-
-        int pos = 0;
-
-        for (k = 1; k <= n; k++)
-        {
-            N = Es(k, 1);
-            Vy = Es(k, 2);
-            Vz = Es(k, 3);
-            T = Es(k, 4);
-            My = Es(k, 5);
-            Mz = Es(k, 6);
-
-            Navier = calcNavier(N, My, Mz, beam);
-            updateMaxMin(N, T, Vy, Vz, My, Mz, Navier);
-
-            for (j = 1; j <= 6; j++)
-                beam->setValue(pos++, Es(k, j));
-        }
-
-        for (k = 1; k <= n; k++)
-            for (j = 1; j <= 4; j++)
-                beam->setValue(pos++, Edi(k, j));
-    }
-    */
     for (i = 1; i <= elementSet->getSize(); i++)
     {
 
@@ -1379,110 +1309,6 @@ void FrameSolver::update()
     printMaxMin();
 }
 
-void FrameSolver::setFeedbackForce(Node *node, double fx, double fy, double fz)
-{
-    m_forceNode = node;
-    m_force[0] = fx;
-    m_force[1] = fy;
-    m_force[2] = fz;
-}
-
-void FrameSolver::updateMaxMin(double N, double T, double Vy, double Vz, double My, double Mz, double Navier)
-{
-    double V, M;
-
-    V = sqrt(pow(Vy, 2) + pow(Vz, 2));
-    M = sqrt(pow(My, 2) + pow(Mz, 2));
-
-    if (N > m_maxN)
-        m_maxN = N;
-
-    if (N < m_minN)
-        m_minN = N;
-
-    if (fabs(T) > m_maxT)
-        m_maxT = fabs(T);
-
-    if (fabs(T) < m_minT)
-        m_minT = fabs(T);
-
-    if (fabs(M) > m_maxM)
-        m_maxM = fabs(M);
-
-    if (fabs(M) < m_minM)
-        m_minM = fabs(M);
-
-    if (fabs(V) > m_maxV)
-        m_maxV = fabs(V);
-
-    if (fabs(V) < m_minV)
-        m_minV = fabs(V);
-
-    if (fabs(Navier) > m_maxNavier)
-        m_maxNavier = fabs(Navier);
-
-    if (fabs(Navier) < m_minNavier)
-        m_minNavier = fabs(Navier);
-
-    if (m_beamModel != nullptr)
-    {
-        m_beamModel->setMaxN(m_maxN);
-        m_beamModel->setMaxT(m_maxT);
-        m_beamModel->setMaxV(m_maxV);
-        m_beamModel->setMaxM(m_maxM);
-        m_beamModel->setMinN(m_minN);
-        m_beamModel->setMinT(m_minT);
-        m_beamModel->setMinV(m_minV);
-        m_beamModel->setMinM(m_minM);
-        m_beamModel->setMaxNavier(m_maxNavier);
-        m_beamModel->setMinNavier(m_minNavier);
-    }
-}
-
-void FrameSolver::initMaxMin()
-{
-    m_maxN = -1.0e300;
-    m_minN = 1.0e300;
-    m_maxT = -1.0e300;
-    m_minT = 1.0e300;
-    m_maxM = -1.0e300;
-    m_minM = 1.0e300;
-    m_maxV = -1.0e300;
-    m_minV = 1.0e300;
-    m_maxNavier = -1.0e300;
-    m_minNavier = 1.0e300;
-
-    if (m_beamModel != nullptr)
-    {
-        m_beamModel->setMaxN(m_maxN);
-        m_beamModel->setMaxT(m_maxT);
-        m_beamModel->setMaxV(m_maxV);
-        m_beamModel->setMaxM(m_maxM);
-        m_beamModel->setMinN(m_minN);
-        m_beamModel->setMinT(m_minT);
-        m_beamModel->setMinV(m_minV);
-        m_beamModel->setMinM(m_minM);
-        m_beamModel->setMaxNavier(m_maxNavier);
-        m_beamModel->setMinNavier(m_minNavier);
-    }
-}
-
-void FrameSolver::printMaxMin()
-{
-#ifdef DEBUG_OUTPUT
-    cout << "Nmax,min = " << m_maxN << ", " << m_minN << endl;
-    cout << "Tmax,min = " << m_maxT << ", " << m_minT << endl;
-    cout << "Vmax,min = " << m_maxV << ", " << m_minV << endl;
-    cout << "Mmax,min = " << m_maxM << ", " << m_minM << endl;
-    cout << "Navier,max,min = " << m_maxNavier << ", " << m_minNavier << endl;
-#endif
-}
-
-ModelState FrameSolver::modelState()
-{
-    return m_modelState;
-}
-
 double FrameSolver::calcNavier(double N, double My, double Mz, Beam *beam)
 {
     double E, G, A, Iy, Iz, Kv;
@@ -1519,4 +1345,39 @@ double FrameSolver::calcNavier(double N, double My, double Mz, Beam *beam)
 
     return maxSig;
 }
+
+// Eigenvalue analysis stubs (not implemented for FrameSolver - use BeamSolver instead)
+
+bool FrameSolver::computeEigenModes(int numModes)
+{
+    Logger::instance()->log(LogLevel::Warning, 
+        "Eigenvalue analysis not implemented for FrameSolver. Please use BeamSolver instead.");
+    return false;
+}
+
+void FrameSolver::clearEigenModes()
+{
+    // Not implemented
+}
+
+bool FrameSolver::hasEigenModes() const
+{
+    return false;
+}
+
+int FrameSolver::getNumEigenModes() const
+{
+    return 0;
+}
+
+double FrameSolver::getEigenValue(int mode) const
+{
+    return 0.0;
+}
+
+void FrameSolver::getEigenVector(int mode, Eigen::VectorXd &eigenVector) const
+{
+    eigenVector = Eigen::VectorXd::Zero(0);
+}
+
 } // namespace ofsolver

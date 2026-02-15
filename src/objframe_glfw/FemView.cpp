@@ -2317,6 +2317,8 @@ void FemViewWindow::executeCalc()
             break;
         case ModelState::Unstable:
             this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
+            // Automatically compute eigenmodes for unstable structures
+            this->computeEigenmodes(5);
             break;
         case ModelState::Singular:
             this->showMessage(
@@ -2330,6 +2332,8 @@ void FemViewWindow::executeCalc()
             break;
         case ModelState::SolveFailed:
             this->showMessage("Solver failed.");
+            // Try computing eigenmodes to diagnose the problem
+            this->computeEigenmodes(5);
             break;
         case ModelState::RecomputeFailed:
             this->showMessage("Recomputation failed.");
@@ -2493,6 +2497,265 @@ void FemViewWindow::recompute()
             this->redraw();
         }
     }
+}
+
+void FemViewWindow::computeEigenmodes(int numModes)
+{
+    if (m_currentSolver == nullptr)
+    {
+        log("No solver available. Run analysis first.");
+        return;
+    }
+
+    log("Computing " + std::to_string(numModes) + " eigenmodes...");
+
+    if (m_currentSolver->computeEigenModes(numModes))
+    {
+        log("Successfully computed " + std::to_string(m_currentSolver->getNumEigenModes()) + " eigenmodes.");
+        
+        // Update eigenmode window
+        m_eigenmodeWindow->setHasEigenmodes(true);
+        m_eigenmodeWindow->setNumModes(m_currentSolver->getNumEigenModes());
+        m_eigenmodeWindow->show();
+        m_windowList->placeWindow(m_eigenmodeWindow);
+        
+        // Display eigenvalue information
+        for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
+        {
+            double eigenvalue = m_currentSolver->getEigenValue(i);
+            std::string status = eigenvalue < 0 ? " (UNSTABLE)" : "";
+            log("  Mode " + std::to_string(i + 1) + ": eigenvalue = " + std::to_string(eigenvalue) + status);
+        }
+        
+        // Set visualization to first mode
+        setEigenmodeVisualization(0);
+        
+        // Switch to results visualization mode
+        this->setRepresentation(RepresentationMode::Results);
+    }
+    else
+    {
+        log("Failed to compute eigenmodes.");
+        m_eigenmodeWindow->setHasEigenmodes(false);
+    }
+}
+
+void FemViewWindow::clearEigenmodes()
+{
+    if (m_currentSolver == nullptr)
+    {
+        log("No solver available.");
+        return;
+    }
+
+    log("Clearing eigenmodes...");
+    m_currentSolver->clearEigenModes();
+    m_eigenmodeWindow->setHasEigenmodes(false);
+    
+    // Clear node displacements
+    m_beamModel->clearNodeValues();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::setEigenmodeVisualization(int mode)
+{
+    if (m_currentSolver == nullptr || !m_currentSolver->hasEigenModes())
+    {
+        log("No eigenmodes available.");
+        return;
+    }
+
+    if (mode < 0 || mode >= m_currentSolver->getNumEigenModes())
+    {
+        log("Invalid eigenmode index: " + std::to_string(mode));
+        return;
+    }
+
+    log("Visualizing eigenmode " + std::to_string(mode + 1));
+
+    // Get the eigenvector for this mode
+    Eigen::VectorXd eigenvector;
+    m_currentSolver->getEigenVector(mode, eigenvector);
+
+    // Apply eigenvector to node displacements
+    auto nodeSet = m_beamModel->getNodeSet();
+    
+    double maxDisplacement = 0.0;
+    
+    // First pass: find max displacement for scaling
+    for (size_t i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        
+        if (node->getKind() != ofem::nkNotConnected)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
+                    int dofNum = node->getDof(j)->getNumber() - 1;
+                    if (dofNum >= 0 && dofNum < eigenvector.size())
+                    {
+                        double disp = std::abs(eigenvector(dofNum));
+                        if (disp > maxDisplacement)
+                            maxDisplacement = disp;
+                    }
+                }
+            }
+        }
+    }
+
+    // Second pass: apply normalized displacements
+    for (size_t i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        
+        if (node->getKind() == ofem::nk6Dof)
+        {
+            node->setValueSize(12);
+            for (int j = 0; j < 6; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
+                    int dofNum = node->getDof(j)->getNumber() - 1;
+                    if (dofNum >= 0 && dofNum < eigenvector.size())
+                    {
+                        double value = eigenvector(dofNum);
+                        if (maxDisplacement > 0)
+                            value /= maxDisplacement; // Normalize
+                        node->setValue(j, value);
+                    }
+                    else
+                        node->setValue(j, 0.0);
+                }
+                else
+                    node->setValue(j, 0.0);
+                    
+                // Clear reaction forces for eigenmode visualization
+                node->setValue(j + 6, 0.0);
+            }
+        }
+        else if (node->getKind() == ofem::nk3Dof)
+        {
+            node->setValueSize(6);
+            for (int j = 0; j < 3; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
+                    int dofNum = node->getDof(j)->getNumber() - 1;
+                    if (dofNum >= 0 && dofNum < eigenvector.size())
+                    {
+                        double value = eigenvector(dofNum);
+                        if (maxDisplacement > 0)
+                            value /= maxDisplacement; // Normalize
+                        node->setValue(j, value);
+                    }
+                    else
+                        node->setValue(j, 0.0);
+                }
+                else
+                    node->setValue(j, 0.0);
+                    
+                // Clear reaction forces
+                node->setValue(j + 3, 0.0);
+            }
+        }
+    }
+
+    // Update scale factor for better visualization
+    if (!m_lockScaleFactor && maxDisplacement > 0)
+    {
+        double eigenScaleFactor = this->getWorkspace() * 0.1; // 10% of workspace
+        m_beamModel->setScaleFactor(eigenScaleFactor);
+    }
+
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::updateEigenmodeVisualization(float phase)
+{
+    if (m_currentSolver == nullptr || !m_currentSolver->hasEigenModes())
+        return;
+
+    int currentMode = m_eigenmodeWindow->getCurrentMode();
+    double scaleFactor = std::sin(phase) * m_eigenmodeWindow->getModeScaleFactor();
+
+    // Get the eigenvector for this mode
+    Eigen::VectorXd eigenvector;
+    m_currentSolver->getEigenVector(currentMode, eigenvector);
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    
+    double maxDisplacement = 0.0;
+    
+    // Find max displacement for scaling
+    for (size_t i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        
+        if (node->getKind() != ofem::nkNotConnected)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
+                    int dofNum = node->getDof(j)->getNumber() - 1;
+                    if (dofNum >= 0 && dofNum < eigenvector.size())
+                    {
+                        double disp = std::abs(eigenvector(dofNum));
+                        if (disp > maxDisplacement)
+                            maxDisplacement = disp;
+                    }
+                }
+            }
+        }
+    }
+
+    // Apply animated displacements
+    for (size_t i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        
+        if (node->getKind() == ofem::nk6Dof)
+        {
+            for (int j = 0; j < 6; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
+                    int dofNum = node->getDof(j)->getNumber() - 1;
+                    if (dofNum >= 0 && dofNum < eigenvector.size())
+                    {
+                        double value = eigenvector(dofNum) * scaleFactor;
+                        if (maxDisplacement > 0)
+                            value /= maxDisplacement;
+                        node->setValue(j, value);
+                    }
+                }
+            }
+        }
+        else if (node->getKind() == ofem::nk3Dof)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                if (node->getDof(j) != nullptr)
+                {
+                    int dofNum = node->getDof(j)->getNumber() - 1;
+                    if (dofNum >= 0 && dofNum < eigenvector.size())
+                    {
+                        double value = eigenvector(dofNum) * scaleFactor;
+                        if (maxDisplacement > 0)
+                            value /= maxDisplacement;
+                        node->setValue(j, value);
+                    }
+                }
+            }
+        }
+    }
+
+    this->set_changed();
+    this->redraw();
 }
 
 void FemViewWindow::selectAllNodes()
@@ -3218,6 +3481,12 @@ void FemViewWindow::hideAllDialogs()
 
 void FemViewWindow::onInit()
 {
+    // Configure gle VBO mode
+    // 
+    gleInitVBOCache(10000);
+    gleInitTessCache();
+    gleSetVBOMode(1);
+    // 
     // Setup web service
 
     // Create log window early as it will be called by the logger.
@@ -3555,6 +3824,12 @@ void FemViewWindow::onInit()
     m_promptWindow->setVisible(false);
 
     m_windowList->add(m_promptWindow);
+
+    m_eigenmodeWindow = EigenmodeWindow::create("Eigenmode Analysis");
+    m_eigenmodeWindow->setFemView(this);
+    m_eigenmodeWindow->setVisible(false);
+
+    m_windowList->add(m_eigenmodeWindow);
 
     m_startPopup = StartPopup::create("Start window", true);
     m_startPopup->setVersionString(OBJFRAME_VERSION_STRING);
@@ -5408,7 +5683,18 @@ void FemViewWindow::onInitImGui()
 }
 
 void FemViewWindow::onPostRender()
-{}
+{
+    // Update eigenmode animation
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->isAnimate())
+    {
+        // Update animation phase with delta time
+        float deltaTime = ImGui::GetIO().DeltaTime;
+        m_eigenmodeWindow->updateAnimationPhase(deltaTime);
+        
+        // Update visualization with current phase
+        updateEigenmodeVisualization(m_eigenmodeWindow->getAnimationPhase());
+    }
+}
 
 void FemViewWindow::onGlfwResize(int width, int height)
 {

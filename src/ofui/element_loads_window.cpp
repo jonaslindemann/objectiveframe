@@ -2,11 +2,7 @@
 
 #include <imgui.h>
 
-#ifdef USE_FEMVIEW
 #include <FemView.h>
-#else
-#include <FemWidget.h>
-#endif
 
 #include <format>
 
@@ -34,19 +30,11 @@ void ElementLoadsWindow::setFemLoadSet(BeamLoadSet *bcSet)
     m_selected.resize(m_femBeamLoadSet->getSize(), false);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::ElementLoadsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
     m_propPopup->setFemView(view);
 }
-#else
-void ElementLoadsWindow::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    m_propPopup->setFemWidget(widget);
-}
-#endif
 
 void ElementLoadsWindow::doPreDraw()
 {}

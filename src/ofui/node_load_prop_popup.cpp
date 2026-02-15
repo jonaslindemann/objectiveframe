@@ -25,19 +25,11 @@ std::shared_ptr<NodeLoadPropPopup> NodeLoadPropPopup::create(const std::string n
     return std::make_shared<NodeLoadPropPopup>(name, modal);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::NodeLoadPropPopup::setFemView(FemViewWindow *view)
 {
     m_view = view;
     this->update();
 }
-#else
-void NodeLoadPropPopup::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    this->update();
-}
-#endif
 
 void NodeLoadPropPopup::update()
 {

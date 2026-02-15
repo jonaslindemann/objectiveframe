@@ -15,6 +15,8 @@
 
 #include <ofsolve/solver_interface.h>
 
+#include <Eigen/Dense>
+
 namespace ofsolver {
 
 class FrameSolver : public SolverInterface {
@@ -71,6 +73,14 @@ public:
     virtual double getMaxReactionMoment() override;
 
     virtual ModelState modelState() override;
+    
+    // Eigenvalue analysis methods (not implemented for FrameSolver - use BeamSolver instead)
+    virtual bool computeEigenModes(int numModes = 5) override;
+    virtual bool hasEigenModes() const override;
+    virtual int getNumEigenModes() const override;
+    virtual double getEigenValue(int mode) const override;
+    virtual void getEigenVector(int mode, Eigen::VectorXd& eigenVector) const override;
+    virtual void clearEigenModes() override;
 };
 
 typedef std::shared_ptr<FrameSolver> FrameSolverPtr;

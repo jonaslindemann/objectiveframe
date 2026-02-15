@@ -17,17 +17,10 @@ NodePropWindow::NodePropWindow(const std::string name)
 NodePropWindow::~NodePropWindow()
 {}
 
-#ifdef USE_FEMVIEW
 void ofui::NodePropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
-#else
-void ofui::NodePropWindow::setWidget(FemWidget *widget)
-{
-    m_view = widget;
-}
-#endif
 
 void NodePropWindow::setNode(vfem::Node *node)
 {

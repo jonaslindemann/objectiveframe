@@ -5,11 +5,7 @@
 #include <ivf/Composite.h>
 #include <vfem/node.h>
 
-#ifdef USE_FEMVIEW
 class FemViewWindow;
-#else
-class FemWidget;
-#endif
 
 namespace ofui {
 
@@ -18,11 +14,7 @@ private:
     std::string m_name;
     vfem::Node *m_node;
     ivf::Composite *m_selectedShapes;
-#ifdef USE_FEMVIEW
     FemViewWindow *m_view;
-#else
-    FemWidget *m_view;
-#endif
     float m_nodePos[3];
     float m_nodeDispl[3];
     float m_nodeRot[3];
@@ -34,11 +26,7 @@ public:
     NodePropWindow(const std::string name);
     virtual ~NodePropWindow();
 
-#ifdef USE_FEMVIEW
     void setView(FemViewWindow *view);
-#else
-    void setWidget(FemWidget *widget);
-#endif
 
     void setNode(vfem::Node *node);
     void setSelectedShapes(ivf::Composite *selected);

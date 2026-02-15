@@ -37,6 +37,9 @@ private:
 
     vfem::BeamModel *m_beamModel;
 
+    double m_E{0.0}, m_G{0.0}, m_A{0.0}, m_Iy{0.0}, m_Iz{0.0}, m_Kv{0.0};
+    double m_eyMax{0.0}, m_eyMin{0.0}, m_ezMax{0.0}, m_ezMin{0.0};
+
     void initResults();
     double calcNavier(double N, double My, double Mz);
 

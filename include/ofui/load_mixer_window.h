@@ -4,11 +4,7 @@
 
 #include <ofem/beam_node_load_set.h>
 
-#ifdef USE_FEMVIEW
 class FemViewWindow;
-#else
-class FemWidget;
-#endif
 
 namespace ofui {
 
@@ -20,11 +16,7 @@ private:
     float m_lastSum;
     bool m_firstUpdate;
 
-#ifdef USE_FEMVIEW
     FemViewWindow *m_view;
-#else
-    FemWidget *m_view;
-#endif
 
 public:
     LoadMixerWindow(const std::string name);

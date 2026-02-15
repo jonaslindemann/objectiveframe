@@ -31,17 +31,10 @@ ScriptPlugin *ofui::PluginPropWindow::plugin()
     return m_plugin;
 }
 
-#ifdef USE_FEMVIEW
 void ofui::PluginPropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
-#else
-void ofui::PluginPropWindow::setWidget(FemWidget *widget)
-{
-    m_view = widget;
-}
-#endif
 
 void PluginPropWindow::doDraw()
 {

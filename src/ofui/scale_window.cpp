@@ -17,19 +17,11 @@ ScaleWindow::ScaleWindow(const std::string name)
 
 ScaleWindow::~ScaleWindow()
 {}
-#ifdef USE_FEMVIEW
+
 void ofui::ScaleWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
-#else
-void ScaleWindow::setWidget(FemWidget *femWidget)
-{
-    m_view = femWidget;
-    m_scaleFactor = float(m_view->getScalefactor());
-    m_lockScaleFactor = m_view->isScaleFactorLocked();
-}
-#endif
 
 void ScaleWindow::update()
 {

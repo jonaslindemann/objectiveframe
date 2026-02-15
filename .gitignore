@@ -19,3 +19,4 @@ reference/html/
 *.lnk
 .vs/*
 /vcpkg_installed
+/bin/RelWithDebInfo

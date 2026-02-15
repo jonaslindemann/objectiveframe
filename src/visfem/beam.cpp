@@ -427,6 +427,13 @@ void Beam::initResults()
             double value, v1, v2;
             double N, My, Mz;
 
+            // Cache material properties
+
+            m_femBeam->getMaterial()->getProperties(m_E, m_G, m_A, m_Iy, m_Iz, m_Kv);
+            m_femBeam->getMaterial()->getSection()->getExcY(m_eyMax, m_eyMin);
+            m_femBeam->getMaterial()->getSection()->getExcZ(m_ezMax, m_ezMin);
+
+
             red = green = blue = 0.0;
 
             for (k = 0; k < n; k++) {
@@ -451,13 +458,13 @@ void Beam::initResults()
                     case IVF_BEAM_V:
                         v1 = m_femBeam->getValue(1 + 6 * k);
                         v2 = m_femBeam->getValue(2 + 6 * k);
-                        value = sqrt(pow(v1, 2) + pow(v2, 2));
+                        value = sqrt(v1*v1 + v2*v2);
                         value = (value - m_beamModel->minV()) / m_beamModel->maxV();
                         break;
                     case IVF_BEAM_M:
                         v1 = m_femBeam->getValue(4 + 6 * k);
                         v2 = m_femBeam->getValue(5 + 6 * k);
-                        value = sqrt(pow(v1, 2) + pow(v2, 2));
+                        value = sqrt(v1*v1 + v2*v2);
                         value = (value - m_beamModel->minM()) / m_beamModel->maxM();
                         break;
                     case IVF_BEAM_NAVIER:
@@ -519,6 +526,7 @@ void Beam::initResults()
                 m_beamImage->setPixel(7, k, r, g, b);
             }
             m_beamTexture->setRepeat(GL_CLAMP, GL_CLAMP);
+            m_beamTexture->refresh();
             m_beamTexture->bind();
         }
     }
@@ -531,31 +539,25 @@ void Beam::setBeamModel(BeamModel *beamModel)
 
 double Beam::calcNavier(double N, double My, double Mz)
 {
-    double E, G, A, Iy, Iz, Kv;
-    double eyMax, eyMin, ezMax, ezMin;
     double sig[4];
     double sigN;
     double maxSig;
     int i;
 
-    m_femBeam->getMaterial()->getProperties(E, G, A, Iy, Iz, Kv);
-    m_femBeam->getMaterial()->getSection()->getExcY(eyMax, eyMin);
-    m_femBeam->getMaterial()->getSection()->getExcZ(ezMax, ezMin);
-
-    sigN = N / A;
+    sigN = N / m_A;
 
     for (i = 0; i < 4; i++)
         sig[i] = sigN;
 
-    sig[0] += Mz * ezMax / Iz;
-    sig[1] += Mz * ezMax / Iz;
-    sig[2] -= Mz * ezMin / Iz;
-    sig[3] -= Mz * ezMin / Iz;
+    sig[0] += Mz * m_ezMax / m_Iz;
+    sig[1] += Mz * m_ezMax / m_Iz;
+    sig[2] -= Mz * m_ezMin / m_Iz;
+    sig[3] -= Mz * m_ezMin / m_Iz;
 
-    sig[0] += My * eyMax / Iy;
-    sig[1] -= My * eyMin / Iy;
-    sig[2] += My * eyMax / Iy;
-    sig[3] -= My * eyMax / Iy;
+    sig[0] += My * m_eyMax / m_Iy;
+    sig[1] -= My * m_eyMin / m_Iy;
+    sig[2] += My * m_eyMax / m_Iy;
+    sig[3] -= My * m_eyMax / m_Iy;
 
     maxSig = -1.0e300;
 

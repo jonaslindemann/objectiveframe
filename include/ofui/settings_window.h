@@ -2,11 +2,7 @@
 
 #include <ofui/ui_window.h>
 
-#ifdef USE_FEMVIEW
 class FemViewWindow;
-#else
-class FemWidget;
-#endif
 
 namespace ofui {
 
@@ -29,21 +25,13 @@ private:
     std::string m_aiApiKey;
     char m_aiApiKeyBuf[512];
 
-#ifdef USE_FEMVIEW
     FemViewWindow *m_view;
-#else
-    FemWidget *m_view;
-#endif
 
 public:
     SettingsWindow(const std::string name);
     virtual ~SettingsWindow();
 
-#ifdef USE_FEMVIEW
     void setFemView(FemViewWindow *view);
-#else
-    void setFemWidget(FemWidget *femWidget);
-#endif
 
     void update();
 

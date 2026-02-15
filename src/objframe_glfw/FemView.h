@@ -76,6 +76,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/window_list.h>
 #include <ofui/script_window.h>
 #include <ofui/prompt_window.h>
+#include <ofui/eigenmode_window.h>
 
 #include <ofservice/ofservice.h>
 
@@ -297,6 +298,7 @@ private:
     ofui::StartPopupPtr m_startPopup;
     ofui::ScriptWindowPtr m_scriptWindow;
     ofui::PromptWindowPtr m_promptWindow;
+    ofui::EigenmodeWindowPtr m_eigenmodeWindow;
 
     ofui::WindowListPtr m_windowList;
 
@@ -536,6 +538,13 @@ public:
 
     size_t nodeIdx(vfem::Node *node);
     size_t beamIdx(vfem::Beam *beam);
+
+    // Eigenmode analysis methods
+
+    void computeEigenmodes(int numModes = 5);
+    void clearEigenmodes();
+    void setEigenmodeVisualization(int mode);
+    void updateEigenmodeVisualization(float phase);
 
     // Service related methods
 

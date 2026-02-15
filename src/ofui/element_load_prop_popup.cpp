@@ -3,11 +3,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#ifdef USE_FEMVIEW
 #include <FemView.h>
-#else
-#include <FemWidget.h>
-#endif
 
 using namespace ofui;
 
@@ -25,18 +21,10 @@ std::shared_ptr<ElementLoadPropPopup> ElementLoadPropPopup::create(const std::st
     return std::make_shared<ElementLoadPropPopup>(name, modal);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::ElementLoadPropPopup::setFemView(FemViewWindow *view)
 {
     m_view = view;
 }
-#else
-void ElementLoadPropPopup::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    this->update();
-}
-#endif
 
 void ElementLoadPropPopup::update()
 {

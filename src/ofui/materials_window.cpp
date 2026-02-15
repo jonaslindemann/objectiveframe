@@ -33,19 +33,11 @@ void MaterialsWindow::setFemMaterialSet(BeamMaterialSet *materialSet)
     m_selected.resize(m_materials->getSize(), false);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::MaterialsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
     m_propPopup->setFemView(view);
 }
-#else
-void MaterialsWindow::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    m_propPopup->setFemWidget(widget);
-}
-#endif
 
 void MaterialsWindow::doPreDraw()
 {

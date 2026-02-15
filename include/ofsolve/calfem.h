@@ -48,6 +48,16 @@ typedef Eigen::SparseMatrix<int> SpIntMatrix;
 typedef Eigen::Triplet<double, std::ptrdiff_t> Triplet;
 typedef std::vector<Triplet> TripletList;
 
+// Fixed-size types for stack allocation (eliminates heap overhead)
+typedef Eigen::Matrix<double, 3, 3> Matrix3x3;
+typedef Eigen::Matrix<double, 12, 12> Matrix12x12;
+typedef Eigen::Matrix<double, 12, 1> Vector12;
+typedef Eigen::Matrix<double, 6, 12> Matrix6x12;
+typedef Eigen::Matrix<double, 6, 1> Vector6;
+typedef Eigen::Matrix<double, 4, 12> Matrix4x12;
+typedef Eigen::Matrix<double, 4, 1> Vector4;
+typedef Eigen::Matrix<double, 1, 3> RowVec3;
+
 void bar3e(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &ep, double eq, Matrix &Ke, ColVec &fe);
 
 void bar3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &ep, const RowVec &ed, double eq, int n,

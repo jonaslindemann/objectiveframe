@@ -158,13 +158,15 @@ void beam3e(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
 
     n2 << n3(1) * n1(2) - n3(2) * n1(1), -n1(2) * n3(0) + n1(0) * n3(2), n3(0) * n1(1) - n1(0) * n3(1);
 
-    Matrix An(3, 3);
+    // Use fixed-size matrix for stack allocation (eliminates heap overhead)
+    Matrix3x3 An;
 
     An.row(0) = n1;
     An.row(1) = n2;
     An.row(2) = n3;
 
-    Matrix G = Matrix::Zero(12, 12);
+    // Use fixed-size matrix for stack allocation
+    Matrix12x12 G = Matrix12x12::Zero();
 
     G.block(0, 0, 3, 3) = An;
     G.block(3, 3, 3, 3) = An;
@@ -204,21 +206,24 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
 
     n2 << n3(1) * n1(2) - n3(2) * n1(1), -n1(2) * n3(0) + n1(0) * n3(2), n3(0) * n1(1) - n1(0) * n3(1);
 
-    Matrix An(3, 3);
+    // Use fixed-size matrix for stack allocation (eliminates heap overhead)
+    Matrix3x3 An;
 
     An.row(0) = n1;
     An.row(1) = n2;
     An.row(2) = n3;
 
-    Matrix G = Matrix::Zero(12, 12);
+    // Use fixed-size matrix for stack allocation
+    Matrix12x12 G = Matrix12x12::Zero();
 
     G.block(0, 0, 3, 3) = An;
     G.block(3, 3, 3, 3) = An;
     G.block(6, 6, 3, 3) = An;
     G.block(9, 9, 3, 3) = An;
 
-    ColVec u(12);
-    ColVec diffSol(12);
+    // Use fixed-size vectors for stack allocation
+    Vector12 u;
+    Vector12 diffSol;
 
     diffSol << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -qx * pow(L, 2) / 2.0 / E / A, qy * pow(L, 4) / 24.0 / E / Iz,
         qz * pow(L, 4) / 24.0 / E / Iy, -qw * pow(L, 2) / 2.0 / Gs / Kv, -qz * pow(L, 3) / 6.0 / E / Iy,
@@ -227,7 +232,8 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
     // u = G*ed.AsColumn() - diffSol;
     u = G * ed.transpose() - diffSol;
 
-    Matrix C(12, 12);
+    // Use fixed-size matrix for stack allocation
+    Matrix12x12 C;
 
     C << 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -238,7 +244,7 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
         -3.0 * pow(L, 2), -2.0 * L, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0 * pow(L, 2), 2.0 * L, 1, 0.0, 0.0, 0.0, 0.0, 0.0,
         0, 0.0;
 
-    ColVec m(12);
+    Vector12 m;
 
     m = C.inverse() * u;
 
@@ -256,7 +262,8 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
         eci(i) = double(i) * L / double(n - 1);
         double x = eci(i);
 
-        Matrix T1(6, 12);
+        // Use fixed-size matrices for stack allocation (critical for performance)
+        Matrix6x12 T1;
 
         T1 << E * A, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -6.0 * E * Iz, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -6.0 * E * Iy, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -264,19 +271,19 @@ void beam3s(const RowVec &ex, const RowVec &ey, const RowVec &ez, const RowVec &
             -2.0 * E * Iy, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0 * E * Iz * x, 2.0 * E * Iz, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0;
 
-        ColVec T2(6);
+        Vector6 T2;
 
         T2 << -qx * x, -qy * x, -qz * x, -qw * x, -qz * pow(x, 2) / 2.0, qy * pow(x, 2) / 2.0;
 
         es.row(i) = (T1 * m + T2).transpose();
 
-        Matrix T3(4, 12);
+        Matrix4x12 T3;
 
         T3 << x, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, pow(x, 3), pow(x, 2), x, 1.0, 0.0,
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, pow(x, 3), pow(x, 2), x, 1.0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, x, 1.0;
 
-        ColVec T4(4);
+        Vector4 T4;
 
         T4 << -qx * pow(x, 2) / 2.0 / E / A, qy * pow(x, 4) / 24.0 / E / Iz, qz * pow(x, 4) / 24.0 / E / Iy,
             -qw * pow(x, 2) / 2.0 / Gs / Kv;
@@ -696,7 +703,7 @@ bool SparseSolver::recompute(const ColVec &f, ColVec &a, ColVec &Q)
     m_fsys = f(m_ind) - m_Ksysf * (*m_bcVals);
 
     std::cout << m_fsys.maxCoeff() << "\n";
-    std::cout << (*m_f).maxCoeff() << "\n";
+    //std::cout << (*m_f).maxCoeff() << "\n";
 
     if (m_solver.info() != Eigen::Success)
     {

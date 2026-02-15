@@ -9,6 +9,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <Eigen/Eigenvalues>
 #include <ofsolve/calfem.h>
 
 #include <ofsolve/solver_interface.h>
@@ -53,6 +54,15 @@ private:
 
     calfem::SparseSolver m_sparseSolver;
 
+    // Eigenvalue analysis members
+    bool m_hasEigenModes;
+    int m_numEigenModes;
+    std::vector<double> m_eigenValues;
+    std::vector<Eigen::VectorXd> m_eigenVectors;
+    
+    // Helper for eigenvalue analysis
+    Eigen::MatrixXd extractFreeStiffness();
+
 public:
     BeamSolver();
     virtual ~BeamSolver();
@@ -78,6 +88,14 @@ public:
     virtual double getMaxReactionMoment() override;
 
     virtual ModelState modelState() override;
+    
+    // Eigenvalue analysis methods
+    virtual bool computeEigenModes(int numModes = 5) override;
+    virtual bool hasEigenModes() const override;
+    virtual int getNumEigenModes() const override;
+    virtual double getEigenValue(int mode) const override;
+    virtual void getEigenVector(int mode, Eigen::VectorXd& eigenVector) const override;
+    virtual void clearEigenModes() override;
 };
 
 typedef std::shared_ptr<BeamSolver> BeamSolverPtr;

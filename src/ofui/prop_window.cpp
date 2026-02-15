@@ -44,17 +44,10 @@ void ofui::PropWindow::setSelectedShapes(ivf::Composite *selected)
     m_selectedShapes = selected;
 }
 
-#ifdef USE_FEMVIEW
 void ofui::PropWindow::setView(FemViewWindow *view)
 {
     m_view = view;
 }
-#else
-void PropWindow::setWidget(FemWidget *widget)
-{
-    m_view = widget;
-}
-#endif
 
 std::shared_ptr<PropWindow> PropWindow::create(const std::string name)
 {

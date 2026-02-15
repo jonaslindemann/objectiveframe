@@ -3,11 +3,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#ifdef USE_FEMVIEW
 #include <FemView.h>
-#else
-#include <FemWidget.h>
-#endif
 
 using namespace ofui;
 
@@ -26,19 +22,11 @@ std::shared_ptr<BCPropPopup> BCPropPopup::create(const std::string name, bool mo
     return std::make_shared<BCPropPopup>(name, modal);
 }
 
-#ifdef USE_FEMVIEW
-void BCPropPopup::setFemView(FemViewWindow *view)
+void BCPropPopup::setFemView(::FemViewWindow *view)
 {
     m_view = view;
     this->update();
 }
-#else
-void BCPropPopup::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    this->update();
-}
-#endif
 
 void BCPropPopup::update()
 {

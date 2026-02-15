@@ -28,18 +28,10 @@ std::shared_ptr<MaterialPropPopup> MaterialPropPopup::create(const std::string n
     return std::make_shared<MaterialPropPopup>(name, modal);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::MaterialPropPopup::setFemView(FemViewWindow *view)
 {
     m_view = view;
 }
-#else
-void MaterialPropPopup::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    this->update();
-}
-#endif
 
 void MaterialPropPopup::update()
 {

@@ -34,19 +34,11 @@ void NodeBCsWindow::setFemNodeBCSet(BeamNodeBCSet *bcSet)
     m_selected.resize(m_femNodeBCSet->getSize(), false);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::NodeBCsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
     m_propPopup->setFemView(view);
 }
-#else
-void NodeBCsWindow::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    m_propPopup->setFemWidget(widget);
-}
-#endif
 
 void NodeBCsWindow::doPreDraw()
 {}

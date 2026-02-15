@@ -30,19 +30,11 @@ void NodeLoadsWindow::setFemNodeLoadSet(BeamNodeLoadSet *bcSet)
     m_selected.resize(m_femNodeLoadSet->getSize(), false);
 }
 
-#ifdef USE_FEMVIEW
 void ofui::NodeLoadsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
     m_propPopup->setFemView(view);
 }
-#else
-void NodeLoadsWindow::setFemWidget(FemWidget *widget)
-{
-    m_view = widget;
-    m_propPopup->setFemWidget(widget);
-}
-#endif
 
 void NodeLoadsWindow::doPreDraw()
 {}

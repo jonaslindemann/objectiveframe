@@ -6,6 +6,8 @@
 
 #include <sstream>
 
+#include <Eigen/Eigenvalues>
+
 using namespace ofem;
 using namespace calfem;
 using namespace ofsolver;
@@ -13,7 +15,8 @@ using namespace ofsolver;
 BeamSolver::BeamSolver()
     : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr}, m_modelState{ModelState::Ok},
       m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300}, m_minM{1e300}, m_maxV{-1e300},
-      m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_force{0.0, 0.0, 0.0}, m_nDof{0}
+      m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_force{0.0, 0.0, 0.0}, m_nDof{0},
+      m_hasEigenModes{false}, m_numEigenModes{0}
 {}
 
 BeamSolver::~BeamSolver()
@@ -589,6 +592,26 @@ void BeamSolver::execute()
     printMaxMin();
 
     Logger::instance()->log(LogLevel::Info, "Solver completed.");
+    
+    // Optional: Perform stability check after solve
+    // Uncomment to enable automatic eigenvalue analysis
+    /*
+    Logger::instance()->log(LogLevel::Info, "Performing stability check...");
+    if (computeEigenModes(5))
+    {
+        double minEigenvalue = getEigenValue(0);
+        if (minEigenvalue < -1e-6)
+        {
+            Logger::instance()->log(LogLevel::Warning, 
+                "Structure is UNSTABLE. Check eigenmode visualization.");
+        }
+        else if (minEigenvalue < 1e-3)
+        {
+            Logger::instance()->log(LogLevel::Warning, 
+                "Structure may be near instability (small positive eigenvalue).");
+        }
+    }
+    */
 }
 
 double BeamSolver::getMaxNodeValue()
@@ -684,7 +707,7 @@ void BeamSolver::recompute()
 
         Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 
-        if (!m_sparseSolver.solve(f, m_globalA, m_globalQ))
+        if (!m_sparseSolver.recompute(f, m_globalA, m_globalQ))
         {
             Logger::instance()->log(LogLevel::Error, "Recompute solve failed");
             m_modelState = ModelState::RecomputeFailed;
@@ -1087,3 +1110,214 @@ double BeamSolver::calcNavier(double N, double My, double Mz, Beam *beam)
 
     return maxSig;
 }
+
+// Eigenvalue analysis implementation
+
+Eigen::MatrixXd BeamSolver::extractFreeStiffness()
+{
+    // Extract the free (unconstrained) portion of the stiffness matrix
+    // This removes rows and columns corresponding to prescribed DOFs
+    
+    std::set<int> bcDofSet;
+    for (int i = 0; i < m_bcDofs.size(); i++)
+    {
+        bcDofSet.insert(m_bcDofs(i) - 1); // Convert to 0-based indexing
+    }
+    
+    // Count free DOFs
+    int numFreeDofs = m_nDof - bcDofSet.size();
+    
+    // Create mapping from free DOF indices to original indices
+    std::vector<int> freeDofs;
+    freeDofs.reserve(numFreeDofs);
+    
+    for (int i = 0; i < m_nDof; i++)
+    {
+        if (bcDofSet.find(i) == bcDofSet.end())
+        {
+            freeDofs.push_back(i);
+        }
+    }
+    
+    // Extract the free portion of the stiffness matrix
+    Eigen::MatrixXd Kfree(numFreeDofs, numFreeDofs);
+    Kfree.setZero();
+    
+    for (int i = 0; i < numFreeDofs; i++)
+    {
+        for (int j = 0; j < numFreeDofs; j++)
+        {
+            Kfree(i, j) = m_Ks.coeff(freeDofs[i], freeDofs[j]);
+        }
+    }
+    
+    return Kfree;
+}
+
+bool BeamSolver::computeEigenModes(int numModes)
+{
+    try
+    {
+        Logger::instance()->log(LogLevel::Info, "Computing eigenvalues and eigenvectors...");
+        
+        // Clear previous results
+        clearEigenModes();
+        
+        // Check if system has been assembled
+        if (m_Ks.rows() == 0 || m_Ks.cols() == 0)
+        {
+            Logger::instance()->log(LogLevel::Error, "Stiffness matrix not assembled. Run execute() first.");
+            return false;
+        }
+        
+        // Extract the free (unconstrained) stiffness matrix
+        Eigen::MatrixXd Kfree = extractFreeStiffness();
+        
+        int matrixSize = Kfree.rows();
+        
+        if (matrixSize == 0)
+        {
+            Logger::instance()->log(LogLevel::Error, "No free degrees of freedom for eigenvalue analysis.");
+            return false;
+        }
+        
+        Logger::instance()->log(LogLevel::Info, 
+            "Free stiffness matrix size: " + std::to_string(matrixSize) + "x" + std::to_string(matrixSize));
+        
+        // Check if matrix size is reasonable for dense solver
+        if (matrixSize > 1000)
+        {
+            Logger::instance()->log(LogLevel::Warning, 
+                "Large matrix (" + std::to_string(matrixSize) + " DOFs). Eigenvalue computation may be slow.");
+        }
+        
+        // Compute eigenvalues and eigenvectors using self-adjoint solver
+        // Note: Kfree should be symmetric for structural stiffness matrices
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(Kfree);
+        
+        if (solver.info() != Eigen::Success)
+        {
+            Logger::instance()->log(LogLevel::Error, "Eigenvalue computation failed.");
+            return false;
+        }
+        
+        // Get eigenvalues and eigenvectors
+        Eigen::VectorXd eigenvalues = solver.eigenvalues();
+        Eigen::MatrixXd eigenvectors = solver.eigenvectors();
+        
+        // Store the requested number of modes (sorted by eigenvalue magnitude)
+        // Smallest eigenvalues indicate instability
+        m_numEigenModes = std::min(numModes, static_cast<int>(eigenvalues.size()));
+        
+        // Check for negative eigenvalues (indicates instability)
+        bool hasNegativeEigenvalues = false;
+        double minEigenvalue = eigenvalues(0);
+        
+        if (minEigenvalue < -1e-6)
+        {
+            hasNegativeEigenvalues = true;
+            Logger::instance()->log(LogLevel::Warning, 
+                "UNSTABLE STRUCTURE DETECTED: Negative eigenvalue = " + std::to_string(minEigenvalue));
+        }
+        else if (minEigenvalue < 1e-6)
+        {
+            Logger::instance()->log(LogLevel::Warning, 
+                "NEAR-SINGULAR STRUCTURE: Smallest eigenvalue = " + std::to_string(minEigenvalue));
+        }
+        
+        // Store eigenvalues and eigenvectors
+        for (int i = 0; i < m_numEigenModes; i++)
+        {
+            m_eigenValues.push_back(eigenvalues(i));
+            
+            // Expand eigenvector back to full DOF space
+            Eigen::VectorXd fullEigenvector(m_nDof);
+            fullEigenvector.setZero();
+            
+            // Map free DOFs back to original numbering
+            std::set<int> bcDofSet;
+            for (int j = 0; j < m_bcDofs.size(); j++)
+            {
+                bcDofSet.insert(m_bcDofs(j) - 1);
+            }
+            
+            int freeIdx = 0;
+            for (int j = 0; j < m_nDof; j++)
+            {
+                if (bcDofSet.find(j) == bcDofSet.end())
+                {
+                    fullEigenvector(j) = eigenvectors(freeIdx, i);
+                    freeIdx++;
+                }
+            }
+            
+            m_eigenVectors.push_back(fullEigenvector);
+            
+            std::stringstream ss;
+            ss << "Mode " << (i+1) << ": eigenvalue = " << eigenvalues(i);
+            if (eigenvalues(i) < 0)
+                ss << " (UNSTABLE)";
+            Logger::instance()->log(LogLevel::Info, ss.str());
+        }
+        
+        m_hasEigenModes = true;
+        
+        Logger::instance()->log(LogLevel::Info, 
+            "Successfully computed " + std::to_string(m_numEigenModes) + " eigen modes.");
+        
+        // Update model state if unstable
+        if (hasNegativeEigenvalues)
+        {
+            m_modelState = ModelState::Unstable;
+        }
+        
+        return true;
+        
+    }
+    catch (const std::exception &e)
+    {
+        Logger::instance()->log(LogLevel::Error, 
+            "Exception in eigenmode computation: " + std::string(e.what()));
+        return false;
+    }
+}
+
+void BeamSolver::clearEigenModes()
+{
+    m_eigenValues.clear();
+    m_eigenVectors.clear();
+    m_hasEigenModes = false;
+    m_numEigenModes = 0;
+}
+
+bool BeamSolver::hasEigenModes() const
+{
+    return m_hasEigenModes;
+}
+
+int BeamSolver::getNumEigenModes() const
+{
+    return m_numEigenModes;
+}
+
+double BeamSolver::getEigenValue(int mode) const
+{
+    if (mode >= 0 && mode < m_numEigenModes)
+    {
+        return m_eigenValues[mode];
+    }
+    return 0.0;
+}
+
+void BeamSolver::getEigenVector(int mode, Eigen::VectorXd &eigenVector) const
+{
+    if (mode >= 0 && mode < m_numEigenModes)
+    {
+        eigenVector = m_eigenVectors[mode];
+    }
+    else
+    {
+        eigenVector = Eigen::VectorXd::Zero(m_nDof);
+    }
+}
+

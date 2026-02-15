@@ -23,7 +23,6 @@ SettingsWindow::SettingsWindow(const std::string name)
 SettingsWindow::~SettingsWindow()
 {}
 
-#ifdef USE_FEMVIEW
 void ofui::SettingsWindow::setFemView(FemViewWindow *view)
 {
     m_view = view;
@@ -47,19 +46,6 @@ void ofui::SettingsWindow::setFemView(FemViewWindow *view)
     m_aiApiKey = m_view->getAiApiKey();
     strncpy(m_aiApiKeyBuf, m_aiApiKey.c_str(), sizeof(m_aiApiKeyBuf) - 1);
 }
-#else
-void SettingsWindow::setFemWidget(FemWidget *femWidget)
-{
-    m_view = femWidget;
-    m_size = float(m_view->getWorkspace());
-    m_nodeSize = float(m_view->getRelNodeSize() * 100.0f);
-    m_loadSize = float(m_view->getRelLoadSize() * 100.0f);
-    m_lineRadius = float(m_view->getRelLineRadius() * 100.0f);
-    m_scaleFactor = float(m_view->getScalefactor());
-    m_showNodeNumbers = static_cast<vfem::BeamModel *>(m_view->getModel())->showNodeNumbers();
-    m_offscreenRendering = m_view->offscreenRendering();
-}
-#endif
 
 void SettingsWindow::update()
 {

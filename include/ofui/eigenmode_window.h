@@ -39,6 +39,7 @@ public:
     bool isAnimate() const;
     float getAnimationPhase() const;
     double getModeScaleFactor() const;
+    void setModeScaleFactor(double factor);
     
     void updateAnimationPhase(float deltaTime);
 };

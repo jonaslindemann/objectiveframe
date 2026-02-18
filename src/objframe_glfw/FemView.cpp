@@ -2590,7 +2590,9 @@ void FemViewWindow::setEigenmodeVisualization(int mode)
         
         if (node->getKind() != ofem::nkNotConnected)
         {
-            for (int j = 0; j < 3; j++)
+            // Check all DOFs of this node type (6 for 6DOF nodes, 3 for 3DOF nodes)
+            int maxDofToCheck = (node->getKind() == ofem::nk6Dof) ? 6 : 3;
+            for (int j = 0; j < maxDofToCheck; j++)
             {
                 if (node->getDof(j) != nullptr)
                 {
@@ -2666,8 +2668,10 @@ void FemViewWindow::setEigenmodeVisualization(int mode)
     // Update scale factor for better visualization
     if (!m_lockScaleFactor && maxDisplacement > 0)
     {
-        double eigenScaleFactor = this->getWorkspace() * 0.1; // 10% of workspace
-        m_beamModel->setScaleFactor(eigenScaleFactor);
+        //double eigenScaleFactor = this->getWorkspace() * 0.1; // 10% of workspace
+        m_beamModel->setScaleFactor(m_eigenmodeWindow->getModeScaleFactor());
+        // Initialize the eigenmode window scale factor based on workspace
+        //m_eigenmodeWindow->setModeScaleFactor(eigenScaleFactor);
     }
 
     this->set_changed();
@@ -2680,7 +2684,8 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
         return;
 
     int currentMode = m_eigenmodeWindow->getCurrentMode();
-    double scaleFactor = std::sin(phase) * m_eigenmodeWindow->getModeScaleFactor();
+    double animationScale = std::sin(phase); // Oscillates between -1 and 1
+    double modeScaleFactor = m_eigenmodeWindow->getModeScaleFactor();
 
     // Get the eigenvector for this mode
     Eigen::VectorXd eigenvector;
@@ -2690,14 +2695,16 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
     
     double maxDisplacement = 0.0;
     
-    // Find max displacement for scaling
+    // Find max displacement for normalization
     for (size_t i = 0; i < nodeSet->getSize(); i++)
     {
         auto node = nodeSet->getNode(i);
         
         if (node->getKind() != ofem::nkNotConnected)
         {
-            for (int j = 0; j < 3; j++)
+            // Check all DOFs of this node type (6 for 6DOF, 3 for 3DOF)
+            int maxDofToCheck = (node->getKind() == ofem::nk6Dof) ? 6 : 3;
+            for (int j = 0; j < maxDofToCheck; j++)
             {
                 if (node->getDof(j) != nullptr)
                 {
@@ -2720,6 +2727,7 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
         
         if (node->getKind() == ofem::nk6Dof)
         {
+            node->setValueSize(12);
             for (int j = 0; j < 6; j++)
             {
                 if (node->getDof(j) != nullptr)
@@ -2727,16 +2735,23 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
                     int dofNum = node->getDof(j)->getNumber() - 1;
                     if (dofNum >= 0 && dofNum < eigenvector.size())
                     {
-                        double value = eigenvector(dofNum) * scaleFactor;
+                        // Normalize first, then apply animation scale and mode scale factor
+                        double value = eigenvector(dofNum);
                         if (maxDisplacement > 0)
-                            value /= maxDisplacement;
+                            value /= maxDisplacement; // Normalize to ~0-1 range
+                        value *= animationScale * modeScaleFactor; // Apply animation and scale
                         node->setValue(j, value);
                     }
+                    else
+                        node->setValue(j, 0.0);
                 }
+                else
+                    node->setValue(j, 0.0);
             }
         }
         else if (node->getKind() == ofem::nk3Dof)
         {
+            node->setValueSize(6);
             for (int j = 0; j < 3; j++)
             {
                 if (node->getDof(j) != nullptr)
@@ -2744,12 +2759,18 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
                     int dofNum = node->getDof(j)->getNumber() - 1;
                     if (dofNum >= 0 && dofNum < eigenvector.size())
                     {
-                        double value = eigenvector(dofNum) * scaleFactor;
+                        // Normalize first, then apply animation scale and mode scale factor
+                        double value = eigenvector(dofNum);
                         if (maxDisplacement > 0)
-                            value /= maxDisplacement;
+                            value /= maxDisplacement; // Normalize to ~0-1 range
+                        value *= animationScale * modeScaleFactor; // Apply animation and scale
                         node->setValue(j, value);
                     }
+                    else
+                        node->setValue(j, 0.0);
                 }
+                else
+                    node->setValue(j, 0.0);
             }
         }
     }

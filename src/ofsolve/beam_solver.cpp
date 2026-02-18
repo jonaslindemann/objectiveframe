@@ -1147,7 +1147,14 @@ Eigen::MatrixXd BeamSolver::extractFreeStiffness()
     {
         for (int j = 0; j < numFreeDofs; j++)
         {
-            Kfree(i, j) = m_Ks.coeff(freeDofs[i], freeDofs[j]);
+            int ri = freeDofs[i];
+            int rj = freeDofs[j];
+            // For symmetric matrices, access using proper ordering
+            // Since stiffness matrix is typically stored upper/full, this ensures correct access
+            if (ri <= rj)
+                Kfree(i, j) = m_Ks.coeff(ri, rj);
+            else
+                Kfree(i, j) = m_Ks.coeff(rj, ri);
         }
     }
     
@@ -1212,14 +1219,15 @@ bool BeamSolver::computeEigenModes(int numModes)
         // Check for negative eigenvalues (indicates instability)
         bool hasNegativeEigenvalues = false;
         double minEigenvalue = eigenvalues(0);
+        const double EIGENVALUE_TOLERANCE = 1e-8;  // Stricter tolerance for numerical stability
         
-        if (minEigenvalue < -1e-6)
+        if (minEigenvalue < -EIGENVALUE_TOLERANCE)
         {
             hasNegativeEigenvalues = true;
             Logger::instance()->log(LogLevel::Warning, 
                 "UNSTABLE STRUCTURE DETECTED: Negative eigenvalue = " + std::to_string(minEigenvalue));
         }
-        else if (minEigenvalue < 1e-6)
+        else if (minEigenvalue < EIGENVALUE_TOLERANCE)
         {
             Logger::instance()->log(LogLevel::Warning, 
                 "NEAR-SINGULAR STRUCTURE: Smallest eigenvalue = " + std::to_string(minEigenvalue));
@@ -1255,8 +1263,10 @@ bool BeamSolver::computeEigenModes(int numModes)
             
             std::stringstream ss;
             ss << "Mode " << (i+1) << ": eigenvalue = " << eigenvalues(i);
-            if (eigenvalues(i) < 0)
+            if (eigenvalues(i) < -EIGENVALUE_TOLERANCE)
                 ss << " (UNSTABLE)";
+            else if (eigenvalues(i) < EIGENVALUE_TOLERANCE)
+                ss << " (NEAR-SINGULAR)";
             Logger::instance()->log(LogLevel::Info, ss.str());
         }
         

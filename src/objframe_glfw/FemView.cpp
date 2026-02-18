@@ -2313,10 +2313,11 @@ void FemViewWindow::executeCalc()
             this->showMessage("No boundary conditions defined. \nCalculation not executed.");
             break;
         case ModelState::NoLoads:
-            this->showMessage("No loads defined. \nCalculation not executed.");
+            //this->showMessage("No loads defined. \nCalculation not executed.");
+            this->computeEigenmodes(5);
             break;
         case ModelState::Unstable:
-            this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
+            //this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
             // Automatically compute eigenmodes for unstable structures
             this->computeEigenmodes(5);
             break;
@@ -2331,7 +2332,7 @@ void FemViewWindow::executeCalc()
             this->showMessage("Beams without materials found.");
             break;
         case ModelState::SolveFailed:
-            this->showMessage("Solver failed.");
+            //this->showMessage("Solver failed.");
             // Try computing eigenmodes to diagnose the problem
             this->computeEigenmodes(5);
             break;

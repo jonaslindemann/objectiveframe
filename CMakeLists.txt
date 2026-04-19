@@ -61,7 +61,7 @@ endif()
 # This puts vcpkg_installed/ in the project root instead of each build directory
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed" CACHE PATH "vcpkg installed directory")
 
-project(objframe2)
+project(objframe2) 
 
 enable_language(CXX)
 enable_language(C)

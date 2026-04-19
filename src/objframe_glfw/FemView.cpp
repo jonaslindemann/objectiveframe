@@ -1238,14 +1238,12 @@ void FemViewWindow::showProperties()
     {
         m_propWindow->show();
         m_propWindow->setPositionFromBottom(20, 540);
-        m_windowList->placeWindow(m_propWindow);
     }
 
     if (m_elementSelection || m_singleElementSelection)
     {
         m_propWindow->show();
         m_propWindow->setPositionFromBottom(20, 540);
-        m_windowList->placeWindow(m_propWindow);
     }
 
     if ((!m_nodeSelection) && (!m_elementSelection))
@@ -2304,46 +2302,43 @@ void FemViewWindow::executeCalc()
         switch (m_currentSolver->modelState())
         {
         case ModelState::NoNodes:
-            this->showMessage("No nodes defined. \nCalculation not executed.");
+            this->notify("No nodes defined.", NotificationLevel::Warning);
             break;
         case ModelState::NoElements:
-            this->showMessage("No elements defined. \nCalculation not executed.");
+            this->notify("No elements defined.", NotificationLevel::Warning);
             break;
         case ModelState::NoBC:
-            this->showMessage("No boundary conditions defined. \nCalculation not executed.");
+            this->notify("No boundary conditions defined.", NotificationLevel::Warning);
             break;
         case ModelState::NoLoads:
-            this->showMessage("No loads defined. \nShowing structural eigenmodes.");
+            this->notify("No loads defined. Showing structural eigenmodes.", NotificationLevel::Info);
             this->computeEigenmodes(5);
             break;
         case ModelState::Unstable:
-            //this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
-            // Automatically compute eigenmodes for unstable structures
+            this->notify("Structure is unstable. Showing eigenmodes.", NotificationLevel::Warning);
             this->computeEigenmodes(5);
             break;
         case ModelState::Singular:
-            this->showMessage(
-                "System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
+            this->notify("System is singular. Check for free nodes.", NotificationLevel::Error);
             break;
         case ModelState::Invalid:
-            this->showMessage("This should not happen.\nCalculation not executed.");
+            this->notify("Invalid model state.", NotificationLevel::Error);
             break;
         case ModelState::UndefinedMaterial:
-            this->showMessage("Beams without materials found.");
+            this->notify("Elements without materials found.", NotificationLevel::Warning);
             break;
         case ModelState::SolveFailed:
-            //this->showMessage("Solver failed.");
-            // Try computing eigenmodes to diagnose the problem
+            this->notify("Solver failed. Showing eigenmodes.", NotificationLevel::Error);
             this->computeEigenmodes(5);
             break;
         case ModelState::RecomputeFailed:
-            this->showMessage("Recomputation failed.");
+            this->notify("Recomputation failed.", NotificationLevel::Error);
             break;
         case ModelState::SetupFailed:
-            this->showMessage("Solver setup failed.");
+            this->notify("Solver setup failed.", NotificationLevel::Error);
             break;
         default:
-            this->showMessage("Unhandled error.\nCalculation not executed.");
+            this->notify("Unhandled solver error.", NotificationLevel::Error);
             break;
         }
         m_needRecalc = true;
@@ -2517,8 +2512,19 @@ void FemViewWindow::computeEigenmodes(int numModes)
         // Update eigenmode window
         m_eigenmodeWindow->setHasEigenmodes(true);
         m_eigenmodeWindow->setNumModes(m_currentSolver->getNumEigenModes());
+        m_eigenmodeWindow->setAnimate(true);
+        {
+            double autoScale = this->getWorkspace() * 0.1;
+            m_eigenmodeWindow->setModeScaleFactor(autoScale);
+            m_eigenmodeWindow->setScaleSliderMax(float(autoScale) * 5.0f);
+        }
+        m_eigenmodeWindow->setCurrentMode(0);
         m_eigenmodeWindow->show();
-        m_windowList->placeWindow(m_eigenmodeWindow);
+        {
+            const ImGuiViewport *vp = ImGui::GetMainViewport();
+            int posX = int(vp->WorkSize.x) - 600;
+            m_eigenmodeWindow->setPosition(posX, 120);
+        }
         
         // Display eigenvalue information
         for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
@@ -2829,39 +2835,40 @@ void FemViewWindow::doFeedback()
             switch (m_currentSolver->modelState())
             {
             case ModelState::NoNodes:
-                this->showMessage("No nodes defined. \nCalculation not executed.");
+                this->notify("No nodes defined.", NotificationLevel::Warning);
                 break;
             case ModelState::NoElements:
-                this->showMessage("No elements defined. \nCalculation not executed.");
+                this->notify("No elements defined.", NotificationLevel::Warning);
                 break;
             case ModelState::NoBC:
-                this->showMessage("No boundary conditions defined. \nCalculation not executed.");
+                this->notify("No boundary conditions defined.", NotificationLevel::Warning);
                 break;
             case ModelState::NoLoads:
-                this->showMessage("No loads defined. \nShowing structural eigenmodes.");
+                this->notify("No loads defined. Showing structural eigenmodes.", NotificationLevel::Info);
                 this->computeEigenmodes(5);
                 break;
             case ModelState::Unstable:
-                this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
+                this->notify("Structure is unstable. Showing eigenmodes.", NotificationLevel::Warning);
+                this->computeEigenmodes(5);
                 break;
             case ModelState::Singular:
-                this->showMessage(
-                    "System is singular. Check for free nodes or other strange things. \nCalculation not executed.");
+                this->notify("System is singular. Check for free nodes.", NotificationLevel::Error);
                 break;
             case ModelState::Invalid:
-                this->showMessage("This should not happen.\nCalculation not executed.");
+                this->notify("Invalid model state.", NotificationLevel::Error);
                 break;
             case ModelState::UndefinedMaterial:
-                this->showMessage("Beams without materials found.");
+                this->notify("Elements without materials found.", NotificationLevel::Warning);
                 break;
             case ModelState::SolveFailed:
-                this->showMessage("Solver failed.");
+                this->notify("Solver failed. Showing eigenmodes.", NotificationLevel::Error);
+                this->computeEigenmodes(5);
                 break;
             case ModelState::RecomputeFailed:
-                this->showMessage("Recomputation failed.");
+                this->notify("Recomputation failed.", NotificationLevel::Error);
                 break;
             case ModelState::SetupFailed:
-                this->showMessage("Solver setup failed.");
+                this->notify("Solver setup failed.", NotificationLevel::Error);
                 break;
             default:
                 m_saneModel = true;
@@ -3176,8 +3183,12 @@ bool FemViewWindow::isServiceRunning() const
 
 void FemViewWindow::showMessage(std::string message)
 {
-    m_messagePopup->setMessage(message);
-    m_messagePopup->show();
+    m_notificationOverlay->add(message, NotificationLevel::Warning);
+}
+
+void FemViewWindow::notify(const std::string &message, NotificationLevel level, float duration)
+{
+    m_notificationOverlay->add(message, level, duration);
 }
 
 #ifdef USE_LEAP
@@ -3498,6 +3509,7 @@ void FemViewWindow::hideAllDialogs()
     m_scaleWindow->hide();
     m_settingsWindow->hide();
     m_aboutWindow->hide();
+    m_eigenmodeWindow->hide();
 }
 
 // Widget events
@@ -3768,6 +3780,7 @@ void FemViewWindow::onInit()
 
     m_newModelPopup = NewModelPopup::create("Workspace", true);
     m_messagePopup = MessagePopup::create("Message", true);
+    m_notificationOverlay = NotificationOverlay::create();
 
     m_nodeBCsWindow = NodeBCsWindow::create("Node BCs");
     m_nodeBCsWindow->setFemView(this);
@@ -3853,6 +3866,15 @@ void FemViewWindow::onInit()
     m_eigenmodeWindow->setVisible(false);
 
     m_windowList->add(m_eigenmodeWindow);
+
+    m_viewWindow = ofui::ViewWindow::create("View");
+    m_viewWindow->setScene(getScene());
+    m_viewWindow->setSourceView(this);
+    m_viewWindow->setWorkspaceSize(getWorkspace());
+    m_viewWindow->setSize(640, 480);
+    m_viewWindow->setVisible(false);
+
+    m_windowList->add(m_viewWindow);
 
     m_startPopup = StartPopup::create("Start window", true);
     m_startPopup->setVersionString(OBJFRAME_VERSION_STRING);
@@ -5256,6 +5278,13 @@ void FemViewWindow::onDrawImGui()
                 m_scriptWindow->center();
             }
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Secondary view...", ""))
+            {
+                m_viewWindow->show();
+            }
+
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Mode"))
@@ -5382,10 +5411,7 @@ void FemViewWindow::onDrawImGui()
         }
     }
 
-    m_messagePopup->draw();
-
-    if (m_messagePopup->closed())
-    {}
+    m_notificationOverlay->draw(ImGui::GetIO().DeltaTime);
 
     m_startPopup->draw();
 
@@ -5671,12 +5697,14 @@ void FemViewWindow::onDrawImGui()
         }
     }
 
+    // Run deferred actions before drawing windows so any resulting placeWindow()
+    // calls happen while the ImGui frame is still active and viewport data is valid.
+    if (executeCalc)
+        this->executeCalc();
+
     m_windowList->draw();
 
     ImGui::Render();
-
-    if (executeCalc)
-        this->executeCalc();
 
     if (quitApplication)
     {

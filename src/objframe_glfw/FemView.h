@@ -71,12 +71,14 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofui/prop_window.h>
 #include <ofui/scale_window.h>
 #include <ofui/settings_window.h>
+#include <ofui/notification_overlay.h>
 #include <ofui/start_popup.h>
 #include <ofui/toolbar_window.h>
 #include <ofui/window_list.h>
 #include <ofui/script_window.h>
 #include <ofui/prompt_window.h>
 #include <ofui/eigenmode_window.h>
+#include <ofui/view_window.h>
 
 #include <ofservice/ofservice.h>
 
@@ -280,6 +282,7 @@ private:
     ofui::CoordWindowPtr m_coordWindow;
     ofui::NewModelPopupPtr m_newModelPopup;
     ofui::MessagePopupPtr m_messagePopup;
+    ofui::NotificationOverlayPtr m_notificationOverlay;
     ofui::NodeBCsWindowPtr m_nodeBCsWindow;
     ofui::BCPropPopupPtr m_bcPropPopup;
     ofui::NodeLoadsWindowPtr m_nodeLoadsWindow;
@@ -299,6 +302,7 @@ private:
     ofui::ScriptWindowPtr m_scriptWindow;
     ofui::PromptWindowPtr m_promptWindow;
     ofui::EigenmodeWindowPtr m_eigenmodeWindow;
+    ofui::ViewWindowPtr m_viewWindow;
 
     ofui::WindowListPtr m_windowList;
 
@@ -502,6 +506,9 @@ public:
 
     void doFeedback();
     void showMessage(std::string message);
+    void notify(const std::string &message,
+                ofui::NotificationLevel level = ofui::NotificationLevel::Info,
+                float duration = 4.0f);
     void updateAxisLabels();
     void updateButtonState();
 

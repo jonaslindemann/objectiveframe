@@ -15,6 +15,10 @@ namespace ofui {
 class WindowList {
 private:
     std::vector<UiWindowPtr> m_windows;
+    std::weak_ptr<UiWindow> m_lastPlaced;
+    float m_lastX{80.0f};
+    float m_lastY{60.0f};
+    float m_lastH{220.0f};
 
     FemViewWindow *m_view;
 

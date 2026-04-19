@@ -48,14 +48,29 @@ void EigenmodeWindow::setNumModes(int numModes)
         m_currentMode = numModes > 0 ? numModes - 1 : 0;
 }
 
+void ofui::EigenmodeWindow::setCurrentMode(int mode)
+{
+    m_currentMode = mode;
+}
+
 void EigenmodeWindow::setModeScaleFactor(double factor)
 {
     m_modeScaleFactor = factor;
 }
 
+void EigenmodeWindow::setScaleSliderMax(float maxVal)
+{
+    m_sliderMax = maxVal;
+}
+
 int EigenmodeWindow::getCurrentMode() const
 {
     return m_currentMode;
+}
+
+void ofui::EigenmodeWindow::setAnimate(bool animate)
+{
+    m_animate = animate;
 }
 
 bool EigenmodeWindow::isAnimate() const
@@ -131,23 +146,12 @@ void EigenmodeWindow::doDraw()
             ImGui::SliderFloat("Speed", &m_animationSpeed, 0.1f, 10.0f);
         }
         
-        // Use a temporary float for the slider, then convert back to double
-
-        float scaleFactor;
-
-        if (m_animate)
-            scaleFactor = static_cast<float>(m_modeScaleFactor*sin(m_animationPhase));
-        else
-            scaleFactor = static_cast<float>(m_modeScaleFactor);
-
-        if (ImGui::SliderFloat("Scale Factor", &scaleFactor, -10.0f, 10.0f))
+        float scaleFactor = static_cast<float>(m_modeScaleFactor);
+        if (ImGui::SliderFloat("Scale Factor", &scaleFactor, 0.0f, m_sliderMax))
         {
             m_modeScaleFactor = static_cast<double>(scaleFactor);
-            // Update visualization when scale factor changes
-            if (m_femView != nullptr)
-            {
+            if (!m_animate && m_femView != nullptr)
                 m_femView->setEigenmodeVisualization(m_currentMode);
-            }
         }
         
         ImGui::Separator();

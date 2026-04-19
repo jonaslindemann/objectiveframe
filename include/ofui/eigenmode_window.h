@@ -16,7 +16,8 @@ private:
     float m_animationSpeed;
     float m_animationPhase;
     double m_modeScaleFactor;
-    
+    float m_sliderMax{10.0f};
+
     FemViewWindow* m_femView;
     
     void onComputeButtonClicked();
@@ -34,12 +35,15 @@ public:
     void setFemView(::FemViewWindow* view);
     void setHasEigenmodes(bool hasEigenmodes);
     void setNumModes(int numModes);
+    void setCurrentMode(int mode);
     
     int getCurrentMode() const;
+    void setAnimate(bool animate);
     bool isAnimate() const;
     float getAnimationPhase() const;
     double getModeScaleFactor() const;
     void setModeScaleFactor(double factor);
+    void setScaleSliderMax(float maxVal);
     
     void updateAnimationPhase(float deltaTime);
 };

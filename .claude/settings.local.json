@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Read(//e/Users/Jonas/Development/ivfplusplus/include/**)",
+      "Read(//e/Users/Jonas/Development/ivfplusplus/src/ivf/**)"
+    ]
+  }
+}

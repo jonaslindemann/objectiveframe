@@ -2279,7 +2279,7 @@ void FemViewWindow::assignNodeFixedBCGround()
     this->assignNodeFixedBCSelected();
 }
 
-void FemViewWindow::assignNodePosBCGround()
+void FemViewWindow::assignNodePosBCGround() 
 {
     this->snapShot();
     this->clearSelection();
@@ -2313,7 +2313,8 @@ void FemViewWindow::executeCalc()
             this->showMessage("No boundary conditions defined. \nCalculation not executed.");
             break;
         case ModelState::NoLoads:
-            this->showMessage("No loads defined. \nCalculation not executed.");
+            this->showMessage("No loads defined. \nShowing structural eigenmodes.");
+            this->computeEigenmodes(5);
             break;
         case ModelState::Unstable:
             this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");
@@ -2837,7 +2838,8 @@ void FemViewWindow::doFeedback()
                 this->showMessage("No boundary conditions defined. \nCalculation not executed.");
                 break;
             case ModelState::NoLoads:
-                this->showMessage("No loads defined. \nCalculation not executed.");
+                this->showMessage("No loads defined. \nShowing structural eigenmodes.");
+                this->computeEigenmodes(5);
                 break;
             case ModelState::Unstable:
                 this->showMessage("System unstable. Try adding boundary conditions.\nCalculation not executed.");

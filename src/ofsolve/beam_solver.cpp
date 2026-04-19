@@ -348,6 +348,9 @@ void BeamSolver::execute()
             Logger::instance()->log(LogLevel::Error, "Somethings wrong...");
     }
 
+    // Finalize stiffness matrix before load check so it's available for eigenanalysis
+    m_Ks.setFromTriplets(Ktriplets.begin(), Ktriplets.end());
+
     if (f.isZero())
     {
         Logger::instance()->log(LogLevel::Error, "No effective loads applied.");
@@ -363,8 +366,6 @@ void BeamSolver::execute()
 
     m_globalA.resize(m_nDof, 1);
     m_globalA.setZero();
-
-    m_Ks.setFromTriplets(Ktriplets.begin(), Ktriplets.end());
 
     Logger::instance()->log(LogLevel::Info, "Calling solveq...");
 

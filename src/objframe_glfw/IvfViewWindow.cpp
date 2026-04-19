@@ -9,6 +9,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl2.h>
 
+#include <ivf/rc.h>
+
 using namespace std;
 using namespace ivf;
 
@@ -132,6 +134,8 @@ void IvfViewWindow::onGlfwResize(int width, int height)
 
 void IvfViewWindow::onGlfwDraw()
 {
+    rcBeginFrame();
+
     if (!m_initDone)
     {
         onInitContext();

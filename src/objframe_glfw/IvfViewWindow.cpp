@@ -250,6 +250,8 @@ void IvfViewWindow::onGlfwDraw()
     glPopMatrix();
 
     this->doDrawImGui();
+
+    onPostRender();
 }
 
 void IvfViewWindow::deleteAll()

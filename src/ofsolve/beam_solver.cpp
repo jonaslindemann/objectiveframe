@@ -90,13 +90,6 @@ void BeamSolver::execute()
         return;
     }
 
-    if ((nodeLoadSet->getSize() == 0) && (elementLoadSet->getSize() == 0) && (m_forceNode == NULL))
-    {
-        Logger::instance()->log(LogLevel::Error, "No node loads defined.");
-        m_modelState = ModelState::NoLoads;
-        return;
-    }
-
     //
     // Enumerate everything
     //

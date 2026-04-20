@@ -6,7 +6,9 @@
 #include <ivf/Camera.h>
 #include <ivf/Workspace.h>
 
-#include <IvfViewWindow.h>
+#include <FemView.h>
+
+#include <vfem/Preferences.h>
 
 using namespace ofui;
 
@@ -34,7 +36,7 @@ void ViewWindow::setScene(ivf::Workspace* scene)
     m_scene = scene;
 }
 
-void ViewWindow::setSourceView(IvfViewWindow* view)
+void ViewWindow::setSourceView(FemViewWindow *view)
 {
     m_sourceView = view;
 }
@@ -58,6 +60,22 @@ void ViewWindow::initFbo(int w, int h)
 {
     cleanupFbo();
 
+    // MSAA render target
+    glGenRenderbuffers(1, &m_msaaColorRbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_msaaColorRbo);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_sampleCount, GL_RGBA8, w, h);
+
+    glGenRenderbuffers(1, &m_msaaDepthRbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_msaaDepthRbo);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_sampleCount, GL_DEPTH_COMPONENT24, w, h);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glGenFramebuffers(1, &m_msaaFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_msaaFbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_msaaColorRbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_msaaDepthRbo);
+
+    // Resolve target — regular 2D texture for ImGui::Image
     glGenTextures(1, &m_colorTexture);
     glBindTexture(GL_TEXTURE_2D, m_colorTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -65,15 +83,10 @@ void ViewWindow::initFbo(int w, int h)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    glGenRenderbuffers(1, &m_depthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_depthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, w, h);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
     glGenFramebuffers(1, &m_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthRbo);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     m_fboWidth = w;
@@ -82,9 +95,11 @@ void ViewWindow::initFbo(int w, int h)
 
 void ViewWindow::cleanupFbo()
 {
+    if (m_msaaFbo) { glDeleteFramebuffers(1, &m_msaaFbo); m_msaaFbo = 0; }
+    if (m_msaaColorRbo) { glDeleteRenderbuffers(1, &m_msaaColorRbo); m_msaaColorRbo = 0; }
+    if (m_msaaDepthRbo) { glDeleteRenderbuffers(1, &m_msaaDepthRbo); m_msaaDepthRbo = 0; }
     if (m_fbo) { glDeleteFramebuffers(1, &m_fbo); m_fbo = 0; }
     if (m_colorTexture) { glDeleteTextures(1, &m_colorTexture); m_colorTexture = 0; }
-    if (m_depthRbo) { glDeleteRenderbuffers(1, &m_depthRbo); m_depthRbo = 0; }
     m_fboWidth = 0;
     m_fboHeight = 0;
 }
@@ -110,8 +125,24 @@ void ViewWindow::syncCameraFromSource()
 
 void ViewWindow::onRenderScene()
 {
-    if (m_scene)
-        m_scene->render();
+    if (!m_scene)
+        return;
+
+    auto showNodeNumbers = vfem::Preferences::instance().showNodeNumbers();
+    vfem::Preferences::instance().setShowNodeNumbers(false);
+    m_sourceView->showTextLayer(false);
+
+    bool secondaryEigenmode = m_sourceView != nullptr && m_sourceView->isEigenmodeInSecondaryView();
+    if (secondaryEigenmode)
+        m_sourceView->applyEigenmodeAnimation();
+
+    m_scene->render();
+
+    if (secondaryEigenmode)
+        m_sourceView->clearEigenmodeAnimation();
+
+    m_sourceView->showTextLayer(true);
+    vfem::Preferences::instance().setShowNodeNumbers(showNodeNumbers);
 }
 
 void ViewWindow::doDraw()
@@ -153,6 +184,12 @@ void ViewWindow::doDraw()
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
     GLint prevViewport[4];
     glGetIntegerv(GL_VIEWPORT, prevViewport);
+    GLboolean prevBlend = glIsEnabled(GL_BLEND);
+    GLint prevBlendSrc = GL_SRC_ALPHA, prevBlendDst = GL_ONE_MINUS_SRC_ALPHA;
+    glGetIntegerv(GL_BLEND_SRC, &prevBlendSrc);
+    glGetIntegerv(GL_BLEND_DST, &prevBlendDst);
+    GLboolean prevDepthTest = glIsEnabled(GL_DEPTH_TEST);
+    GLboolean prevLighting = glIsEnabled(GL_LIGHTING);
 
     // Swap scene camera to ours, render into FBO, restore
     ivf::View* prevView = m_scene->getView();
@@ -161,15 +198,28 @@ void ViewWindow::doDraw()
     m_camera->initialize();
     m_scene->setView(m_camera);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    GLfloat clearColor[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+
+    // Render into MSAA FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, m_msaaFbo);
     glViewport(0, 0, w, h);
-    glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     onRenderScene();
 
+    // Resolve MSAA → regular texture
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msaaFbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
     glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
     glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
+    if (prevBlend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+    glBlendFunc(prevBlendSrc, prevBlendDst);
+    if (prevDepthTest) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+    if (prevLighting) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
 
     m_scene->setView(prevView);
 

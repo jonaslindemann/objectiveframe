@@ -8,21 +8,28 @@
 
 #include <ofui/ui_window.h>
 
-class IvfViewWindow;
+class FemViewWindow;
 
 namespace ofui {
 
 class ViewWindow : public UiWindow {
 private:
+    // MSAA render target
+    GLuint m_msaaFbo{0};
+    GLuint m_msaaColorRbo{0};
+    GLuint m_msaaDepthRbo{0};
+
+    // Resolve target (texture displayed by ImGui::Image)
     GLuint m_fbo{0};
     GLuint m_colorTexture{0};
-    GLuint m_depthRbo{0};
+
     int m_fboWidth{0};
     int m_fboHeight{0};
+    int m_sampleCount{4};
 
     ivf::CameraPtr m_camera;
     ivf::Workspace* m_scene{nullptr};
-    IvfViewWindow* m_sourceView{nullptr};
+    FemViewWindow *m_sourceView{nullptr};
     bool m_syncCamera{true};
     double m_workspaceSize{10.0};
 
@@ -41,7 +48,7 @@ public:
     static std::shared_ptr<ViewWindow> create(const std::string& name);
 
     void setScene(ivf::Workspace* scene);
-    void setSourceView(IvfViewWindow* view);
+    void setSourceView(FemViewWindow *view);
     void setWorkspaceSize(double size);
     void setSyncCamera(bool sync);
     bool syncCamera() const;

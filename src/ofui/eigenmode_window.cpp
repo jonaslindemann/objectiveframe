@@ -140,6 +140,13 @@ void EigenmodeWindow::doDraw()
         }
         
         ImGui::Checkbox("Animate", &m_animate);
+
+        if (m_femView != nullptr)
+        {
+            bool inSecondary = m_femView->isEigenmodeInSecondaryView();
+            if (ImGui::Checkbox("Show animation in secondary view", &inSecondary))
+                m_femView->setEigenmodeInSecondaryView(inSecondary);
+        }
         
         if (m_animate)
         {

@@ -304,6 +304,8 @@ private:
     ofui::EigenmodeWindowPtr m_eigenmodeWindow;
     ofui::ViewWindowPtr m_viewWindow;
 
+    bool m_eigenmodeInSecondaryView{false};
+
     ofui::WindowListPtr m_windowList;
 
     bool m_showStyleEditor;
@@ -546,12 +548,22 @@ public:
     size_t nodeIdx(vfem::Node *node);
     size_t beamIdx(vfem::Beam *beam);
 
+    // Textlayer
+
+    void showTextLayer(bool show);
+    bool isTextLayerShown();
+
     // Eigenmode analysis methods
 
     void computeEigenmodes(int numModes = 5);
     void clearEigenmodes();
     void setEigenmodeVisualization(int mode);
     void updateEigenmodeVisualization(float phase);
+
+    bool isEigenmodeInSecondaryView() const;
+    void setEigenmodeInSecondaryView(bool flag);
+    void applyEigenmodeAnimation();
+    void clearEigenmodeAnimation();
 
     // Service related methods
 

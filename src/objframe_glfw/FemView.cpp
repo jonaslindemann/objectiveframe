@@ -850,6 +850,15 @@ void FemViewWindow::setCustomMode(CustomMode mode)
 
     if (m_customMode == CustomMode::Feedback)
     {
+        // Reset any active eigenmode state so it doesn't fight the interactive results
+        if (m_eigenmodeWindow != nullptr)
+        {
+            m_eigenmodeWindow->setAnimate(false);
+            m_eigenmodeWindow->setHasEigenmodes(false);
+        }
+        m_eigenmodeInSecondaryView = false;
+        m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+
         m_tactileForce->setState(Shape::OS_OFF);
         m_interactionNode = nullptr;
         this->clearSelection();
@@ -2288,6 +2297,15 @@ void FemViewWindow::assignNodePosBCGround()
 
 void FemViewWindow::executeCalc()
 {
+    // Reset any active eigenmode state so the regular results can display normally
+    if (m_eigenmodeWindow != nullptr)
+    {
+        m_eigenmodeWindow->setAnimate(false);
+        m_eigenmodeWindow->setHasEigenmodes(false);
+    }
+    m_eigenmodeInSecondaryView = false;
+    m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+
     // m_frameSolver = FrameSolver::create();
     // m_currentSolver = m_frameSolver.get();
     m_beamSolver = BeamSolver::create();
@@ -2514,17 +2532,36 @@ void FemViewWindow::computeEigenmodes(int numModes)
         m_eigenmodeWindow->setNumModes(m_currentSolver->getNumEigenModes());
         m_eigenmodeWindow->setAnimate(true);
         {
-            double autoScale = this->getWorkspace() * 0.1;
+            // Base scale on the structure's bounding box diagonal so it looks
+            // proportional regardless of model size or workspace setting.
+            auto nodeSet = m_beamModel->getNodeSet();
+            double minX = std::numeric_limits<double>::max(), maxX = std::numeric_limits<double>::lowest();
+            double minY = std::numeric_limits<double>::max(), maxY = std::numeric_limits<double>::lowest();
+            double minZ = std::numeric_limits<double>::max(), maxZ = std::numeric_limits<double>::lowest();
+            for (size_t i = 0; i < nodeSet->getSize(); i++)
+            {
+                double x, y, z;
+                nodeSet->getNode(i)->getCoord(x, y, z);
+                minX = std::min(minX, x); maxX = std::max(maxX, x);
+                minY = std::min(minY, y); maxY = std::max(maxY, y);
+                minZ = std::min(minZ, z); maxZ = std::max(maxZ, z);
+            }
+            double dx = maxX - minX, dy = maxY - minY, dz = maxZ - minZ;
+            double diagonal = std::sqrt(dx*dx + dy*dy + dz*dz);
+            double autoScale = (diagonal > 0.0) ? diagonal * 0.2 : this->getWorkspace() * 0.2;
             m_eigenmodeWindow->setModeScaleFactor(autoScale);
-            m_eigenmodeWindow->setScaleSliderMax(float(autoScale) * 5.0f);
+            m_eigenmodeWindow->setScaleSliderMax(float(autoScale) * 10.0f);
         }
         m_eigenmodeWindow->setCurrentMode(0);
         m_eigenmodeWindow->show();
+        m_tactileForce->setState(Shape::OS_OFF);
+        m_interactionNode = nullptr;
         {
             const ImGuiViewport *vp = ImGui::GetMainViewport();
             int posX = int(vp->WorkSize.x) - 600;
             m_eigenmodeWindow->setPosition(posX, 120);
         }
+        setEigenmodeInSecondaryView(true); // show animation in secondary view by default
         
         // Display eigenvalue information
         for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
@@ -2558,7 +2595,8 @@ void FemViewWindow::clearEigenmodes()
     log("Clearing eigenmodes...");
     m_currentSolver->clearEigenModes();
     m_eigenmodeWindow->setHasEigenmodes(false);
-    
+    m_eigenmodeInSecondaryView = false;
+
     // Clear node displacements
     m_beamModel->clearNodeValues();
     this->set_changed();
@@ -2694,6 +2732,10 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
     double animationScale = std::sin(phase); // Oscillates between -1 and 1
     double modeScaleFactor = m_eigenmodeWindow->getModeScaleFactor();
 
+    // Keep beamModel scale in sync with slider every frame
+    if (!m_lockScaleFactor)
+        m_beamModel->setScaleFactor(modeScaleFactor);
+
     // Get the eigenvector for this mode
     Eigen::VectorXd eigenvector;
     m_currentSolver->getEigenVector(currentMode, eigenvector);
@@ -2742,11 +2784,11 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
                     int dofNum = node->getDof(j)->getNumber() - 1;
                     if (dofNum >= 0 && dofNum < eigenvector.size())
                     {
-                        // Normalize first, then apply animation scale and mode scale factor
+                        // Normalize and apply animation; beamModel->getScaleFactor() handles visual scale
                         double value = eigenvector(dofNum);
                         if (maxDisplacement > 0)
-                            value /= maxDisplacement; // Normalize to ~0-1 range
-                        value *= animationScale * modeScaleFactor; // Apply animation and scale
+                            value /= maxDisplacement;
+                        value *= animationScale;
                         node->setValue(j, value);
                     }
                     else
@@ -2766,11 +2808,11 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
                     int dofNum = node->getDof(j)->getNumber() - 1;
                     if (dofNum >= 0 && dofNum < eigenvector.size())
                     {
-                        // Normalize first, then apply animation scale and mode scale factor
+                        // Normalize and apply animation; beamModel->getScaleFactor() handles visual scale
                         double value = eigenvector(dofNum);
                         if (maxDisplacement > 0)
-                            value /= maxDisplacement; // Normalize to ~0-1 range
-                        value *= animationScale * modeScaleFactor; // Apply animation and scale
+                            value /= maxDisplacement;
+                        value *= animationScale;
                         node->setValue(j, value);
                     }
                     else
@@ -3162,6 +3204,19 @@ size_t FemViewWindow::nodeIdx(vfem::Node *node)
 size_t FemViewWindow::beamIdx(vfem::Beam *beam)
 {
     return beam->getBeam()->getNumber();
+}
+
+void FemViewWindow::showTextLayer(bool show)
+{
+    if (show)
+        m_textLayer->setState(ivf::Shape::OS_ON);
+    else
+        m_textLayer->setState(ivf::Shape::OS_OFF);
+}
+
+bool FemViewWindow::isTextLayerShown()
+{
+    return m_textLayer->getState() == ivf::Shape::OS_ON;   
 }
 
 void FemViewWindow::startService()
@@ -5735,16 +5790,62 @@ void FemViewWindow::onInitImGui()
 
 void FemViewWindow::onPostRender()
 {
-    // Update eigenmode animation
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->isAnimate())
     {
-        // Update animation phase with delta time
         float deltaTime = ImGui::GetIO().DeltaTime;
         m_eigenmodeWindow->updateAnimationPhase(deltaTime);
-        
-        // Update visualization with current phase
+
+        if (m_eigenmodeInSecondaryView)
+        {
+            m_beamModel->clearNodeValues();
+            m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+            this->redraw();
+        }
+        else
+            updateEigenmodeVisualization(m_eigenmodeWindow->getAnimationPhase());
+    }
+}
+
+bool FemViewWindow::isEigenmodeInSecondaryView() const
+{
+    return m_eigenmodeInSecondaryView;
+}
+
+void FemViewWindow::setEigenmodeInSecondaryView(bool flag)
+{
+    m_eigenmodeInSecondaryView = flag;
+    if (flag)
+    {
+        m_viewWindow->show();
+        // Show the editable FEM model (loads, BCs) in the main window
+        setRepresentation(RepresentationMode::Fem);
+        m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+        m_beamModel->clearNodeValues();
+    }
+    else
+    {
+        // Return animation to the main window
+        if (m_currentSolver != nullptr && m_currentSolver->hasEigenModes())
+            setRepresentation(RepresentationMode::Results);
+    }
+}
+
+void FemViewWindow::applyEigenmodeAnimation()
+{
+    if (m_eigenmodeWindow != nullptr)
+    {
+        // Temporarily switch to displacement mode so the FBO render shows the deformed shape
+        m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
         updateEigenmodeVisualization(m_eigenmodeWindow->getAnimationPhase());
     }
+}
+
+void FemViewWindow::clearEigenmodeAnimation()
+{
+    m_beamModel->clearNodeValues();
+    // Restore geometry node type so the main view keeps showing the undeformed FEM model
+    m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+    this->redraw();
 }
 
 void FemViewWindow::onGlfwResize(int width, int height)

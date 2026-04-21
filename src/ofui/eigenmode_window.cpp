@@ -5,6 +5,9 @@
 
 #include <FemView.h>
 
+#include <cmath>
+#include <string>
+
 using namespace ofui;
 
 EigenmodeWindow::EigenmodeWindow(const std::string& title)
@@ -29,6 +32,16 @@ std::shared_ptr<EigenmodeWindow> EigenmodeWindow::create(const std::string& titl
 void EigenmodeWindow::setFemView(::FemViewWindow* view)
 {
     m_femView = view;
+}
+
+bool EigenmodeWindow::hasEigenmodes() const
+{
+    return m_hasEigenmodes;
+}
+
+void EigenmodeWindow::setEigenvalues(const std::vector<double>& eigenvalues)
+{
+    m_eigenvalues = eigenvalues;
 }
 
 void EigenmodeWindow::setHasEigenmodes(bool hasEigenmodes)
@@ -162,10 +175,47 @@ void EigenmodeWindow::doDraw()
         }
         
         ImGui::Separator();
-        
-        // Display eigenvalue info would go here (will be implemented in step 8)
-        ImGui::Text("Eigenvalue info:");
-        ImGui::Text("  (Available after computation)");
+
+        if (!m_eigenvalues.empty())
+        {
+            ImGui::Text("Mode stability:");
+            ImGui::Separator();
+            for (int i = 0; i < (int)m_eigenvalues.size(); i++)
+            {
+                double lambda = m_eigenvalues[i];
+                bool unstable = lambda < 0.0;
+                bool current = (i == m_currentMode);
+
+                ImGui::PushID(i);
+
+                if (current)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
+                else if (unstable)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.35f, 0.35f, 1.0f));
+                else
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.4f, 1.0f));
+
+                std::string label;
+                if (unstable)
+                    label = "Mode " + std::to_string(i + 1) + ":  UNSTABLE";
+                else
+                {
+                    double freq = std::sqrt(lambda) / (2.0 * 3.14159265358979323846);
+                    char buf[64];
+                    std::snprintf(buf, sizeof(buf), "Mode %d:  %.3f Hz", i + 1, freq);
+                    label = buf;
+                }
+
+                if (ImGui::Selectable(label.c_str(), current))
+                {
+                    m_currentMode = i;
+                    onModeChanged(m_currentMode);
+                }
+
+                ImGui::PopStyleColor();
+                ImGui::PopID();
+            }
+        }
     }
     else
     {

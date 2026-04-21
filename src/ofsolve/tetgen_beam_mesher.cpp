@@ -351,13 +351,18 @@ void ofsolver::TetgenBeamMesher::generate()
 
     m_nodes.save(nodeFilename);
 
+std::string tetgenExec;
+
 #ifdef WIN32
-    std::string tetgenExec = "\"" + m_progPath + "\\tetgen.exe\" -e " + nodeFilename;
+    if (m_progPath.empty())
+        tetgenExec = "tetgen.exe -e " + nodeFilename;
+    else
+        tetgenExec = "\"" + m_progPath + "\\tetgen.exe\" -e " + nodeFilename;
 #else
     std::string tetgenExec = "tetgen -e \"" + nodeFilename + "\"";
 #endif
 
-    Logger::instance()->log(LogLevel::Info, tetgenExec);
+Logger::instance()->log(LogLevel::Info, tetgenExec);
 
 #ifdef WIN32
     auto result = ofutil::run_process(tetgenExec);

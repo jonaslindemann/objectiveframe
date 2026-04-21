@@ -2,6 +2,7 @@
 
 #include <ofui/ui_window.h>
 #include <string>
+#include <vector>
 
 class FemViewWindow;
 
@@ -17,6 +18,7 @@ private:
     float m_animationPhase;
     double m_modeScaleFactor;
     float m_sliderMax{10.0f};
+    std::vector<double> m_eigenvalues;
 
     FemViewWindow* m_femView;
     
@@ -34,6 +36,8 @@ public:
     
     void setFemView(::FemViewWindow* view);
     void setHasEigenmodes(bool hasEigenmodes);
+    bool hasEigenmodes() const;
+    void setEigenvalues(const std::vector<double>& eigenvalues);
     void setNumModes(int numModes);
     void setCurrentMode(int mode);
     

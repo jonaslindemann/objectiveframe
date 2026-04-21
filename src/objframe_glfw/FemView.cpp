@@ -1516,6 +1516,8 @@ void FemViewWindow::deleteBeamLoad(ofem::BeamLoad *elementLoad)
     // Remove load from beam model
 
     m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
     m_beamModel->getElementLoadSet()->removeLoad(elementLoad);
 }
 
@@ -1873,6 +1875,8 @@ void FemViewWindow::assignBeamLoadSelected()
         // the changes
 
         m_needRecalc = true;
+        if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+            clearEigenmodes();
         this->set_changed();
         this->redraw();
     }
@@ -1901,6 +1905,8 @@ void FemViewWindow::assignNodeLoadSelected()
         // the changes
 
         m_needRecalc = true;
+        if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+            clearEigenmodes();
         this->set_changed();
         this->redraw();
     }
@@ -1922,6 +1928,8 @@ void FemViewWindow::deleteNodeLoad(ofem::BeamNodeLoad *nodeLoad)
 
     setCurrentNodeLoad(nullptr);
 
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
     m_beamModel->getNodeLoadSet()->removeLoad(nodeLoad);
 }
 
@@ -1941,6 +1949,8 @@ void FemViewWindow::deleteNodeBC(ofem::BeamNodeBC *bc)
     // Remove load from beam model
 
     m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
     m_beamModel->getNodeBCSet()->removeBC(bc);
     setCurrentNodeBC(nullptr);
 }
@@ -2256,6 +2266,8 @@ void FemViewWindow::assignNodeBCSelected()
         // the changes
 
         m_needRecalc = true;
+        if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+            clearEigenmodes();
         this->set_changed();
         this->redraw();
     }
@@ -2562,8 +2574,16 @@ void FemViewWindow::computeEigenmodes(int numModes)
             m_eigenmodeWindow->setPosition(posX, 120);
         }
         setEigenmodeInSecondaryView(true); // show animation in secondary view by default
-        
-        // Display eigenvalue information
+
+        // Collect eigenvalues and pass to window for display
+        {
+            std::vector<double> eigenvalues;
+            for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
+                eigenvalues.push_back(m_currentSolver->getEigenValue(i));
+            m_eigenmodeWindow->setEigenvalues(eigenvalues);
+        }
+
+        // Log eigenvalue information
         for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
         {
             double eigenvalue = m_currentSolver->getEigenValue(i);
@@ -2595,6 +2615,7 @@ void FemViewWindow::clearEigenmodes()
     log("Clearing eigenmodes...");
     m_currentSolver->clearEigenModes();
     m_eigenmodeWindow->setHasEigenmodes(false);
+    m_eigenmodeWindow->setEigenvalues({});
     m_eigenmodeInSecondaryView = false;
 
     // Clear node displacements
@@ -3504,6 +3525,8 @@ void FemViewWindow::removeNodeBCsFromSelected()
     // the changes
 
     m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
     this->set_changed();
     this->redraw();
 }
@@ -3518,6 +3541,8 @@ void FemViewWindow::removeBCsFromBC()
             nodeBC->clearNodes();
 
         m_needRecalc = true;
+        if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+            clearEigenmodes();
         this->set_changed();
         this->redraw();
     }
@@ -3548,6 +3573,8 @@ void FemViewWindow::removeBeamLoadsFromSelected()
     // the changes
 
     m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
     this->set_changed();
     this->redraw();
 }
@@ -4072,6 +4099,9 @@ void FemViewWindow::onCreateNode(double x, double y, double z, ivf::Node *&newNo
 
     m_needRecalc = true;
 
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+
     newNode = ivfNode;
 }
 
@@ -4119,6 +4149,9 @@ void FemViewWindow::onCreateLine(ivf::Node *node1, ivf::Node *node2, Shape *&new
     // We need a recalc
 
     m_needRecalc = true;
+
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
 
     // Return the finished object
 
@@ -4289,6 +4322,9 @@ void FemViewWindow::onDeleteShape(Shape *shape, bool &doit)
         }
     }
 
+    if (doit && m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+
     m_needRecalc = doit;
 }
 
@@ -4299,7 +4335,10 @@ void FemViewWindow::onMove(Composite *selectedShapes, double &dx, double &dy, do
 }
 
 void FemViewWindow::onMoveCompleted()
-{}
+{
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+}
 
 void FemViewWindow::onUnderlay()
 {

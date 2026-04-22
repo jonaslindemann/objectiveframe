@@ -20,3 +20,4 @@ reference/html/
 .vs/*
 /vcpkg_installed
 /bin/RelWithDebInfo
+/.VSCodeCounter

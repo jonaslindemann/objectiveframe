@@ -1,12 +1,8 @@
 #pragma once
 #include <ofui/ui_window.h>
 
-#include "imgui_internal.h"
 #include <string>
 #include <vector>
-#include <regex>
-#include <unordered_map>
-#include <iostream>
 #include <mutex>
 
 class FemViewWindow;

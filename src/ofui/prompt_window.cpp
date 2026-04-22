@@ -13,6 +13,8 @@
 #pragma warning(pop)
 #endif
 
+#include "imgui_internal.h"
+
 #include <ofutil/util_functions.h>
 
 #include <FemView.h>

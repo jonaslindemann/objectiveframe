@@ -37,5 +37,5 @@ The latest version includes advanced eigen mode visualization capabilities, allo
  * Interactions with the CALFEM for Python library. I would like to see the application as a pre-processor for generating CALFEM code that can be used by students in Structural Mechanics.
  * More developed scripting interface for creating more interesting plugins for generating beam/truss-structures.
 
-Jonas Lindemann
+Jonas Lindemann, 2026
 

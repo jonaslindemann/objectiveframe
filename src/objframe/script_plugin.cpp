@@ -11,8 +11,7 @@ using namespace std;
 
 void ScriptPlugin::loadSource()
 {
-    if (m_filename != "")
-    {
+    if (m_filename != "") {
         fstream f;
         f.open(m_filename, ios::in | ios::binary);
 
@@ -42,28 +41,25 @@ void ScriptPlugin::parse()
     //  |     secondPos
     //  firstPos
 
-
-    while ((firstPos!=string::npos)&&(secondPos!=string::npos))
-    {
+    while ((firstPos != string::npos) && (secondPos != string::npos)) {
         string paramStr = m_scriptSource.substr(firstPos + 2, secondPos - firstPos - 2);
 
         auto sep = paramStr.find(",");
         auto sep2 = paramStr.find(",", sep + 1);
 
         auto name = paramStr.substr(0, sep);
-        auto defValue = paramStr.substr(sep + 1, sep2-sep-1);
+        auto defValue = paramStr.substr(sep + 1, sep2 - sep - 1);
         auto valueType = paramStr.substr(sep2 + 1, paramStr.length() - 1);
 
-        m_params[name] = { defValue, defValue, valueType };
-        
+        m_params[name] = {defValue, defValue, valueType};
+
         if (valueType == "int")
             m_intParams[name] = ofutil::to_int(m_params[name][0]);
 
         if (valueType == "float")
             m_floatParams[name] = ofutil::to_float(m_params[name][0]);
 
-        if (valueType == "string")
-        {  
+        if (valueType == "string") {
             std::fill(m_stringParams[name].begin(), m_stringParams[name].end(), 0);
             std::copy(m_params[name][0].begin(), m_params[name][0].end(), m_stringParams[name].data());
         }
@@ -81,21 +77,19 @@ void ScriptPlugin::parse()
 
 void ScriptPlugin::updateParams()
 {
-    for (auto& name : m_paramNames)
-    {
+    for (auto &name : m_paramNames) {
         auto valueType = m_params[name][2];
-        
+
         if (valueType == "int")
             m_params[name][0] = ofutil::to_string(m_intParams[name]);
         if (valueType == "float")
             m_params[name][0] = ofutil::to_string(m_floatParams[name]);
-        //if (valueType == "string")
-        //    m_params[name][0] = ofutil::to_string(m_stringParams[name]);
+        // if (valueType == "string")
+        //     m_params[name][0] = ofutil::to_string(m_stringParams[name]);
     }
 }
 
-ScriptPlugin::ScriptPlugin(const std::string filename)
-    : m_filename { filename }
+ScriptPlugin::ScriptPlugin(const std::string filename) : m_filename{filename}
 {
     loadSource();
     parse();
@@ -141,7 +135,7 @@ const std::string ScriptPlugin::name()
     return m_pluginName;
 }
 
-float* ScriptPlugin::floatParamRef(const std::string name)
+float *ScriptPlugin::floatParamRef(const std::string name)
 {
     if (m_floatParams.find(name) != m_floatParams.end())
         return &m_floatParams[name];
@@ -149,7 +143,7 @@ float* ScriptPlugin::floatParamRef(const std::string name)
         return nullptr;
 }
 
-int* ScriptPlugin::intParamRef(const std::string name)
+int *ScriptPlugin::intParamRef(const std::string name)
 {
     if (m_intParams.find(name) != m_intParams.end())
         return &m_intParams[name];
@@ -157,7 +151,7 @@ int* ScriptPlugin::intParamRef(const std::string name)
         return nullptr;
 }
 
-char* ScriptPlugin::stringParamRef(const std::string name)
+char *ScriptPlugin::stringParamRef(const std::string name)
 {
     if (m_stringParams.find(name) != m_stringParams.end())
         return m_stringParams[name].data();
@@ -165,7 +159,7 @@ char* ScriptPlugin::stringParamRef(const std::string name)
         return nullptr;
 }
 
-const std::vector<std::string>& ScriptPlugin::paramNames()
+const std::vector<std::string> &ScriptPlugin::paramNames()
 {
     return m_paramNames;
 }
@@ -176,13 +170,12 @@ const std::string ScriptPlugin::source()
 
     std::string modifiedSource = m_scriptSource;
 
-    for (auto& p : m_params)
-    {
+    for (auto &p : m_params) {
         string tag = "%%" + p.first + "," + p.second[1] + "," + p.second[2] + "%%";
         auto tagPos = modifiedSource.find(tag);
         auto tagLength = tag.length();
 
-        if (tagPos!=string::npos)
+        if (tagPos != string::npos)
             modifiedSource.replace(modifiedSource.find(tag), tag.length(), p.second[0]);
     }
     return modifiedSource;

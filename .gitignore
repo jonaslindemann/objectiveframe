@@ -21,3 +21,4 @@ reference/html/
 /vcpkg_installed
 /bin/RelWithDebInfo
 /.VSCodeCounter
+/build-test

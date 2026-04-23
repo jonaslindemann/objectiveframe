@@ -15,7 +15,7 @@ LeapInteraction::LeapInteraction()
     m_lastDistance = 10000;
 }
 
-LeapInteraction::LeapInteraction(CIvfFemWidget* widget)
+LeapInteraction::LeapInteraction(CIvfFemWidget *widget)
 {
     m_widget = widget;
 
@@ -37,25 +37,21 @@ void LeapInteraction::refresh()
 {
     m_widget->getCamera()->getAbsoluteRotation(m_alpha, m_beta);
     Finger finger = m_leapFrame.fingers()[0];
-    if (m_leapFrame.fingers().count() == 2 && m_widget->getTactileForce()->getState() == CIvfShape::OS_ON)
-    {
+    if (m_leapFrame.fingers().count() == 2 && m_widget->getTactileForce()->getState() == CIvfShape::OS_ON) {
     }
-    else if (m_leapFrame.fingers().count() == 2 && m_widget->getTactileForce()->getState() == CIvfShape::OS_OFF)
-    {
+    else if (m_leapFrame.fingers().count() == 2 && m_widget->getTactileForce()->getState() == CIvfShape::OS_OFF) {
         // this->fingerMove();
     }
 
     this->viewInteraction();
 
-    if (m_leapFrame.fingers().count() == 2)
-    {
+    if (m_leapFrame.fingers().count() == 2) {
         m_finger1->fingerMove(m_leapFrame.fingers()[0]);
         m_finger2->fingerMove(m_leapFrame.fingers()[1]);
         m_finger1->Show(true);
         m_finger2->Show(true);
     }
-    else
-    {
+    else {
         m_finger1->Show(false);
         m_finger2->Show(false);
     }
@@ -69,19 +65,16 @@ void LeapInteraction::refresh()
 
 void LeapInteraction::viewInteraction()
 {
-    if (m_leapFrame.hands().count() == 1)
-    {
+    if (m_leapFrame.hands().count() == 1) {
         Hand hand = m_leapFrame.hands()[0];
-        if (hand.fingers().count() == 5)
-        {
+        if (hand.fingers().count() == 5) {
             m_widget->getCamera()->rotateAbsolute(hand.direction().pitch() * 1.2, m_beta);
 
             m_widget->getCamera()->moveForward(hand.palmVelocity()[2] / 250);
             m_widget->getCamera()->rotatePositionY(hand.palmVelocity()[0] / 4500);
         }
     }
-    else if (m_leapFrame.hands().count() == 2)
-    {
+    else if (m_leapFrame.hands().count() == 2) {
         if (m_leapFrame.hands()[0].fingers().count() == 5 && m_leapFrame.hands()[1].fingers().count() == 5)
         // Two hands showing with all fingers
         {
@@ -93,26 +86,23 @@ void LeapInteraction::viewInteraction()
     }
 }
 
-void LeapInteraction::findNode(double v[3], double& distance, CIvfFemNode*& closestNode)
+void LeapInteraction::findNode(double v[3], double &distance, CIvfFemNode *&closestNode)
 {
     distance = 100000;
 
     double coord[3];
     double tempDistance;
 
-    for (int i = 0; i < m_widget->getScene()->getComposite()->getSize(); i++)
-    {
-        CIvfShape* shape = m_widget->getScene()->getComposite()->getChild(i);
-        if (shape->isClass("CIvfFemNode"))
-        {
-            CIvfFemNode* ivfNode = (CIvfFemNode*)shape;
+    for (int i = 0; i < m_widget->getScene()->getComposite()->getSize(); i++) {
+        CIvfShape *shape = m_widget->getScene()->getComposite()->getChild(i);
+        if (shape->isClass("CIvfFemNode")) {
+            CIvfFemNode *ivfNode = (CIvfFemNode *)shape;
 
             ivfNode->getFemNode()->getCoord(coord[0], coord[1], coord[2]);
 
             tempDistance = sqrt(pow((v[0] - coord[0]), 2) + pow((v[1] - coord[1]), 2) + pow((v[2] - coord[2]), 2));
 
-            if (tempDistance < distance)
-            {
+            if (tempDistance < distance) {
                 distance = tempDistance;
                 closestNode = ivfNode;
             }
@@ -143,33 +133,27 @@ void LeapInteraction::graspGesture()
     double palmVelocity;
     palmVelocity = m_leapFrame.hands()[0].palmVelocity().magnitude();
 
-    if (m_leapFrame.fingers().count() == 1 && m_lastFingerCount == 2 && palmVelocity < 160)
-    {
+    if (m_leapFrame.fingers().count() == 1 && m_lastFingerCount == 2 && palmVelocity < 160) {
         grasp = true;
     }
-    else
-    {
+    else {
         grasp = false;
     }
 
-    if (m_leapFrame.fingers().count() > 1)
-    {
+    if (m_leapFrame.fingers().count() > 1) {
         spread = true;
     }
-    else
-    {
+    else {
         spread = false;
     }
 
     m_lastFingerCount = m_leapFrame.fingers().count();
 
-    if (grasp)
-    {
+    if (grasp) {
         startGrasp();
     }
 
-    if (spread)
-    {
+    if (spread) {
         endGrasp();
         m_interact = false;
     }
@@ -193,13 +177,11 @@ double LeapInteraction::vectorsIntersect(Vector p1, Vector p2, Vector dir1, Vect
     float sc, tc;
 
     // compute the line parameters of the two closest points
-    if (D < SMALL_NUM)
-    { // the lines are almost parallel
+    if (D < SMALL_NUM) { // the lines are almost parallel
         sc = 0.0;
         tc = (b > c ? d / b : e / c); // use the largest denominator
     }
-    else
-    {
+    else {
         sc = (b * e - c * d) / D;
         tc = (a * e - b * d) / D;
     }
@@ -217,12 +199,11 @@ void LeapInteraction::startGrasp()
     m_finger1->getPosition().getComponents(searchP[0], searchP[1], searchP[2]);
 
     double distance = 10000;
-    CIvfFemNode* closestNode;
+    CIvfFemNode *closestNode;
 
     findNode(searchP, distance, closestNode);
 
-    if (distance < SNAP_DIST)
-    {
+    if (distance < SNAP_DIST) {
         m_interactionNode = closestNode;
         m_widget->setInteractionNode(closestNode);
 
@@ -238,16 +219,14 @@ void LeapInteraction::startGrasp()
 
         m_interact = true;
     }
-    else
-    {
+    else {
         m_interact = false;
     }
 }
 
 void LeapInteraction::interactNode()
 {
-    if (m_interact)
-    {
+    if (m_interact) {
 
         Vector currentP = m_leapFrame.hands()[0].palmPosition();
         Vector zeroP;
@@ -273,8 +252,7 @@ void LeapInteraction::interactNode()
 
 void LeapInteraction::endGrasp()
 {
-    if (m_interactionNode)
-    {
+    if (m_interactionNode) {
         m_interactionNode->setSelect(CIvfShape::SS_OFF);
 
         m_widget->doFeedback();
@@ -282,7 +260,7 @@ void LeapInteraction::endGrasp()
     }
 }
 
-void LeapInteraction::LeapToScene(Vector leapVector, CIvfVec3d* returnVector)
+void LeapInteraction::LeapToScene(Vector leapVector, CIvfVec3d *returnVector)
 {
 
     returnVector->setX(leapVector.x);

@@ -1,11 +1,28 @@
 file(GLOB SOURCE_FILES *.cpp)
 file(GLOB INCLUDE_FILES *.h)
 
-add_executable(objframe ${INCLUDE_FILES} ${SOURCE_FILES})
-set_target_properties(objframe PROPERTIES DEBUG_POSTFIX d)
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/objframe ${PROJECT_SOURCE_DIR}/include/ofui)
 
 if (WIN32)
-	target_link_libraries(objframe util fem visfem ivf ivfmath ivfimage ofui imgui_fltk gleivf newmat glad ws2_32 comctl32 ${FLTK_BASE_LIBRARY} ${FLTK_GL_LIBRARY} ${GDIPLUS_LIBRARY} ${JPEG_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLUT_LIBRARY} ${GLU_LIBRARY} ${GLEW_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY})
-else()
-	target_link_libraries(objframe fem visfem util ivf ivfmath ivfimage ofui imgui_fltk gleivf newmat glad ${FLTK_BASE_LIBRARY} ${FLTK_GL_LIBRARY} dl GLU GL X11 Xft Xcursor Xinerama Xrender Xfixes fontconfig pthread ${GDIPLUS_LIBRARY} ${JPEG_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLUT_LIBRARY} ${GLU_LIBRARY} ${GLEW_LIBRARY} ${FTGL_LIBRARY} ${FREETYPE_LIBRARY})	
-endif() 
+	add_compile_options(/bigobj)
+endif()
+
+add_executable(objframe ${IVF_INCLUDE_DIR} ${INCLUDE_FILES} ${SOURCE_FILES} ${APP_ICON_RESOURCE_WINDOWS})
+if (WIN32)
+	set_target_properties(objframe PROPERTIES
+		WIN32_EXECUTABLE $<CONFIG:Release>
+		LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS"
+	)
+endif()
+
+target_link_libraries(objframe
+	chaiscript_headers
+	fem ofsolve ofai ofservice visfem util ofmath
+	ivf ivfgle ivfmath ivfimage
+	ofui gleivf glad newmat imguifd civetweb
+	PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl
+)
+
+set_target_properties(objframe PROPERTIES DEBUG_POSTFIX d)

@@ -21,6 +21,9 @@ PlaneButton::PlaneButton(int id)
     this->setUseName(true);
     this->setId(id);
 
+    m_width = 50.0;
+    m_height = 50.0;
+
     MaterialPtr material;
     m_normalShape = QuadPlane::create();
     m_normalShape->setSize(50.0, 50.0);
@@ -60,7 +63,7 @@ PlaneButton::PlaneButton(int id)
     m_checkedFrame->addCoord(25.0, 25.0, 0.0);
     m_checkedFrame->addCoord(25.0, -25.0, 0.0);
     m_checkedFrame->addCoord(-25.0, -25.0, 0.0);
-    Index* idx = Index::create();
+    Index *idx = Index::create();
     idx->add((long)0, (long)1);
     idx->add((long)1, (long)2);
     idx->add((long)2, (long)3);
@@ -85,7 +88,7 @@ PlaneButton::PlaneButton(int id)
     m_hint = "";
 }
 
-PlaneButton::PlaneButton(int id, const std::string& name)
+PlaneButton::PlaneButton(int id, const std::string &name)
 {
     PngImagePtr image = PngImage::create();
     image->setFileName(name);
@@ -182,7 +185,7 @@ PlaneButton::~PlaneButton()
 {
 }
 
-void PlaneButton::setTexture(Texture* texture)
+void PlaneButton::setTexture(Texture *texture)
 {
     m_normalShape->setTexture(texture);
     m_pressedShape->setTexture(texture);
@@ -191,6 +194,8 @@ void PlaneButton::setTexture(Texture* texture)
 
 void PlaneButton::setSize(double width, double height)
 {
+    m_width = width;
+    m_height = height;
     m_normalShape->setSize(width, height);
     m_normalShape->flipVert();
     m_pressedShape->setSize(width * 0.95, height * 0.95);
@@ -205,7 +210,13 @@ void PlaneButton::setSize(double width, double height)
     m_checkedFrame->setCoord(3, -width / 2.0, -height / 2.0, 0.0);
 }
 
-void PlaneButton::setHint(const std::string& hintText)
+void PlaneButton::getSize(double &width, double &height)
+{
+    width = m_width;
+    height = m_height;
+}
+
+void PlaneButton::setHint(const std::string &hintText)
 {
     m_hint = hintText;
 }

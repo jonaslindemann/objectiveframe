@@ -1,13 +1,12 @@
 #pragma once
 
-#include <string>
-#include <map>
-#include <vector>
-#include <memory>
 #include <array>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-class ScriptPlugin
-{
+class ScriptPlugin {
 private:
     std::string m_filename;
     std::string m_scriptSource;
@@ -35,11 +34,11 @@ public:
     const std::string paramType(const std::string name);
     const std::string name();
 
-    float* floatParamRef(const std::string name);
-    int* intParamRef(const std::string name);
-    char* stringParamRef(const std::string name);
+    float *floatParamRef(const std::string name);
+    int *intParamRef(const std::string name);
+    char *stringParamRef(const std::string name);
 
-    const std::vector<std::string>& paramNames();
+    const std::vector<std::string> &paramNames();
 
     const std::string source();
 };

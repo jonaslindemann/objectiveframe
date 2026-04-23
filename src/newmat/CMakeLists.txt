@@ -1,6 +1,5 @@
-FILE(GLOB SOURCE_FILES *.cpp)
-FILE(GLOB INCLUDE_FILES *.h)
+file(GLOB SOURCE_FILES *.cpp)
+file(GLOB INCLUDE_FILES *.h)
 
-ADD_LIBRARY(newmat ${INCLUDE_FILES} ${SOURCE_FILES})
+add_library(newmat ${INCLUDE_FILES} ${SOURCE_FILES})
 set_target_properties(newmat PROPERTIES DEBUG_POSTFIX d)
-

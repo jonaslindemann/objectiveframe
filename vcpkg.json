@@ -5,6 +5,7 @@
   "dependencies": [
     "glew",
     "glfw3",
+    "glm",
     "libjpeg-turbo",
     "libpng",
     "zlib",

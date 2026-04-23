@@ -10,7 +10,7 @@
 
 #ifdef USE_LEAP
 
-LeapFinger::LeapFinger(CIvfFemWidget* widget)
+LeapFinger::LeapFinger(CIvfFemWidget *widget)
 {
     m_widget = widget;
 
@@ -23,7 +23,7 @@ LeapFinger::LeapFinger(CIvfFemWidget* widget)
     m_fingerShape->setRadius(0);
     m_fingerShape->setTopRadius(0.1);
     m_fingerShape->setHeight(0.7);
-    //m_fingerShape->addReference();
+    m_fingerShape->addReference();
     m_fingerShape->setState(CIvfShape::OS_OFF);
     m_widget->getScene()->getPostComposite()->addChild(m_fingerShape);
 
@@ -56,7 +56,7 @@ void LeapFinger::fingerMove(Finger finger)
     m_fingerShape->setRotation(-pitch - 90, 0, yaw);
 }
 
-void LeapFinger::LeapToScene(Vector leapVector, CIvfVec3d* returnVector)
+void LeapFinger::LeapToScene(Vector leapVector, CIvfVec3d *returnVector)
 {
 
     returnVector->setX(leapVector.x);
@@ -87,12 +87,10 @@ Vector LeapFinger::adjustPosition(Vector inputVector)
 
 void LeapFinger::Show(bool show)
 {
-    if (show)
-    {
+    if (show) {
         m_fingerShape->setState(CIvfShape::OS_ON);
     }
-    else
-    {
+    else {
         m_fingerShape->setState(CIvfShape::OS_OFF);
     }
 }

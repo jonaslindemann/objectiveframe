@@ -1,5 +1,4 @@
-#ifndef _CIvfPlaneButton_h_
-#define _CIvfPlaneButton_h_
+#pragma once
 
 #include <ivf/GenericButton.h>
 
@@ -8,8 +7,9 @@
 #include <ivf/QuadPlane.h>
 #include <ivf/Texture.h>
 
-class PlaneButton : public ivf::GenericButton
-{
+IvfSmartPointer(PlaneButton);
+
+class PlaneButton : public ivf::GenericButton {
 private:
     ivf::QuadPlanePtr m_normalShape;
     ivf::QuadPlanePtr m_pressedShape;
@@ -20,17 +20,31 @@ private:
     ivf::TexturePtr m_buttonTexture;
     std::string m_hint;
 
+    double m_width;
+    double m_height;
+
 public:
     PlaneButton(int id);
-    PlaneButton(int id, const std::string& name);
+    PlaneButton(int id, const std::string &name);
+
+    IvfClassInfo("PlaneButton", ivf::GenericButton);
+
+    static PlaneButtonPtr create(int id)
+    {
+        return PlaneButtonPtr(new PlaneButton(id));
+    }
+
+    static PlaneButtonPtr create(int id, const std::string &name)
+    {
+        return PlaneButtonPtr(new PlaneButton(id, name));
+    }
 
     virtual ~PlaneButton();
 
     void setSize(double width, double height);
-    void setTexture(ivf::Texture* texture);
+    void getSize(double &width, double &height);
+    void setTexture(ivf::Texture *texture);
 
     const std::string getHint();
-    void setHint(const std::string& hintText);
+    void setHint(const std::string &hintText);
 };
-
-#endif

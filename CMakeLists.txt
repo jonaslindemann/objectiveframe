@@ -95,23 +95,30 @@ else()
   set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 endif()
 
-IF(MSVC)
-  SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
-ENDIF()
+if(MSVC)
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+endif()
 
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(CURL CONFIG REQUIRED) 
+find_package(CURL CONFIG REQUIRED)
 
-find_path(CHAISCRIPT_INCLUDE_DIRS "chaiscript/chaiscript.hpp")
+find_path(CHAISCRIPT_INCLUDE_DIRS "chaiscript/chaiscript.hpp" REQUIRED)
+add_library(chaiscript_headers INTERFACE)
+target_include_directories(chaiscript_headers INTERFACE ${CHAISCRIPT_INCLUDE_DIRS})
 
 option(USE_LEAP "Build with support for LeapMotion" OFF)
 
-set(IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus")
+if(DEFINED ENV{IVF_ROOT})
+    set(IVF_ROOT "$ENV{IVF_ROOT}" CACHE PATH "IVF++ root directory")
+elseif(NOT DEFINED IVF_ROOT)
+    set(IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus" CACHE PATH "IVF++ root directory")
+endif()
 set(IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include)
 
 # Create imported targets for IVF++ libraries with proper debug postfix handling
@@ -163,9 +170,7 @@ set(OBJFRAME_INCLUDE_DIR
     ${PROJECT_SOURCE_DIR}/src/visfem
     ${PROJECT_SOURCE_DIR}/src/newmat
     ${PROJECT_SOURCE_DIR}/src/util
-    ${PROJECT_SOURCE_DIR}/src/imgui 
-    ${PROJECT_SOURCE_DIR}/src/imgui_fltk
-    ${PROJECT_SOURCE_DIR}/src/objframe)
+    ${PROJECT_SOURCE_DIR}/src/imgui)
 
 include_directories(
   ${DEPENDS_INCLUDE_DIR} ${OBJFRAME_INCLUDE_DIR} ${IVF_INCLUDE_DIR}
@@ -196,11 +201,11 @@ add_subdirectory(src)
 
 # Create unified objframe interface library target
 # This bundles all objframe libraries and dependencies for easier linking
-add_library(objframe INTERFACE)
-add_library(objframe::objframe ALIAS objframe)
+add_library(objframe_libs INTERFACE)
+add_library(objframe::libs ALIAS objframe_libs)
 
-target_link_libraries(objframe INTERFACE
-    ofui_glfw
+target_link_libraries(objframe_libs INTERFACE
+    ofui
     ofservice
     ofai
     ofsolve
@@ -221,7 +226,7 @@ target_link_libraries(objframe INTERFACE
     CURL::libcurl
 )
 
-target_include_directories(objframe INTERFACE
+target_include_directories(objframe_libs INTERFACE
     ${PROJECT_SOURCE_DIR}/include
     ${OBJFRAME_INCLUDE_DIR}
     ${IVF_INCLUDE_DIR}

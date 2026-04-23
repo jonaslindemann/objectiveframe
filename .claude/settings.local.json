@@ -5,7 +5,12 @@
       "Read(//e/Users/Jonas/Development/ivfplusplus/include/**)",
       "Read(//e/Users/Jonas/Development/ivfplusplus/src/ivf/**)",
       "Bash(awk -F: '$2 < 2690 && $2 > 2550')",
-      "Bash(grep -v \"^.*//.*Rep\\\\|getRepresentation\")"
+      "Bash(grep -v \"^.*//.*Rep\\\\|getRepresentation\")",
+      "Bash(cat)",
+      "Bash(bash /tmp/final_analysis.sh)"
+    ],
+    "additionalDirectories": [
+      "e:\\Users\\Jonas\\Development\\objectiveframe"
     ]
   }
 }

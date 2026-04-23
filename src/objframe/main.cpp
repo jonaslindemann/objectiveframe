@@ -1,118 +1,50 @@
-#include <FL/Fl.H>
+#undef GLAD_GL_IMPLEMENTATION
+#include <glad/glad.h>
 
-#include "ObjframeConfig.h"
+#include <filesystem>
+#include <iostream>
+#include <string>
 
-#include "MainFrame.h"
+#include "FemView.h"
+#include "GLFWApplication.h"
+#include <ofutil/util_functions.h>
 
-#include "StatusOutput.h"
-
-#ifdef WIN32
-#include <stdlib.h>
-#include <windows.h>
-#endif
-
-#ifdef USE_LEAP
-#include "LeapListener.h"
-#endif
-
-#include <crtdbg.h>
-
-int main(int argc, char** argv)
+static void error_callback(int error, const char *description)
 {
+    fprintf(stderr, "Error: %s\n", description);
+}
 
-    /*
-    int tmp;
+int main(int argc, char **argv)
+{
+    glfwSetErrorCallback(error_callback);
 
-    // Get the current bits
-    tmp = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    auto app = GLFWApplication::create();
 
-    // Clear the upper 16 bits and OR in the desired freqency
-    tmp = (tmp & 0x0000FFFF) | _CRTDBG_CHECK_EVERY_16_DF;
+    app->hint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    app->hint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    app->hint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    app->hint(GLFW_SAMPLES, 4);
 
-    // Set the new bits
-    _CrtSetDbgFlag(tmp);  
-    */
-    
-    int width = 1280;
-    int height = 1024;
+    std::string fullExePathStr = argv[0];
 
-    // so_show();
+    namespace fs = std::filesystem;
 
-    //
-    // Setup window visuals
-    //
+    fs::path fullExePath(fullExePathStr);
+    fs::path progPath = fullExePath.parent_path();
+    fs::path logoPath = progPath;
+    logoPath.append("images").append("logo.png");
 
-    so_print("Main: Setting visual.");
-    Fl::visual(FL_DEPTH | FL_DOUBLE | FL_RGB | FL_MULTISAMPLE | FL_ALPHA);
-
-    //
-    // Retrieve system colors, if any.
-    //
-
-#ifdef __APPLE__
-    Fl::scheme("default");
-#else
-    // Fl::scheme("GTK+");
-#endif
+    auto window = FemViewWindow::create(1440, 900, "ObjectiveFrame");
+    window->setArguments(argc, argv);
+    window->setProgramPath(progPath.string());
 
 #ifdef WIN32
-    Fl::set_font(FL_HELVETICA, "Segoe UI");
-    // Fl::set_font(FL_HELVETICA, "Tahoma");
+    window->setWindowIcon(logoPath.string());
 #endif
 
-#ifdef __APPLE__
-    Fl::set_font(FL_HELVETICA, "Lucida Grande");
-#endif
-    //
-    // Determine program path (and remember it...)
-    //
+    window->maximize();
 
-#ifdef WIN32
-    std::string fullPath = argv[0];
-    std::string::size_type lastDelim = fullPath.rfind("\\");
-    std::string progPath = fullPath.substr(0, lastDelim) + "\\";
-#else
-    std::string fullPath = argv[0];
-    std::string::size_type lastDelim = fullPath.rfind("/");
-    std::string progPath = fullPath.substr(0, lastDelim) + "/";
-#endif
+    app->addWindow(window);
 
-    //
-    // Create main window
-    //
-
-    so_print("Main: Creating main window.");
-    MainFrame* frame = new MainFrame();
-
-    frame->setArguments(argc, argv);
-    frame->setProgramPath(progPath);
-    frame->show();
-
-        // Setup leap motion
-#ifdef USE_LEAP
-    Controller controller;
-    LeapListener listener;
-    controller.addListener(listener);
-    listener.setWorkspace(frame->ivfWorkspace);
-#endif
-
-    //
-    // FLTK main loop
-    //
-
-    so_print("Main: Entering main loop.");
-
-    return Fl::run();
-
-    //
-    // Cleanup
-    //
-
-    delete frame;
-
-#ifdef USE_SPLASH
-    delete splash;
-#endif
-
-    so_hide();
+    app->loop();
 }

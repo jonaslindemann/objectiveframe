@@ -1,0 +1,155 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0100 
+header_name {.h} 
+code_name {.cpp}
+decl {\#define MR_OK 0} {public
+} 
+
+decl {\#define MR_CANCEL 1} {public
+} 
+
+decl {\#include <FemBeamMaterialSet.h>} {public
+} 
+
+decl {\#include <FL/fl_message.h>} {public
+} 
+
+decl {\#include "MaterialDlg.h"} {public
+} 
+
+decl {\#include "IvfFemWidget.h"} {} 
+
+class CMaterialsDlg {open
+} {
+  decl {CFemBeamMaterialSet* m_materials} {}
+  decl {Fl_Widget* m_workspace} {}
+  decl {CFemBeamMaterial* m_currentMaterial} {}
+  Function {CMaterialsDlg()} {open
+  } {
+    Fl_Window wndMaterials {
+      label Materials open
+      xywh {372 93 184 211} non_modal visible
+    } {
+      Fl_Button btnClose {
+        label Close
+        callback {wndMaterials->hide();}
+        xywh {64 183 61 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
+      }
+      Fl_Browser lbMaterials {
+        label Materials
+        callback {if (m_materials!=NULL)
+{
+	if (lbMaterials->value()>0)
+	{
+		m_currentMaterial = (CFemBeamMaterial*)
+			m_materials->getMaterial(lbMaterials->value()-1);
+	}
+	else m_currentMaterial = NULL;
+	if (m_workspace!=NULL)
+	{
+		CIvfFemWidget* femWidget = (CIvfFemWidget*) m_workspace;
+		femWidget->setCurrentMaterial(m_currentMaterial);
+	}
+}} selected
+        xywh {4 20 144 156} type Hold box PLASTIC_DOWN_BOX align 5
+      }
+      Fl_Button btnAddMaterial {
+        callback {if (m_materials!=NULL)
+{
+	char materialName[255];
+	strcpy(materialName, fl_input("Material name"));
+	if (materialName!=NULL)
+	{
+		CFemBeamMaterial* material = new CFemBeamMaterial();
+		material->setName(materialName);
+		m_materials->addMaterial(material);
+		this->fillListBox();
+	}
+}}
+        image {../../images/tlAddMaterial.xpm} xywh {152 20 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+      }
+      Fl_Button btnRemoveMaterial {
+        callback {if (m_currentMaterial!=NULL)
+{
+	if (m_materials->removeMaterial(m_currentMaterial))
+		this->fillListBox();
+	else
+		fl_message("Material is used and can not be removed. Remove material references from elements.");
+}}
+        image {../../images/tlDeleteMaterial.xpm} xywh {152 52 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+      }
+      Fl_Button btnEditMaterial {
+        callback {if (this->getCurrentMaterial()!=NULL)
+{
+	CMaterialDlg* dlg = new CMaterialDlg();
+	dlg->setMaterial(this->getCurrentMaterial());
+	dlg->setWorkspace(m_workspace);
+	dlg->show();
+	if (dlg->getModalResult()==MR_OK)
+	{
+		//ivfWorkspace->setWorkspace(dlg->getWorkspaceSize());
+	}
+	delete dlg;
+}}
+        image {../../images/tlDeleteMaterial.xpm} xywh {152 84 28 28} box THIN_UP_BOX down_box THIN_DOWN_BOX
+      }
+    }
+    code {m_materials = NULL;
+m_currentMaterial = NULL;} {}
+  }
+  Function {show()} {} {
+    code {wndMaterials->show();
+this->setMaterials(m_materials);
+this->fillListBox();} {}
+  }
+  Function {setMaterials(CFemBeamMaterialSet* materials)} {open
+  } {
+    code {m_materials = materials;
+if (m_materials==NULL)
+{
+	lbMaterials->clear();
+	lbMaterials->deactivate();
+	btnAddMaterial->deactivate();
+	btnRemoveMaterial->deactivate();
+	btnEditMaterial->deactivate();
+}
+else
+{
+	lbMaterials->activate();
+	btnAddMaterial->activate();
+	btnRemoveMaterial->activate();
+	btnEditMaterial->activate();
+	this->fillListBox();
+	wndMaterials->redraw();
+}} {}
+  }
+  Function {getMaterials()} {return_type {CFemBeamMaterialSet*}
+  } {
+    code {return m_materials;} {}
+  }
+  Function {setWorkspace(Fl_Widget* widget)} {} {
+    code {m_workspace = widget;} {}
+  }
+  Function {hide()} {} {
+    code {wndMaterials->hide();} {}
+  }
+  Function {fillListBox()} {private
+  } {
+    code {if (m_materials!=NULL)
+{
+	char materialName[255];
+	lbMaterials->clear();
+	for (int i=0; i<m_materials->getSize(); i++)
+	{
+		CFemBeamMaterial* material = 
+			(CFemBeamMaterial*)m_materials->getMaterial(i);
+		material->getName(materialName);
+		lbMaterials->add(materialName, material);
+	}
+}} {}
+  }
+  Function {getCurrentMaterial()} {return_type {CFemBeamMaterial*}
+  } {
+    code {return m_currentMaterial;} {}
+  }
+} 

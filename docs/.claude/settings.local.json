@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:zensical.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:deepwiki.com)",
+      "Read(//e/Users/Jonas/Development/objectiveframe/.github/**)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ],
+    "additionalDirectories": [
+      "E:\\Users\\Jonas\\Development\\objectiveframe\\.github"
+    ]
+  }
+}

@@ -8,6 +8,9 @@
 
 #include <Eigen/Eigenvalues>
 
+#include <Spectra/SymEigsSolver.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
+
 using namespace ofem;
 using namespace calfem;
 using namespace ofsolver;
@@ -1155,132 +1158,198 @@ Eigen::MatrixXd BeamSolver::extractFreeStiffness()
     return Kfree;
 }
 
+Eigen::SparseMatrix<double> BeamSolver::extractFreeSparseStiffness(const std::set<int>& bcDofSet, int numFreeDofs)
+{
+    // Build mapping: original DOF index -> free DOF index (-1 if constrained)
+    std::vector<int> dofMap(m_nDof, -1);
+    int freeIdx = 0;
+    for (int i = 0; i < m_nDof; i++)
+        if (!bcDofSet.count(i))
+            dofMap[i] = freeIdx++;
+
+    // Iterate over the stored upper triangle of m_Ks and collect free entries.
+    // The existing code always accesses m_Ks via its upper triangle (row <= col),
+    // so we filter out any lower-triangle stored values to avoid duplicates.
+    std::vector<Eigen::Triplet<double>> triplets;
+    triplets.reserve(m_Ks.nonZeros());
+
+    for (int k = 0; k < m_Ks.outerSize(); ++k)
+    {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(m_Ks, k); it; ++it)
+        {
+            if (it.row() > it.col())
+                continue; // keep upper triangle only
+
+            int ri = dofMap[it.row()];
+            int ci = dofMap[it.col()];
+            if (ri >= 0 && ci >= 0)
+                triplets.emplace_back(ri, ci, it.value());
+        }
+    }
+
+    Eigen::SparseMatrix<double> Kfree(numFreeDofs, numFreeDofs);
+    Kfree.setFromTriplets(triplets.begin(), triplets.end());
+    return Kfree;
+}
+
 bool BeamSolver::computeEigenModes(int numModes)
 {
     try
     {
         Logger::instance()->log(LogLevel::Info, "Computing eigenvalues and eigenvectors...");
-        
-        // Clear previous results
         clearEigenModes();
-        
-        // Check if system has been assembled
+
         if (m_Ks.rows() == 0 || m_Ks.cols() == 0)
         {
             Logger::instance()->log(LogLevel::Error, "Stiffness matrix not assembled. Run execute() first.");
             return false;
         }
-        
-        // Extract the free (unconstrained) stiffness matrix
-        Eigen::MatrixXd Kfree = extractFreeStiffness();
-        
-        int matrixSize = Kfree.rows();
-        
-        if (matrixSize == 0)
+
+        // Build free DOF set and ordered index list once — reused by both paths
+        std::set<int> bcDofSet;
+        for (int i = 0; i < m_bcDofs.size(); i++)
+            bcDofSet.insert(m_bcDofs(i) - 1);
+
+        int numFreeDofs = m_nDof - (int)bcDofSet.size();
+
+        if (numFreeDofs == 0)
         {
             Logger::instance()->log(LogLevel::Error, "No free degrees of freedom for eigenvalue analysis.");
             return false;
         }
-        
-        Logger::instance()->log(LogLevel::Info, 
-            "Free stiffness matrix size: " + std::to_string(matrixSize) + "x" + std::to_string(matrixSize));
-        
-        // Check if matrix size is reasonable for dense solver
-        if (matrixSize > 1000)
+
+        Logger::instance()->log(LogLevel::Info,
+            "Free stiffness matrix size: " + std::to_string(numFreeDofs) + "x" + std::to_string(numFreeDofs));
+
+        std::vector<int> freeDofs;
+        freeDofs.reserve(numFreeDofs);
+        for (int i = 0; i < m_nDof; i++)
+            if (!bcDofSet.count(i))
+                freeDofs.push_back(i);
+
+        Eigen::VectorXd eigenvalues;
+        Eigen::MatrixXd eigenvectors;
+        bool spectraSuccess = false;
+
+        // Spectra's Lanczos method requires nev < n-1 and ncv >= nev+2.
+        // Only use it when the matrix is large enough to benefit.
+        const int DENSE_THRESHOLD = 100;
+        int nev = std::min(numModes, numFreeDofs - 2);
+
+        if (numFreeDofs > DENSE_THRESHOLD && nev >= 1)
         {
-            Logger::instance()->log(LogLevel::Warning, 
-                "Large matrix (" + std::to_string(matrixSize) + " DOFs). Eigenvalue computation may be slow.");
+            int ncv = std::min(std::max(2 * nev + 1, 20), numFreeDofs);
+            try
+            {
+                Eigen::SparseMatrix<double> Kfree = extractFreeSparseStiffness(bcDofSet, numFreeDofs);
+
+                // SparseSymMatProd<double, Eigen::Upper> reads only the upper triangle,
+                // matching the storage convention used throughout this solver.
+                Spectra::SparseSymMatProd<double, Eigen::Upper> op(Kfree);
+                Spectra::SymEigsSolver<Spectra::SparseSymMatProd<double, Eigen::Upper>> eigs(op, nev, ncv);
+                eigs.init();
+                eigs.compute(Spectra::SortRule::SmallestAlge, 1000, 1e-10);
+
+                if (eigs.info() == Spectra::CompInfo::Successful)
+                {
+                    Eigen::VectorXd ev = eigs.eigenvalues();
+                    Eigen::MatrixXd evec = eigs.eigenvectors();
+
+                    // Spectra returns SmallestAlge in descending order among the selected k values.
+                    // Re-sort ascending so mode 1 is the smallest eigenvalue (rigid/instability mode),
+                    // matching the convention of the dense SelfAdjointEigenSolver fallback.
+                    std::vector<int> idx(ev.size());
+                    std::iota(idx.begin(), idx.end(), 0);
+                    std::sort(idx.begin(), idx.end(), [&](int a, int b) { return ev(a) < ev(b); });
+
+                    eigenvalues.resize(ev.size());
+                    eigenvectors.resize(evec.rows(), evec.cols());
+                    for (int i = 0; i < (int)idx.size(); i++)
+                    {
+                        eigenvalues(i) = ev(idx[i]);
+                        eigenvectors.col(i) = evec.col(idx[i]);
+                    }
+
+                    spectraSuccess = true;
+                    Logger::instance()->log(LogLevel::Info, "Spectra sparse solver converged successfully.");
+                }
+                else
+                {
+                    Logger::instance()->log(LogLevel::Warning,
+                        "Spectra solver did not fully converge. Falling back to dense solver.");
+                }
+            }
+            catch (const std::exception& e)
+            {
+                Logger::instance()->log(LogLevel::Warning,
+                    std::string("Spectra solver failed (") + e.what() + "). Falling back to dense solver.");
+            }
         }
-        
-        // Compute eigenvalues and eigenvectors using self-adjoint solver
-        // Note: Kfree should be symmetric for structural stiffness matrices
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(Kfree);
-        
-        if (solver.info() != Eigen::Success)
+
+        if (!spectraSuccess)
         {
-            Logger::instance()->log(LogLevel::Error, "Eigenvalue computation failed.");
-            return false;
+            Eigen::MatrixXd Kfree_dense = extractFreeStiffness();
+            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> denseSolver(Kfree_dense);
+
+            if (denseSolver.info() != Eigen::Success)
+            {
+                Logger::instance()->log(LogLevel::Error, "Eigenvalue computation failed.");
+                return false;
+            }
+
+            int storeModes = std::min(numModes, (int)denseSolver.eigenvalues().size());
+            eigenvalues = denseSolver.eigenvalues().head(storeModes);
+            eigenvectors = denseSolver.eigenvectors().leftCols(storeModes);
         }
-        
-        // Get eigenvalues and eigenvectors
-        Eigen::VectorXd eigenvalues = solver.eigenvalues();
-        Eigen::MatrixXd eigenvectors = solver.eigenvectors();
-        
-        // Store the requested number of modes (sorted by eigenvalue magnitude)
-        // Smallest eigenvalues indicate instability
-        m_numEigenModes = std::min(numModes, static_cast<int>(eigenvalues.size()));
-        
-        // Check for negative eigenvalues (indicates instability)
+
+        // Analyse and store results
+        m_numEigenModes = (int)eigenvalues.size();
+        const double EIGENVALUE_TOLERANCE = 1e-8;
         bool hasNegativeEigenvalues = false;
         double minEigenvalue = eigenvalues(0);
-        const double EIGENVALUE_TOLERANCE = 1e-8;  // Stricter tolerance for numerical stability
-        
+
         if (minEigenvalue < -EIGENVALUE_TOLERANCE)
         {
             hasNegativeEigenvalues = true;
-            Logger::instance()->log(LogLevel::Warning, 
+            Logger::instance()->log(LogLevel::Warning,
                 "UNSTABLE STRUCTURE DETECTED: Negative eigenvalue = " + std::to_string(minEigenvalue));
         }
         else if (minEigenvalue < EIGENVALUE_TOLERANCE)
         {
-            Logger::instance()->log(LogLevel::Warning, 
+            Logger::instance()->log(LogLevel::Warning,
                 "NEAR-SINGULAR STRUCTURE: Smallest eigenvalue = " + std::to_string(minEigenvalue));
         }
-        
-        // Store eigenvalues and eigenvectors
+
         for (int i = 0; i < m_numEigenModes; i++)
         {
             m_eigenValues.push_back(eigenvalues(i));
-            
-            // Expand eigenvector back to full DOF space
-            Eigen::VectorXd fullEigenvector(m_nDof);
-            fullEigenvector.setZero();
-            
-            // Map free DOFs back to original numbering
-            std::set<int> bcDofSet;
-            for (int j = 0; j < m_bcDofs.size(); j++)
-            {
-                bcDofSet.insert(m_bcDofs(j) - 1);
-            }
-            
-            int freeIdx = 0;
-            for (int j = 0; j < m_nDof; j++)
-            {
-                if (bcDofSet.find(j) == bcDofSet.end())
-                {
-                    fullEigenvector(j) = eigenvectors(freeIdx, i);
-                    freeIdx++;
-                }
-            }
-            
+
+            Eigen::VectorXd fullEigenvector = Eigen::VectorXd::Zero(m_nDof);
+            for (int j = 0; j < numFreeDofs; j++)
+                fullEigenvector(freeDofs[j]) = eigenvectors(j, i);
             m_eigenVectors.push_back(fullEigenvector);
-            
+
             std::stringstream ss;
-            ss << "Mode " << (i+1) << ": eigenvalue = " << eigenvalues(i);
+            ss << "Mode " << (i + 1) << ": eigenvalue = " << eigenvalues(i);
             if (eigenvalues(i) < -EIGENVALUE_TOLERANCE)
                 ss << " (UNSTABLE)";
             else if (eigenvalues(i) < EIGENVALUE_TOLERANCE)
                 ss << " (NEAR-SINGULAR)";
             Logger::instance()->log(LogLevel::Info, ss.str());
         }
-        
+
         m_hasEigenModes = true;
-        
-        Logger::instance()->log(LogLevel::Info, 
+        Logger::instance()->log(LogLevel::Info,
             "Successfully computed " + std::to_string(m_numEigenModes) + " eigen modes.");
-        
-        // Update model state if unstable
+
         if (hasNegativeEigenvalues)
-        {
             m_modelState = ModelState::Unstable;
-        }
-        
+
         return true;
-        
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
-        Logger::instance()->log(LogLevel::Error, 
+        Logger::instance()->log(LogLevel::Error,
             "Exception in eigenmode computation: " + std::string(e.what()));
         return false;
     }

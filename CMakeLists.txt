@@ -99,6 +99,9 @@ if(MSVC)
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 endif()
 
+find_package(Eigen3 CONFIG REQUIRED)
+find_package(Spectra CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -168,7 +171,6 @@ set(OBJFRAME_INCLUDE_DIR
     ${PROJECT_SOURCE_DIR}/include/vc
     ${PROJECT_SOURCE_DIR}/src/fem
     ${PROJECT_SOURCE_DIR}/src/visfem
-    ${PROJECT_SOURCE_DIR}/src/newmat
     ${PROJECT_SOURCE_DIR}/src/util
     ${PROJECT_SOURCE_DIR}/src/imgui)
 
@@ -213,7 +215,6 @@ target_link_libraries(objframe_libs INTERFACE
     util
     ofmath
     fem
-    newmat
     imguifd
     civetweb
     glad

@@ -1,4 +1,3 @@
-add_subdirectory(newmat)
 add_subdirectory(fem)
 add_subdirectory(visfem)
 add_subdirectory(util)

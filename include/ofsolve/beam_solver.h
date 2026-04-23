@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <set>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -60,8 +61,9 @@ private:
     std::vector<double> m_eigenValues;
     std::vector<Eigen::VectorXd> m_eigenVectors;
     
-    // Helper for eigenvalue analysis
+    // Helpers for eigenvalue analysis
     Eigen::MatrixXd extractFreeStiffness();
+    Eigen::SparseMatrix<double> extractFreeSparseStiffness(const std::set<int>& bcDofSet, int numFreeDofs);
 
 public:
     BeamSolver();

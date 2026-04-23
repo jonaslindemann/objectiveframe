@@ -29,6 +29,8 @@ This version of the application has been given a large overhaul both with regard
 
 In the newest release ObjectiveFrame can also take advantage of the [TetGen](https://www.wias-berlin.de/software/index.jsp?id=TetGen&lang=1) mesh generator for quickly creating beam/truss-structures from points. 
 
+The latest version includes advanced eigen mode visualization capabilities, allowing users to visualize and analyze the natural vibration modes of structures. Additionally, an AI prompt interface has been integrated to provide intelligent assistance and automated suggestions for structural analysis and modeling tasks.
+
 ## Future development
 
  * User interface improvements. There is a still a lot of non-standard ways of interacting with the application, but these are also some things that will be worked out in upcoming versions.

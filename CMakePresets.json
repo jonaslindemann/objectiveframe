@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "comment": "This file is no longer required. The CMakeLists.txt now auto-detects vcpkg.",
-  "comment2": "You can safely delete this file or keep it for custom presets if needed.",
-  "configurePresets": []
-}

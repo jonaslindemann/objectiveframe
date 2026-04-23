@@ -7,7 +7,7 @@
 #include <sstream>
 #include <mutex>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 using nljson = nlohmann::json;
 
 std::string float2str(double value)

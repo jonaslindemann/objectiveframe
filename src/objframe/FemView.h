@@ -45,7 +45,6 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofem/model_clip_board.h>
 
 #include <ofsolve/beam_solver.h>
-#include <ofsolve/frame_solver.h>
 #include <ofsolve/solver_interface.h>
 #include <ofsolve/tetgen_beam_mesher.h>
 
@@ -144,9 +143,9 @@ enum ToolbarButton {
     Run
 };
 
-template <typename T> string to_string(T Number)
+template <typename T> std::string to_string(T Number)
 {
-    ostringstream ss;
+    std::ostringstream ss;
     ss << Number;
     return ss.str();
 }
@@ -225,7 +224,6 @@ private:
     LeapInteraction *m_leapinteraction;
 #endif
 
-    ofsolver::FrameSolverPtr m_frameSolver;
     ofsolver::BeamSolverPtr m_beamSolver;
     ofsolver::SolverInterface *m_currentSolver;
 
@@ -256,8 +254,8 @@ private:
 
     // Overlay stuff
 
-    vector<Area2DPtr> m_areas;
-    vector<PlaneButtonPtr> m_buttons;
+    std::vector<Area2DPtr> m_areas;
+    std::vector<PlaneButtonPtr> m_buttons;
     ivf::SelectOrthoPtr m_overlayScene;
     ButtonGroupPtr m_editButtons;
     ButtonGroupPtr m_objectButtons;

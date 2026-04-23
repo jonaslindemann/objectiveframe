@@ -2318,8 +2318,6 @@ void FemViewWindow::executeCalc()
     m_eigenmodeInSecondaryView = false;
     m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
 
-    // m_frameSolver = FrameSolver::create();
-    // m_currentSolver = m_frameSolver.get();
     m_beamSolver = BeamSolver::create();
     m_currentSolver = m_beamSolver.get();
 
@@ -2416,8 +2414,6 @@ void FemViewWindow::recompute()
     {
         double maxNodeValue = 0.0;
 
-        // m_frameSolver = FrameSolver::create();
-        // m_currentSolver = m_frameSolver.get();
         m_beamSolver = BeamSolver::create();
         m_currentSolver = m_beamSolver.get();
 
@@ -2870,9 +2866,6 @@ void FemViewWindow::doFeedback()
         if (m_interactionNode != nullptr)
         {
             double maxNodeValue = 0.0;
-
-            // m_frameSolver = FrameSolver::create();
-            // m_currentSolver = m_frameSolver.get();
 
             m_beamSolver = BeamSolver::create();
             m_currentSolver = m_beamSolver.get();

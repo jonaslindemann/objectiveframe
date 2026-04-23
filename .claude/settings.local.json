@@ -7,7 +7,11 @@
       "Bash(awk -F: '$2 < 2690 && $2 > 2550')",
       "Bash(grep -v \"^.*//.*Rep\\\\|getRepresentation\")",
       "Bash(cat)",
-      "Bash(bash /tmp/final_analysis.sh)"
+      "Bash(bash /tmp/final_analysis.sh)",
+      "Bash(grep -v \"//.*FrameSolver\")",
+      "Read(//e/Users/Jonas/Development/ivfplusplus/**)",
+      "Bash(grep -v \"//\")",
+      "Bash(grep -v \"std::\\\\|#include\\\\|//\")"
     ],
     "additionalDirectories": [
       "e:\\Users\\Jonas\\Development\\objectiveframe"

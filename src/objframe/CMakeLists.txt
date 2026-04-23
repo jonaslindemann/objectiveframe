@@ -21,7 +21,7 @@ target_link_libraries(objframe
 	chaiscript_headers
 	fem ofsolve ofai ofservice visfem util ofmath
 	ivf ivfgle ivfmath ivfimage
-	ofui gleivf glad newmat imguifd civetweb
+	ofui gleivf glad imguifd civetweb
 	PNG::PNG JPEG::JPEG ZLIB::ZLIB glfw GLEW::GLEW OpenGL::GL CURL::libcurl
 )
 

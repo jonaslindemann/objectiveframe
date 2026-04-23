@@ -15,12 +15,6 @@
   display: block;
 }
 
-[data-md-color-scheme="default"] {
-  --md-primary-fg-color: #003d99;
-  --md-primary-fg-color--light: #1a52b3;
-  --md-primary-fg-color--dark: #002b70;
-}
-
 [data-md-color-scheme="default"] .md-header {
   background: linear-gradient(90deg, #003d99 100%, #b31a1a 100%);
 }

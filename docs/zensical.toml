@@ -44,12 +44,14 @@ text = "Noto Sans"
 code = "Roboto Mono"
 
 [[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
 scheme = "default"
 primary = "indigo"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
 [[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
 scheme = "slate"
 primary = "indigo"
 toggle.icon = "lucide/sun"

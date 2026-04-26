@@ -327,6 +327,7 @@ private:
     // Scripting
 
     bool m_pluginRunning;
+    bool m_scriptCalledNewModel{false};
 
     // Plugins
 
@@ -545,6 +546,33 @@ public:
 
     size_t nodeIdx(vfem::Node *node);
     size_t beamIdx(vfem::Beam *beam);
+
+    void selectNodeAt(int i);
+    void selectBeamAt(int i);
+    int findNodeNear(double x, double y, double z, double tolerance);
+
+    void deleteNodeAt(int i);
+    void deleteBeamAt(int i);
+
+    void assignNodeFixedBCAt(int i);
+    void assignNodePosBCAt(int i);
+    void removeNodeBCAt(int i);
+    bool isNodeFixedAt(int i);
+    bool isNodePosBCAt(int i);
+
+    void modelBounds(double &xmin, double &ymin, double &zmin,
+                     double &xmax, double &ymax, double &zmax);
+    size_t materialCount();
+
+    void addNodeLoadAt(int i, double fx, double fy, double fz);
+    void clearNodeLoadAt(int i);
+    bool hasNodeLoadAt(int i);
+    size_t nodeLoadCount();
+
+    void addBeamLoadAt(int i, double fx, double fy, double fz);
+    void clearBeamLoadAt(int i);
+    bool hasBeamLoadAt(int i);
+    size_t beamLoadCount();
 
     // Textlayer
 

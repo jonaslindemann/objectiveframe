@@ -1272,6 +1272,8 @@ void FemViewWindow::newModel()
 {
     namespace fs = std::filesystem;
 
+    m_scriptCalledNewModel = true;
+
     this->lockSceneRendering();
 
     this->hideAllDialogs();
@@ -2138,6 +2140,32 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
     script.add(chaiscript::fun(&FemViewWindow::beamCount, this), "beamCount");
     script.add(chaiscript::fun(&FemViewWindow::beamAt, this), "beamAt");
     script.add(chaiscript::fun(&FemViewWindow::updateBeamAt, this), "updateBeamAt");
+
+    script.add(chaiscript::fun(&FemViewWindow::selectNodeAt, this), "selectNodeAt");
+    script.add(chaiscript::fun(&FemViewWindow::selectBeamAt, this), "selectBeamAt");
+    script.add(chaiscript::fun(&FemViewWindow::findNodeNear, this), "findNodeNear");
+
+    script.add(chaiscript::fun(&FemViewWindow::deleteNodeAt, this), "deleteNodeAt");
+    script.add(chaiscript::fun(&FemViewWindow::deleteBeamAt, this), "deleteBeamAt");
+
+    script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCAt, this), "assignNodeFixedBCAt");
+    script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCAt, this), "assignNodePosBCAt");
+    script.add(chaiscript::fun(&FemViewWindow::removeNodeBCAt, this), "removeNodeBCAt");
+    script.add(chaiscript::fun(&FemViewWindow::isNodeFixedAt, this), "isNodeFixedAt");
+    script.add(chaiscript::fun(&FemViewWindow::isNodePosBCAt, this), "isNodePosBCAt");
+
+    script.add(chaiscript::fun(&FemViewWindow::modelBounds, this), "modelBounds");
+    script.add(chaiscript::fun(&FemViewWindow::materialCount, this), "materialCount");
+
+    script.add(chaiscript::fun(&FemViewWindow::addNodeLoadAt, this), "addNodeLoadAt");
+    script.add(chaiscript::fun(&FemViewWindow::clearNodeLoadAt, this), "clearNodeLoadAt");
+    script.add(chaiscript::fun(&FemViewWindow::hasNodeLoadAt, this), "hasNodeLoadAt");
+    script.add(chaiscript::fun(&FemViewWindow::nodeLoadCount, this), "nodeLoadCount");
+
+    script.add(chaiscript::fun(&FemViewWindow::addBeamLoadAt, this), "addBeamLoadAt");
+    script.add(chaiscript::fun(&FemViewWindow::clearBeamLoadAt, this), "clearBeamLoadAt");
+    script.add(chaiscript::fun(&FemViewWindow::hasBeamLoadAt, this), "hasBeamLoadAt");
+    script.add(chaiscript::fun(&FemViewWindow::beamLoadCount, this), "beamLoadCount");
 }
 
 void FemViewWindow::setupPlugins()
@@ -3218,6 +3246,363 @@ size_t FemViewWindow::nodeIdx(vfem::Node *node)
 size_t FemViewWindow::beamIdx(vfem::Beam *beam)
 {
     return beam->getBeam()->getNumber();
+}
+
+void FemViewWindow::selectNodeAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    auto ivfNode = static_cast<vfem::Node *>(node->getUser());
+    getSelectedShapes()->addChild(ivfNode);
+    ivfNode->setSelect(ivf::Shape::SS_ON);
+    redraw();
+}
+
+void FemViewWindow::selectBeamAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+        return;
+    auto beam = m_beamModel->getElementSet()->getElement(i);
+    auto ivfBeam = static_cast<vfem::Beam *>(beam->getUser());
+    getSelectedShapes()->addChild(ivfBeam);
+    ivfBeam->setSelect(ivf::Shape::SS_ON);
+    redraw();
+}
+
+int FemViewWindow::findNodeNear(double x, double y, double z, double tolerance)
+{
+    auto nodeSet = m_beamModel->getNodeSet();
+    int bestIdx = -1;
+    double bestDist = tolerance;
+    for (int i = 0; i < (int)nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        auto ivfNode = static_cast<vfem::Node *>(node->getUser());
+        double nx, ny, nz;
+        ivfNode->getPosition(nx, ny, nz);
+        double dx = nx - x, dy = ny - y, dz = nz - z;
+        double dist = sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist <= bestDist)
+        {
+            bestDist = dist;
+            bestIdx = i;
+        }
+    }
+    return bestIdx;
+}
+
+void FemViewWindow::deleteNodeAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    this->snapShot();
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    auto beamSet = m_beamModel->getElementSet();
+    clearSelection();
+    for (int j = (int)beamSet->getSize() - 1; j >= 0; j--)
+    {
+        auto beam = beamSet->getElement(j);
+        if (beam->getNode(0) == node || beam->getNode(1) == node)
+            selectBeamAt(j);
+    }
+    selectNodeAt(i);
+    m_propWindow->setBeam(nullptr);
+    m_propWindow->setNode(nullptr);
+    setEditEnabled(true);
+    setDeleteFilter(DeleteMode::Elements);
+    deleteSelectedKeep();
+    setDeleteFilter(DeleteMode::Nodes);
+    deleteSelectedKeep();
+    setDeleteFilter(DeleteMode::All);
+    setEditEnabled(false);
+    m_beamModel->enumerate();
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::deleteBeamAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+        return;
+    this->snapShot();
+    clearSelection();
+    selectBeamAt(i);
+    m_propWindow->setBeam(nullptr);
+    setEditEnabled(true);
+    setDeleteFilter(DeleteMode::Elements);
+    deleteSelectedKeep();
+    setDeleteFilter(DeleteMode::All);
+    setEditEnabled(false);
+    m_beamModel->enumerate();
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::assignNodeFixedBCAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    m_beamModel->defaultNodeFixedBC()->addNode(node);
+    m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::assignNodePosBCAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    m_beamModel->defaultNodePosBC()->addNode(node);
+    m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::removeNodeBCAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    auto bcSet = m_beamModel->nodeBCSet();
+    for (int j = 0; j < (int)bcSet->getSize(); j++)
+    {
+        auto bc = static_cast<ofem::BeamNodeBC *>(bcSet->getBC(j));
+        if (!bc->isReadOnly())
+            bc->removeNode(node);
+    }
+    m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+bool FemViewWindow::isNodeFixedAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return false;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    return m_beamModel->defaultNodeFixedBC()->contains(node);
+}
+
+bool FemViewWindow::isNodePosBCAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return false;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    return m_beamModel->defaultNodePosBC()->contains(node);
+}
+
+void FemViewWindow::modelBounds(double &xmin, double &ymin, double &zmin,
+                                 double &xmax, double &ymax, double &zmax)
+{
+    if (m_beamModel->getNodeSet()->getSize() == 0)
+    {
+        xmin = ymin = zmin = xmax = ymax = zmax = 0.0;
+        return;
+    }
+    xmin = ymin = zmin = 1e30;
+    xmax = ymax = zmax = -1e30;
+    auto nodeSet = m_beamModel->getNodeSet();
+    for (int i = 0; i < (int)nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        auto ivfNode = static_cast<vfem::Node *>(node->getUser());
+        double x, y, z;
+        ivfNode->getPosition(x, y, z);
+        if (x < xmin) xmin = x;
+        if (x > xmax) xmax = x;
+        if (y < ymin) ymin = y;
+        if (y > ymax) ymax = y;
+        if (z < zmin) zmin = z;
+        if (z > zmax) zmax = z;
+    }
+}
+
+size_t FemViewWindow::materialCount()
+{
+    return m_beamModel->getMaterialSet()->getSize();
+}
+
+void FemViewWindow::addNodeLoadAt(int i, double fx, double fy, double fz)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+
+    double mag = std::sqrt(fx * fx + fy * fy + fz * fz);
+    if (mag < 1e-12)
+        return;
+    double nx = fx / mag, ny = fy / mag, nz = fz / mag;
+
+    auto loadSet = m_beamModel->getNodeLoadSet();
+    ofem::BeamNodeLoad *targetLoad = nullptr;
+    for (int j = 0; j < (int)loadSet->getSize(); j++)
+    {
+        auto load = static_cast<ofem::BeamNodeLoad *>(loadSet->getLoad(j));
+        double dx, dy, dz;
+        load->getDirection(dx, dy, dz);
+        double dmag = std::sqrt(dx * dx + dy * dy + dz * dz);
+        if (dmag > 1e-12) { dx /= dmag; dy /= dmag; dz /= dmag; }
+        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6
+            && std::abs(load->getValue() - mag) < 1e-3)
+        {
+            targetLoad = load;
+            break;
+        }
+    }
+    if (targetLoad == nullptr)
+    {
+        auto newLoad = new ofem::BeamNodeLoad();
+        newLoad->setDirection(nx, ny, nz);
+        newLoad->setValue(mag);
+        loadSet->addLoad(newLoad);
+        targetLoad = newLoad;
+        addNodeLoad(newLoad);
+    }
+    targetLoad->addNode(node);
+    auto visNodeLoad = static_cast<vfem::NodeLoad *>(targetLoad->getUser());
+    if (visNodeLoad != nullptr)
+        visNodeLoad->refresh();
+    m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::clearNodeLoadAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    auto loadSet = m_beamModel->getNodeLoadSet();
+    for (int j = 0; j < (int)loadSet->getSize(); j++)
+    {
+        auto load = static_cast<ofem::BeamNodeLoad *>(loadSet->getLoad(j));
+        load->removeNode(node);
+    }
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+bool FemViewWindow::hasNodeLoadAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+        return false;
+    auto node = m_beamModel->getNodeSet()->getNode(i);
+    auto loadSet = m_beamModel->getNodeLoadSet();
+    for (int j = 0; j < (int)loadSet->getSize(); j++)
+    {
+        auto load = static_cast<ofem::BeamNodeLoad *>(loadSet->getLoad(j));
+        for (unsigned int k = 0; k < load->getNodeSize(); k++)
+        {
+            if (load->getNode(k) == node)
+                return true;
+        }
+    }
+    return false;
+}
+
+size_t FemViewWindow::nodeLoadCount()
+{
+    return m_beamModel->getNodeLoadSet()->getSize();
+}
+
+void FemViewWindow::addBeamLoadAt(int i, double fx, double fy, double fz)
+{
+    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+        return;
+    auto element = m_beamModel->getElementSet()->getElement(i);
+
+    double mag = std::sqrt(fx * fx + fy * fy + fz * fz);
+    if (mag < 1e-12)
+        return;
+    double nx = fx / mag, ny = fy / mag, nz = fz / mag;
+
+    auto loadSet = m_beamModel->getElementLoadSet();
+    ofem::BeamLoad *targetLoad = nullptr;
+    for (int j = 0; j < (int)loadSet->getSize(); j++)
+    {
+        auto load = static_cast<ofem::BeamLoad *>(loadSet->getLoad(j));
+        double dx, dy, dz;
+        load->getLocalDirection(dx, dy, dz);
+        double dmag = std::sqrt(dx * dx + dy * dy + dz * dz);
+        if (dmag > 1e-12) { dx /= dmag; dy /= dmag; dz /= dmag; }
+        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6
+            && std::abs(load->getValue() - mag) < 1e-3)
+        {
+            targetLoad = load;
+            break;
+        }
+    }
+    if (targetLoad == nullptr)
+    {
+        auto newLoad = new ofem::BeamLoad();
+        newLoad->setLocalDirection(nx, ny, nz);
+        newLoad->setValue(mag);
+        loadSet->addLoad(newLoad);
+        addBeamLoad(newLoad);
+        targetLoad = newLoad;
+    }
+    targetLoad->addElement(element);
+    auto visBeamLoad = static_cast<vfem::BeamLoad *>(targetLoad->getUser());
+    if (visBeamLoad != nullptr)
+        visBeamLoad->refresh();
+    m_needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::clearBeamLoadAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+        return;
+    auto element = m_beamModel->getElementSet()->getElement(i);
+    auto loadSet = m_beamModel->getElementLoadSet();
+    for (int j = 0; j < (int)loadSet->getSize(); j++)
+    {
+        auto load = static_cast<ofem::BeamLoad *>(loadSet->getLoad(j));
+        load->removeElement(element);
+    }
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+bool FemViewWindow::hasBeamLoadAt(int i)
+{
+    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+        return false;
+    auto element = m_beamModel->getElementSet()->getElement(i);
+    auto loadSet = m_beamModel->getElementLoadSet();
+    for (int j = 0; j < (int)loadSet->getSize(); j++)
+    {
+        auto load = static_cast<ofem::BeamLoad *>(loadSet->getLoad(j));
+        for (unsigned int k = 0; k < load->getElementsSize(); k++)
+        {
+            if (load->getElement(k) == element)
+                return true;
+        }
+    }
+    return false;
+}
+
+size_t FemViewWindow::beamLoadCount()
+{
+    return m_beamModel->getElementLoadSet()->getSize();
 }
 
 void FemViewWindow::showTextLayer(bool show)
@@ -5193,10 +5578,11 @@ void FemViewWindow::onDrawImGui()
         {
             auto scriptFunc = m_pendingScripts.front();
             m_pendingScripts.pop();
+            m_scriptCalledNewModel = false;
             this->runScriptFromText(scriptFunc);
-            
-            // Auto-fit workspace after AI-generated script execution
-            this->fitWorkspaceToModel(1.2);
+
+            if (m_scriptCalledNewModel)
+                this->fitWorkspaceToModel(1.2);
         }
     }
 

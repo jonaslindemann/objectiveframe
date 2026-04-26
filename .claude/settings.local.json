@@ -11,7 +11,13 @@
       "Bash(grep -v \"//.*FrameSolver\")",
       "Read(//e/Users/Jonas/Development/ivfplusplus/**)",
       "Bash(grep -v \"//\")",
-      "Bash(grep -v \"std::\\\\|#include\\\\|//\")"
+      "Bash(grep -v \"std::\\\\|#include\\\\|//\")",
+      "Bash(xargs wc *)",
+      "Bash(python3 -c ' *)",
+      "Read(//c/Users/**)",
+      "Read(//e/Users/Jonas/**)",
+      "Bash(dir /s /b \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\*.h\")",
+      "Bash(findstr /i \"composite\")"
     ],
     "additionalDirectories": [
       "e:\\Users\\Jonas\\Development\\objectiveframe"

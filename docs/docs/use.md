@@ -1,13 +1,18 @@
----
-hide:
-  - navigation
----
-
 # Using ObjectiveFrame
 
 To give a short overview of what ObjectiveFrame can offer please view the following tutorial:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/ejHFFXANx7o" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## User guide map
+
+This page covers the core modelling workflow: navigation, nodes, beams, loads, boundary conditions, materials, and ordinary result visualization.
+
+More specialized workflows are documented separately:
+
+- [AI / LLM integration](llm-integration.md) describes prompt-based structure generation and how generated scripts are reviewed and run.
+- [Eigenmode solver](eigenmode-solver.md) explains instability diagnostics, mode shapes, animation, and eigenvalue interpretation.
+- [ChaiScript scripting](chaiscript.md) documents the script interface used by plugins and AI-generated models.
 
 ## Main window and view
 

@@ -8,14 +8,23 @@ copyright = "Copyright &copy; 2026 Jonas Lindemann"
 
 nav = [
   { "Home" = "index.md" },
-  { "About" = "about.md" },
-  { "Download" = "download.md" },
-  { "Use" = "use.md" },
-  { "Videos" = "videos.md" },
-  { "Develop" = "develop.md" },
-  { "Links" = "links.md" },
-  { "Contact" = "contact.md" },
-  { "Privacy" = "privacy.md" },
+  { "Get Started" = [
+    { "About" = "about.md" },
+    { "Download" = "download.md" },
+    { "Videos" = "videos.md" },
+  ] },
+  { "User Guide" = [
+    { "Using ObjectiveFrame" = "use.md" },
+    { "AI / LLM Integration" = "llm-integration.md" },
+    { "Eigenmode Solver" = "eigenmode-solver.md" },
+    { "ChaiScript Scripting" = "chaiscript.md" },
+  ] },
+  { "Project" = [
+    { "Develop" = "develop.md" },
+    { "Links" = "links.md" },
+    { "Contact" = "contact.md" },
+    { "Privacy" = "privacy.md" },
+  ] },
 ]
 
 extra_css = ["stylesheets/extra.css"]

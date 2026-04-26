@@ -1,7 +1,3 @@
----
-hide:
-  - navigation
----
 # About ObjectiveFrame
 
 The application was orginially developed at Structural Mechanics by Jonas Lindemann for his PhD thesis work. See:

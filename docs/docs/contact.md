@@ -1,8 +1,3 @@
----
-hide:
-  - navigation
----
-
 # Contact information
 
 For information on ObjectiveFrame please contact:

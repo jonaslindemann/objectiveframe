@@ -1,8 +1,3 @@
----
-hide:
-  - navigation
----
-
 # Downloading ObjectiveFrame
 
 [Latest release](https://github.com/jonaslindemann/objectiveframe/releases/latest)

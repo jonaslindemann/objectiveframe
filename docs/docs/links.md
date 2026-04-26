@@ -1,8 +1,3 @@
----
-hide:
-  - navigation
----
-
 # Links related to ObjectiveFrame
 
 * [Interactive Visualisation Framework - Ivf++](https://github.com/jonaslindemann/ivfplusplus)

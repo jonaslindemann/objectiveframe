@@ -56,7 +56,8 @@ void SettingsWindow::update()
     // m_scaleFactor = float(m_view->getScalefactor());
     m_uiScale = m_view->uiScale();
 
-    static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
+    if (!m_view->isShowingEigenmodes())
+        static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
     static_cast<vfem::BeamModel *>(m_view->getModel())->setLineSides(m_lineSides);
 
     if (m_sphereNodes)

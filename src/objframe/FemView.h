@@ -303,6 +303,8 @@ private:
     ofui::ViewWindowPtr m_viewWindow;
 
     bool m_eigenmodeInSecondaryView{false};
+    bool m_showingEigenmodes{false};
+    bool m_savedShowNodeNumbers{true};
 
     ofui::WindowListPtr m_windowList;
 
@@ -588,6 +590,8 @@ public:
 
     bool isEigenmodeInSecondaryView() const;
     void setEigenmodeInSecondaryView(bool flag);
+    bool hasEigenModes() const;
+    bool isShowingEigenmodes() const;
     void applyEigenmodeAnimation();
     void clearEigenmodeAnimation();
 

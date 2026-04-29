@@ -35,6 +35,8 @@ public:
 
     void update();
 
+    bool getShowNodeNumbers() const { return m_showNodeNumbers; }
+
     static std::shared_ptr<SettingsWindow> create(const std::string name);
 
 protected:

@@ -614,6 +614,12 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
 {
     // Change model representation
 
+    if (m_showingEigenmodes && repr != RepresentationMode::Results)
+    {
+        m_showingEigenmodes = false;
+        m_beamModel->setShowNodeNumbers(m_savedShowNodeNumbers);
+    }
+
     m_representation = repr;
 
     switch (m_representation)
@@ -2562,6 +2568,11 @@ void FemViewWindow::computeEigenmodes(int numModes)
     if (m_currentSolver->computeEigenModes(numModes))
     {
         log("Successfully computed " + std::to_string(m_currentSolver->getNumEigenModes()) + " eigenmodes.");
+
+        // Save state and disable node numbers for eigenmode view
+        m_savedShowNodeNumbers = m_beamModel->showNodeNumbers();
+        m_beamModel->setShowNodeNumbers(false);
+        m_showingEigenmodes = true;
         
         // Update eigenmode window
         m_eigenmodeWindow->setHasEigenmodes(true);
@@ -2584,7 +2595,7 @@ void FemViewWindow::computeEigenmodes(int numModes)
             }
             double dx = maxX - minX, dy = maxY - minY, dz = maxZ - minZ;
             double diagonal = std::sqrt(dx*dx + dy*dy + dz*dz);
-            double autoScale = (diagonal > 0.0) ? diagonal * 0.2 : this->getWorkspace() * 0.2;
+            double autoScale = (diagonal > 0.0) ? diagonal * 0.05 : this->getWorkspace() * 0.05;
             m_eigenmodeWindow->setModeScaleFactor(autoScale);
             m_eigenmodeWindow->setScaleSliderMax(float(autoScale) * 10.0f);
         }
@@ -2597,7 +2608,7 @@ void FemViewWindow::computeEigenmodes(int numModes)
             int posX = int(vp->WorkSize.x) - 600;
             m_eigenmodeWindow->setPosition(posX, 120);
         }
-        setEigenmodeInSecondaryView(true); // show animation in secondary view by default
+        setEigenmodeInSecondaryView(false); // show animation in secondary view by default
 
         // Collect eigenvalues and pass to window for display
         {
@@ -2644,6 +2655,8 @@ void FemViewWindow::clearEigenmodes()
 
     // Clear node displacements
     m_beamModel->clearNodeValues();
+    m_showingEigenmodes = false;
+    m_beamModel->setShowNodeNumbers(m_savedShowNodeNumbers);
     this->set_changed();
     this->redraw();
 }
@@ -6227,6 +6240,16 @@ void FemViewWindow::onPostRender()
 bool FemViewWindow::isEigenmodeInSecondaryView() const
 {
     return m_eigenmodeInSecondaryView;
+}
+
+bool FemViewWindow::hasEigenModes() const
+{
+    return m_currentSolver != nullptr && m_currentSolver->hasEigenModes();
+}
+
+bool FemViewWindow::isShowingEigenmodes() const
+{
+    return m_showingEigenmodes;
 }
 
 void FemViewWindow::setEigenmodeInSecondaryView(bool flag)

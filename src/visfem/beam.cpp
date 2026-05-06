@@ -209,8 +209,8 @@ void Beam::refresh()
                             m_beamMaterial->setAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
                         }
                         else {
-                            m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-                            m_beamMaterial->setAmbientColor(0.2f, 0.2f, 0.2f, 1.0f);
+                            m_beamMaterial->setDiffuseColor(0.4f, 0.4f, 0.4f, 1.0f);
+                            m_beamMaterial->setAmbientColor(1.0f, 1.0f, 1.0f, 1.0f);
                         }
                         m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_VERTEX_MODEL_CYL);
                         if (m_solidLine->getSides() != m_beamModel->getLineSides())
@@ -247,21 +247,29 @@ void Beam::refresh()
 void Beam::doCreateGeometry()
 {
     if (m_femBeam != nullptr) {
-        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending())) {
+        bool hasResults = (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT);
+
+        if (hasResults) {
             glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glEnable(GL_BLEND);
-            glDisable(GL_LIGHTING);
-            glBlendFunc(GL_ONE, GL_ONE);
-            glDisable(GL_DEPTH_TEST);
+            // Raise global ambient so texture colors are visible even on shadowed faces
+            GLfloat brightAmbient[] = {0.7f, 0.7f, 0.7f, 1.0f};
+            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, brightAmbient);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            if (m_beamModel->getUseBlending()) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE);
+                glDisable(GL_DEPTH_TEST);
+                glDisable(GL_LIGHTING);
+            }
         }
 
         Composite::doCreateGeometry();
 
-        if ((m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) && (m_beamModel->getUseBlending())) {
-
-            glDisable(GL_BLEND);
-            glEnable(GL_DEPTH_TEST);
-            glEnable(GL_LIGHTING);
+        if (hasResults) {
+            if (m_beamModel->getUseBlending()) {
+                glDisable(GL_BLEND);
+                glEnable(GL_DEPTH_TEST);
+            }
             glPopAttrib();
         }
     }
@@ -453,26 +461,34 @@ void Beam::initResults()
                         break;
                     case IVF_BEAM_T:
                         value = m_femBeam->getValue(3 + 6 * k);
-                        value = (fabs(value) - m_beamModel->minT()) / m_beamModel->maxT();
+                        value = (m_beamModel->maxT() > m_beamModel->minT())
+                            ? (fabs(value) - m_beamModel->minT()) / (m_beamModel->maxT() - m_beamModel->minT())
+                            : 0.0;
                         break;
                     case IVF_BEAM_V:
                         v1 = m_femBeam->getValue(1 + 6 * k);
                         v2 = m_femBeam->getValue(2 + 6 * k);
                         value = sqrt(v1*v1 + v2*v2);
-                        value = (value - m_beamModel->minV()) / m_beamModel->maxV();
+                        value = (m_beamModel->maxV() > m_beamModel->minV())
+                            ? (value - m_beamModel->minV()) / (m_beamModel->maxV() - m_beamModel->minV())
+                            : 0.0;
                         break;
                     case IVF_BEAM_M:
                         v1 = m_femBeam->getValue(4 + 6 * k);
                         v2 = m_femBeam->getValue(5 + 6 * k);
                         value = sqrt(v1*v1 + v2*v2);
-                        value = (value - m_beamModel->minM()) / m_beamModel->maxM();
+                        value = (m_beamModel->maxM() > m_beamModel->minM())
+                            ? (value - m_beamModel->minM()) / (m_beamModel->maxM() - m_beamModel->minM())
+                            : 0.0;
                         break;
                     case IVF_BEAM_NAVIER:
                         N = m_femBeam->getValue(0 + 6 * k);
                         My = m_femBeam->getValue(4 + 6 * k);
                         Mz = m_femBeam->getValue(5 + 6 * k);
                         value = calcNavier(N, My, Mz);
-                        value = (fabs(value) - m_beamModel->minNavier()) / m_beamModel->maxNavier();
+                        value = (m_beamModel->maxNavier() > m_beamModel->minNavier())
+                            ? (fabs(value) - m_beamModel->minNavier()) / (m_beamModel->maxNavier() - m_beamModel->minNavier())
+                            : 0.0;
                         break;
                     default:
                         value = 0.0;

@@ -1,21 +1,35 @@
 import numpy as np
 
-r = np.linspace(0.1, 1.0, 128)
-g = np.linspace(0.1, 0.0, 128)
-b = np.linspace(0.1, 0.0, 128)
+n = 128
+t = np.linspace(0.0, 1.0, n)
 
-blue_colormap = np.zeros((128, 3), dtype=float)
+# blue_black.map / red_black.map: for blending mode (starts from near-black)
+r = np.linspace(0.1, 1.0, n)
+g = np.linspace(0.1, 0.0, n)
+b = np.linspace(0.1, 0.0, n)
 
-blue_colormap[:,0] = b
-blue_colormap[:,1] = g
-blue_colormap[:,2] = r
+blue_black = np.column_stack([b, g, r])   # (0.1,0.1,0.1) -> (0,0,1)
+red_black  = np.column_stack([r, g, b])   # (0.1,0.1,0.1) -> (1,0,0)
 
-red_colormap = np.zeros((128, 3), dtype=float)
+np.savetxt("blue_black.map", blue_black, fmt="%0.4f", header="128", comments="")
+np.savetxt("red_black.map",  red_black,  fmt="%0.4f", header="128", comments="")
 
-red_colormap[:,0] = r
-red_colormap[:,1] = g
-red_colormap[:,2] = b
+# blue.map: gray (0.7,0.7,0.7) at zero force -> vivid blue (0,0,1) at max compression
+blue = np.column_stack([0.7*(1-t), 0.7*(1-t), 0.7 + 0.3*t])
 
-np.savetxt("blue_black.map", blue_colormap, fmt="%0.4f", header="128", comments="")
-np.savetxt("red_black.map", red_colormap, fmt="%0.4f", header="128", comments="")
+# red.map: gray (0.7,0.7,0.7) at zero force -> vivid red (1,0,0) at max tension
+red  = np.column_stack([0.7 + 0.3*t, 0.7*(1-t), 0.7*(1-t)])
 
+def save_map(path, data):
+    with open(path, 'w') as f:
+        f.write(f"{len(data)}\n")
+        for row in data:
+            f.write(f"    {row[0]:.4f}    {row[1]:.4f}    {row[2]:.4f}\n")
+
+save_map("blue.map", blue)
+save_map("red.map",  red)
+
+# colormap11.map: vivid rainbow blue->cyan->green->yellow->red (HSV, S=V=1)
+import colorsys
+rainbow = [colorsys.hsv_to_rgb((2.0/3.0) * (1.0 - i/(n-1)), 1.0, 1.0) for i in range(n)]
+save_map("colormap11.map", rainbow)

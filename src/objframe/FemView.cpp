@@ -2504,7 +2504,7 @@ void FemViewWindow::recompute()
         {
             if (!m_haveScaleFactor)
             {
-                m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
+                m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
                 m_haveScaleFactor = true;
             }
         }
@@ -2542,7 +2542,7 @@ void FemViewWindow::recompute()
             {
                 if (!m_haveScaleFactor)
                 {
-                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
+                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
                     m_haveScaleFactor = true;
                 }
             }
@@ -2986,7 +2986,7 @@ void FemViewWindow::doFeedback()
             {
                 if (!m_haveScaleFactor)
                 {
-                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
+                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
                     m_haveScaleFactor = true;
                 }
             }
@@ -3033,7 +3033,7 @@ void FemViewWindow::doFeedback()
                 {
                     if (!m_haveScaleFactor)
                     {
-                        m_beamModel->setScaleFactor(this->getWorkspace() * 0.020 / m_currentSolver->getMaxNodeValue());
+                        m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
                         m_haveScaleFactor = true;
                     }
                 }

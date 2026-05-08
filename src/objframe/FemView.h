@@ -330,6 +330,7 @@ private:
 
     bool m_pluginRunning;
     bool m_scriptCalledNewModel{false};
+    bool m_scriptRunning{false};
 
     // Plugins
 
@@ -555,6 +556,11 @@ public:
 
     void deleteNodeAt(int i);
     void deleteBeamAt(int i);
+    void subdivideBeamAt(int i);
+    std::vector<int> beamsAtNode(int i);
+    void connectNearNodes(double tolerance);
+    void clearAllLoads();
+    void clearAllBCs();
 
     void assignNodeFixedBCAt(int i);
     void assignNodePosBCAt(int i);

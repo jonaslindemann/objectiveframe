@@ -17,7 +17,13 @@
       "Read(//c/Users/**)",
       "Read(//e/Users/Jonas/**)",
       "Bash(dir /s /b \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\*.h\")",
-      "Bash(findstr /i \"composite\")"
+      "Bash(findstr /i \"composite\")",
+      "Bash(Copy-Item \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\RelWithDebInfo\\\\ai\\\\system_prompt.md\" \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\Debug\\\\ai\\\\system_prompt.md\" -Force)",
+      "Bash(Copy-Item \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\RelWithDebInfo\\\\ai\\\\system_prompt.md\" \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\Release\\\\ai\\\\system_prompt.md\" -Force)",
+      "Bash(Write-Output \"Done\")",
+      "PowerShell(Copy-Item \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\RelWithDebInfo\\\\ai\\\\system_prompt.md\" \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\Debug\\\\ai\\\\system_prompt.md\" -Force)",
+      "PowerShell(Copy-Item \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\RelWithDebInfo\\\\ai\\\\system_prompt.md\" \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\\\\bin\\\\Release\\\\ai\\\\system_prompt.md\" -Force)",
+      "PowerShell(\"Done\")"
     ],
     "additionalDirectories": [
       "e:\\Users\\Jonas\\Development\\objectiveframe"

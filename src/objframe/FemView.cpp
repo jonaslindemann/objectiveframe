@@ -2,7 +2,9 @@
 
 #include <filesystem>
 #include <functional>
+#include <set>
 #include <sstream>
+#include <vector>
 
 #include <chaiscript/chaiscript_stdlib.hpp>
 #include <chaiscript/extras/math.hpp>
@@ -385,6 +387,7 @@ void FemViewWindow::runScriptFromText(std::string scriptText)
     chaiscript::ChaiScript chai;
     this->setupScript(chai);
 
+    m_scriptRunning = true;
     try
     {
         chai.eval(scriptText);
@@ -394,6 +397,7 @@ void FemViewWindow::runScriptFromText(std::string scriptText)
         m_promptWindow->addError(e.pretty_print());
         log(e.pretty_print());
     }
+    m_scriptRunning = false;
 
     m_beamModel->enumerate();
 
@@ -1645,8 +1649,14 @@ void FemViewWindow::subdivideSelectedBeam()
         {
             auto visBeam = static_cast<vfem::Beam *>(shape);
 
-            auto n0 = visBeam->getNode(0)->getFemNode();
-            auto n1 = visBeam->getNode(1)->getFemNode();
+            auto vis_n0 = visBeam->getNode(0);
+            auto vis_n1 = visBeam->getNode(1);
+
+            if (vis_n0 == nullptr || vis_n1 == nullptr)
+                continue;
+
+            auto n0 = vis_n0->getFemNode();
+            auto n1 = vis_n1->getFemNode();
 
             double x0, y0, z0;
             double x1, y1, z1;
@@ -2153,6 +2163,12 @@ void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
 
     script.add(chaiscript::fun(&FemViewWindow::deleteNodeAt, this), "deleteNodeAt");
     script.add(chaiscript::fun(&FemViewWindow::deleteBeamAt, this), "deleteBeamAt");
+    script.add(chaiscript::fun(&FemViewWindow::subdivideBeamAt, this), "subdivideBeamAt");
+    script.add(chaiscript::fun(&FemViewWindow::beamsAtNode, this), "beamsAtNode");
+    script.add(chaiscript::fun(&FemViewWindow::connectNearNodes, this), "connectNearNodes");
+    script.add(chaiscript::fun(&FemViewWindow::clearAllLoads, this), "clearAllLoads");
+    script.add(chaiscript::fun(&FemViewWindow::clearAllBCs, this), "clearAllBCs");
+    script.add(chaiscript::fun(&FemViewWindow::snapShot, this), "snapShot");
 
     script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCAt, this), "assignNodeFixedBCAt");
     script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCAt, this), "assignNodePosBCAt");
@@ -3202,10 +3218,25 @@ void FemViewWindow::updateNodePosAt(int i, double x, double y, double z)
 
 void FemViewWindow::beamAt(int i, int &i0, int &i1)
 {
-    auto beam = m_beamModel->getElementSet()->getElement(i);
+    i0 = -1;
+    i1 = -1;
+
+    auto elementSet = m_beamModel->getElementSet();
+    if (elementSet == nullptr)
+        return;
+
+    if (i < 0 || i >= (int)elementSet->getSize())
+        return;
+
+    auto beam = elementSet->getElement(i);
+    if (beam == nullptr)
+        return;
 
     auto n0 = beam->getNode(0);
     auto n1 = beam->getNode(1);
+
+    if (n0 == nullptr || n1 == nullptr)
+        return;
 
     i0 = m_beamModel->getNodeSet()->indexOf(n0);
     i1 = m_beamModel->getNodeSet()->indexOf(n1);
@@ -3213,10 +3244,32 @@ void FemViewWindow::beamAt(int i, int &i0, int &i1)
 
 void FemViewWindow::updateBeamAt(int i, int i0, int i1)
 {
-    auto beam = m_beamModel->getElementSet()->getElement(i);
+    auto elementSet = m_beamModel->getElementSet();
+    if (elementSet == nullptr)
+        return;
+
+    if (i < 0 || i >= (int)elementSet->getSize())
+        return;
+
+    auto beam = elementSet->getElement(i);
+    if (beam == nullptr)
+        return;
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    if (nodeSet == nullptr)
+        return;
+
+    if (i0 < 0 || i0 >= (int)nodeSet->getSize() || i1 < 0 || i1 >= (int)nodeSet->getSize())
+        return;
+
+    auto n0 = nodeSet->getNode(i0);
+    auto n1 = nodeSet->getNode(i1);
+    if (n0 == nullptr || n1 == nullptr)
+        return;
+
     beam->clear();
-    beam->addNode(m_beamModel->getNodeSet()->getNode(i0));
-    beam->addNode(m_beamModel->getNodeSet()->getNode(i1));
+    beam->addNode(n0);
+    beam->addNode(n1);
 }
 
 vfem::Node *FemViewWindow::nodeAt(int i)
@@ -3274,9 +3327,20 @@ void FemViewWindow::selectNodeAt(int i)
 
 void FemViewWindow::selectBeamAt(int i)
 {
-    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+    if (m_beamModel == nullptr)
         return;
-    auto beam = m_beamModel->getElementSet()->getElement(i);
+
+    auto elementSet = m_beamModel->getElementSet();
+    if (elementSet == nullptr)
+        return;
+
+    if (i < 0 || i >= (int)elementSet->getSize())
+        return;
+
+    auto beam = elementSet->getElement(i);
+    if (beam == nullptr)
+        return;
+
     auto ivfBeam = static_cast<vfem::Beam *>(beam->getUser());
     getSelectedShapes()->addChild(ivfBeam);
     ivfBeam->setSelect(ivf::Shape::SS_ON);
@@ -3307,11 +3371,21 @@ int FemViewWindow::findNodeNear(double x, double y, double z, double tolerance)
 
 void FemViewWindow::deleteNodeAt(int i)
 {
-    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
+    if (m_beamModel == nullptr)
         return;
-    this->snapShot();
-    auto node = m_beamModel->getNodeSet()->getNode(i);
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    if (nodeSet == nullptr)
+        return;
+
+    if (i < 0 || i >= (int)nodeSet->getSize())
+        return;
+    if (!m_scriptRunning)
+        this->snapShot();
+    auto node = nodeSet->getNode(i);
     auto beamSet = m_beamModel->getElementSet();
+    if (beamSet == nullptr)
+        return;
     clearSelection();
     for (int j = (int)beamSet->getSize() - 1; j >= 0; j--)
     {
@@ -3337,9 +3411,17 @@ void FemViewWindow::deleteNodeAt(int i)
 
 void FemViewWindow::deleteBeamAt(int i)
 {
-    if (i < 0 || i >= (int)m_beamModel->getElementSet()->getSize())
+    if (m_beamModel == nullptr)
         return;
-    this->snapShot();
+
+    auto elementSet = m_beamModel->getElementSet();
+    if (elementSet == nullptr)
+        return;
+
+    if (i < 0 || i >= (int)elementSet->getSize())
+        return;
+    if (!m_scriptRunning)
+        this->snapShot();
     clearSelection();
     selectBeamAt(i);
     m_propWindow->setBeam(nullptr);
@@ -3349,6 +3431,264 @@ void FemViewWindow::deleteBeamAt(int i)
     setDeleteFilter(DeleteMode::All);
     setEditEnabled(false);
     m_beamModel->enumerate();
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::subdivideBeamAt(int i)
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    auto elementSet = m_beamModel->getElementSet();
+    if (elementSet == nullptr || i < 0 || i >= (int)elementSet->getSize())
+        return;
+
+    auto beam = static_cast<ofem::Beam *>(elementSet->getElement(i));
+    if (beam == nullptr)
+        return;
+
+    auto n0 = beam->getNode(0);
+    auto n1 = beam->getNode(1);
+    if (n0 == nullptr || n1 == nullptr)
+        return;
+
+    double x0, y0, z0, x1, y1, z1;
+    n0->getCoord(x0, y0, z0);
+    n1->getCoord(x1, y1, z1);
+    double x = (x0 + x1) * 0.5;
+    double y = (y0 + y1) * 0.5;
+    double z = (z0 + z1) * 0.5;
+
+    auto n2 = new ofem::Node(x, y, z);
+    auto nodeSet = m_beamModel->getNodeSet();
+    nodeSet->addNode(n2);
+
+    auto beam0 = new ofem::Beam();
+    beam0->addNode(n0);
+    beam0->addNode(n2);
+    beam0->setMaterial(beam->getMaterial());
+
+    auto beam1 = new ofem::Beam();
+    beam1->addNode(n2);
+    beam1->addNode(n1);
+    beam1->setMaterial(beam->getMaterial());
+
+    elementSet->addElement(beam0);
+    elementSet->addElement(beam1);
+
+    auto vn0 = static_cast<vfem::Node *>(n0->getUser());
+    auto vn1 = static_cast<vfem::Node *>(n1->getUser());
+
+    auto vn2 = new vfem::Node();
+    vn2->setBeamModel(m_beamModel.get());
+    vn2->setFemNode(n2);
+    vn2->setPosition(x, y, z);
+    vn2->setMaterial(m_nodeMaterial);
+    vn2->nodeLabel()->setSize(float(m_beamModel->getNodeSize() * 1.5));
+    vn2->setDirectRefresh(true);
+    n2->setUser(static_cast<void *>(vn2));
+
+    auto vbeam0 = new vfem::Beam();
+    vbeam0->setBeamModel(m_beamModel.get());
+    vbeam0->setBeam(beam0);
+    beam0->setUser(static_cast<void *>(vbeam0));
+
+    auto vbeam1 = new vfem::Beam();
+    vbeam1->setBeamModel(m_beamModel.get());
+    vbeam1->setBeam(beam1);
+    beam1->setUser(static_cast<void *>(vbeam1));
+
+    vbeam0->setNodes(vn0, vn2);
+    vbeam0->refresh();
+    vbeam1->setNodes(vn2, vn1);
+    vbeam1->refresh();
+
+    this->addToScene(vbeam0);
+    this->addToScene(vbeam1);
+    this->addToScene(vn2);
+
+    // Delete original beam using selection mechanism
+    bool wasRunning = m_scriptRunning;
+    m_scriptRunning = true;
+    clearSelection();
+    selectBeamAt(i);
+    setEditEnabled(true);
+    setDeleteFilter(DeleteMode::Elements);
+    deleteSelectedKeep();
+    setDeleteFilter(DeleteMode::All);
+    setEditEnabled(false);
+    m_scriptRunning = wasRunning;
+
+    m_beamModel->enumerate();
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+std::vector<int> FemViewWindow::beamsAtNode(int i)
+{
+    std::vector<int> result;
+    if (m_beamModel == nullptr)
+        return result;
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    auto beamSet = m_beamModel->getElementSet();
+    if (nodeSet == nullptr || beamSet == nullptr)
+        return result;
+
+    if (i < 0 || i >= (int)nodeSet->getSize())
+        return result;
+
+    auto node = nodeSet->getNode(i);
+    for (int j = 0; j < (int)beamSet->getSize(); j++)
+    {
+        auto beam = beamSet->getElement(j);
+        if (beam->getNode(0) == node || beam->getNode(1) == node)
+            result.push_back(j);
+    }
+    return result;
+}
+
+void FemViewWindow::connectNearNodes(double tolerance)
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    this->snapShot();
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    auto beamSet = m_beamModel->getElementSet();
+    int n = (int)nodeSet->getSize();
+
+    // Build canonical map: canonical[i] = j means node i should be merged into node j (j < i)
+    std::vector<int> canonical(n);
+    for (int k = 0; k < n; k++)
+        canonical[k] = k;
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {
+            if (canonical[j] != j)
+                continue;
+            auto ni = nodeSet->getNode(canonical[i]);
+            auto nj = nodeSet->getNode(j);
+            double xi, yi, zi, xj, yj, zj;
+            ni->getCoord(xi, yi, zi);
+            nj->getCoord(xj, yj, zj);
+            double dx = xi - xj, dy = yi - yj, dz = zi - zj;
+            if (sqrt(dx * dx + dy * dy + dz * dz) < tolerance)
+                canonical[j] = canonical[i];
+        }
+    }
+
+    // Remap beam endpoints at both FEM and visual level
+    for (int b = 0; b < (int)beamSet->getSize(); b++)
+    {
+        auto femBeam = static_cast<ofem::Beam *>(beamSet->getElement(b));
+        auto visBeam = static_cast<vfem::Beam *>(femBeam->getUser());
+
+        auto fn0 = femBeam->getNode(0);
+        auto fn1 = femBeam->getNode(1);
+        int oi0 = nodeSet->indexOf(fn0);
+        int oi1 = nodeSet->indexOf(fn1);
+        if (oi0 < 0 || oi1 < 0)
+            continue;
+
+        ofem::Node *new_fn0 = nodeSet->getNode(canonical[oi0]);
+        ofem::Node *new_fn1 = nodeSet->getNode(canonical[oi1]);
+
+        if (new_fn0 != fn0 || new_fn1 != fn1)
+        {
+            femBeam->clear();
+            femBeam->addNode(new_fn0);
+            femBeam->addNode(new_fn1);
+
+            if (visBeam != nullptr)
+            {
+                auto vn0 = static_cast<vfem::Node *>(new_fn0->getUser());
+                auto vn1 = static_cast<vfem::Node *>(new_fn1->getUser());
+                if (vn0 != nullptr && vn1 != nullptr)
+                {
+                    visBeam->setNodes(vn0, vn1);
+                    visBeam->refresh();
+                }
+            }
+        }
+    }
+
+    // Remove degenerate beams (same node on both ends) and duplicates
+    bool wasRunning = m_scriptRunning;
+    m_scriptRunning = true;
+
+    std::set<std::pair<ofem::Node *, ofem::Node *>> seen;
+    for (int b = (int)beamSet->getSize() - 1; b >= 0; b--)
+    {
+        auto femBeam = static_cast<ofem::Beam *>(beamSet->getElement(b));
+        auto raw0 = static_cast<ofem::Node *>(femBeam->getNode(0));
+        auto raw1 = static_cast<ofem::Node *>(femBeam->getNode(1));
+        if (raw0 == raw1)
+        {
+            deleteBeamAt(b);
+            continue;
+        }
+        ofem::Node *lo = raw0 < raw1 ? raw0 : raw1;
+        ofem::Node *hi = raw0 < raw1 ? raw1 : raw0;
+        auto key = std::make_pair(lo, hi);
+        if (seen.count(key))
+            deleteBeamAt(b);
+        else
+            seen.insert(key);
+    }
+
+    // Delete merged-away nodes in reverse order (higher indices first keeps lower ones stable)
+    for (int i = n - 1; i >= 0; i--)
+    {
+        if (canonical[i] != i)
+            deleteNodeAt(i);
+    }
+
+    m_scriptRunning = wasRunning;
+
+    m_beamModel->enumerate();
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::clearAllLoads()
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    this->snapShot();
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    for (int i = 0; i < (int)nodeSet->getSize(); i++)
+        clearNodeLoadAt(i);
+
+    auto beamSet = m_beamModel->getElementSet();
+    for (int i = 0; i < (int)beamSet->getSize(); i++)
+        clearBeamLoadAt(i);
+
+    m_needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::clearAllBCs()
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    this->snapShot();
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    for (int i = 0; i < (int)nodeSet->getSize(); i++)
+        removeNodeBCAt(i);
+
     m_needRecalc = true;
     this->set_changed();
     this->redraw();

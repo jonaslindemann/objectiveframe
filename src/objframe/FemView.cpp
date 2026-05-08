@@ -4146,7 +4146,7 @@ bool FemViewWindow::isScaleFactorLocked()
 
 double FemViewWindow::autoScaleFactor()
 {
-    if (m_currentSolver != nullptr)
+    if (m_currentSolver != nullptr && m_currentSolver->getMaxNodeValue() > 0.0)
         return this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue();
     else
         return 1.0;

@@ -1,13 +1,13 @@
 #include "FemView.h"
 
+#include "FemViewScriptBindings.h"
+#include "FemViewScriptRunner.h"
+
 #include <filesystem>
 #include <functional>
 #include <set>
 #include <sstream>
 #include <vector>
-
-#include <chaiscript/chaiscript_stdlib.hpp>
-#include <chaiscript/extras/math.hpp>
 
 #include <ivf/BitmapFont.h>
 #include <ivf/CoordinateSystem.h>
@@ -330,79 +330,17 @@ FemViewWindow::~FemViewWindow()
 
 void FemViewWindow::runPlugin(ScriptPlugin *plugin)
 {
-    this->snapShot();
-
-    chaiscript::ChaiScript script;
-
-    this->setupScript(script);
-
-    chaiscript::ChaiScript::State s = script.get_state(); // get initial state
-    try
-    {
-        m_pluginRunning = true;
-        script.eval(plugin->source());
-        m_pluginRunning = false;
-    } catch (const chaiscript::exception::eval_error &e)
-    {
-        log(e.pretty_print());
-    }
-    script.set_state(s);
-
-    m_beamModel->enumerate();
+    FemViewScriptRunner::runPlugin(*this, plugin);
 }
 
 void FemViewWindow::runScript(std::string scriptFilename)
 {
-    this->snapShot();
-
-    m_selectedPos[0] = 0.0;
-    m_selectedPos[1] = 0.0;
-    m_selectedPos[2] = 0.0;
-
-    chaiscript::ChaiScript chai;
-    this->setupScript(chai);
-
-    auto scriptSource = ofutil::read_file(scriptFilename);
-
-    try
-    {
-        chai.eval(scriptSource);
-    } catch (const chaiscript::exception::eval_error &e)
-    {
-        log(e.pretty_print());
-    }
-
-    m_beamModel->enumerate();
-
-    this->set_changed();
-    this->redraw();
+    FemViewScriptRunner::runScript(*this, scriptFilename);
 }
 
 void FemViewWindow::runScriptFromText(std::string scriptText)
 {
-    m_beamModel->enumerate();
-
-    this->snapShot();
-
-    chaiscript::ChaiScript chai;
-    this->setupScript(chai);
-
-    m_scriptRunning = true;
-    try
-    {
-        chai.eval(scriptText);
-    } catch (const chaiscript::exception::eval_error &e)
-    {
-        m_promptWindow->clearError();
-        m_promptWindow->addError(e.pretty_print());
-        log(e.pretty_print());
-    }
-    m_scriptRunning = false;
-
-    m_beamModel->enumerate();
-
-    this->set_changed();
-    this->redraw();
+    FemViewScriptRunner::runScriptFromText(*this, scriptText);
 }
 
 void FemViewWindow::makeAiRequest(const std::string &userPrompt)
@@ -2122,72 +2060,7 @@ void FemViewWindow::setupOverlay()
 
 void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
 {
-    // Add math library to script environment
-
-    auto mathlib = chaiscript::extras::math::bootstrap();
-    script.add(mathlib);
-
-    // Bind ObjectiveFrame specific functions
-
-    script.add(chaiscript::fun(&FemViewWindow::addNode, this), "addNode");
-    script.add(chaiscript::fun(&FemViewWindow::newModel, this), "newModel");
-    script.add(chaiscript::fun(&FemViewWindow::addBeam, this), "addBeam");
-    script.add(chaiscript::fun(&FemViewWindow::nodeCount, this), "nodeCount");
-    script.add(chaiscript::fun(&FemViewWindow::meshSelectedNodes, this), "meshSelectedNodes");
-    script.add(chaiscript::fun(&FemViewWindow::surfaceSelectedNodes, this), "surfaceSelectedNodes");
-    script.add(chaiscript::fun(&FemViewWindow::selectAll, this), "selectAll");
-    script.add(chaiscript::fun(&FemViewWindow::selectAllNodes, this), "selectAllNodes");
-    script.add(chaiscript::fun(&FemViewWindow::clearSelection, this), "clearSelection");
-    script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCGround, this), "assignNodeFixedBCGround");
-    script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCGround, this), "assignNodePosBCGround");
-    script.add(chaiscript::fun(&FemViewWindow::addLastNodeToSelection, this), "addLastNodeToSelection");
-    script.add(chaiscript::fun(&FemViewWindow::nodePos, this), "nodeCoord");
-    script.add(chaiscript::fun(&FemViewWindow::updateNodePos, this), "updateNodePos");
-    script.add(chaiscript::fun(&FemViewWindow::nodePosAt, this), "nodePosAt");
-    script.add(chaiscript::fun(&FemViewWindow::updateNodePosAt, this), "updateNodePosAt");
-    script.add(chaiscript::fun(&FemViewWindow::nodeAt, this), "nodeAt");
-    script.add(chaiscript::fun(&FemViewWindow::isNodeSelected, this), "isNodeSelected");
-    script.add(chaiscript::fun(&FemViewWindow::isNodeSelectedAt, this), "isNodeSelectedAt");
-    script.add(chaiscript::fun(&FemViewWindow::randFloat, this), "randFloat");
-    script.add(chaiscript::fun(&FemViewWindow::randInt, this), "randInt");
-    script.add(chaiscript::fun(&FemViewWindow::randSeed, this), "randSeed");
-    script.add(chaiscript::fun(&FemViewWindow::addNodeWithIdx, this), "addNodeWithIdx");
-    script.add(chaiscript::fun(&FemViewWindow::addBeamWithIdx, this), "addBeamWithIdx");
-    script.add(chaiscript::fun(&FemViewWindow::beamCount, this), "beamCount");
-    script.add(chaiscript::fun(&FemViewWindow::beamAt, this), "beamAt");
-    script.add(chaiscript::fun(&FemViewWindow::updateBeamAt, this), "updateBeamAt");
-
-    script.add(chaiscript::fun(&FemViewWindow::selectNodeAt, this), "selectNodeAt");
-    script.add(chaiscript::fun(&FemViewWindow::selectBeamAt, this), "selectBeamAt");
-    script.add(chaiscript::fun(&FemViewWindow::findNodeNear, this), "findNodeNear");
-
-    script.add(chaiscript::fun(&FemViewWindow::deleteNodeAt, this), "deleteNodeAt");
-    script.add(chaiscript::fun(&FemViewWindow::deleteBeamAt, this), "deleteBeamAt");
-    script.add(chaiscript::fun(&FemViewWindow::subdivideBeamAt, this), "subdivideBeamAt");
-    script.add(chaiscript::fun(&FemViewWindow::beamsAtNode, this), "beamsAtNode");
-    script.add(chaiscript::fun(&FemViewWindow::connectNearNodes, this), "connectNearNodes");
-    script.add(chaiscript::fun(&FemViewWindow::clearAllLoads, this), "clearAllLoads");
-    script.add(chaiscript::fun(&FemViewWindow::clearAllBCs, this), "clearAllBCs");
-    script.add(chaiscript::fun(&FemViewWindow::snapShot, this), "snapShot");
-
-    script.add(chaiscript::fun(&FemViewWindow::assignNodeFixedBCAt, this), "assignNodeFixedBCAt");
-    script.add(chaiscript::fun(&FemViewWindow::assignNodePosBCAt, this), "assignNodePosBCAt");
-    script.add(chaiscript::fun(&FemViewWindow::removeNodeBCAt, this), "removeNodeBCAt");
-    script.add(chaiscript::fun(&FemViewWindow::isNodeFixedAt, this), "isNodeFixedAt");
-    script.add(chaiscript::fun(&FemViewWindow::isNodePosBCAt, this), "isNodePosBCAt");
-
-    script.add(chaiscript::fun(&FemViewWindow::modelBounds, this), "modelBounds");
-    script.add(chaiscript::fun(&FemViewWindow::materialCount, this), "materialCount");
-
-    script.add(chaiscript::fun(&FemViewWindow::addNodeLoadAt, this), "addNodeLoadAt");
-    script.add(chaiscript::fun(&FemViewWindow::clearNodeLoadAt, this), "clearNodeLoadAt");
-    script.add(chaiscript::fun(&FemViewWindow::hasNodeLoadAt, this), "hasNodeLoadAt");
-    script.add(chaiscript::fun(&FemViewWindow::nodeLoadCount, this), "nodeLoadCount");
-
-    script.add(chaiscript::fun(&FemViewWindow::addBeamLoadAt, this), "addBeamLoadAt");
-    script.add(chaiscript::fun(&FemViewWindow::clearBeamLoadAt, this), "clearBeamLoadAt");
-    script.add(chaiscript::fun(&FemViewWindow::hasBeamLoadAt, this), "hasBeamLoadAt");
-    script.add(chaiscript::fun(&FemViewWindow::beamLoadCount, this), "beamLoadCount");
+    FemViewScriptBindings::bind(script, *this);
 }
 
 void FemViewWindow::setupPlugins()
@@ -6566,7 +6439,7 @@ void FemViewWindow::onPostRender()
         float deltaTime = ImGui::GetIO().DeltaTime;
         m_eigenmodeWindow->updateAnimationPhase(deltaTime);
 
-        if (m_eigenmodeInSecondaryView)
+        if (shouldAnimateInSecondaryView())
         {
             m_beamModel->clearNodeValues();
             m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
@@ -6590,6 +6463,19 @@ bool FemViewWindow::hasEigenModes() const
 bool FemViewWindow::isShowingEigenmodes() const
 {
     return m_showingEigenmodes;
+}
+
+bool FemViewWindow::shouldAnimateInSecondaryView() const
+{
+    if (m_eigenmodeWindow == nullptr || !m_eigenmodeWindow->isAnimate())
+        return false;
+    if (m_currentSolver == nullptr || !m_currentSolver->hasEigenModes())
+        return false;
+    if (m_eigenmodeInSecondaryView)
+        return true;
+    // Auto-route: secondary view is visible while main view is in edit mode
+    return m_viewWindow != nullptr && m_viewWindow->visible() &&
+           m_representation == RepresentationMode::Fem;
 }
 
 void FemViewWindow::setEigenmodeInSecondaryView(bool flag)
@@ -6628,6 +6514,7 @@ void FemViewWindow::clearEigenmodeAnimation()
     m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
     this->redraw();
 }
+
 
 void FemViewWindow::onGlfwResize(int width, int height)
 {

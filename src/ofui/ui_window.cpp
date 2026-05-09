@@ -204,7 +204,7 @@ bool ofui::UiWindow::isFocused()
     if (m_ignoreFocusCheck)
         return false;
 
-    return m_isFocused;
+    return m_visible && m_isFocused;
 }
 
 bool ofui::UiWindow::canClose()

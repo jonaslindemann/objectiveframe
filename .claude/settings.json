@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where /r \"e:\\\\Users\\\\Jonas\\\\Development\" Camera.h)"
+    ]
+  }
+}

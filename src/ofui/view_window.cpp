@@ -132,7 +132,7 @@ void ViewWindow::onRenderScene()
     vfem::Preferences::instance().setShowNodeNumbers(false);
     m_sourceView->showTextLayer(false);
 
-    bool secondaryEigenmode = m_sourceView != nullptr && m_sourceView->isEigenmodeInSecondaryView();
+    bool secondaryEigenmode = m_sourceView != nullptr && m_sourceView->shouldAnimateInSecondaryView();
     if (secondaryEigenmode)
         m_sourceView->applyEigenmodeAnimation();
 
@@ -179,17 +179,26 @@ void ViewWindow::doDraw()
     if (m_syncCamera)
         syncCameraFromSource();
 
-    // Save GL state we will disturb
+    // Save framebuffer binding (not covered by glPushAttrib)
     GLint prevFbo = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
-    GLint prevViewport[4];
-    glGetIntegerv(GL_VIEWPORT, prevViewport);
-    GLboolean prevBlend = glIsEnabled(GL_BLEND);
-    GLint prevBlendSrc = GL_SRC_ALPHA, prevBlendDst = GL_ONE_MINUS_SRC_ALPHA;
-    glGetIntegerv(GL_BLEND_SRC, &prevBlendSrc);
-    glGetIntegerv(GL_BLEND_DST, &prevBlendDst);
-    GLboolean prevDepthTest = glIsEnabled(GL_DEPTH_TEST);
-    GLboolean prevLighting = glIsEnabled(GL_LIGHTING);
+
+    // Save all fixed-function attribute state: enables (GL_BLEND, GL_DEPTH_TEST,
+    // GL_LIGHTING, GL_TEXTURE_1D/2D, GL_SCISSOR_TEST, GL_TEXTURE_GEN_S/T, ...),
+    // viewport, blend func, lighting, texture bindings/env, color material, etc.
+    // Result-mode rendering leaves GL_TEXTURE_1D enabled, sets the GL_TEXTURE matrix
+    // via Texture::apply(), and may change other state — save everything at once.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+    // Save matrix stacks (glPushAttrib does not save actual matrix values)
+    GLint prevMatrixMode;
+    glGetIntegerv(GL_MATRIX_MODE, &prevMatrixMode);
+    glMatrixMode(GL_TEXTURE);
+    glPushMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
 
     // Swap scene camera to ours, render into FBO, restore
     ivf::View* prevView = m_scene->getView();
@@ -214,12 +223,18 @@ void ViewWindow::doDraw()
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
+    // Restore framebuffer first, then matrices, then attributes (glPopAttrib restores viewport)
     glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-    glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
-    if (prevBlend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-    glBlendFunc(prevBlendSrc, prevBlendDst);
-    if (prevDepthTest) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-    if (prevLighting) glEnable(GL_LIGHTING); else glDisable(GL_LIGHTING);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_TEXTURE);
+    glPopMatrix();
+    glMatrixMode(prevMatrixMode);
+
+    glPopAttrib();
 
     m_scene->setView(prevView);
 

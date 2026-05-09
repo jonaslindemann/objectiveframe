@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.4.0";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.5.0";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2026\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -151,6 +151,8 @@ template <typename T> std::string to_string(T Number)
 }
 
 class FemViewWindow : public IvfViewWindow {
+    friend class FemViewScriptRunner;
+
 private:
     std::string m_coordText;
     std::string m_modeDescr;
@@ -598,6 +600,7 @@ public:
     void setEigenmodeInSecondaryView(bool flag);
     bool hasEigenModes() const;
     bool isShowingEigenmodes() const;
+    bool shouldAnimateInSecondaryView() const;
     void applyEigenmodeAnimation();
     void clearEigenmodeAnimation();
 

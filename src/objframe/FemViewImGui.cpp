@@ -1,0 +1,515 @@
+#include "FemView.h"
+
+#include <imgui.h>
+#include <imguifd/ImGuiFileDialog.h>
+#include <imguifd/ImGuiFileDialogConfig.h>
+#include <ofutil/util_functions.h>
+
+#include <thread>
+
+using namespace ivf;
+using namespace std;
+using namespace ofui;
+using namespace ofsolver;
+
+void FemViewWindow::drainScriptQueue()
+{
+    std::lock_guard<std::mutex> lock(m_ai.scriptQueueMutex);
+
+    if (!m_ai.pendingScripts.empty())
+    {
+        auto scriptFunc = m_ai.pendingScripts.front();
+        m_ai.pendingScripts.pop();
+        m_scriptCalledNewModel = false;
+        this->runScriptFromText(scriptFunc);
+
+        if (m_scriptCalledNewModel)
+            this->fitWorkspaceToModel(1.2);
+    }
+}
+
+void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
+{
+    if (!ImGui::BeginMainMenuBar())
+        return;
+
+    if (ImGui::BeginMenu("File"))
+    {
+        if (ImGui::MenuItem("Start page", ""))
+            m_startPopup->show();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("New", "CTRL+N"))
+        {
+            m_showNewFileDlg = true;
+            m_newModelPopup->nodeSize(float(m_relNodeSize * 100.0f));
+            m_newModelPopup->loadSize(float(m_relLoadSize * 100.0f));
+            m_newModelPopup->lineRadius(float(m_relLineRadius * 100.0f));
+            m_newModelPopup->modelSize(float(this->getWorkspace()));
+            m_newModelPopup->show();
+        }
+
+        if (ImGui::MenuItem("Open", "CTRL+O"))
+            m_openDialog = true;
+
+        if (ImGui::MenuItem("Save", "Ctrl+S"))
+            m_saveDialog = true;
+
+        if (ImGui::MenuItem("Save as", "Ctrl+Shift+S"))
+            m_saveAsDialog = true;
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Save as CALFEM...", ""))
+            m_saveAsCalfemDialog = true;
+
+        if (ImGui::MenuItem("Open from CALFEM...", ""))
+            m_openFromCalfemDialog = true;
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("New script...", ""))
+        {
+            m_scriptWindow->newScript();
+            m_scriptWindow->show();
+        }
+
+        if (ImGui::MenuItem("Open script...", ""))
+            m_openEditScriptDialog = true;
+
+        if (ImGui::MenuItem("Run script...", ""))
+            m_openScriptDialog = true;
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Preferences...", ""))
+        {
+            m_settingsWindow->show();
+            m_settingsWindow->center();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Quit", "Alt+F4"))
+            quitApplication = true;
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Edit"))
+    {
+        if (ImGui::MenuItem("Undo", "Ctrl-Z"))
+            this->restoreLastSnapShot();
+
+        if (ImGui::MenuItem("Redo", "Ctrl-Y"))
+            this->restoreLastSnapShot();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Copy", "Ctrl-C"))
+            this->copy();
+        if (ImGui::MenuItem("Paste", "Ctlr-V"))
+            this->paste();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Select all", "Ctrl-A"))
+        {
+            this->setSelectFilter(SelectMode::All);
+            this->selectAllNodes();
+        }
+        if (ImGui::MenuItem("Select all nodes", ""))
+            this->selectAllNodes();
+        if (ImGui::MenuItem("Select all elements", ""))
+            this->selectAllElements();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Fix selected nodes", ""))
+            this->assignNodeFixedBCSelected();
+        if (ImGui::MenuItem("Fix position selected nodes", ""))
+            this->assignNodePosBCSelected();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Fix ground nodes", ""))
+            this->assignNodeFixedBCGround();
+        if (ImGui::MenuItem("Fix position ground nodes", ""))
+            this->assignNodePosBCGround();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Subdivide element", "Ctrl-D"))
+            this->subdivideSelectedBeam();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Mesh selected", "Ctrl-M"))
+            this->meshSelectedNodes();
+        if (ImGui::MenuItem("Surface selected no ground", ""))
+            this->surfaceSelectedNodes(false);
+        if (ImGui::MenuItem("Surface selected with ground", ""))
+            this->surfaceSelectedNodes(true);
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("View"))
+    {
+        if (ImGui::MenuItem("Properties...", ""))
+            m_propWindow->setVisible(true);
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Node loads...", ""))
+        {
+            m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
+            m_nodeLoadsWindow->setVisible(true);
+            this->setNeedRecalc(true);
+        }
+
+        if (ImGui::MenuItem("Element loads...", ""))
+        {
+            m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet *)m_beamModel->getElementLoadSet());
+            m_elementLoadsWindow->setVisible(true);
+            this->setNeedRecalc(true);
+        }
+
+        if (ImGui::MenuItem("Materials...", ""))
+        {
+            m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet *)m_beamModel->getMaterialSet());
+            m_materialsWindow->setVisible(true);
+            this->setNeedRecalc(true);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Script editor...", ""))
+        {
+            m_scriptWindow->show();
+            m_scriptWindow->center();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Secondary view...", ""))
+            m_viewWindow->show();
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Mode"))
+    {
+        if (ImGui::MenuItem("Model", ""))
+            this->setRepresentation(RepresentationMode::Fem);
+        if (ImGui::MenuItem("Geometry", ""))
+            this->setRepresentation(RepresentationMode::Geometry);
+        if (ImGui::MenuItem("Results", ""))
+            this->setRepresentation(RepresentationMode::Results);
+        if (ImGui::MenuItem("Feedback", ""))
+            this->setCustomMode(CustomMode::Feedback);
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Create"))
+    {
+        if (ImGui::MenuItem("Create using AI", ""))
+            m_promptWindow->show();
+
+        ImGui::Separator();
+
+        for (auto &p : m_plugins)
+        {
+            if (ImGui::MenuItem(p->name().c_str(), ""))
+            {
+                this->setCustomMode(CustomMode::Structure);
+                m_pluginWindow->setPlugin(p.get());
+                m_pluginWindow->center();
+                m_pluginWindow->show();
+            }
+        }
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Calc"))
+    {
+        if (ImGui::MenuItem("Execute", "Ctrl-R"))
+            executeCalc = true;
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Results"))
+    {
+        if (ImGui::MenuItem("Normal", ""))
+            this->setResultType(IVF_BEAM_N);
+        if (ImGui::MenuItem("Torsion", ""))
+            this->setResultType(IVF_BEAM_T);
+        if (ImGui::MenuItem("Shear", ""))
+            this->setResultType(IVF_BEAM_V);
+        if (ImGui::MenuItem("Moment", ""))
+            this->setResultType(IVF_BEAM_M);
+        if (ImGui::MenuItem("Navier", ""))
+            this->setResultType(IVF_BEAM_NAVIER);
+        if (ImGui::MenuItem("No results", ""))
+            this->setResultType(IVF_BEAM_NO_RESULT);
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("X-ray mode", "Alt-X"))
+            this->setUseBlending(!getUseBlending());
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Scaling settings...", ""))
+        {
+            m_scaleWindow->show();
+            m_scaleWindow->setPosition(100, 20);
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Help"))
+    {
+        if (ImGui::MenuItem("About...", ""))
+        {
+            m_aboutWindow->show();
+            m_aboutWindow->center();
+        }
+        if (ImGui::MenuItem("Homepage...", ""))
+        {
+#ifdef WIN32
+            ShellExecuteW(0, 0, L"https://jonaslindemann.github.io/objectiveframe/", 0, 0, SW_SHOW);
+#endif
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Log...", ""))
+        {
+            m_logWindow->show();
+            m_logWindow->center();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Diagnostics", ""))
+            m_showDiagnostics = !m_showDiagnostics;
+
+        ImGui::EndMenu();
+    }
+
+    ImGui::EndMainMenuBar();
+}
+
+void FemViewWindow::drawPopups()
+{
+    m_newModelPopup->draw();
+
+    if (m_newModelPopup->closed())
+    {
+        if (m_newModelPopup->modalResult() == PopupResult::OK)
+        {
+            m_relNodeSize = m_newModelPopup->nodeSize() / 100.0;
+            m_relLineRadius = m_newModelPopup->lineRadius() / 100.0;
+            m_relLoadSize = m_newModelPopup->loadSize() / 100.0;
+            this->setWorkspace(m_newModelPopup->modelSize());
+            this->newModel();
+        }
+        else if (m_newModelPopup->modalResult() == PopupResult::CANCEL)
+        {
+            log("Cancel pressed");
+        }
+    }
+
+    m_notificationOverlay->draw(ImGui::GetIO().DeltaTime);
+
+    m_startPopup->draw();
+
+    if (m_showStyleEditor)
+        ImGui::ShowStyleEditor();
+
+    if (m_showMetricsWindow)
+        ImGui::ShowMetricsWindow(&m_showMetricsWindow);
+
+    if (m_showDiagnostics)
+        ImGui::ShowDemoWindow(&m_showDiagnostics);
+}
+
+void FemViewWindow::drawFileDialogs()
+{
+    if (!m_useImGuiFileDialogs)
+        return;
+
+    auto openFileDialog = [](const char *key, const char *title, const char *filter, const char *configKey) {
+        IGFD::FileDialogConfig config;
+        config.path = ofutil::get_config_value(configKey, ofutil::samples_folder());
+
+        auto viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + 100.0, viewport->WorkPos.y + 20.0), ImGuiCond_Always);
+        ImGuiFileDialog::Instance()->OpenDialog(key, title, filter, config);
+    };
+
+    if (m_openDialog)
+        openFileDialog("Open model", "Choose File", ".df3", "last_dir");
+
+    if (m_saveAsDialog)
+        openFileDialog("Save model", "Choose File", ".df3", "last_dir");
+
+    if (m_saveDialog)
+    {
+        if (m_fileName == "noname.df3")
+        {
+            openFileDialog("Save model", "Choose File", ".df3", "last_dir");
+        }
+        else
+        {
+            m_beamModel->save();
+            if (m_saveScreenShot)
+                this->saveScreenShot(m_fileName + ".png");
+            m_saveDialog = false;
+        }
+    }
+
+    if (m_saveAsCalfemDialog)
+        openFileDialog("Save as CALFEM", "Choose File", ".py", "last_calfem_dir");
+
+    if (m_openFromCalfemDialog)
+        openFileDialog("Open from CALFEM", "Choose File", ".py", "last_calfem_dir");
+
+    if (m_openScriptDialog)
+        openFileDialog("Open script", "Choose File", ".chai", "last_script_dir");
+
+    if (m_openEditScriptDialog)
+        openFileDialog("Edit script", "Choose File", ".chai", "last_script_dir");
+
+    if (m_newScriptDialog)
+        openFileDialog("New script", "Choose File", ".chai", "last_script_dir");
+
+    if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+            this->open(filePathName);
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_openDialog = false;
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+
+            if (!filePathName.empty())
+            {
+                this->setFileName(filePathName);
+                m_beamModel->setFileName(m_fileName);
+                m_beamModel->save();
+                if (m_saveScreenShot)
+                    this->saveScreenShot(m_fileName + ".png");
+            }
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_saveAsDialog = false;
+        m_saveDialog = false;
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Save as CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_calfem_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+
+            if (!filePathName.empty())
+                this->exportAsCalfem(filePathName);
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_saveAsCalfemDialog = false;
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Open from CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_calfem_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+
+            if (!filePathName.empty())
+                this->importAsCalfem(filePathName);
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_openFromCalfemDialog = false;
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Open script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_script_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+
+            if (!filePathName.empty())
+            {
+                std::thread([this, filePathName]() {
+                    try
+                    {
+                        this->lockSceneRendering();
+                        this->runScript(filePathName);
+                        this->unlockSceneRendering();
+                        this->redraw();
+                    } catch (const std::exception &e)
+                    {
+                        this->unlockSceneRendering();
+                        log("Script execution error: " + std::string(e.what()));
+                    }
+                }).detach();
+            }
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_openScriptDialog = false;
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("Edit script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_script_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+
+            if (!filePathName.empty())
+            {
+                m_scriptWindow->open(filePathName);
+                m_scriptWindow->show();
+                m_scriptWindow->center();
+            }
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_openEditScriptDialog = false;
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("New script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            ofutil::set_config_value("last_script_dir", ImGuiFileDialog::Instance()->GetCurrentPath());
+
+            if (!filePathName.empty())
+            {
+                m_scriptWindow->open(filePathName);
+                m_scriptWindow->show();
+                m_scriptWindow->center();
+            }
+        }
+        ImGuiFileDialog::Instance()->Close();
+        m_newScriptDialog = false;
+    }
+}

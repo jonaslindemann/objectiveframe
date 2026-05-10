@@ -152,6 +152,9 @@ template <typename T> std::string to_string(T Number)
 
 class FemViewWindow : public IvfViewWindow {
     friend class FemViewScriptRunner;
+    friend class FemViewSolverHandler;
+    friend class FemViewEigenmodeHandler;
+    friend class FemViewAiHandler;
 
 private:
     std::string m_coordText;
@@ -174,11 +177,18 @@ private:
     std::filesystem::path m_aiPath;
 
     bool m_overlaySelected;
-    bool m_haveScaleFactor;
-    bool m_needRecalc;
+    struct SolverState {
+        ofsolver::BeamSolverPtr beam;
+        ofsolver::SolverInterface *current{nullptr};
+        bool needRecalc{true};
+        bool saneModel{false};
+        bool haveScaleFactor{false};
+        bool lockScaleFactor{false};
+    };
+    SolverState m_solver;
+
     bool m_overWorkspace;
     bool m_lastOverWorkspace;
-    bool m_lockScaleFactor;
     bool m_nodeSelection;
     bool m_singleNodeSelection;
     bool m_elementSelection;
@@ -208,8 +218,6 @@ private:
     double m_relLoadSize;
     double m_relLineRadius;
 
-    bool m_saneModel;
-
     int m_argc;
     char **m_argv;
 
@@ -225,9 +233,6 @@ private:
 #ifdef USE_LEAP
     LeapInteraction *m_leapinteraction;
 #endif
-
-    ofsolver::BeamSolverPtr m_beamSolver;
-    ofsolver::SolverInterface *m_currentSolver;
 
     ofsolver::TetgenBeamMesherPtr m_tetMesher;
 
@@ -273,10 +278,6 @@ private:
     bool m_useBlending;
     bool m_useImGuiFileDialogs;
 
-    // AI
-
-    std::string m_aiApiKey;
-
     // Dialogs
 
     ofui::CoordWindowPtr m_coordWindow;
@@ -304,9 +305,12 @@ private:
     ofui::EigenmodeWindowPtr m_eigenmodeWindow;
     ofui::ViewWindowPtr m_viewWindow;
 
-    bool m_eigenmodeInSecondaryView{false};
-    bool m_showingEigenmodes{false};
-    bool m_savedShowNodeNumbers{true};
+    struct EigenmodeState {
+        bool inSecondaryView{false};
+        bool showing{false};
+        bool savedShowNodeNumbers{true};
+    };
+    EigenmodeState m_eigenmode;
 
     ofui::WindowListPtr m_windowList;
 
@@ -349,15 +353,17 @@ private:
 
     // Ai
 
-    ofai::StructureGenerator m_structureGenerator;
-    ofai::PromptDatabase m_promptDatabase;
-    bool m_isProcessingAiRequest;
-    bool m_autoRunAiScript;
-    std::string m_systemPromptFilename;
-    
-    // Script queue for executing on main thread
-    std::mutex m_scriptQueueMutex;
-    std::queue<std::string> m_pendingScripts;
+    struct AiState {
+        std::string apiKey{""};
+        ofai::StructureGenerator structureGenerator{""};
+        ofai::PromptDatabase promptDatabase;
+        bool isProcessing{false};
+        bool autoRunScript{true};
+        std::string systemPromptFilename{""};
+        std::mutex scriptQueueMutex;
+        std::queue<std::string> pendingScripts;
+    };
+    AiState m_ai;
 
     // Handle mouse updates
 
@@ -380,6 +386,13 @@ private:
     void setupAi();
 
     void refreshUiStyle();
+
+    // ImGui drawing helpers (implementations in FemViewImGui.cpp)
+
+    void drainScriptQueue();
+    void drawMainMenuBar(bool &executeCalc, bool &quitApplication);
+    void drawPopups();
+    void drawFileDialogs();
 
 public:
     FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,

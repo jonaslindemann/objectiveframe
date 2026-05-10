@@ -2,6 +2,9 @@
 
 #include "FemViewScriptBindings.h"
 #include "FemViewScriptRunner.h"
+#include "FemViewSolverHandler.h"
+#include "FemViewEigenmodeHandler.h"
+#include "FemViewAiHandler.h"
 
 #include <filesystem>
 #include <functional>
@@ -26,9 +29,6 @@
 #include <ofutil/util_functions.h>
 
 #include <logger.h>
-
-#include <imguifd/ImGuiFileDialog.h>
-#include <imguifd/ImGuiFileDialogConfig.h>
 
 #include <ofai/structure_generator.h>
 
@@ -296,24 +296,23 @@ unsigned int fl_cmap[256] = {
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
     : IvfViewWindow(width, height, title, monitor, shared), m_uiScale{1.0f}, m_service{nullptr}, m_width{width},
-      m_height{height}, m_tactileForce{nullptr}, m_currentSolver{nullptr}, m_relNodeSize{0.004},
+      m_height{height}, m_tactileForce{nullptr}, m_relNodeSize{0.004},
       m_relLineRadius{0.0015}, m_relLoadSize{0.06}, m_customMode{CustomMode::Feedback}, m_customModeSet{false},
-      m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0}, m_haveScaleFactor{false}, m_needRecalc{true},
+      m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
       m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All}, m_highlightFilter{HighlightMode::All},
-      m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true}, m_lockScaleFactor{false},
-      m_saneModel{false}, m_selectedPos{0.0, 0.0, 0.0}, m_useSphereCursor{false}, m_useBlending{false},
+      m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},
+      m_selectedPos{0.0, 0.0, 0.0}, m_useSphereCursor{false}, m_useBlending{false},
       m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""}, m_showNodeBCsWindow{false},
       m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false}, m_elementSelection{false},
       m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false}, m_saveAsDialog{false},
       m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}, m_openScriptDialog{false},
-      m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false}, m_aiApiKey{""},
-      m_structureGenerator(""), m_isProcessingAiRequest{false}, m_pluginRunning{false}, m_autoRunAiScript{true},
-      m_systemPromptFilename{""}
+      m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false},
+      m_pluginRunning{false}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
 
-    m_aiApiKey = ofutil::get_config_value("ai_api_key", "");
+    m_ai.apiKey = ofutil::get_config_value("ai_api_key", "");
 }
 
 std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, const std::string title,
@@ -324,7 +323,7 @@ std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, cons
 
 FemViewWindow::~FemViewWindow()
 {
-    ofutil::set_config_value("ai_api_key", m_aiApiKey);
+    ofutil::set_config_value("ai_api_key", m_ai.apiKey);
     log("Destructor.");
 }
 
@@ -345,60 +344,32 @@ void FemViewWindow::runScriptFromText(std::string scriptText)
 
 void FemViewWindow::makeAiRequest(const std::string &userPrompt)
 {
-    if (m_aiApiKey.empty())
-    {
-        log("No API key set for AI service.");
-        return;
-    }
-
-    m_structureGenerator.setApiKey(m_aiApiKey);
-    m_structureGenerator.generateStructureAsync(userPrompt, std::bind(&FemViewWindow::onGenerationComplete, this,
-                                                                      std::placeholders::_1, std::placeholders::_2));
-
-    m_isProcessingAiRequest = true;
+    FemViewAiHandler::makeRequest(*this, userPrompt);
 }
 
 void FemViewWindow::onGenerationComplete(const std::string &result, bool success)
 {
-    if (success)
-    {
-        log("AI generation successful.");
-        m_promptWindow->clearOutput();
-        m_promptWindow->addOutput(result);
-        
-        if (m_autoRunAiScript)
-        {
-            std::lock_guard<std::mutex> lock(m_scriptQueueMutex);
-            m_pendingScripts.push(result);
-            log("Script queued for execution on main thread.");
-        }
-        m_isProcessingAiRequest = false;
-    }
-    else
-    {
-        log("AI generation failed.");
-        m_isProcessingAiRequest = false;
-    }
+    FemViewAiHandler::onGenerationComplete(*this, result, success);
 }
 
 bool FemViewWindow::isProcessingAiRequest() const
 {
-    return m_isProcessingAiRequest;
+    return m_ai.isProcessing;
 }
 
 void FemViewWindow::setAutoRunAiScript(bool autoRun)
 {
-    m_autoRunAiScript = autoRun;
+    m_ai.autoRunScript = autoRun;
 }
 
 bool FemViewWindow::autoRunAiScript() const
 {
-    return m_autoRunAiScript;
+    return m_ai.autoRunScript;
 }
 
 ofai::PromptDatabase &FemViewWindow::getPromptDatabase()
 {
-    return m_promptDatabase;
+    return m_ai.promptDatabase;
 }
 
 // Get/set methods
@@ -556,10 +527,10 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
 {
     // Change model representation
 
-    if (m_showingEigenmodes && repr != RepresentationMode::Results)
+    if (m_eigenmode.showing && repr != RepresentationMode::Results)
     {
-        m_showingEigenmodes = false;
-        m_beamModel->setShowNodeNumbers(m_savedShowNodeNumbers);
+        m_eigenmode.showing = false;
+        m_beamModel->setShowNodeNumbers(m_eigenmode.savedShowNodeNumbers);
     }
 
     m_representation = repr;
@@ -793,7 +764,7 @@ void FemViewWindow::setCustomMode(CustomMode mode)
 
     m_customMode = mode;
     m_customModeSet = true;
-    m_haveScaleFactor = false;
+    m_solver.haveScaleFactor = false;
     this->setBeamRefreshMode(ivf::rmNodes);
 
     if (m_customMode == CustomMode::Feedback)
@@ -804,7 +775,7 @@ void FemViewWindow::setCustomMode(CustomMode mode)
             m_eigenmodeWindow->setAnimate(false);
             m_eigenmodeWindow->setHasEigenmodes(false);
         }
-        m_eigenmodeInSecondaryView = false;
+        m_eigenmode.inSecondaryView = false;
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
 
         m_tactileForce->setState(Shape::OS_OFF);
@@ -848,7 +819,7 @@ void FemViewWindow::setHighlightFilter(HighlightMode filter)
 
 void FemViewWindow::setNeedRecalc(bool flag)
 {
-    m_needRecalc = flag;
+    m_solver.needRecalc = flag;
 }
 
 void FemViewWindow::setRelNodeSize(double size)
@@ -983,9 +954,9 @@ void FemViewWindow::restoreLastSnapShot()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
-    m_currentSolver = nullptr;
+    m_solver.current = nullptr;
 
     this->setEditMode(prevEditMode);
 }
@@ -1026,9 +997,9 @@ void FemViewWindow::revertLastSnapShot()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
-    m_currentSolver = nullptr;
+    m_solver.current = nullptr;
 
     this->setEditMode(prevEditMode);
 }
@@ -1072,9 +1043,9 @@ void FemViewWindow::openFromString(const std::string df3_string)
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
-    m_currentSolver = nullptr;
+    m_solver.current = nullptr;
 
     this->setEditMode(WidgetMode::Select);
 
@@ -1140,9 +1111,9 @@ void FemViewWindow::open(std::string filename)
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
-    m_currentSolver = nullptr;
+    m_solver.current = nullptr;
 
     this->setEditMode(WidgetMode::Select);
 
@@ -1305,9 +1276,9 @@ void FemViewWindow::newModel()
 
     this->getScene()->addChild(m_tactileForce);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
-    m_currentSolver = nullptr;
+    m_solver.current = nullptr;
 
     this->setEditMode(WidgetMode::ViewZoom);
 
@@ -1397,7 +1368,7 @@ void FemViewWindow::fitWorkspaceToModel(double padding)
     this->updateAxisLabels();
     
     // Mark for recalculation and redraw
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -1422,7 +1393,7 @@ void FemViewWindow::assignMaterialToSelected()
         // Shapes has to be refreshed to represent the
         // the changes
 
-        m_needRecalc = true;
+        m_solver.needRecalc = true;
         this->set_changed();
         this->redraw();
     }
@@ -1446,7 +1417,7 @@ void FemViewWindow::removeMaterialFromSelected()
     // Shapes has to be refreshed to represent the
     // the changes
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -1465,7 +1436,7 @@ void FemViewWindow::deleteBeamLoad(ofem::BeamLoad *elementLoad)
 
     // Remove load from beam model
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     m_beamModel->getElementLoadSet()->removeLoad(elementLoad);
@@ -1488,7 +1459,7 @@ void FemViewWindow::deleteSelected()
 
     m_beamModel->enumerate();
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -1515,7 +1486,7 @@ void FemViewWindow::addBeamLoad(ofem::BeamLoad *elementLoad)
 
     // Add representation to scene
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
     this->addToScene(visLoad);
 }
@@ -1542,7 +1513,7 @@ void FemViewWindow::addNodeLoad(ofem::BeamNodeLoad *nodeLoad)
 
     // Add representation to scene
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
     this->addToScene(visNodeLoad);
 }
@@ -1659,7 +1630,7 @@ void FemViewWindow::subdivideSelectedBeam()
 
             // We need a recalc
 
-            m_needRecalc = true;
+            m_solver.needRecalc = true;
 
             this->addToScene(vbeam0);
             this->addToScene(vbeam1);
@@ -1707,7 +1678,7 @@ void FemViewWindow::meshSelectedNodes()
     // Shapes has to be refreshed to represent the
     // the changes
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -1776,7 +1747,7 @@ void FemViewWindow::surfaceSelectedNodes(bool groundElements)
     // Shapes has to be refreshed to represent the
     // the changes
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -1802,7 +1773,7 @@ void FemViewWindow::addNodeBC(ofem::BeamNodeBC *bc)
 
     // Add representation to scene
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
     this->addToScene(visNodeBC);
 }
@@ -1830,7 +1801,7 @@ void FemViewWindow::assignBeamLoadSelected()
         // Shapes has to be refreshed to represent the
         // the changes
 
-        m_needRecalc = true;
+        m_solver.needRecalc = true;
         if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
             clearEigenmodes();
         this->set_changed();
@@ -1860,7 +1831,7 @@ void FemViewWindow::assignNodeLoadSelected()
         // Shapes has to be refreshed to represent the
         // the changes
 
-        m_needRecalc = true;
+        m_solver.needRecalc = true;
         if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
             clearEigenmodes();
         this->set_changed();
@@ -1904,7 +1875,7 @@ void FemViewWindow::deleteNodeBC(ofem::BeamNodeBC *bc)
 
     // Remove load from beam model
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     m_beamModel->getNodeBCSet()->removeBC(bc);
@@ -2121,20 +2092,20 @@ void FemViewWindow::setupAi()
         auto filename = m_aiPath / fs::path("system_prompt.md");
         if (std::filesystem::exists(filename))
         {
-            m_systemPromptFilename = filename.string();
-            m_structureGenerator.loadSystemPromptFrom(m_systemPromptFilename);
-            log("Loaded system prompt - " + m_systemPromptFilename);
+            m_ai.systemPromptFilename = filename.string();
+            m_ai.structureGenerator.loadSystemPromptFrom(m_ai.systemPromptFilename);
+            log("Loaded system prompt - " + m_ai.systemPromptFilename);
         }
         else
         {
             log("Couldn't find system prompt file...");
-            m_systemPromptFilename = "";
+            m_ai.systemPromptFilename = "";
         }
 
         filename = m_aiPath / fs::path("prompts_db.json");
         if (std::filesystem::exists(filename))
         {
-            m_promptDatabase.loadFromFile(filename.string());
+            m_ai.promptDatabase.loadFromFile(filename.string());
             log("Loaded prompts database - " + filename.string());
         }
         else
@@ -2188,7 +2159,7 @@ void FemViewWindow::assignNodeBCSelected()
         // Shapes has to be refreshed to represent the
         // the changes
 
-        m_needRecalc = true;
+        m_solver.needRecalc = true;
         if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
             clearEigenmodes();
         this->set_changed();
@@ -2232,547 +2203,32 @@ void FemViewWindow::assignNodePosBCGround()
 
 void FemViewWindow::executeCalc()
 {
-    // Reset any active eigenmode state so the regular results can display normally
-    if (m_eigenmodeWindow != nullptr)
-    {
-        m_eigenmodeWindow->setAnimate(false);
-        m_eigenmodeWindow->setHasEigenmodes(false);
-    }
-    m_eigenmodeInSecondaryView = false;
-    m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
-
-    m_beamSolver = BeamSolver::create();
-    m_currentSolver = m_beamSolver.get();
-
-    m_currentSolver->setBeamModel(m_beamModel.get());
-    // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
-    m_currentSolver->execute();
-
-    if (m_currentSolver->modelState() != ModelState::Ok)
-    {
-        switch (m_currentSolver->modelState())
-        {
-        case ModelState::NoNodes:
-            this->notify("No nodes defined.", NotificationLevel::Warning);
-            break;
-        case ModelState::NoElements:
-            this->notify("No elements defined.", NotificationLevel::Warning);
-            break;
-        case ModelState::NoBC:
-            this->notify("No boundary conditions defined.", NotificationLevel::Warning);
-            break;
-        case ModelState::NoLoads:
-            this->notify("No loads defined. Showing structural eigenmodes.", NotificationLevel::Info);
-            this->computeEigenmodes(5);
-            break;
-        case ModelState::Unstable:
-            this->notify("Structure is unstable. Showing eigenmodes.", NotificationLevel::Warning);
-            this->computeEigenmodes(5);
-            break;
-        case ModelState::Singular:
-            this->notify("System is singular. Check for free nodes.", NotificationLevel::Error);
-            break;
-        case ModelState::Invalid:
-            this->notify("Invalid model state.", NotificationLevel::Error);
-            break;
-        case ModelState::UndefinedMaterial:
-            this->notify("Elements without materials found.", NotificationLevel::Warning);
-            break;
-        case ModelState::SolveFailed:
-            this->notify("Solver failed. Showing eigenmodes.", NotificationLevel::Error);
-            this->computeEigenmodes(5);
-            break;
-        case ModelState::RecomputeFailed:
-            this->notify("Recomputation failed.", NotificationLevel::Error);
-            break;
-        case ModelState::SetupFailed:
-            this->notify("Solver setup failed.", NotificationLevel::Error);
-            break;
-        default:
-            this->notify("Unhandled solver error.", NotificationLevel::Error);
-            break;
-        }
-        m_needRecalc = true;
-    }
-    else
-        m_needRecalc = false;
-
-    auto maxNodeValue = m_currentSolver->getMaxNodeValue();
-    auto maxReactionForce = m_currentSolver->getMaxReactionForce();
-    auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
-
-    m_beamModel->setMaxReactionForce(maxReactionForce);
-    m_beamModel->setMaxReactionMoment(maxReactionMoment);
-
-    // Calculate default scalefactor
-
-    log("Max node value = " + std::to_string(maxNodeValue));
-
-    if (!m_lockScaleFactor)
-    {
-        if (maxNodeValue > 0.0)
-            m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / maxNodeValue);
-        else
-            m_beamModel->setScaleFactor(1.0);
-    }
-
-    m_settingsWindow->update();
-    m_scaleWindow->show();
-    m_scaleWindow->setPosition(100, 20);
-
-    m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
-    m_loadMixerWindow->show();
-    m_loadMixerWindow->setPosition(100, 240);
-
-    // Show displacements
-
-    this->setRepresentation(RepresentationMode::Results);
+    FemViewSolverHandler::executeCalc(*this);
 }
 
 void FemViewWindow::recompute()
 {
-    // Is there a calculation ?
-
-    if (m_needRecalc)
-    {
-        double maxNodeValue = 0.0;
-
-        m_beamSolver = BeamSolver::create();
-        m_currentSolver = m_beamSolver.get();
-
-        m_currentSolver->setBeamModel(m_beamModel.get());
-
-        // Setup feedback force
-
-        m_currentSolver->execute();
-
-        // We assume the worst case
-
-        m_saneModel = false;
-
-        switch (m_currentSolver->modelState())
-        {
-        case ModelState::NoNodes:
-            break;
-        case ModelState::NoElements:
-            break;
-        case ModelState::NoBC:
-            break;
-        case ModelState::NoLoads:
-            break;
-        case ModelState::Unstable:
-            break;
-        case ModelState::Singular:
-            break;
-        case ModelState::Invalid:
-            break;
-        case ModelState::UndefinedMaterial:
-            break;
-        case ModelState::SolveFailed:
-            break;
-        case ModelState::RecomputeFailed:
-            break;
-        case ModelState::SetupFailed:
-            break;
-        default:
-            m_saneModel = true;
-            break;
-        }
-
-        maxNodeValue = m_currentSolver->getMaxNodeValue();
-
-        auto maxReactionForce = m_currentSolver->getMaxReactionForce();
-        auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
-
-        m_beamModel->setMaxReactionForce(maxReactionForce);
-        m_beamModel->setMaxReactionMoment(maxReactionMoment);
-
-        // Only compute the scale factor at the first attempt
-
-        if (!m_lockScaleFactor)
-        {
-            if (!m_haveScaleFactor)
-            {
-                m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
-                m_haveScaleFactor = true;
-            }
-        }
-
-        m_needRecalc = false;
-
-        // Show displacements
-
-        this->setRepresentation(RepresentationMode::Results);
-    }
-
-    // Continuosly recompute solution
-
-    if (m_saneModel)
-    {
-        if (m_currentSolver != nullptr)
-        {
-
-            // Setup feedback force
-
-            // Execute calculation
-
-            m_currentSolver->recompute();
-            m_currentSolver->update(); // NEW
-
-            auto maxReactionForce = m_currentSolver->getMaxReactionForce();
-            auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
-
-            m_beamModel->setMaxReactionForce(maxReactionForce);
-            m_beamModel->setMaxReactionMoment(maxReactionMoment);
-
-            // Only compute the scale factor at the first attempt
-
-            if (!m_lockScaleFactor)
-            {
-                if (!m_haveScaleFactor)
-                {
-                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
-                    m_haveScaleFactor = true;
-                }
-            }
-
-            // Refresh scene (Solid lines must be updated)
-
-            this->getScene()->getComposite()->refresh();
-            this->redraw();
-        }
-    }
+    FemViewSolverHandler::recompute(*this);
 }
 
 void FemViewWindow::computeEigenmodes(int numModes)
 {
-    if (m_currentSolver == nullptr)
-    {
-        log("No solver available. Run analysis first.");
-        return;
-    }
-
-    log("Computing " + std::to_string(numModes) + " eigenmodes...");
-
-    if (m_currentSolver->computeEigenModes(numModes))
-    {
-        log("Successfully computed " + std::to_string(m_currentSolver->getNumEigenModes()) + " eigenmodes.");
-
-        // Save state and disable node numbers for eigenmode view
-        m_savedShowNodeNumbers = m_beamModel->showNodeNumbers();
-        m_beamModel->setShowNodeNumbers(false);
-        m_showingEigenmodes = true;
-        
-        // Update eigenmode window
-        m_eigenmodeWindow->setHasEigenmodes(true);
-        m_eigenmodeWindow->setNumModes(m_currentSolver->getNumEigenModes());
-        m_eigenmodeWindow->setAnimate(true);
-        {
-            // Base scale on the structure's bounding box diagonal so it looks
-            // proportional regardless of model size or workspace setting.
-            auto nodeSet = m_beamModel->getNodeSet();
-            double minX = std::numeric_limits<double>::max(), maxX = std::numeric_limits<double>::lowest();
-            double minY = std::numeric_limits<double>::max(), maxY = std::numeric_limits<double>::lowest();
-            double minZ = std::numeric_limits<double>::max(), maxZ = std::numeric_limits<double>::lowest();
-            for (size_t i = 0; i < nodeSet->getSize(); i++)
-            {
-                double x, y, z;
-                nodeSet->getNode(i)->getCoord(x, y, z);
-                minX = std::min(minX, x); maxX = std::max(maxX, x);
-                minY = std::min(minY, y); maxY = std::max(maxY, y);
-                minZ = std::min(minZ, z); maxZ = std::max(maxZ, z);
-            }
-            double dx = maxX - minX, dy = maxY - minY, dz = maxZ - minZ;
-            double diagonal = std::sqrt(dx*dx + dy*dy + dz*dz);
-            double autoScale = (diagonal > 0.0) ? diagonal * 0.05 : this->getWorkspace() * 0.05;
-            m_eigenmodeWindow->setModeScaleFactor(autoScale);
-            m_eigenmodeWindow->setScaleSliderMax(float(autoScale) * 10.0f);
-        }
-        m_eigenmodeWindow->setCurrentMode(0);
-        m_eigenmodeWindow->show();
-        m_tactileForce->setState(Shape::OS_OFF);
-        m_interactionNode = nullptr;
-        {
-            const ImGuiViewport *vp = ImGui::GetMainViewport();
-            int posX = int(vp->WorkSize.x) - 600;
-            m_eigenmodeWindow->setPosition(posX, 120);
-        }
-        setEigenmodeInSecondaryView(false); // show animation in secondary view by default
-
-        // Collect eigenvalues and pass to window for display
-        {
-            std::vector<double> eigenvalues;
-            for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
-                eigenvalues.push_back(m_currentSolver->getEigenValue(i));
-            m_eigenmodeWindow->setEigenvalues(eigenvalues);
-        }
-
-        // Log eigenvalue information
-        for (int i = 0; i < m_currentSolver->getNumEigenModes(); i++)
-        {
-            double eigenvalue = m_currentSolver->getEigenValue(i);
-            std::string status = eigenvalue < 0 ? " (UNSTABLE)" : "";
-            log("  Mode " + std::to_string(i + 1) + ": eigenvalue = " + std::to_string(eigenvalue) + status);
-        }
-        
-        // Set visualization to first mode
-        setEigenmodeVisualization(0);
-        
-        // Switch to results visualization mode
-        this->setRepresentation(RepresentationMode::Results);
-    }
-    else
-    {
-        log("Failed to compute eigenmodes.");
-        m_eigenmodeWindow->setHasEigenmodes(false);
-    }
+    FemViewEigenmodeHandler::compute(*this, numModes);
 }
 
 void FemViewWindow::clearEigenmodes()
 {
-    if (m_currentSolver == nullptr)
-    {
-        log("No solver available.");
-        return;
-    }
-
-    log("Clearing eigenmodes...");
-    m_currentSolver->clearEigenModes();
-    m_eigenmodeWindow->setHasEigenmodes(false);
-    m_eigenmodeWindow->setEigenvalues({});
-    m_eigenmodeInSecondaryView = false;
-
-    // Clear node displacements
-    m_beamModel->clearNodeValues();
-    m_showingEigenmodes = false;
-    m_beamModel->setShowNodeNumbers(m_savedShowNodeNumbers);
-    this->set_changed();
-    this->redraw();
+    FemViewEigenmodeHandler::clear(*this);
 }
 
 void FemViewWindow::setEigenmodeVisualization(int mode)
 {
-    if (m_currentSolver == nullptr || !m_currentSolver->hasEigenModes())
-    {
-        log("No eigenmodes available.");
-        return;
-    }
-
-    if (mode < 0 || mode >= m_currentSolver->getNumEigenModes())
-    {
-        log("Invalid eigenmode index: " + std::to_string(mode));
-        return;
-    }
-
-    log("Visualizing eigenmode " + std::to_string(mode + 1));
-
-    // Get the eigenvector for this mode
-    Eigen::VectorXd eigenvector;
-    m_currentSolver->getEigenVector(mode, eigenvector);
-
-    // Apply eigenvector to node displacements
-    auto nodeSet = m_beamModel->getNodeSet();
-    
-    double maxDisplacement = 0.0;
-    
-    // First pass: find max displacement for scaling
-    for (size_t i = 0; i < nodeSet->getSize(); i++)
-    {
-        auto node = nodeSet->getNode(i);
-        
-        if (node->getKind() != ofem::nkNotConnected)
-        {
-            // Check all DOFs of this node type (6 for 6DOF nodes, 3 for 3DOF nodes)
-            int maxDofToCheck = (node->getKind() == ofem::nk6Dof) ? 6 : 3;
-            for (int j = 0; j < maxDofToCheck; j++)
-            {
-                if (node->getDof(j) != nullptr)
-                {
-                    int dofNum = node->getDof(j)->getNumber() - 1;
-                    if (dofNum >= 0 && dofNum < eigenvector.size())
-                    {
-                        double disp = std::abs(eigenvector(dofNum));
-                        if (disp > maxDisplacement)
-                            maxDisplacement = disp;
-                    }
-                }
-            }
-        }
-    }
-
-    // Second pass: apply normalized displacements
-    for (size_t i = 0; i < nodeSet->getSize(); i++)
-    {
-        auto node = nodeSet->getNode(i);
-        
-        if (node->getKind() == ofem::nk6Dof)
-        {
-            node->setValueSize(12);
-            for (int j = 0; j < 6; j++)
-            {
-                if (node->getDof(j) != nullptr)
-                {
-                    int dofNum = node->getDof(j)->getNumber() - 1;
-                    if (dofNum >= 0 && dofNum < eigenvector.size())
-                    {
-                        double value = eigenvector(dofNum);
-                        if (maxDisplacement > 0)
-                            value /= maxDisplacement; // Normalize
-                        node->setValue(j, value);
-                    }
-                    else
-                        node->setValue(j, 0.0);
-                }
-                else
-                    node->setValue(j, 0.0);
-                    
-                // Clear reaction forces for eigenmode visualization
-                node->setValue(j + 6, 0.0);
-            }
-        }
-        else if (node->getKind() == ofem::nk3Dof)
-        {
-            node->setValueSize(6);
-            for (int j = 0; j < 3; j++)
-            {
-                if (node->getDof(j) != nullptr)
-                {
-                    int dofNum = node->getDof(j)->getNumber() - 1;
-                    if (dofNum >= 0 && dofNum < eigenvector.size())
-                    {
-                        double value = eigenvector(dofNum);
-                        if (maxDisplacement > 0)
-                            value /= maxDisplacement; // Normalize
-                        node->setValue(j, value);
-                    }
-                    else
-                        node->setValue(j, 0.0);
-                }
-                else
-                    node->setValue(j, 0.0);
-                    
-                // Clear reaction forces
-                node->setValue(j + 3, 0.0);
-            }
-        }
-    }
-
-    // Update scale factor for better visualization
-    if (!m_lockScaleFactor && maxDisplacement > 0)
-    {
-        //double eigenScaleFactor = this->getWorkspace() * 0.1; // 10% of workspace
-        m_beamModel->setScaleFactor(m_eigenmodeWindow->getModeScaleFactor());
-        // Initialize the eigenmode window scale factor based on workspace
-        //m_eigenmodeWindow->setModeScaleFactor(eigenScaleFactor);
-    }
-
-    this->set_changed();
-    this->redraw();
+    FemViewEigenmodeHandler::setVisualization(*this, mode);
 }
 
 void FemViewWindow::updateEigenmodeVisualization(float phase)
 {
-    if (m_currentSolver == nullptr || !m_currentSolver->hasEigenModes())
-        return;
-
-    int currentMode = m_eigenmodeWindow->getCurrentMode();
-    double animationScale = std::sin(phase); // Oscillates between -1 and 1
-    double modeScaleFactor = m_eigenmodeWindow->getModeScaleFactor();
-
-    // Keep beamModel scale in sync with slider every frame
-    if (!m_lockScaleFactor)
-        m_beamModel->setScaleFactor(modeScaleFactor);
-
-    // Get the eigenvector for this mode
-    Eigen::VectorXd eigenvector;
-    m_currentSolver->getEigenVector(currentMode, eigenvector);
-
-    auto nodeSet = m_beamModel->getNodeSet();
-    
-    double maxDisplacement = 0.0;
-    
-    // Find max displacement for normalization
-    for (size_t i = 0; i < nodeSet->getSize(); i++)
-    {
-        auto node = nodeSet->getNode(i);
-        
-        if (node->getKind() != ofem::nkNotConnected)
-        {
-            // Check all DOFs of this node type (6 for 6DOF, 3 for 3DOF)
-            int maxDofToCheck = (node->getKind() == ofem::nk6Dof) ? 6 : 3;
-            for (int j = 0; j < maxDofToCheck; j++)
-            {
-                if (node->getDof(j) != nullptr)
-                {
-                    int dofNum = node->getDof(j)->getNumber() - 1;
-                    if (dofNum >= 0 && dofNum < eigenvector.size())
-                    {
-                        double disp = std::abs(eigenvector(dofNum));
-                        if (disp > maxDisplacement)
-                            maxDisplacement = disp;
-                    }
-                }
-            }
-        }
-    }
-
-    // Apply animated displacements
-    for (size_t i = 0; i < nodeSet->getSize(); i++)
-    {
-        auto node = nodeSet->getNode(i);
-        
-        if (node->getKind() == ofem::nk6Dof)
-        {
-            node->setValueSize(12);
-            for (int j = 0; j < 6; j++)
-            {
-                if (node->getDof(j) != nullptr)
-                {
-                    int dofNum = node->getDof(j)->getNumber() - 1;
-                    if (dofNum >= 0 && dofNum < eigenvector.size())
-                    {
-                        // Normalize and apply animation; beamModel->getScaleFactor() handles visual scale
-                        double value = eigenvector(dofNum);
-                        if (maxDisplacement > 0)
-                            value /= maxDisplacement;
-                        value *= animationScale;
-                        node->setValue(j, value);
-                    }
-                    else
-                        node->setValue(j, 0.0);
-                }
-                else
-                    node->setValue(j, 0.0);
-            }
-        }
-        else if (node->getKind() == ofem::nk3Dof)
-        {
-            node->setValueSize(6);
-            for (int j = 0; j < 3; j++)
-            {
-                if (node->getDof(j) != nullptr)
-                {
-                    int dofNum = node->getDof(j)->getNumber() - 1;
-                    if (dofNum >= 0 && dofNum < eigenvector.size())
-                    {
-                        // Normalize and apply animation; beamModel->getScaleFactor() handles visual scale
-                        double value = eigenvector(dofNum);
-                        if (maxDisplacement > 0)
-                            value /= maxDisplacement;
-                        value *= animationScale;
-                        node->setValue(j, value);
-                    }
-                    else
-                        node->setValue(j, 0.0);
-                }
-                else
-                    node->setValue(j, 0.0);
-            }
-        }
-    }
-
-    this->set_changed();
-    this->redraw();
+    FemViewEigenmodeHandler::updateVisualization(*this, phase);
 }
 
 void FemViewWindow::selectAllNodes()
@@ -2791,34 +2247,34 @@ void FemViewWindow::doFeedback()
 {
     // Is there a calculation ?
 
-    if (m_needRecalc)
+    if (m_solver.needRecalc)
     {
         if (m_interactionNode != nullptr)
         {
             double maxNodeValue = 0.0;
 
-            m_beamSolver = BeamSolver::create();
-            m_currentSolver = m_beamSolver.get();
+            m_solver.beam = BeamSolver::create();
+            m_solver.current = m_solver.beam.get();
 
-            // m_currentSolver->setResultInfo(m_beamModel->getResultInfo());
+            // m_solver.current->setResultInfo(m_beamModel->getResultInfo());
 
-            m_currentSolver->setBeamModel(m_beamModel.get());
+            m_solver.current->setBeamModel(m_beamModel.get());
 
             double v[3];
 
             // Setup feedback force
 
             m_tactileForce->getDirection(v[0], v[1], v[2]);
-            m_currentSolver->setFeedbackForce(m_interactionNode->getFemNode(), m_tactileForceValue * v[0],
+            m_solver.current->setFeedbackForce(m_interactionNode->getFemNode(), m_tactileForceValue * v[0],
                                               m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
 
-            m_currentSolver->execute();
+            m_solver.current->execute();
 
             // We assume the worst case
 
-            m_saneModel = false;
+            m_solver.saneModel = false;
 
-            switch (m_currentSolver->modelState())
+            switch (m_solver.current->modelState())
             {
             case ModelState::NoNodes:
                 this->notify("No nodes defined.", NotificationLevel::Warning);
@@ -2857,30 +2313,30 @@ void FemViewWindow::doFeedback()
                 this->notify("Solver setup failed.", NotificationLevel::Error);
                 break;
             default:
-                m_saneModel = true;
+                m_solver.saneModel = true;
                 break;
             }
 
-            maxNodeValue = m_currentSolver->getMaxNodeValue();
+            maxNodeValue = m_solver.current->getMaxNodeValue();
 
-            auto maxReactionForce = m_currentSolver->getMaxReactionForce();
-            auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+            auto maxReactionForce = m_solver.current->getMaxReactionForce();
+            auto maxReactionMoment = m_solver.current->getMaxReactionMoment();
 
             m_beamModel->setMaxReactionForce(maxReactionForce);
             m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
             // Only compute the scale factor at the first attempt
 
-            if (!m_lockScaleFactor)
+            if (!m_solver.lockScaleFactor)
             {
-                if (!m_haveScaleFactor)
+                if (!m_solver.haveScaleFactor)
                 {
-                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
-                    m_haveScaleFactor = true;
+                    m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_solver.current->getMaxNodeValue());
+                    m_solver.haveScaleFactor = true;
                 }
             }
 
-            m_needRecalc = false;
+            m_solver.needRecalc = false;
 
             // Show displacements
 
@@ -2890,9 +2346,9 @@ void FemViewWindow::doFeedback()
 
     // Continuosly recompute solution
 
-    if (m_saneModel)
+    if (m_solver.saneModel)
     {
-        if (m_currentSolver != nullptr)
+        if (m_solver.current != nullptr)
         {
             if (m_interactionNode != nullptr)
             {
@@ -2902,28 +2358,28 @@ void FemViewWindow::doFeedback()
                 // Setup feedback force
 
                 m_tactileForce->getDirection(v[0], v[1], v[2]);
-                m_currentSolver->setFeedbackForce(m_interactionNode->getFemNode(), m_tactileForceValue * v[0],
+                m_solver.current->setFeedbackForce(m_interactionNode->getFemNode(), m_tactileForceValue * v[0],
                                                   m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
 
                 // Execute calculation
 
-                m_currentSolver->recompute();
-                m_currentSolver->update(); // NEW
+                m_solver.current->recompute();
+                m_solver.current->update(); // NEW
 
-                auto maxReactionForce = m_currentSolver->getMaxReactionForce();
-                auto maxReactionMoment = m_currentSolver->getMaxReactionMoment();
+                auto maxReactionForce = m_solver.current->getMaxReactionForce();
+                auto maxReactionMoment = m_solver.current->getMaxReactionMoment();
 
                 m_beamModel->setMaxReactionForce(maxReactionForce);
                 m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
                 // Only compute the scale factor at the first attempt
 
-                if (!m_lockScaleFactor)
+                if (!m_solver.lockScaleFactor)
                 {
-                    if (!m_haveScaleFactor)
+                    if (!m_solver.haveScaleFactor)
                     {
-                        m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue());
-                        m_haveScaleFactor = true;
+                        m_beamModel->setScaleFactor(this->getWorkspace() * 0.005 / m_solver.current->getMaxNodeValue());
+                        m_solver.haveScaleFactor = true;
                     }
                 }
 
@@ -3027,7 +2483,7 @@ vfem::Beam *FemViewWindow::addBeam(int i0, int i1)
 
         // We need a recalc
 
-        m_needRecalc = true;
+        m_solver.needRecalc = true;
 
         this->addToScene(vBeam);
 
@@ -3277,7 +2733,7 @@ void FemViewWindow::deleteNodeAt(int i)
     setDeleteFilter(DeleteMode::All);
     setEditEnabled(false);
     m_beamModel->enumerate();
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3304,7 +2760,7 @@ void FemViewWindow::deleteBeamAt(int i)
     setDeleteFilter(DeleteMode::All);
     setEditEnabled(false);
     m_beamModel->enumerate();
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3395,7 +2851,7 @@ void FemViewWindow::subdivideBeamAt(int i)
     m_scriptRunning = wasRunning;
 
     m_beamModel->enumerate();
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3526,7 +2982,7 @@ void FemViewWindow::connectNearNodes(double tolerance)
     m_scriptRunning = wasRunning;
 
     m_beamModel->enumerate();
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3546,7 +3002,7 @@ void FemViewWindow::clearAllLoads()
     for (int i = 0; i < (int)beamSet->getSize(); i++)
         clearBeamLoadAt(i);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3562,7 +3018,7 @@ void FemViewWindow::clearAllBCs()
     for (int i = 0; i < (int)nodeSet->getSize(); i++)
         removeNodeBCAt(i);
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3573,7 +3029,7 @@ void FemViewWindow::assignNodeFixedBCAt(int i)
         return;
     auto node = m_beamModel->getNodeSet()->getNode(i);
     m_beamModel->defaultNodeFixedBC()->addNode(node);
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -3586,7 +3042,7 @@ void FemViewWindow::assignNodePosBCAt(int i)
         return;
     auto node = m_beamModel->getNodeSet()->getNode(i);
     m_beamModel->defaultNodePosBC()->addNode(node);
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -3605,7 +3061,7 @@ void FemViewWindow::removeNodeBCAt(int i)
         if (!bc->isReadOnly())
             bc->removeNode(node);
     }
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -3699,7 +3155,7 @@ void FemViewWindow::addNodeLoadAt(int i, double fx, double fy, double fz)
     auto visNodeLoad = static_cast<vfem::NodeLoad *>(targetLoad->getUser());
     if (visNodeLoad != nullptr)
         visNodeLoad->refresh();
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -3717,7 +3173,7 @@ void FemViewWindow::clearNodeLoadAt(int i)
         auto load = static_cast<ofem::BeamNodeLoad *>(loadSet->getLoad(j));
         load->removeNode(node);
     }
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3785,7 +3241,7 @@ void FemViewWindow::addBeamLoadAt(int i, double fx, double fy, double fz)
     auto visBeamLoad = static_cast<vfem::BeamLoad *>(targetLoad->getUser());
     if (visBeamLoad != nullptr)
         visBeamLoad->refresh();
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -3803,7 +3259,7 @@ void FemViewWindow::clearBeamLoadAt(int i)
         auto load = static_cast<ofem::BeamLoad *>(loadSet->getLoad(j));
         load->removeElement(element);
     }
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -3994,12 +3450,12 @@ bool FemViewWindow::getSaveScreenShot()
 
 void FemViewWindow::setAiApiKey(const std::string &apiKey)
 {
-    m_aiApiKey = apiKey;
+    m_ai.apiKey = apiKey;
 }
 
 std::string FemViewWindow::getAiApiKey()
 {
-    return m_aiApiKey;
+    return m_ai.apiKey;
 }
 
 void FemViewWindow::setInteractionNode(vfem::Node *interactionNode)
@@ -4009,25 +3465,25 @@ void FemViewWindow::setInteractionNode(vfem::Node *interactionNode)
 
 void FemViewWindow::lockScaleFactor()
 {
-    m_lockScaleFactor = true;
+    m_solver.lockScaleFactor = true;
 }
 
 bool FemViewWindow::isScaleFactorLocked()
 {
-    return m_lockScaleFactor;
+    return m_solver.lockScaleFactor;
 }
 
 double FemViewWindow::autoScaleFactor()
 {
-    if (m_currentSolver != nullptr && m_currentSolver->getMaxNodeValue() > 0.0)
-        return this->getWorkspace() * 0.005 / m_currentSolver->getMaxNodeValue();
+    if (m_solver.current != nullptr && m_solver.current->getMaxNodeValue() > 0.0)
+        return this->getWorkspace() * 0.005 / m_solver.current->getMaxNodeValue();
     else
         return 1.0;
 }
 
 void FemViewWindow::unlockScaleFactor()
 {
-    m_lockScaleFactor = false;
+    m_solver.lockScaleFactor = false;
 }
 
 void FemViewWindow::refreshToolbars()
@@ -4087,7 +3543,7 @@ void FemViewWindow::removeNodeLoadsFromSelected()
     // Shapes has to be refreshed to represent the
     // the changes
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -4099,7 +3555,7 @@ void FemViewWindow::removeNodesFromNodeLoad()
     if (nodeLoad != nullptr)
         nodeLoad->clearNodes();
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     this->set_changed();
     this->redraw();
 }
@@ -4128,7 +3584,7 @@ void FemViewWindow::removeNodeBCsFromSelected()
     // Shapes has to be refreshed to represent the
     // the changes
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -4144,7 +3600,7 @@ void FemViewWindow::removeBCsFromBC()
         if (nodeBC != nullptr)
             nodeBC->clearNodes();
 
-        m_needRecalc = true;
+        m_solver.needRecalc = true;
         if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
             clearEigenmodes();
         this->set_changed();
@@ -4176,7 +3632,7 @@ void FemViewWindow::removeBeamLoadsFromSelected()
     // Shapes has to be refreshed to represent the
     // the changes
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     this->set_changed();
@@ -4701,7 +4157,7 @@ void FemViewWindow::onCreateNode(double x, double y, double z, ivf::Node *&newNo
 
     // We need a recalc
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
@@ -4752,7 +4208,7 @@ void FemViewWindow::onCreateLine(ivf::Node *node1, ivf::Node *node2, Shape *&new
 
     // We need a recalc
 
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
@@ -4835,7 +4291,7 @@ void FemViewWindow::onSelect(Composite *selectedShapes)
                 setEditMode(WidgetMode::User);
                 doFeedback();
                 this->redraw();
-                m_haveScaleFactor = false;
+                m_solver.haveScaleFactor = false;
             }
         }
     }
@@ -4929,13 +4385,13 @@ void FemViewWindow::onDeleteShape(Shape *shape, bool &doit)
     if (doit && m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
 
-    m_needRecalc = doit;
+    m_solver.needRecalc = doit;
 }
 
 void FemViewWindow::onMove(Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
 {
     doit = true;
-    m_needRecalc = true;
+    m_solver.needRecalc = true;
 }
 
 void FemViewWindow::onMoveCompleted()
@@ -5108,8 +4564,8 @@ void FemViewWindow::onMouseDown(int x, int y)
         log("onMouseDown USER_MODE.");
         if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
-            if (m_saneModel)
-                if (m_currentSolver != nullptr)
+            if (m_solver.saneModel)
+                if (m_solver.current != nullptr)
                     setRepresentation(RepresentationMode::Results);
         }
     }
@@ -5131,10 +4587,10 @@ void FemViewWindow::onMouseUp(int x, int y)
     {
         if (getCurrentMouseButton() == ButtonState::bsButton1)
         {
-            if (m_saneModel)
-                if (m_currentSolver != nullptr)
+            if (m_solver.saneModel)
+                if (m_solver.current != nullptr)
                 {
-                    m_currentSolver->update();
+                    m_solver.current->update();
                     setRepresentation(RepresentationMode::Results);
                 }
         }
@@ -5791,610 +5247,11 @@ void FemViewWindow::onDrawImGui()
 {
     bool executeCalc = false;
     bool quitApplication = false;
-    bool exportAsCalfem = false;
-    bool importAsCalfem = false;
-    bool runScriptDialog = false;
-    bool snapShot = false;
-    bool restoreLastSnapShot = false;
 
-    {
-        std::lock_guard<std::mutex> lock(m_scriptQueueMutex);
-
-        if (!m_pendingScripts.empty())
-        {
-            auto scriptFunc = m_pendingScripts.front();
-            m_pendingScripts.pop();
-            m_scriptCalledNewModel = false;
-            this->runScriptFromText(scriptFunc);
-
-            if (m_scriptCalledNewModel)
-                this->fitWorkspaceToModel(1.2);
-        }
-    }
-
-
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Start page", ""))
-            {
-                m_startPopup->show();
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("New", "CTRL+N"))
-            {
-                m_showNewFileDlg = true;
-                m_newModelPopup->nodeSize(float(m_relNodeSize * 100.0f));
-                m_newModelPopup->loadSize(float(m_relLoadSize * 100.0f));
-                m_newModelPopup->lineRadius(float(m_relLineRadius * 100.0f));
-                m_newModelPopup->modelSize(float(this->getWorkspace()));
-                m_newModelPopup->show();
-            }
-
-            if (ImGui::MenuItem("Open", "CTRL+O"))
-                m_openDialog = true;
-
-            if (ImGui::MenuItem("Save", "Ctrl+S"))
-                m_saveDialog = true;
-
-            if (ImGui::MenuItem("Save as", "Ctrl+Shift+S"))
-                m_saveAsDialog = true;
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Save as CALFEM...", ""))
-                m_saveAsCalfemDialog = true;
-
-            if (ImGui::MenuItem("Open from CALFEM...", ""))
-                m_openFromCalfemDialog = true;
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("New script...", ""))
-            {
-                m_scriptWindow->newScript();
-                m_scriptWindow->show();
-            }
-
-            if (ImGui::MenuItem("Open script...", ""))
-                m_openEditScriptDialog = true;
-
-            if (ImGui::MenuItem("Run script...", ""))
-                m_openScriptDialog = true;
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Preferences...", ""))
-            {
-                m_settingsWindow->show();
-                m_settingsWindow->center();
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Quit", "Alt+F4"))
-            {
-                quitApplication = true;
-            }
-
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "Ctrl-Z"))
-                this->restoreLastSnapShot();
-
-            if (ImGui::MenuItem("Redo", "Ctrl-Y"))
-                this->restoreLastSnapShot();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Copy", "Ctrl-C"))
-                this->copy();
-            if (ImGui::MenuItem("Paste", "Ctlr-V"))
-                this->paste();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Select all", "Ctrl-A"))
-            {
-                this->setSelectFilter(SelectMode::All);
-                this->selectAllNodes();
-            }
-            if (ImGui::MenuItem("Select all nodes", ""))
-                this->selectAllNodes();
-            if (ImGui::MenuItem("Select all elements", ""))
-                this->selectAllElements();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Fix selected nodes", ""))
-                this->assignNodeFixedBCSelected();
-            if (ImGui::MenuItem("Fix position selected nodes", ""))
-                this->assignNodePosBCSelected();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Fix ground nodes", ""))
-                this->assignNodeFixedBCGround();
-            if (ImGui::MenuItem("Fix position ground nodes", ""))
-                this->assignNodePosBCGround();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Subdivide element", "Ctrl-D"))
-                this->subdivideSelectedBeam();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Mesh selected", "Ctrl-M"))
-                this->meshSelectedNodes();
-            if (ImGui::MenuItem("Surface selected no ground", ""))
-                this->surfaceSelectedNodes(false);
-            if (ImGui::MenuItem("Surface selected with ground", ""))
-                this->surfaceSelectedNodes(true);
-
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("View"))
-        {
-            if (ImGui::MenuItem("Properties...", ""))
-            {
-                m_propWindow->setVisible(true);
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Node loads...", ""))
-            {
-                m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
-                m_nodeLoadsWindow->setVisible(true);
-                this->setNeedRecalc(true);
-            }
-
-            if (ImGui::MenuItem("Element loads...", ""))
-            {
-                m_elementLoadsWindow->setFemLoadSet((ofem::BeamLoadSet *)m_beamModel->getElementLoadSet());
-                m_elementLoadsWindow->setVisible(true);
-                this->setNeedRecalc(true);
-            }
-
-            if (ImGui::MenuItem("Materials...", ""))
-            {
-                m_materialsWindow->setFemMaterialSet((ofem::BeamMaterialSet *)m_beamModel->getMaterialSet());
-                m_materialsWindow->setVisible(true);
-                this->setNeedRecalc(true);
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Script editor...", ""))
-            {
-                m_scriptWindow->show();
-                m_scriptWindow->center();
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Secondary view...", ""))
-            {
-                m_viewWindow->show();
-            }
-
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Mode"))
-        {
-            if (ImGui::MenuItem("Model", ""))
-                this->setRepresentation(RepresentationMode::Fem);
-            if (ImGui::MenuItem("Geometry", ""))
-                this->setRepresentation(RepresentationMode::Geometry);
-            if (ImGui::MenuItem("Results", ""))
-                this->setRepresentation(RepresentationMode::Results);
-            if (ImGui::MenuItem("Feedback", ""))
-                this->setCustomMode(CustomMode::Feedback);
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Create"))
-        {
-            if (ImGui::MenuItem("Create using AI", ""))
-            {
-                m_promptWindow->show();
-            }
-            ImGui::Separator();
-            for (auto &p : m_plugins)
-            {
-                if (ImGui::MenuItem(p->name().c_str(), ""))
-                {
-                    this->setCustomMode(CustomMode::Structure);
-                    m_pluginWindow->setPlugin(p.get());
-                    m_pluginWindow->center();
-                    m_pluginWindow->show();
-                }
-            }
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Calc"))
-        {
-            if (ImGui::MenuItem("Execute", "Ctrl-R"))
-                executeCalc = true;
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Results"))
-        {
-            if (ImGui::MenuItem("Normal", ""))
-                this->setResultType(IVF_BEAM_N);
-            if (ImGui::MenuItem("Torsion", ""))
-                this->setResultType(IVF_BEAM_T);
-            if (ImGui::MenuItem("Shear", ""))
-                this->setResultType(IVF_BEAM_V);
-            if (ImGui::MenuItem("Moment", ""))
-                this->setResultType(IVF_BEAM_M);
-            if (ImGui::MenuItem("Navier", ""))
-                this->setResultType(IVF_BEAM_NAVIER);
-            if (ImGui::MenuItem("No results", ""))
-                this->setResultType(IVF_BEAM_NO_RESULT);
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("X-ray mode", "Alt-X"))
-            {
-                if (getUseBlending())
-                    this->setUseBlending(false);
-                else
-                    this->setUseBlending(true);
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Scaling settings...", ""))
-            {
-                m_scaleWindow->show();
-                m_scaleWindow->setPosition(100, 20);
-            }
-
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("About...", ""))
-            {
-                m_aboutWindow->show();
-                m_aboutWindow->center();
-            }
-            if (ImGui::MenuItem("Homepage...", ""))
-            {
-#ifdef WIN32
-                ShellExecuteW(0, 0, L"https://jonaslindemann.github.io/objectiveframe/", 0, 0, SW_SHOW);
-#endif
-            }
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Log...", ""))
-            {
-                m_logWindow->show();
-                m_logWindow->center();
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Diagnostics", ""))
-                m_showDiagnostics = !m_showDiagnostics;
-
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-
-    m_newModelPopup->draw();
-
-    if (m_newModelPopup->closed())
-    {
-        if (m_newModelPopup->modalResult() == PopupResult::OK)
-        {
-            m_relNodeSize = m_newModelPopup->nodeSize() / 100.0;
-            m_relLineRadius = m_newModelPopup->lineRadius() / 100.0;
-            m_relLoadSize = m_newModelPopup->loadSize() / 100.0;
-            this->setWorkspace(m_newModelPopup->modelSize());
-            this->newModel();
-        }
-        else if (m_newModelPopup->modalResult() == PopupResult::CANCEL)
-        {
-            log("Cancel pressed");
-        }
-    }
-
-    m_notificationOverlay->draw(ImGui::GetIO().DeltaTime);
-
-    m_startPopup->draw();
-
-    if (m_startPopup->closed())
-    {}
-
-    if (m_showStyleEditor)
-        ImGui::ShowStyleEditor();
-
-    if (m_showMetricsWindow)
-        ImGui::ShowMetricsWindow(&m_showMetricsWindow);
-
-    if (m_showDiagnostics)
-        ImGui::ShowDemoWindow(&m_showDiagnostics);
-
-    if (m_useImGuiFileDialogs)
-    {
-        if (m_openDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("Open model", "Choose File", ".df3", config);
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_dir", filePath);
-                this->open(filePathName);
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_openDialog = false;
-        }
-
-        if (m_saveDialog)
-        {
-            IGFD::FileDialogConfig config;
-
-            if (m_fileName == "noname.df3")
-            {
-                config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
-
-                auto viewport = ImGui::GetMainViewport();
-                ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-                ImVec2 work_size = viewport->WorkSize;
-                ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-                ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
-            }
-            else
-            {
-                m_beamModel->save();
-                if (m_saveScreenShot)
-                    this->saveScreenShot(m_fileName + ".png");
-                m_saveDialog = false;
-            }
-        }
-
-        if (m_saveAsDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("Save model", "Choose File", ".df3", config);
-        }
-
-        if (m_saveAsCalfemDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_calfem_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("Save as CALFEM", "Choose File", ".py", config);
-        }
-
-        if (m_openFromCalfemDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_calfem_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("Open from CALFEM", "Choose File", ".py", config);
-        }
-
-        if (m_openScriptDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("Open script", "Choose File", ".chai", config);
-        }
-
-        if (m_openEditScriptDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("Edit script", "Choose File", ".chai", config);
-        }
-
-        if (m_newScriptDialog)
-        {
-            IGFD::FileDialogConfig config;
-            config.path = ofutil::get_config_value("last_script_dir", ofutil::samples_folder());
-
-            auto viewport = ImGui::GetMainViewport();
-            ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-            ImVec2 work_size = viewport->WorkSize;
-            ImGui::SetNextWindowPos(ImVec2(work_pos.x + 100.0, work_pos.y + 20.0), ImGuiCond_Always);
-
-            ImGuiFileDialog::Instance()->OpenDialog("New script", "Choose File", ".chai", config);
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_dir", filePath);
-
-                if (filePathName != "")
-                {
-                    this->setFileName(filePathName);
-                    m_beamModel->setFileName(m_fileName);
-                    m_beamModel->save();
-                    if (m_saveScreenShot)
-                        this->saveScreenShot(m_fileName + ".png");
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_saveAsDialog = false;
-            m_saveDialog = false;
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("Save as CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_calfem_dir", filePath);
-
-                if (filePathName != "")
-                {
-                    this->exportAsCalfem(filePathName);
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_saveAsCalfemDialog = false;
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("Open from CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_calfem_dir", filePath);
-
-                if (filePathName != "")
-                {
-                    this->importAsCalfem(filePathName);
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_openFromCalfemDialog = false;
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("Open script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_script_dir", filePath);
-
-                if (filePathName != "")
-                {
-                    std::thread([this, filePathName]() {
-                        try
-                        {
-                            // Lock rendering to prevent race conditions
-                            this->lockSceneRendering();
-
-                            // Execute script on background thread
-                            this->runScript(filePathName);
-
-                            // Unlock rendering
-                            this->unlockSceneRendering();
-
-                            // Queue a redraw
-                            this->redraw();
-                        } catch (const std::exception &e)
-                        {
-                            this->unlockSceneRendering();
-                            log("Script execution error: " + std::string(e.what()));
-                        }
-                    }).detach();
-
-                    // this->runScript(filePathName);
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_openScriptDialog = false;
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("Edit script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_script_dir", filePath);
-
-                if (filePathName != "")
-                {
-                    m_scriptWindow->open(filePathName);
-                    m_scriptWindow->show();
-                    m_scriptWindow->center();
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_openEditScriptDialog = false;
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("New script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-                ofutil::set_config_value("last_script_dir", filePath);
-
-                if (filePathName != "")
-                {
-                    m_scriptWindow->open(filePathName);
-                    m_scriptWindow->show();
-                    m_scriptWindow->center();
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-            m_newScriptDialog = false;
-        }
-    }
+    drainScriptQueue();
+    drawMainMenuBar(executeCalc, quitApplication);
+    drawPopups();
+    drawFileDialogs();
 
     // Run deferred actions before drawing windows so any resulting placeWindow()
     // calls happen while the ImGui frame is still active and viewport data is valid.
@@ -6406,9 +5263,7 @@ void FemViewWindow::onDrawImGui()
     ImGui::Render();
 
     if (quitApplication)
-    {
         this->quit();
-    }
 }
 
 void FemViewWindow::onInitImGui()
@@ -6452,26 +5307,26 @@ void FemViewWindow::onPostRender()
 
 bool FemViewWindow::isEigenmodeInSecondaryView() const
 {
-    return m_eigenmodeInSecondaryView;
+    return m_eigenmode.inSecondaryView;
 }
 
 bool FemViewWindow::hasEigenModes() const
 {
-    return m_currentSolver != nullptr && m_currentSolver->hasEigenModes();
+    return m_solver.current != nullptr && m_solver.current->hasEigenModes();
 }
 
 bool FemViewWindow::isShowingEigenmodes() const
 {
-    return m_showingEigenmodes;
+    return m_eigenmode.showing;
 }
 
 bool FemViewWindow::shouldAnimateInSecondaryView() const
 {
     if (m_eigenmodeWindow == nullptr || !m_eigenmodeWindow->isAnimate())
         return false;
-    if (m_currentSolver == nullptr || !m_currentSolver->hasEigenModes())
+    if (m_solver.current == nullptr || !m_solver.current->hasEigenModes())
         return false;
-    if (m_eigenmodeInSecondaryView)
+    if (m_eigenmode.inSecondaryView)
         return true;
     // Auto-route: secondary view is visible while main view is in edit mode
     return m_viewWindow != nullptr && m_viewWindow->visible() &&
@@ -6480,39 +5335,17 @@ bool FemViewWindow::shouldAnimateInSecondaryView() const
 
 void FemViewWindow::setEigenmodeInSecondaryView(bool flag)
 {
-    m_eigenmodeInSecondaryView = flag;
-    if (flag)
-    {
-        m_viewWindow->show();
-        // Show the editable FEM model (loads, BCs) in the main window
-        setRepresentation(RepresentationMode::Fem);
-        m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
-        m_beamModel->clearNodeValues();
-    }
-    else
-    {
-        // Return animation to the main window
-        if (m_currentSolver != nullptr && m_currentSolver->hasEigenModes())
-            setRepresentation(RepresentationMode::Results);
-    }
+    FemViewEigenmodeHandler::setInSecondaryView(*this, flag);
 }
 
 void FemViewWindow::applyEigenmodeAnimation()
 {
-    if (m_eigenmodeWindow != nullptr)
-    {
-        // Temporarily switch to displacement mode so the FBO render shows the deformed shape
-        m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
-        updateEigenmodeVisualization(m_eigenmodeWindow->getAnimationPhase());
-    }
+    FemViewEigenmodeHandler::applyAnimation(*this);
 }
 
 void FemViewWindow::clearEigenmodeAnimation()
 {
-    m_beamModel->clearNodeValues();
-    // Restore geometry node type so the main view keeps showing the undeformed FEM model
-    m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
-    this->redraw();
+    FemViewEigenmodeHandler::clearAnimation(*this);
 }
 
 

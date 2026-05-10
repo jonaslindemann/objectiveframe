@@ -49,6 +49,28 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 
 `FemViewWindow` is the central class ([src/objframe/FemView.h](src/objframe/FemView.h)). It owns the beam model, all UI windows, the solver, the script engine, and the AI integration.
 
+#### FemViewWindow modularization conventions
+
+`FemViewWindow` is deliberately split across several files to keep the class manageable:
+
+| File | Role |
+| ---- | ---- |
+| `FemView.cpp` | Core lifecycle, input handling, scene management |
+| `FemViewImGui.cpp` | `onDrawImGui` + helpers (`drainScriptQueue`, `drawMainMenuBar`, `drawPopups`, `drawFileDialogs`) |
+| `FemViewSolverHandler.cpp` | `executeCalc`, `recompute` |
+| `FemViewEigenmodeHandler.cpp` | All eigenmode compute/visualize/animate operations |
+| `FemViewAiHandler.cpp` | `makeRequest`, `onGenerationComplete` |
+
+**Static handler class pattern** — operation clusters are extracted into classes with only `static` methods that take `FemViewWindow &view`. Each handler is declared `friend class` in `FemView.h` so it can access private members directly. Follow this pattern when adding new operation groups.
+
+**Nested state struct pattern** — related private member variables are grouped into nested structs with default member initializers. Current structs:
+
+- `EigenmodeState m_eigenmode` — `inSecondaryView`, `showing`, `savedShowNodeNumbers`
+- `SolverState m_solver` — `beam`, `current`, `needRecalc`, `saneModel`, `haveScaleFactor`, `lockScaleFactor`
+- `AiState m_ai` — `apiKey`, `structureGenerator`, `promptDatabase`, `isProcessing`, `autoRunScript`, `systemPromptFilename`, `scriptQueueMutex`, `pendingScripts`
+
+**IntelliSense false positives** — VS Code may report `cannot open source file "ivf/Base.h"` on handler `.cpp` files. This is an IDE include-path issue; CMake configures the paths correctly and the build succeeds. Do not treat these as real errors.
+
 ### Library modules (each compiled as a separate static lib)
 
 | Library | Source | Headers | Namespace | Role |
@@ -69,7 +91,7 @@ The convenience target `objframe::libs` (alias `objframe_libs`) links all of the
 1. **FEM data** lives in `ofem::BeamModel` (owned by `FemViewWindow`).
 2. **Visual data** lives in the ivf++ scene graph (`vfem::BeamModel` wraps the ofem model with renderable shapes).
 3. **Solver** (`ofsolver::BeamSolverPtr`) reads from `ofem::BeamModel` and writes results back; the view then switches `RepresentationMode` to `Displacements` or `Results`.
-4. **Scripts** (ChaiScript) call `FemViewWindow` methods directly via bindings in `FemViewScriptBindings` ([src/objframe/FemViewScriptBindings.h](src/objframe/FemViewScriptBindings.h)). Scripts are always executed on the main render thread via a mutex-protected queue (`m_pendingScripts`).
+4. **Scripts** (ChaiScript) call `FemViewWindow` methods directly via bindings in `FemViewScriptBindings` ([src/objframe/FemViewScriptBindings.h](src/objframe/FemViewScriptBindings.h)). Scripts are always executed on the main render thread via a mutex-protected queue (`m_ai.pendingScripts`).
 5. **AI generation** (`ofai::StructureGenerator`) calls the Claude API asynchronously via CURL, extracts ChaiScript from the response, and posts it to the script queue. The API key is stored in application settings.
 
 ### UI system

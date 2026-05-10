@@ -3,7 +3,8 @@
     "allow": [
       "Bash(where /r \"e:\\\\Users\\\\Jonas\\\\Development\" Camera.h)",
       "Bash(Get-ChildItem -Path \"e:\\\\Users\\\\Jonas\\\\Development\\\\objectiveframe\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(python -c ' *)"
     ]
   }
 }

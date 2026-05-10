@@ -65,6 +65,11 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 
 **Nested state struct pattern** — related private member variables are grouped into nested structs with default member initializers. Current structs:
 
+- `AppPaths m_paths` — all filesystem paths (`prog`, `font`, `image`, `plugin`, `map`, `python`, `example`, `ai`) and `fileName`
+- `ViewSettings m_view` — `representation`, `relNodeSize/Load/LineRadius`, `uiScale`, `useSphereCursor`, `useBlending`, `useImGuiFileDialogs`, `saveScreenShot`
+- `EditState m_edit` — `currentMaterial`, `currentElementLoad`, `currentNodeLoad`, `currentNodeBC`, `clipBoard`
+- `DialogFlags m_dlg` — all 14 boolean show/open/save dialog flags
+- `ScriptingState m_scripting` — `pluginRunning`, `calledNewModel`, `running`, `plugins`, `examples`
 - `EigenmodeState m_eigenmode` — `inSecondaryView`, `showing`, `savedShowNodeNumbers`
 - `SolverState m_solver` — `beam`, `current`, `needRecalc`, `saneModel`, `haveScaleFactor`, `lockScaleFactor`
 - `AiState m_ai` — `apiKey`, `structureGenerator`, `promptDatabase`, `isProcessing`, `autoRunScript`, `systemPromptFilename`, `scriptQueueMutex`, `pendingScripts`
@@ -106,7 +111,30 @@ All panels are ImGui-based and rendered inside `FemViewWindow::onDrawImGui()`. P
 
 ### REST API (`ofservice`)
 
-`ofservice::Service` registers CivetWeb handlers on port 8081. Each handler calls methods on `FemViewWindow` through the `ofservice::App` singleton (which holds a raw pointer to the view). The Python REST client is in `python/rest_client/ofapi.py`.
+`ofservice::Service` registers CivetWeb handlers on port 8081. The library has **no dependency on `objframe` headers** — the circular dependency is broken by the `ofservice::IAppController` interface.
+
+**Decoupling via `IAppController`:**
+
+- `include/ofservice/iapp_controller.h` — pure abstract interface with 48 virtual methods covering model lifecycle, node/beam CRUD, selection, BCs, loads, and queries
+- `src/objframe/AppControllerAdapter` — `FemViewWindow`-side implementation that delegates each interface method to the corresponding `FemViewWindow` method
+- `ofservice::App` singleton holds an `IAppController*`; `ofservice` never sees `FemViewWindow` or any `objframe` header
+
+**Endpoint surface (48 endpoints, all POST to `/cmds/<name>`):**
+
+| Category | Endpoints |
+| -------- | --------- |
+| Model lifecycle | `new_model`, `open_model`, `save_model`, `export_model`, `import_model`, `snap_shot` |
+| Node/beam creation | `add_nodes`, `add_beams` |
+| Selection | `select_all`, `select_all_nodes`, `clear_selection`, `add_last_node_to_selection`, `select_node_at`, `select_beam_at` |
+| Node/beam mutation | `delete_node_at`, `delete_beam_at`, `subdivide_beam_at`, `connect_near_nodes`, `update_node_pos_at`, `update_beam_at` |
+| Boundary conditions | `assign_node_fixed_bc_ground`, `assign_node_pos_bc_ground`, `assign_node_fixed_bc_at`, `assign_node_pos_bc_at`, `remove_node_bc_at` |
+| Loads | `clear_all_loads`, `clear_all_bcs`, `add_node_load_at`, `clear_node_load_at`, `add_beam_load_at`, `clear_beam_load_at` |
+| Mesh generation | `mesh_selected_nodes`, `surface_selected_nodes` |
+| Queries | `node_count`, `beam_count`, `node_pos_at`, `beam_at`, `find_node_near`, `is_node_fixed_at`, `is_node_pos_bc_at`, `is_node_selected_at`, `has_node_load_at`, `has_beam_load_at`, `node_load_count`, `beam_load_count`, `material_count`, `model_bounds` |
+
+**Response format:** void handlers return `text/html 200 OK` with no body. Query handlers return `application/json` with a body: `{"value": n}` for scalars, `{"pos": [x,y,z]}` for positions, `{"i0": i0, "i1": i1}` for beam indices, `{"min": [...], "max": [...]}` for bounds.
+
+The Python REST client is in `python/rest_client/ofapi.py`.
 
 ### External dependency: IVF++
 

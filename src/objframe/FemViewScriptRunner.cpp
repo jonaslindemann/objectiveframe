@@ -17,13 +17,13 @@ void FemViewScriptRunner::runPlugin(FemViewWindow &view, ScriptPlugin *plugin)
     chaiscript::ChaiScript::State state = script.get_state();
     try
     {
-        view.m_pluginRunning = true;
+        view.m_scripting.pluginRunning = true;
         script.eval(plugin->source());
     } catch (const chaiscript::exception::eval_error &e)
     {
         view.log(e.pretty_print());
     }
-    view.m_pluginRunning = false;
+    view.m_scripting.pluginRunning = false;
     script.set_state(state);
 
     view.m_beamModel->enumerate();
@@ -65,7 +65,7 @@ void FemViewScriptRunner::runScriptFromText(FemViewWindow &view, const std::stri
     chaiscript::ChaiScript chai;
     view.setupScript(chai);
 
-    view.m_scriptRunning = true;
+    view.m_scripting.running = true;
     try
     {
         chai.eval(scriptText);
@@ -75,7 +75,7 @@ void FemViewScriptRunner::runScriptFromText(FemViewWindow &view, const std::stri
         view.m_promptWindow->addError(e.pretty_print());
         view.log(e.pretty_print());
     }
-    view.m_scriptRunning = false;
+    view.m_scripting.running = false;
 
     view.m_beamModel->enumerate();
 

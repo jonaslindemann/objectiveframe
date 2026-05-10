@@ -83,6 +83,7 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 
 #include <ofai/structure_generator.h>
 
+#include "AppControllerAdapter.h"
 #include "Area2D.h"
 #include "ButtonGroup.h"
 #include "IvfViewWindow.h"
@@ -163,18 +164,32 @@ private:
     std::string m_yCoord;
     std::string m_zCoord;
 
-    RepresentationMode m_representation;
+    struct ViewSettings {
+        RepresentationMode representation{RepresentationMode::Fem};
+        double relNodeSize{0.004};
+        double relLoadSize{0.06};
+        double relLineRadius{0.0015};
+        float  uiScale{1.0f};
+        bool   useSphereCursor{false};
+        bool   useBlending{false};
+        bool   useImGuiFileDialogs{true};
+        bool   saveScreenShot{false};
+    };
+    ViewSettings m_view;
 
-    std::string m_fileName;
-    std::string m_progPathStr;
-    std::filesystem::path m_progPath;
-    std::filesystem::path m_imagePath;
-    std::filesystem::path m_fontPath;
-    std::filesystem::path m_pluginPath;
-    std::filesystem::path m_mapPath;
-    std::filesystem::path m_pythonPath;
-    std::filesystem::path m_examplePath;
-    std::filesystem::path m_aiPath;
+    struct AppPaths {
+        std::string fileName;
+        std::string progStr;
+        std::filesystem::path prog;
+        std::filesystem::path image;
+        std::filesystem::path font;
+        std::filesystem::path plugin;
+        std::filesystem::path map;
+        std::filesystem::path python;
+        std::filesystem::path example;
+        std::filesystem::path ai;
+    };
+    AppPaths m_paths;
 
     bool m_overlaySelected;
     struct SolverState {
@@ -194,8 +209,6 @@ private:
     bool m_elementSelection;
     bool m_singleElementSelection;
     bool m_mixedSelection;
-    bool m_saveScreenShot;
-
     CustomMode m_customMode;
     bool m_customModeSet;
     double m_alfa;
@@ -214,20 +227,19 @@ private:
     int m_width;
     int m_height;
 
-    double m_relNodeSize;
-    double m_relLoadSize;
-    double m_relLineRadius;
-
     int m_argc;
     char **m_argv;
 
     double m_tactileForceValue;
 
-    ofem::BeamMaterialPtr m_currentMaterial;
-    ofem::BeamLoadPtr m_currentElementLoad;
-    ofem::BeamNodeLoadPtr m_currentNodeLoad;
-    ofem::BeamNodeBCPtr m_currentNodeBC;
-    ofem::ModelClipBoardPtr m_modelClipBoard;
+    struct EditState {
+        ofem::BeamMaterialPtr currentMaterial;
+        ofem::BeamLoadPtr currentElementLoad;
+        ofem::BeamNodeLoadPtr currentNodeLoad;
+        ofem::BeamNodeBCPtr currentNodeBC;
+        ofem::ModelClipBoardPtr clipBoard;
+    };
+    EditState m_edit;
 
     vfem::NodePtr m_interactionNode;
 #ifdef USE_LEAP
@@ -274,9 +286,6 @@ private:
     PlaneButton *m_prevButton;
 
     bool m_hintFinished;
-    bool m_useSphereCursor;
-    bool m_useBlending;
-    bool m_useImGuiFileDialogs;
 
     // Dialogs
 
@@ -314,40 +323,36 @@ private:
 
     ofui::WindowListPtr m_windowList;
 
-    bool m_showStyleEditor;
-    bool m_showMetricsWindow;
-    bool m_showNewFileDlg;
-    bool m_showNodeBCsWindow;
-    bool m_showBCPropPopup;
-    bool m_showDiagnostics;
+    struct DialogFlags {
+        bool showStyleEditor{false};
+        bool showMetricsWindow{false};
+        bool showNewFile{false};
+        bool showNodeBCsWindow{false};
+        bool showBCPropPopup{false};
+        bool showDiagnostics{false};
+        bool openFile{false};
+        bool saveFile{false};
+        bool saveFileAs{false};
+        bool saveAsCalfem{false};
+        bool openFromCalfem{false};
+        bool openScript{false};
+        bool openEditScript{false};
+        bool newScript{false};
+    };
+    DialogFlags m_dlg;
 
-    bool m_openDialog;
-    bool m_saveDialog;
-    bool m_saveAsDialog;
-    bool m_saveAsCalfemDialog;
-    bool m_openFromCalfemDialog;
-    bool m_openScriptDialog;
-    bool m_openEditScriptDialog;
-    bool m_newScriptDialog;
-
-    float m_uiScale;
-
-    // Scripting
-
-    bool m_pluginRunning;
-    bool m_scriptCalledNewModel{false};
-    bool m_scriptRunning{false};
-
-    // Plugins
-
-    std::vector<ScriptPluginPtr> m_plugins;
-
-    // Examples
-
-    std::vector<std::string> m_examples;
+    struct ScriptingState {
+        bool pluginRunning{false};
+        bool calledNewModel{false};
+        bool running{false};
+        std::vector<ScriptPluginPtr> plugins;
+        std::vector<std::string> examples;
+    };
+    ScriptingState m_scripting;
 
     // Web service
 
+    AppControllerAdapter m_controllerAdapter;
     ofservice::ServicePtr m_service;
     std::mutex m_drawMutex;
 

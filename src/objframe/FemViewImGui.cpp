@@ -20,10 +20,10 @@ void FemViewWindow::drainScriptQueue()
     {
         auto scriptFunc = m_ai.pendingScripts.front();
         m_ai.pendingScripts.pop();
-        m_scriptCalledNewModel = false;
+        m_scripting.calledNewModel = false;
         this->runScriptFromText(scriptFunc);
 
-        if (m_scriptCalledNewModel)
+        if (m_scripting.calledNewModel)
             this->fitWorkspaceToModel(1.2);
     }
 }
@@ -42,30 +42,30 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         if (ImGui::MenuItem("New", "CTRL+N"))
         {
-            m_showNewFileDlg = true;
-            m_newModelPopup->nodeSize(float(m_relNodeSize * 100.0f));
-            m_newModelPopup->loadSize(float(m_relLoadSize * 100.0f));
-            m_newModelPopup->lineRadius(float(m_relLineRadius * 100.0f));
+            m_dlg.showNewFile = true;
+            m_newModelPopup->nodeSize(float(m_view.relNodeSize * 100.0f));
+            m_newModelPopup->loadSize(float(m_view.relLoadSize * 100.0f));
+            m_newModelPopup->lineRadius(float(m_view.relLineRadius * 100.0f));
             m_newModelPopup->modelSize(float(this->getWorkspace()));
             m_newModelPopup->show();
         }
 
         if (ImGui::MenuItem("Open", "CTRL+O"))
-            m_openDialog = true;
+            m_dlg.openFile = true;
 
         if (ImGui::MenuItem("Save", "Ctrl+S"))
-            m_saveDialog = true;
+            m_dlg.saveFile = true;
 
         if (ImGui::MenuItem("Save as", "Ctrl+Shift+S"))
-            m_saveAsDialog = true;
+            m_dlg.saveFileAs = true;
 
         ImGui::Separator();
 
         if (ImGui::MenuItem("Save as CALFEM...", ""))
-            m_saveAsCalfemDialog = true;
+            m_dlg.saveAsCalfem = true;
 
         if (ImGui::MenuItem("Open from CALFEM...", ""))
-            m_openFromCalfemDialog = true;
+            m_dlg.openFromCalfem = true;
 
         ImGui::Separator();
 
@@ -76,10 +76,10 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         }
 
         if (ImGui::MenuItem("Open script...", ""))
-            m_openEditScriptDialog = true;
+            m_dlg.openEditScript = true;
 
         if (ImGui::MenuItem("Run script...", ""))
-            m_openScriptDialog = true;
+            m_dlg.openScript = true;
 
         ImGui::Separator();
 
@@ -219,7 +219,7 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         ImGui::Separator();
 
-        for (auto &p : m_plugins)
+        for (auto &p : m_scripting.plugins)
         {
             if (ImGui::MenuItem(p->name().c_str(), ""))
             {
@@ -296,7 +296,7 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         ImGui::Separator();
 
         if (ImGui::MenuItem("Diagnostics", ""))
-            m_showDiagnostics = !m_showDiagnostics;
+            m_dlg.showDiagnostics = !m_dlg.showDiagnostics;
 
         ImGui::EndMenu();
     }
@@ -312,9 +312,9 @@ void FemViewWindow::drawPopups()
     {
         if (m_newModelPopup->modalResult() == PopupResult::OK)
         {
-            m_relNodeSize = m_newModelPopup->nodeSize() / 100.0;
-            m_relLineRadius = m_newModelPopup->lineRadius() / 100.0;
-            m_relLoadSize = m_newModelPopup->loadSize() / 100.0;
+            m_view.relNodeSize = m_newModelPopup->nodeSize() / 100.0;
+            m_view.relLineRadius = m_newModelPopup->lineRadius() / 100.0;
+            m_view.relLoadSize = m_newModelPopup->loadSize() / 100.0;
             this->setWorkspace(m_newModelPopup->modelSize());
             this->newModel();
         }
@@ -328,19 +328,19 @@ void FemViewWindow::drawPopups()
 
     m_startPopup->draw();
 
-    if (m_showStyleEditor)
+    if (m_dlg.showStyleEditor)
         ImGui::ShowStyleEditor();
 
-    if (m_showMetricsWindow)
-        ImGui::ShowMetricsWindow(&m_showMetricsWindow);
+    if (m_dlg.showMetricsWindow)
+        ImGui::ShowMetricsWindow(&m_dlg.showMetricsWindow);
 
-    if (m_showDiagnostics)
-        ImGui::ShowDemoWindow(&m_showDiagnostics);
+    if (m_dlg.showDiagnostics)
+        ImGui::ShowDemoWindow(&m_dlg.showDiagnostics);
 }
 
 void FemViewWindow::drawFileDialogs()
 {
-    if (!m_useImGuiFileDialogs)
+    if (!m_view.useImGuiFileDialogs)
         return;
 
     auto openFileDialog = [](const char *key, const char *title, const char *filter, const char *configKey) {
@@ -352,40 +352,40 @@ void FemViewWindow::drawFileDialogs()
         ImGuiFileDialog::Instance()->OpenDialog(key, title, filter, config);
     };
 
-    if (m_openDialog)
+    if (m_dlg.openFile)
         openFileDialog("Open model", "Choose File", ".df3", "last_dir");
 
-    if (m_saveAsDialog)
+    if (m_dlg.saveFileAs)
         openFileDialog("Save model", "Choose File", ".df3", "last_dir");
 
-    if (m_saveDialog)
+    if (m_dlg.saveFile)
     {
-        if (m_fileName == "noname.df3")
+        if (m_paths.fileName == "noname.df3")
         {
             openFileDialog("Save model", "Choose File", ".df3", "last_dir");
         }
         else
         {
             m_beamModel->save();
-            if (m_saveScreenShot)
-                this->saveScreenShot(m_fileName + ".png");
-            m_saveDialog = false;
+            if (m_view.saveScreenShot)
+                this->saveScreenShot(m_paths.fileName + ".png");
+            m_dlg.saveFile = false;
         }
     }
 
-    if (m_saveAsCalfemDialog)
+    if (m_dlg.saveAsCalfem)
         openFileDialog("Save as CALFEM", "Choose File", ".py", "last_calfem_dir");
 
-    if (m_openFromCalfemDialog)
+    if (m_dlg.openFromCalfem)
         openFileDialog("Open from CALFEM", "Choose File", ".py", "last_calfem_dir");
 
-    if (m_openScriptDialog)
+    if (m_dlg.openScript)
         openFileDialog("Open script", "Choose File", ".chai", "last_script_dir");
 
-    if (m_openEditScriptDialog)
+    if (m_dlg.openEditScript)
         openFileDialog("Edit script", "Choose File", ".chai", "last_script_dir");
 
-    if (m_newScriptDialog)
+    if (m_dlg.newScript)
         openFileDialog("New script", "Choose File", ".chai", "last_script_dir");
 
     if (ImGuiFileDialog::Instance()->Display("Open model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -397,7 +397,7 @@ void FemViewWindow::drawFileDialogs()
             this->open(filePathName);
         }
         ImGuiFileDialog::Instance()->Close();
-        m_openDialog = false;
+        m_dlg.openFile = false;
     }
 
     if (ImGuiFileDialog::Instance()->Display("Save model", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -410,15 +410,15 @@ void FemViewWindow::drawFileDialogs()
             if (!filePathName.empty())
             {
                 this->setFileName(filePathName);
-                m_beamModel->setFileName(m_fileName);
+                m_beamModel->setFileName(m_paths.fileName);
                 m_beamModel->save();
-                if (m_saveScreenShot)
-                    this->saveScreenShot(m_fileName + ".png");
+                if (m_view.saveScreenShot)
+                    this->saveScreenShot(m_paths.fileName + ".png");
             }
         }
         ImGuiFileDialog::Instance()->Close();
-        m_saveAsDialog = false;
-        m_saveDialog = false;
+        m_dlg.saveFileAs = false;
+        m_dlg.saveFile = false;
     }
 
     if (ImGuiFileDialog::Instance()->Display("Save as CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -432,7 +432,7 @@ void FemViewWindow::drawFileDialogs()
                 this->exportAsCalfem(filePathName);
         }
         ImGuiFileDialog::Instance()->Close();
-        m_saveAsCalfemDialog = false;
+        m_dlg.saveAsCalfem = false;
     }
 
     if (ImGuiFileDialog::Instance()->Display("Open from CALFEM", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -446,7 +446,7 @@ void FemViewWindow::drawFileDialogs()
                 this->importAsCalfem(filePathName);
         }
         ImGuiFileDialog::Instance()->Close();
-        m_openFromCalfemDialog = false;
+        m_dlg.openFromCalfem = false;
     }
 
     if (ImGuiFileDialog::Instance()->Display("Open script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -474,7 +474,7 @@ void FemViewWindow::drawFileDialogs()
             }
         }
         ImGuiFileDialog::Instance()->Close();
-        m_openScriptDialog = false;
+        m_dlg.openScript = false;
     }
 
     if (ImGuiFileDialog::Instance()->Display("Edit script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -492,7 +492,7 @@ void FemViewWindow::drawFileDialogs()
             }
         }
         ImGuiFileDialog::Instance()->Close();
-        m_openEditScriptDialog = false;
+        m_dlg.openEditScript = false;
     }
 
     if (ImGuiFileDialog::Instance()->Display("New script", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
@@ -510,6 +510,6 @@ void FemViewWindow::drawFileDialogs()
             }
         }
         ImGuiFileDialog::Instance()->Close();
-        m_newScriptDialog = false;
+        m_dlg.newScript = false;
     }
 }

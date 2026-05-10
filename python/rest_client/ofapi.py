@@ -18,7 +18,6 @@ class ObjectiveFrame:
         self.process = None
 
     def is_running(self):
-
         try:
             win32ui.FindWindow("GLFW30", "ObjectiveFrame")
         except win32ui.error:
@@ -27,7 +26,6 @@ class ObjectiveFrame:
             return True
 
     def start(self):
-
         if self.is_running():
             print("ObjectiveFrame already running...")
         else:
@@ -45,76 +43,206 @@ class ObjectiveFrame:
         self.process.terminate()
         self.process = None
 
-    def add_nodes(self, nodes):
-        response = requests.post(self.url+"/cmds/add_nodes", json.dumps(nodes))
+    def _post(self, endpoint, data=None):
+        """Send a POST request. data may be a JSON-serialisable object or None."""
+        body = json.dumps(data) if data is not None else None
+        return requests.post(self.url + endpoint, body)
 
-    def add_node(self, x, y, z):
-        self.addNodes([[x, y, z]])
+    def _post_json(self, endpoint, data=None):
+        """POST and return the parsed JSON response body."""
+        return self._post(endpoint, data).json()
 
-    def add_beams(self, beams):
-        response = requests.post(self.url+"/cmds/add_beams", json.dumps(beams))
+    # ── Model lifecycle ───────────────────────────────────────────────────────
 
     def new_model(self):
-        response = requests.post(self.url+"/cmds/new_model")
-
-    def mesh_selected_nodes(self):
-        response = requests.post(self.url+"/cmds/mesh_selected_nodes")
-
-    def surface_selected_nodes(self):
-        response = requests.post(self.url+"/cmds/surface_selected_nodes")
-
-    def select_all(self):
-        response = requests.post(self.url+"/cmds/select_all")
-
-    def clear_selection(self):
-        response = requests.post(self.url+"/cmds/clear_selection")
-
-    def assign_node_fixed_bc_ground(self):
-        response = requests.post(self.url+"/cmds/assign_node_fixed_bc_ground")
-
-    def assign_node_pos_bc_ground(self):
-        response = requests.post(self.url+"/cmds/assign_node_pos_bc_ground")
-    
-    def add_last_node_to_selection(self):
-        response = requests.post(self.url+"/cmds/add_last_node_to_selection")
+        self._post("/cmds/new_model")
 
     def open_model(self, filename):
-        response = requests.post(self.url+"/cmds/open_model", os.path.abspath(filename))
+        self._post("/cmds/open_model", os.path.abspath(filename))
 
     def save_model(self, filename):
-        print(os.path.abspath(filename))
-        response = requests.post(self.url+"/cmds/save_model", os.path.abspath(filename))
+        self._post("/cmds/save_model", os.path.abspath(filename))
 
     def export_calfem(self, filename):
-        print(os.path.abspath(filename))
-        response = requests.post(self.url+"/cmds/export_model", os.path.abspath(filename))
+        self._post("/cmds/export_model", os.path.abspath(filename))
 
     def import_calfem(self, filename):
-        print(os.path.abspath(filename))
-        response = requests.post(self.url+"/cmds/import_model", os.path.abspath(filename))
+        self._post("/cmds/import_model", os.path.abspath(filename))
+
+    def snap_shot(self):
+        self._post("/cmds/snap_shot")
+
+    # ── Node / beam creation ──────────────────────────────────────────────────
+
+    def add_nodes(self, nodes):
+        """nodes: list of [x, y, z] triples."""
+        self._post("/cmds/add_nodes", nodes)
+
+    def add_node(self, x, y, z):
+        self.add_nodes([[x, y, z]])
+
+    def add_beams(self, beams):
+        """beams: list of [i0, i1] index pairs."""
+        self._post("/cmds/add_beams", beams)
+
+    def add_beam(self, i0, i1):
+        self.add_beams([[i0, i1]])
+
+    # ── Selection ─────────────────────────────────────────────────────────────
+
+    def select_all(self):
+        self._post("/cmds/select_all")
+
+    def select_all_nodes(self):
+        self._post("/cmds/select_all_nodes")
+
+    def clear_selection(self):
+        self._post("/cmds/clear_selection")
+
+    def add_last_node_to_selection(self):
+        self._post("/cmds/add_last_node_to_selection")
+
+    def select_node_at(self, index):
+        self._post("/cmds/select_node_at", {"index": index})
+
+    def select_beam_at(self, index):
+        self._post("/cmds/select_beam_at", {"index": index})
+
+    # ── Node / beam mutation ──────────────────────────────────────────────────
+
+    def delete_node_at(self, index):
+        self._post("/cmds/delete_node_at", {"index": index})
+
+    def delete_beam_at(self, index):
+        self._post("/cmds/delete_beam_at", {"index": index})
+
+    def subdivide_beam_at(self, index):
+        self._post("/cmds/subdivide_beam_at", {"index": index})
+
+    def connect_near_nodes(self, tolerance):
+        self._post("/cmds/connect_near_nodes", {"tolerance": tolerance})
+
+    def update_node_pos_at(self, index, x, y, z):
+        self._post("/cmds/update_node_pos_at", {"index": index, "pos": [x, y, z]})
+
+    def update_beam_at(self, index, i0, i1):
+        self._post("/cmds/update_beam_at", {"index": index, "i0": i0, "i1": i1})
+
+    # ── Boundary conditions ───────────────────────────────────────────────────
+
+    def assign_node_fixed_bc_ground(self):
+        self._post("/cmds/assign_node_fixed_bc_ground")
+
+    def assign_node_pos_bc_ground(self):
+        self._post("/cmds/assign_node_pos_bc_ground")
+
+    def assign_node_fixed_bc_at(self, index):
+        self._post("/cmds/assign_node_fixed_bc_at", {"index": index})
+
+    def assign_node_pos_bc_at(self, index):
+        self._post("/cmds/assign_node_pos_bc_at", {"index": index})
+
+    def remove_node_bc_at(self, index):
+        self._post("/cmds/remove_node_bc_at", {"index": index})
+
+    # ── Loads ─────────────────────────────────────────────────────────────────
+
+    def clear_all_loads(self):
+        self._post("/cmds/clear_all_loads")
+
+    def clear_all_bcs(self):
+        self._post("/cmds/clear_all_bcs")
+
+    def add_node_load_at(self, index, fx, fy, fz):
+        self._post("/cmds/add_node_load_at", {"index": index, "force": [fx, fy, fz]})
+
+    def clear_node_load_at(self, index):
+        self._post("/cmds/clear_node_load_at", {"index": index})
+
+    def add_beam_load_at(self, index, fx, fy, fz):
+        self._post("/cmds/add_beam_load_at", {"index": index, "force": [fx, fy, fz]})
+
+    def clear_beam_load_at(self, index):
+        self._post("/cmds/clear_beam_load_at", {"index": index})
+
+    # ── Mesh generation ───────────────────────────────────────────────────────
+
+    def mesh_selected_nodes(self):
+        self._post("/cmds/mesh_selected_nodes")
+
+    def surface_selected_nodes(self):
+        self._post("/cmds/surface_selected_nodes")
+
+    # ── Queries ───────────────────────────────────────────────────────────────
+
+    def node_count(self):
+        return self._post_json("/cmds/node_count")["value"]
+
+    def beam_count(self):
+        return self._post_json("/cmds/beam_count")["value"]
+
+    def node_pos_at(self, index):
+        """Returns [x, y, z]."""
+        return self._post_json("/cmds/node_pos_at", {"index": index})["pos"]
+
+    def beam_at(self, index):
+        """Returns (i0, i1)."""
+        data = self._post_json("/cmds/beam_at", {"index": index})
+        return data["i0"], data["i1"]
+
+    def find_node_near(self, x, y, z, tolerance):
+        """Returns node index, or -1 if not found."""
+        return self._post_json("/cmds/find_node_near",
+                               {"pos": [x, y, z], "tolerance": tolerance})["index"]
+
+    def is_node_fixed_at(self, index):
+        return self._post_json("/cmds/is_node_fixed_at", {"index": index})["value"]
+
+    def is_node_pos_bc_at(self, index):
+        return self._post_json("/cmds/is_node_pos_bc_at", {"index": index})["value"]
+
+    def is_node_selected_at(self, index):
+        return self._post_json("/cmds/is_node_selected_at", {"index": index})["value"]
+
+    def has_node_load_at(self, index):
+        return self._post_json("/cmds/has_node_load_at", {"index": index})["value"]
+
+    def has_beam_load_at(self, index):
+        return self._post_json("/cmds/has_beam_load_at", {"index": index})["value"]
+
+    def node_load_count(self):
+        return self._post_json("/cmds/node_load_count")["value"]
+
+    def beam_load_count(self):
+        return self._post_json("/cmds/beam_load_count")["value"]
+
+    def material_count(self):
+        return self._post_json("/cmds/material_count")["value"]
+
+    def model_bounds(self):
+        """Returns (min, max) where each is [x, y, z]."""
+        data = self._post_json("/cmds/model_bounds")
+        return data["min"], data["max"]
+
+    # ── Properties ────────────────────────────────────────────────────────────
 
     @property
     def executable(self):
         return self.__executable
-    
+
     @executable.setter
     def executable(self, value):
         self.__executable = value
         _, self.executable_name = os.path.split(self.executable)
 
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+
 def test1(of):
     of.new_model()
-
     nodes = (10.0 - np.random.random(3*200)*20.0).reshape((200,3)).tolist()
-
     of.add_nodes(nodes)
-
-    beams = [
-        [0,1],
-        [1,2]
-    ]
-
-    of.add_beams(beams)
+    of.add_beams([[0,1],[1,2]])
     of.select_all()
 
 def test2(of):
@@ -123,18 +251,9 @@ def test2(of):
 
 def test3(of):
     of.new_model()
-
     nodes = (10.0 - np.random.random(3*200)*20.0).reshape((200,3)).tolist()
-
     of.add_nodes(nodes)
-
-    beams = [
-        [0,1],
-        [1,2]
-    ]
-
-    of.add_beams(beams)
-
+    of.add_beams([[0,1],[1,2]])
     of.save_model("test4.df3")
 
 def test4(of):
@@ -145,14 +264,27 @@ def test5(of):
     of.new_model()
     of.import_calfem("test4.py")
 
+def test_queries(of):
+    of.new_model()
+    of.add_node(0, 0, 0)
+    of.add_node(1, 0, 0)
+    of.add_node(0, 1, 0)
+    of.add_beam(0, 1)
+    of.add_beam(1, 2)
 
+    print("node_count:", of.node_count())
+    print("beam_count:", of.beam_count())
+    print("node_pos_at(0):", of.node_pos_at(0))
+    print("beam_at(0):", of.beam_at(0))
+    print("find_node_near(0,0,0, 0.1):", of.find_node_near(0, 0, 0, 0.1))
+    bmin, bmax = of.model_bounds()
+    print("model_bounds:", bmin, bmax)
 
 
 if __name__ == "__main__":
-
     try:
         of = ObjectiveFrame()
-        of.executable =  "D:\\Users\\Jonas\\Development\\objectiveframe\\bin\\Debug\\objframe_glfwd.exe"
+        of.executable = "D:\\Users\\Jonas\\Development\\objectiveframe\\bin\\Debug\\objframe_glfwd.exe"
         of.start()
 
         test1(of)
@@ -160,7 +292,7 @@ if __name__ == "__main__":
         test3(of)
         test4(of)
         test5(of)
+        test_queries(of)
 
-    except requests.exceptions.ConnectionError as err:
-        print("Coudn't connect to ObjectiveFrame. Is it started?")
-              
+    except requests.exceptions.ConnectionError:
+        print("Couldn't connect to ObjectiveFrame. Is it started?")

@@ -295,19 +295,14 @@ unsigned int fl_cmap[256] = {
 // Constructor/Destructor
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
-    : IvfViewWindow(width, height, title, monitor, shared), m_uiScale{1.0f}, m_service{nullptr}, m_width{width},
-      m_height{height}, m_tactileForce{nullptr}, m_relNodeSize{0.004},
-      m_relLineRadius{0.0015}, m_relLoadSize{0.06}, m_customMode{CustomMode::Feedback}, m_customModeSet{false},
+    : IvfViewWindow(width, height, title, monitor, shared), m_controllerAdapter{*this}, m_service{nullptr}, m_width{width},
+      m_height{height}, m_tactileForce{nullptr}, m_customMode{CustomMode::Feedback}, m_customModeSet{false},
       m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
       m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All}, m_highlightFilter{HighlightMode::All},
       m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},
-      m_selectedPos{0.0, 0.0, 0.0}, m_useSphereCursor{false}, m_useBlending{false},
-      m_useImGuiFileDialogs{true}, m_tactileForceValue{1000.0}, m_progPathStr{""}, m_showNodeBCsWindow{false},
-      m_showBCPropPopup{false}, m_prevButton{nullptr}, m_nodeSelection{false}, m_elementSelection{false},
-      m_mixedSelection{false}, m_openDialog{false}, m_saveDialog{false}, m_saveAsDialog{false},
-      m_saveAsCalfemDialog{false}, m_openFromCalfemDialog{false}, m_saveScreenShot{false}, m_openScriptDialog{false},
-      m_showDiagnostics{false}, m_openEditScriptDialog{false}, m_newScriptDialog{false},
-      m_pluginRunning{false}
+      m_selectedPos{0.0, 0.0, 0.0}, m_tactileForceValue{1000.0},
+      m_prevButton{nullptr}, m_nodeSelection{false}, m_elementSelection{false},
+      m_mixedSelection{false}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -376,14 +371,14 @@ ofai::PromptDatabase &FemViewWindow::getPromptDatabase()
 
 void FemViewWindow::setFileName(const std::string &name)
 {
-    m_fileName = name;
+    m_paths.fileName = name;
 }
 
 const std::string FemViewWindow::getFileName()
 {
     // Return current filename
 
-    return m_fileName;
+    return m_paths.fileName;
 }
 
 void FemViewWindow::updateAxisLabels()
@@ -471,11 +466,11 @@ void FemViewWindow::setWorkspace(double size, bool resetCamera)
 
     if (m_beamModel != nullptr)
     {
-        m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
+        m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
         m_beamModel->setNodeType(ivf::Node::NT_CUBE);
-        m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
-        m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
-        m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
+        m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
+        m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
+        m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
     }
 
     this->set_changed();
@@ -506,21 +501,21 @@ void FemViewWindow::setCurrentMaterial(ofem::BeamMaterial *material)
 {
     // Set current material
 
-    m_currentMaterial = ofem::BeamMaterialPtr(material);
+    m_edit.currentMaterial = ofem::BeamMaterialPtr(material);
 }
 
 ofem::BeamMaterial *FemViewWindow::getCurrentMaterial()
 {
     // Return current material
 
-    return m_currentMaterial.get();
+    return m_edit.currentMaterial.get();
 }
 
 void FemViewWindow::setCurrentBeamLoad(ofem::BeamLoad *elementLoad)
 {
     // Set current elementload
 
-    m_currentElementLoad = ofem::BeamLoadPtr(elementLoad);
+    m_edit.currentElementLoad = ofem::BeamLoadPtr(elementLoad);
 }
 
 void FemViewWindow::setRepresentation(RepresentationMode repr)
@@ -533,9 +528,9 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
         m_beamModel->setShowNodeNumbers(m_eigenmode.savedShowNodeNumbers);
     }
 
-    m_representation = repr;
+    m_view.representation = repr;
 
-    switch (m_representation)
+    switch (m_view.representation)
     {
     case RepresentationMode::Fem:
         log("Setting representation to FRAME_FEM.");
@@ -589,17 +584,17 @@ Shape *FemViewWindow::getSelectedShape()
 
 ofem::BeamLoad *FemViewWindow::getCurrentBeamLoad()
 {
-    return m_currentElementLoad.get();
+    return m_edit.currentElementLoad.get();
 }
 
 void FemViewWindow::setCurrentNodeLoad(ofem::BeamNodeLoad *nodeLoad)
 {
-    m_currentNodeLoad = ofem::BeamNodeLoadPtr(nodeLoad);
+    m_edit.currentNodeLoad = ofem::BeamNodeLoadPtr(nodeLoad);
 }
 
 ofem::BeamNodeLoad *FemViewWindow::getCurrentNodeLoad()
 {
-    return m_currentNodeLoad.get();
+    return m_edit.currentNodeLoad.get();
 }
 
 void FemViewWindow::setEditMode(WidgetMode mode)
@@ -752,7 +747,7 @@ double FemViewWindow::getScalefactor()
 
 void FemViewWindow::setCurrentNodeBC(ofem::BeamNodeBC *bc)
 {
-    m_currentNodeBC = ofem::BeamNodeBCPtr(bc);
+    m_edit.currentNodeBC = ofem::BeamNodeBCPtr(bc);
 }
 
 void FemViewWindow::setCustomMode(CustomMode mode)
@@ -824,46 +819,46 @@ void FemViewWindow::setNeedRecalc(bool flag)
 
 void FemViewWindow::setRelNodeSize(double size)
 {
-    m_relNodeSize = size;
+    m_view.relNodeSize = size;
 
     if (m_beamModel != nullptr)
-        m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
+        m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
 }
 
 void FemViewWindow::setRelLineRadius(double radius)
 {
-    m_relLineRadius = radius;
+    m_view.relLineRadius = radius;
 
     if (m_beamModel != nullptr)
-        m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
+        m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
 }
 
 void FemViewWindow::setRelLoadSize(double size)
 {
-    m_relLoadSize = size;
+    m_view.relLoadSize = size;
 
     if (m_beamModel != nullptr)
-        m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
+        m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
 }
 
 double FemViewWindow::getRelNodeSize()
 {
-    return m_relNodeSize;
+    return m_view.relNodeSize;
 }
 
 double FemViewWindow::getRelLineRadius()
 {
-    return m_relLineRadius;
+    return m_view.relLineRadius;
 }
 
 double FemViewWindow::getRelLoadSize()
 {
-    return m_relLoadSize;
+    return m_view.relLoadSize;
 }
 
 ofem::BeamNodeBC *FemViewWindow::getCurrentNodeBC()
 {
-    return m_currentNodeBC.get();
+    return m_edit.currentNodeBC.get();
 }
 
 void FemViewWindow::setResultType(int type)
@@ -877,21 +872,21 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
 {
     namespace fs = std::filesystem;
 
-    m_progPathStr = progPath;
-    m_progPath.assign(m_progPathStr);
+    m_paths.progStr = progPath;
+    m_paths.prog.assign(m_paths.progStr);
 
-    m_fontPath = m_progPath / fs::path("fonts");
-    m_imagePath = m_progPath / fs::path("images");
-    m_pluginPath = m_progPath / fs::path("plugins");
-    m_mapPath = m_progPath / fs::path("maps");
-    m_pythonPath = m_progPath / fs::path("python");
-    m_examplePath = m_progPath / fs::path("examples");
-    m_aiPath = m_progPath / fs::path("ai");
+    m_paths.font = m_paths.prog / fs::path("fonts");
+    m_paths.image = m_paths.prog / fs::path("images");
+    m_paths.plugin = m_paths.prog / fs::path("plugins");
+    m_paths.map = m_paths.prog / fs::path("maps");
+    m_paths.python = m_paths.prog / fs::path("python");
+    m_paths.example = m_paths.prog / fs::path("examples");
+    m_paths.ai = m_paths.prog / fs::path("ai");
 }
 
 const std::string FemViewWindow::getProgPath()
 {
-    return m_progPathStr;
+    return m_paths.progStr;
 }
 
 // Widget methods
@@ -899,7 +894,7 @@ const std::string FemViewWindow::getProgPath()
 void FemViewWindow::exportAsCalfem(std::string filename)
 {
     auto writer = ofem::CalfemWriter::create(filename);
-    writer->setPythonPath(m_pythonPath);
+    writer->setPythonPath(m_paths.python);
     writer->setFemModel(m_beamModel.get());
     writer->save();
 }
@@ -1016,8 +1011,8 @@ void FemViewWindow::openFromString(const std::string df3_string)
     // Initialize and open beam model
 
     m_beamModel->initialize();
-    m_beamModel->setFileName(m_fileName);
-    m_beamModel->setPath(m_mapPath.string());
+    m_beamModel->setFileName(m_paths.fileName);
+    m_beamModel->setPath(m_paths.map.string());
     m_beamModel->openFromString(df3_string);
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
@@ -1084,8 +1079,8 @@ void FemViewWindow::open(std::string filename)
     // Initialize and open beam model
 
     m_beamModel->initialize();
-    m_beamModel->setFileName(m_fileName);
-    m_beamModel->setPath(m_mapPath.string());
+    m_beamModel->setFileName(m_paths.fileName);
+    m_beamModel->setPath(m_paths.map.string());
     m_beamModel->open();
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
@@ -1126,7 +1121,7 @@ void FemViewWindow::copy()
 {
     auto selectedShapes = this->getSelectedShapes();
 
-    m_modelClipBoard->clear();
+    m_edit.clipBoard->clear();
 
     for (int i = 0; i < selectedShapes->getSize(); i++)
     {
@@ -1136,14 +1131,14 @@ void FemViewWindow::copy()
         {
             auto vnode = static_cast<vfem::Node *>(shape);
             auto node = vnode->getFemNode();
-            m_modelClipBoard->addNode(node);
+            m_edit.clipBoard->addNode(node);
         }
 
         if (shape->isClass("vfem::Beam"))
         {
             auto vbeam = static_cast<vfem::Beam *>(shape);
             auto beam = vbeam->getBeam();
-            m_modelClipBoard->addElement(beam);
+            m_edit.clipBoard->addElement(beam);
         }
     }
 }
@@ -1191,7 +1186,7 @@ void FemViewWindow::newModel()
 {
     namespace fs = std::filesystem;
 
-    m_scriptCalledNewModel = true;
+    m_scripting.calledNewModel = true;
 
     this->lockSceneRendering();
 
@@ -1206,13 +1201,13 @@ void FemViewWindow::newModel()
     m_beamModel = vfem::BeamModel::create();
 
     m_beamModel->initialize();
-    m_beamModel->setPath(m_mapPath.string());
+    m_beamModel->setPath(m_paths.map.string());
     m_beamModel->setScene(this->getScene()->getComposite());
-    m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
+    m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
     m_beamModel->setNodeType(ivf::Node::NT_CUBE);
-    m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
-    m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
-    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
+    m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
+    m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
+    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
     m_beamModel->setNodeMaterial(m_nodeMaterial);
     m_beamModel->setBeamMaterial(m_lineMaterial);
 
@@ -1221,7 +1216,7 @@ void FemViewWindow::newModel()
 
     m_beamModel->generateModel();
 
-    m_currentMaterial = nullptr;
+    m_edit.currentMaterial = nullptr;
 
     // Initialize color table
 
@@ -1350,10 +1345,10 @@ void FemViewWindow::fitWorkspaceToModel(double padding)
     this->setWorkspace(newWorkspaceSize, true);
     
     // Update beam model properties based on new workspace
-    m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
-    m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
-    m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
-    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
+    m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
+    m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
+    m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
+    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
     
     // Update tactile force size
     double loadSize = m_beamModel->getLoadSize();
@@ -1785,7 +1780,7 @@ void FemViewWindow::assignBeamLoadSelected()
 {
     // Assign a beam load to selected beams
 
-    if (m_currentElementLoad != nullptr)
+    if (m_edit.currentElementLoad != nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i = 0; i < selected->getSize(); i++)
@@ -1794,7 +1789,7 @@ void FemViewWindow::assignBeamLoadSelected()
             if (shape->isClass("vfem::Beam"))
             {
                 vfem::Beam *visBeam = static_cast<vfem::Beam *>(shape);
-                m_currentElementLoad->addElement((ofem::Element *)visBeam->getBeam());
+                m_edit.currentElementLoad->addElement((ofem::Element *)visBeam->getBeam());
             }
         }
 
@@ -1813,7 +1808,7 @@ void FemViewWindow::assignNodeLoadSelected()
 {
     // Assign a node load to selected nodes
 
-    if (m_currentNodeLoad != nullptr)
+    if (m_edit.currentNodeLoad != nullptr)
     {
         this->snapShot();
 
@@ -1824,7 +1819,7 @@ void FemViewWindow::assignNodeLoadSelected()
             if (shape->isClass("vfem::Node"))
             {
                 vfem::Node *visNode = static_cast<vfem::Node *>(shape);
-                m_currentNodeLoad->addNode(static_cast<ofem::Node *>(visNode->getFemNode()));
+                m_edit.currentNodeLoad->addNode(static_cast<ofem::Node *>(visNode->getFemNode()));
             }
         }
 
@@ -1936,43 +1931,43 @@ void FemViewWindow::setupOverlay()
 
     m_editButtons = ButtonGroup::create();
 
-    button = PlaneButton::create(ToolbarButton::Select, (m_imagePath / fs::path("tlselect.png")).string());
+    button = PlaneButton::create(ToolbarButton::Select, (m_paths.image / fs::path("tlselect.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 60.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::SelectBox, (m_imagePath / fs::path("tlselectbox.png")).string());
+    button = PlaneButton::create(ToolbarButton::SelectBox, (m_paths.image / fs::path("tlselectbox.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 120.0, 0.0);
     button->setHint("Select nodes or elements");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Move, (m_imagePath / fs::path("tlmove.png")).string());
+    button = PlaneButton::create(ToolbarButton::Move, (m_paths.image / fs::path("tlmove.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 200.0, 0.0);
     button->setHint("Move nodes or elements");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Inspect, (m_imagePath / fs::path("tlinspect.png")).string());
+    button = PlaneButton::create(ToolbarButton::Inspect, (m_paths.image / fs::path("tlinspect.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 270, 0.0);
     button->setHint("Node or element info");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Delete, (m_imagePath / fs::path("tldelete.png")).string());
+    button = PlaneButton::create(ToolbarButton::Delete, (m_paths.image / fs::path("tldelete.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 360.0, 0.0);
     button->setHint("Delete node or element");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Feedback, (m_imagePath / fs::path("tlfeedback.png")).string());
+    button = PlaneButton::create(ToolbarButton::Feedback, (m_paths.image / fs::path("tlfeedback.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 440.0, 0.0);
     button->setHint("Feedback mode");
     m_editButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::Run, (m_imagePath / fs::path("run.png")).string());
+    button = PlaneButton::create(ToolbarButton::Run, (m_paths.image / fs::path("run.png")).string());
     button->setSize(40.0, 40.0);
     button->setPosition(30.0, 520.0, 0.0);
     button->setHint("Excecute calculation");
@@ -1986,43 +1981,43 @@ void FemViewWindow::setupOverlay()
 
     m_objectButtons = ButtonGroup::create();
 
-    button = PlaneButton::create(ToolbarButton::CreateNode, (m_imagePath / fs::path("tlnode.png")).string());
+    button = PlaneButton::create(ToolbarButton::CreateNode, (m_paths.image / fs::path("tlnode.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(30.0, 30.0, 0.0);
     button->setHint("Create node");
     m_objectButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::CreateBeam, (m_imagePath / fs::path("tlsolidline.png")).string());
+    button = PlaneButton::create(ToolbarButton::CreateBeam, (m_paths.image / fs::path("tlsolidline.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(90.0, 30.0, 0.0);
     button->setHint("Create element");
     m_objectButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::NodeLoad, (m_imagePath / fs::path("tlnodeloads.png")).string());
+    button = PlaneButton::create(ToolbarButton::NodeLoad, (m_paths.image / fs::path("tlnodeloads.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(150.0, 30.0, 0.0);
     button->setHint("Show node loads");
     m_objectButtons->addChild(button);
 
-    button = PlaneButton::create(ToolbarButton::BeamLoad, (m_imagePath / fs::path("tldload.png")).string());
+    button = PlaneButton::create(ToolbarButton::BeamLoad, (m_paths.image / fs::path("tldload.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(210.0, 30.0, 0.0);
     button->setHint("Show element loads");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::NodeBC, (m_imagePath / fs::path("tlbc.png")).string());
+    button = new PlaneButton(ToolbarButton::NodeBC, (m_paths.image / fs::path("tlbc.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(270.0, 30.0, 0.0);
     button->setHint("Show boundary conditions");
     m_objectButtons->addChild(button);
 
-    button = new PlaneButton(ToolbarButton::Materials, (m_imagePath / fs::path("tlmaterials.png")).string());
+    button = new PlaneButton(ToolbarButton::Materials, (m_paths.image / fs::path("tlmaterials.png")).string());
     button->setSize(50.0, 50.0);
     button->setPosition(330.0, 30.0, 0.0);
     button->setHint("Show beam properties");
     m_objectButtons->addChild(button);
 
-    m_logoButton = new PlaneButton(1234, (m_imagePath / fs::path("logo.png")).string());
+    m_logoButton = new PlaneButton(1234, (m_paths.image / fs::path("logo.png")).string());
     m_logoButton->setSize(120.0, 120.0);
 
     m_overlayScene->addChild(m_logoButton);
@@ -2040,17 +2035,17 @@ void FemViewWindow::setupPlugins()
 
     namespace fs = std::filesystem;
 
-    if (std::filesystem::is_directory(m_pluginPath))
+    if (std::filesystem::is_directory(m_paths.plugin))
     {
-        for (const auto &entry : std::filesystem::directory_iterator(m_pluginPath))
+        for (const auto &entry : std::filesystem::directory_iterator(m_paths.plugin))
         {
             auto filename = entry.path();
             auto plugin = ScriptPlugin::create(filename.string());
-            m_plugins.push_back(plugin);
+            m_scripting.plugins.push_back(plugin);
             log("Loading plugin - " + filename.string() + " - " + plugin->name());
         }
 
-        std::sort(m_plugins.begin(), m_plugins.end(),
+        std::sort(m_scripting.plugins.begin(), m_scripting.plugins.end(),
                   [](const ScriptPluginPtr a, const ScriptPluginPtr b) -> bool { return a->name() > b->name(); });
     }
     else
@@ -2063,19 +2058,19 @@ void FemViewWindow::setupExamples()
 
     namespace fs = std::filesystem;
 
-    if (std::filesystem::is_directory(m_examplePath))
+    if (std::filesystem::is_directory(m_paths.example))
     {
-        for (const auto &entry : std::filesystem::directory_iterator(m_examplePath))
+        for (const auto &entry : std::filesystem::directory_iterator(m_paths.example))
         {
             auto filename = entry.path();
             if (filename.extension() == ".df3")
             {
-                m_examples.push_back(filename.string());
+                m_scripting.examples.push_back(filename.string());
                 log("Found example - " + filename.string());
             }
         }
 
-        std::sort(m_examples.begin(), m_examples.end());
+        std::sort(m_scripting.examples.begin(), m_scripting.examples.end());
     }
     else
         log("Couldn't find load any examples...");
@@ -2087,9 +2082,9 @@ void FemViewWindow::setupAi()
 
     namespace fs = std::filesystem;
 
-    if (std::filesystem::is_directory(m_aiPath))
+    if (std::filesystem::is_directory(m_paths.ai))
     {
-        auto filename = m_aiPath / fs::path("system_prompt.md");
+        auto filename = m_paths.ai / fs::path("system_prompt.md");
         if (std::filesystem::exists(filename))
         {
             m_ai.systemPromptFilename = filename.string();
@@ -2102,7 +2097,7 @@ void FemViewWindow::setupAi()
             m_ai.systemPromptFilename = "";
         }
 
-        filename = m_aiPath / fs::path("prompts_db.json");
+        filename = m_paths.ai / fs::path("prompts_db.json");
         if (std::filesystem::exists(filename))
         {
             m_ai.promptDatabase.loadFromFile(filename.string());
@@ -2132,9 +2127,9 @@ void FemViewWindow::refreshUiStyle()
         ImVec4(newStyle.Colors[ImGuiCol_TitleBgActive].x, newStyle.Colors[ImGuiCol_TitleBgActive].y,
                newStyle.Colors[ImGuiCol_TitleBgActive].z, 0.8f);
 
-    newStyle.ScaleAllSizes(m_uiScale);
+    newStyle.ScaleAllSizes(m_view.uiScale);
 
-    io.FontGlobalScale = m_uiScale;
+    io.FontGlobalScale = m_view.uiScale;
 
     style = newStyle;
 }
@@ -2143,7 +2138,7 @@ void FemViewWindow::assignNodeBCSelected()
 {
     // Assign a node load to selected nodes
 
-    if (m_currentNodeBC != nullptr)
+    if (m_edit.currentNodeBC != nullptr)
     {
         auto selected = this->getSelectedShapes();
         for (int i = 0; i < selected->getSize(); i++)
@@ -2152,7 +2147,7 @@ void FemViewWindow::assignNodeBCSelected()
             if (shape->isClass("vfem::Node"))
             {
                 vfem::Node *visNode = static_cast<vfem::Node *>(shape);
-                m_currentNodeBC->addNode((ofem::Node *)visNode->getFemNode());
+                m_edit.currentNodeBC->addNode((ofem::Node *)visNode->getFemNode());
             }
         }
 
@@ -2709,7 +2704,7 @@ void FemViewWindow::deleteNodeAt(int i)
 
     if (i < 0 || i >= (int)nodeSet->getSize())
         return;
-    if (!m_scriptRunning)
+    if (!m_scripting.running)
         this->snapShot();
     auto node = nodeSet->getNode(i);
     auto beamSet = m_beamModel->getElementSet();
@@ -2749,7 +2744,7 @@ void FemViewWindow::deleteBeamAt(int i)
 
     if (i < 0 || i >= (int)elementSet->getSize())
         return;
-    if (!m_scriptRunning)
+    if (!m_scripting.running)
         this->snapShot();
     clearSelection();
     selectBeamAt(i);
@@ -2839,8 +2834,8 @@ void FemViewWindow::subdivideBeamAt(int i)
     this->addToScene(vn2);
 
     // Delete original beam using selection mechanism
-    bool wasRunning = m_scriptRunning;
-    m_scriptRunning = true;
+    bool wasRunning = m_scripting.running;
+    m_scripting.running = true;
     clearSelection();
     selectBeamAt(i);
     setEditEnabled(true);
@@ -2848,7 +2843,7 @@ void FemViewWindow::subdivideBeamAt(int i)
     deleteSelectedKeep();
     setDeleteFilter(DeleteMode::All);
     setEditEnabled(false);
-    m_scriptRunning = wasRunning;
+    m_scripting.running = wasRunning;
 
     m_beamModel->enumerate();
     m_solver.needRecalc = true;
@@ -2949,8 +2944,8 @@ void FemViewWindow::connectNearNodes(double tolerance)
     }
 
     // Remove degenerate beams (same node on both ends) and duplicates
-    bool wasRunning = m_scriptRunning;
-    m_scriptRunning = true;
+    bool wasRunning = m_scripting.running;
+    m_scripting.running = true;
 
     std::set<std::pair<ofem::Node *, ofem::Node *>> seen;
     for (int b = (int)beamSet->getSize() - 1; b >= 0; b--)
@@ -2979,7 +2974,7 @@ void FemViewWindow::connectNearNodes(double tolerance)
             deleteNodeAt(i);
     }
 
-    m_scriptRunning = wasRunning;
+    m_scripting.running = wasRunning;
 
     m_beamModel->enumerate();
     m_solver.needRecalc = true;
@@ -3303,7 +3298,7 @@ bool FemViewWindow::isTextLayerShown()
 void FemViewWindow::startService()
 {
     if (m_service == nullptr)
-        m_service = ofservice::Service::create(this);
+        m_service = ofservice::Service::create(&m_controllerAdapter);
 }
 
 void FemViewWindow::stopService()
@@ -3361,15 +3356,15 @@ vfem::BeamModel *FemViewWindow::getVisualBeamModel()
 
 RepresentationMode FemViewWindow::getRepresentation()
 {
-    return m_representation;
+    return m_view.representation;
 }
 
 void FemViewWindow::setSphereCursor(bool flag)
 {
     vfem::Preferences::instance().setUseSphereNodes(flag);
-    m_useSphereCursor = vfem::Preferences::instance().useSphereNodes();
+    m_view.useSphereCursor = vfem::Preferences::instance().useSphereNodes();
 
-    if (m_useSphereCursor)
+    if (m_view.useSphereCursor)
     {
         m_nodeCursor = m_sphereCursor;
         m_beamModel->setNodeRepr(ivf::Node::NT_SPHERE);
@@ -3385,19 +3380,19 @@ void FemViewWindow::setSphereCursor(bool flag)
 
 bool FemViewWindow::getSphereCursor()
 {
-    return m_useSphereCursor;
+    return m_view.useSphereCursor;
 }
 
 void FemViewWindow::setUseBlending(bool flag)
 {
-    m_useBlending = flag;
+    m_view.useBlending = flag;
 
-    if (m_useBlending)
+    if (m_view.useBlending)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     else
         glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 
-    if (m_useBlending)
+    if (m_view.useBlending)
     {
         m_beamModel->setUseBlending(true);
         this->getScene()->getCurrentPlane()->setState(ivf::Shape::OS_OFF);
@@ -3413,39 +3408,39 @@ void FemViewWindow::setUseBlending(bool flag)
 
 bool FemViewWindow::getUseBlending()
 {
-    return m_useBlending;
+    return m_view.useBlending;
 }
 
 float FemViewWindow::uiScale()
 {
-    return m_uiScale;
+    return m_view.uiScale;
 }
 
 void FemViewWindow::setUseImGuiFileDialogs(bool flag)
 {
-    m_useImGuiFileDialogs = flag;
+    m_view.useImGuiFileDialogs = flag;
 }
 
 bool FemViewWindow::getUseImGuiFileDialogs()
 {
-    return m_useImGuiFileDialogs;
+    return m_view.useImGuiFileDialogs;
 }
 
 void FemViewWindow::setUiScale(float scale)
 {
-    m_uiScale = scale;
+    m_view.uiScale = scale;
 
     this->refreshUiStyle();
 }
 
 void FemViewWindow::setSaveScreenShot(bool flag)
 {
-    m_saveScreenShot = flag;
+    m_view.saveScreenShot = flag;
 }
 
 bool FemViewWindow::getSaveScreenShot()
 {
-    return m_saveScreenShot;
+    return m_view.saveScreenShot;
 }
 
 void FemViewWindow::setAiApiKey(const std::string &apiKey)
@@ -3689,12 +3684,12 @@ void FemViewWindow::onInit()
     log(OBJFRAME_AUTHOR2);
     log(OBJFRAME_EXTRA1);
     log("---------------------------------------------");
-    log("Program path : " + m_progPath.string());
-    log("Font path    : " + m_fontPath.string());
-    log("Image path   : " + m_imagePath.string());
-    log("Plugin path  : " + m_pluginPath.string());
-    log("Map path     : " + m_mapPath.string());
-    log("Python path  : " + m_pythonPath.string());
+    log("Program path : " + m_paths.prog.string());
+    log("Font path    : " + m_paths.font.string());
+    log("Image path   : " + m_paths.image.string());
+    log("Plugin path  : " + m_paths.plugin.string());
+    log("Map path     : " + m_paths.map.string());
+    log("Python path  : " + m_paths.python.string());
     log("---------------------------------------------");
 
     console("This window will display helpful hints on how to use the different tools in ObjectiveFrame.");
@@ -3730,12 +3725,12 @@ void FemViewWindow::onInit()
 
     namespace fs = std::filesystem;
 
-    if (std::filesystem::is_directory(m_fontPath))
+    if (std::filesystem::is_directory(m_paths.font))
     {
-        m_labelFont = ivf::BitmapFont::create((m_fontPath / fs::path("white_font.fnt")).string());
-        m_axisFont = ivf::BitmapFont::create((m_fontPath / fs::path("black_font.fnt")).string());
-        m_greenFont = ivf::BitmapFont::create((m_fontPath / fs::path("green_font.fnt")).string());
-        m_redFont = ivf::BitmapFont::create((m_fontPath / fs::path("red_font.fnt")).string());
+        m_labelFont = ivf::BitmapFont::create((m_paths.font / fs::path("white_font.fnt")).string());
+        m_axisFont = ivf::BitmapFont::create((m_paths.font / fs::path("black_font.fnt")).string());
+        m_greenFont = ivf::BitmapFont::create((m_paths.font / fs::path("green_font.fnt")).string());
+        m_redFont = ivf::BitmapFont::create((m_paths.font / fs::path("red_font.fnt")).string());
     }
     else
     {
@@ -3782,7 +3777,7 @@ void FemViewWindow::onInit()
 
     log("Setting color map path.");
 
-    if (!std::filesystem::is_directory(m_mapPath))
+    if (!std::filesystem::is_directory(m_paths.map))
     {
         this->quit();
     }
@@ -3790,13 +3785,13 @@ void FemViewWindow::onInit()
     log("Initializing beam model.");
     m_beamModel = vfem::BeamModel::create();
     m_beamModel->initialize();
-    m_beamModel->setPath(m_mapPath.string());
+    m_beamModel->setPath(m_paths.map.string());
     m_beamModel->setScene(this->getScene()->getComposite());
-    m_beamModel->setNodeSize(this->getWorkspace() * m_relNodeSize);
+    m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
     m_beamModel->setNodeType(ivf::Node::NT_CUBE);
-    m_beamModel->setLineRadius(this->getWorkspace() * m_relLineRadius);
-    m_beamModel->setLoadSize(this->getWorkspace() * m_relLoadSize);
-    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_relLoadSize);
+    m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
+    m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
+    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
     m_beamModel->setNodeMaterial(m_nodeMaterial);
     m_beamModel->setBeamMaterial(m_lineMaterial);
 
@@ -3807,16 +3802,16 @@ void FemViewWindow::onInit()
 
     // Initialise model clipboard
 
-    m_modelClipBoard = ofem::ModelClipBoard::create();
+    m_edit.clipBoard = ofem::ModelClipBoard::create();
 
     using namespace std::placeholders;
     ofem::ModelClipboardCreateNodeFunc onCreateNode =
         std::bind(&FemViewWindow::onClipboardCreateNode, this, _1, _2, _3);
-    m_modelClipBoard->assignOnCreateNode(onCreateNode);
+    m_edit.clipBoard->assignOnCreateNode(onCreateNode);
 
     ofem::ModelClipboardCreateElementFunc onCreateElement =
         std::bind(&FemViewWindow::onClipboardCreateElement, this, _1, _2);
-    m_modelClipBoard->assignOnCreateElement(onCreateElement);
+    m_edit.clipBoard->assignOnCreateElement(onCreateElement);
 
     // Initialize color table
 
@@ -3847,7 +3842,7 @@ void FemViewWindow::onInit()
     // Initialize model file name variables
 
     log("Setting initial file name.");
-    m_fileName = "";
+    m_paths.fileName = "";
     this->setFileName("noname.df3");
 
     // Overlay management
@@ -3911,10 +3906,10 @@ void FemViewWindow::onInit()
     m_windowList->add(m_logWindow);
     m_windowList->add(m_consoleWindow);
 
-    m_showStyleEditor = false;
-    m_showMetricsWindow = false;
-    m_showNewFileDlg = false;
-    m_openDialog = false;
+    m_dlg.showStyleEditor = false;
+    m_dlg.showMetricsWindow = false;
+    m_dlg.showNewFile = false;
+    m_dlg.openFile = false;
 
     m_coordWindow = CoordWindow::create("Coord window");
 
@@ -4029,20 +4024,20 @@ void FemViewWindow::onInit()
     m_mainToolbarWindow->setVisible(true);
 
     m_mainToolbarWindow->addButton("Select", OfToolbarButtonType::RadioButton,
-                                   (m_imagePath / fs::path("tlselect.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlselect.png")).string(), 1);
     m_mainToolbarWindow->addButton("Box select", OfToolbarButtonType::RadioButton,
-                                   (m_imagePath / fs::path("tlselectbox.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlselectbox.png")).string(), 1);
     m_mainToolbarWindow->addButton("Move", OfToolbarButtonType::RadioButton,
-                                   (m_imagePath / fs::path("tlmove.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlmove.png")).string(), 1);
     m_mainToolbarWindow->addSpacer();
     m_mainToolbarWindow->addButton("Inspect", OfToolbarButtonType::Button,
-                                   (m_imagePath / fs::path("tlinspect.png")).string());
+                                   (m_paths.image / fs::path("tlinspect.png")).string());
     m_mainToolbarWindow->addButton("Delete", OfToolbarButtonType::Button,
-                                   (m_imagePath / fs::path("tldelete.png")).string());
+                                   (m_paths.image / fs::path("tldelete.png")).string());
     m_mainToolbarWindow->addSpacer();
     m_mainToolbarWindow->addButton("Feedback", OfToolbarButtonType::RadioButton,
-                                   (m_imagePath / fs::path("tlfeedback.png")).string(), 1);
-    m_mainToolbarWindow->addButton("Run", OfToolbarButtonType::Button, (m_imagePath / fs::path("run.png")).string());
+                                   (m_paths.image / fs::path("tlfeedback.png")).string(), 1);
+    m_mainToolbarWindow->addButton("Run", OfToolbarButtonType::Button, (m_paths.image / fs::path("run.png")).string());
 
     using std::placeholders::_1;
     m_mainToolbarWindow->assignOnButtonClicked(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1));
@@ -4057,24 +4052,24 @@ void FemViewWindow::onInit()
     m_editToolbarWindow->setVisible(true);
 
     m_editToolbarWindow->addButton("Create node", OfToolbarButtonType::RadioButton,
-                                   (m_imagePath / fs::path("tlnode.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlnode.png")).string(), 1);
 
     m_editToolbarWindow->addButton("Create beam", OfToolbarButtonType::RadioButton,
-                                   (m_imagePath / fs::path("tlsolidline.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlsolidline.png")).string(), 1);
 
     m_editToolbarWindow->addSpacer();
 
     m_editToolbarWindow->addButton("Node loads", OfToolbarButtonType::Button,
-                                   (m_imagePath / fs::path("tlnodeloads.png")).string(), 0);
+                                   (m_paths.image / fs::path("tlnodeloads.png")).string(), 0);
 
     m_editToolbarWindow->addButton("Beam loads", OfToolbarButtonType::Button,
-                                   (m_imagePath / fs::path("tldload.png")).string(), 0);
+                                   (m_paths.image / fs::path("tldload.png")).string(), 0);
 
     m_editToolbarWindow->addButton("Node BC", OfToolbarButtonType::Button,
-                                   (m_imagePath / fs::path("tlbc.png")).string(), 0);
+                                   (m_paths.image / fs::path("tlbc.png")).string(), 0);
 
     m_editToolbarWindow->addButton("Materials", OfToolbarButtonType::Button,
-                                   (m_imagePath / fs::path("tlmaterials.png")).string(), 0);
+                                   (m_paths.image / fs::path("tlmaterials.png")).string(), 0);
 
     m_editToolbarWindow->assignOnButtonClicked(
         ButtonClickedFunc(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1)));
@@ -4089,7 +4084,7 @@ void FemViewWindow::onInit()
 
     this->setupExamples();
 
-    for (auto &filename : m_examples)
+    for (auto &filename : m_scripting.examples)
         m_startPopup->addExample(filename, filename + ".png");
 
     m_startPopup->assignStartButtonClickedFunc(
@@ -4101,7 +4096,7 @@ void FemViewWindow::onInit()
     log("Initialising tetmesh...");
 
     m_tetMesher = ofsolver::TetgenBeamMesher::create();
-    m_tetMesher->setProgPath(m_progPathStr);
+    m_tetMesher->setProgPath(m_paths.progStr);
 
     // Set initial edit mode
 
@@ -4402,7 +4397,7 @@ void FemViewWindow::onMoveCompleted()
 
 void FemViewWindow::onUnderlay()
 {
-    if (!m_useBlending)
+    if (!m_view.useBlending)
     {
         glBegin(GL_QUADS);
         glColor4f(0.7f, 0.7f, 0.7f, 1.0f);
@@ -4455,7 +4450,7 @@ void FemViewWindow::onInitContext()
     IvfViewWindow::onInitContext();
 
     glEnable(GL_DEPTH_TEST);
-    if (m_useBlending)
+    if (m_view.useBlending)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     else
         glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
@@ -4721,8 +4716,8 @@ void FemViewWindow::onSelectPosition(double x, double y, double z)
 
     if (m_customMode == CustomMode::Paste)
     {
-        m_modelClipBoard->setOffset(x, y, z);
-        m_modelClipBoard->paste(m_beamModel.get());
+        m_edit.clipBoard->setOffset(x, y, z);
+        m_edit.clipBoard->paste(m_beamModel.get());
     }
 }
 
@@ -4902,7 +4897,7 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
     }
     if ((modifier == ModifierKey::mkCtrl) && (key == 'O'))
     {
-        m_openDialog = true;
+        m_dlg.openFile = true;
     }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'N'))
@@ -4910,7 +4905,7 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'S'))
     {
-        m_saveDialog = true;
+        m_dlg.saveFile = true;
     }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'A'))
@@ -4932,7 +4927,7 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->revertLastSnapShot();
 
     if ((modifier == ModifierKey::mkAlt) && (key == 'D'))
-        m_showMetricsWindow = !m_showMetricsWindow;
+        m_dlg.showMetricsWindow = !m_dlg.showMetricsWindow;
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'R'))
         this->executeCalc();
@@ -5136,7 +5131,7 @@ void FemViewWindow::onStartButtonClicked(ofui::OfStartButton &button)
     }
     if (button == OfStartButton::OpenModel)
     {
-        m_openDialog = true;
+        m_dlg.openFile = true;
     }
     if (button == OfStartButton::OpenAIPrompt)
     {
@@ -5144,7 +5139,7 @@ void FemViewWindow::onStartButtonClicked(ofui::OfStartButton &button)
     }
     if (button == OfStartButton::OpenPythonModel)
     {
-        m_openFromCalfemDialog = true;
+        m_dlg.openFromCalfem = true;
     }
     if (button == OfStartButton::StartAPI)
     {
@@ -5276,11 +5271,11 @@ void FemViewWindow::onInitImGui()
 
     namespace fs = std::filesystem;
 
-    fs::path filename = m_fontPath / fs::path("RopaSans-Regular.ttf");
+    fs::path filename = m_paths.font / fs::path("RopaSans-Regular.ttf");
 
     io.Fonts->AddFontFromFileTTF(filename.string().c_str(), 22);
 
-    fs::path monoFilename = m_fontPath / fs::path("JetBrainsMono-Regular.ttf");
+    fs::path monoFilename = m_paths.font / fs::path("JetBrainsMono-Regular.ttf");
 
     io.Fonts->AddFontFromFileTTF(monoFilename.string().c_str(), 20);
 
@@ -5330,7 +5325,7 @@ bool FemViewWindow::shouldAnimateInSecondaryView() const
         return true;
     // Auto-route: secondary view is visible while main view is in edit mode
     return m_viewWindow != nullptr && m_viewWindow->visible() &&
-           m_representation == RepresentationMode::Fem;
+           m_view.representation == RepresentationMode::Fem;
 }
 
 void FemViewWindow::setEigenmodeInSecondaryView(bool flag)

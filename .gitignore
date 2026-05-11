@@ -23,3 +23,4 @@ reference/html/
 /.VSCodeCounter
 /build-test
 .claude/settings.json
+bin/RelWithDebInfo.zip

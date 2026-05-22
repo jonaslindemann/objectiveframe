@@ -6,7 +6,7 @@ ObjectiveFrame lets you build beam and frame structures, apply loads and boundar
 
 [Download](https://github.com/jonaslindemann/objectiveframe/releases/latest) | [Documentation](https://jonaslindemann.github.io/objectiveframe/) | [Quick start](https://jonaslindemann.github.io/objectiveframe/quick-start/) | [Examples](https://jonaslindemann.github.io/objectiveframe/examples/) | [Videos](https://jonaslindemann.github.io/objectiveframe/videos/) | [Cite](https://jonaslindemann.github.io/objectiveframe/cite/)
 
-![ObjectiveFrame real-time structural feedback](docs/docs/images/feedback_004.png)
+![ObjectiveFrame real-time structural feedback](docs/docs/images/screenshot.png)
 
 > Placeholder: replace this still image with a 5-10 second GIF or WebP showing feedback mode, load movement, deformation updates, or eigenmode animation.
 

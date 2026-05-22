@@ -1,47 +1,97 @@
-# ObjectiveFrame - README
+# ObjectiveFrame
 
-ObjectiveFrame is a finite element beam analysis application developed at Structural Mechanics at Lund university by Jonas Lindemann in his PhD work. The application focused on how to make finite element analysis real-time explorable with direct feedback methods.
+Interactive real-time finite element analysis for structural mechanics education and experimentation.
 
- * Objective Frame - An educational tool for understanding the behavior of structures - https://portal.research.lu.se/en/publications/objective-frame-an-educational-tool-for-understanding-the-behavio
- * Techniques for distributed access and visualisation computational mechanics - 
-https://www.lth.se/fileadmin/byggnadsmekanik/publications/tvsm1000/web1016.pdf
+ObjectiveFrame lets you build beam and frame structures, apply loads and boundary conditions, and explore deformation, internal forces, and eigenmodes with immediate visual feedback. It is designed for structural mechanics teaching, finite element experimentation, and lightweight open-source FEA workflows.
 
-ObjectiveFrame has also been used to develop distributed techniques for finite element applications using the CORBA framework.
+[Download](https://github.com/jonaslindemann/objectiveframe/releases/latest) | [Documentation](https://jonaslindemann.github.io/objectiveframe/) | [Quick start](https://jonaslindemann.github.io/objectiveframe/quick-start/) | [Examples](https://jonaslindemann.github.io/objectiveframe/examples/) | [Videos](https://jonaslindemann.github.io/objectiveframe/videos/) | [Cite](https://jonaslindemann.github.io/objectiveframe/cite/)
 
-* CORBA in distributed Finite element applications - https://portal.research.lu.se/en/publications/corba-in-distributed-finite-element-applications
+![ObjectiveFrame real-time structural feedback](docs/docs/images/feedback_004.png)
 
-The application has also been used as an experimental application for user interface techniques within the field of finite element analysis. Daniel Åkesson implemented 3d gesture controls using a leap-controller for interacting with finite element models.
+> Placeholder: replace this still image with a 5-10 second GIF or WebP showing feedback mode, load movement, deformation updates, or eigenmode animation.
 
-* Using 3D gesture controls for interacting with mechanical models - https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models-2
+## Why ObjectiveFrame?
 
-* Using 3D gesture controls for interacting with mechanical models - https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models
+- Real-time structural feedback while exploring loads and deformation.
+- Interactive beam and frame modelling for structural mechanics education.
+- Eigenmode visualization for understanding unstable or under-constrained models.
+- Lightweight C++ and OpenGL desktop application.
+- Open-source codebase with a long research lineage.
+- Scriptable workflows using ChaiScript plugins.
+- CALFEM-oriented export path for teaching and Python-based analysis workflows.
 
-Pierre Olsson developed routines and user interfaces for computing section properties.
+## Quick Start
 
-## Implementation details.
+1. Download the latest release from [GitHub Releases](https://github.com/jonaslindemann/objectiveframe/releases/latest).
+2. Open one of the included example models from `bin/examples`.
+3. Add or modify loads and boundary conditions.
+4. Run the analysis and inspect deformation, normal force, moment, or eigenmode behavior.
+5. Enable feedback mode to move a force and see the structure update interactively.
 
-The application is implemented as a C++ application using OpenGL for hardware accelerated rendering. ObjectiveFrame uses a scene graph model implemented using the C++ library Interactive Visualisation Framework - Ivf++ (https://github.com/jonaslindemann/ivfplusplus). The solver is implemented using the matrix-library Newmat11. 
+See the full [Quick Start guide](https://jonaslindemann.github.io/objectiveframe/quick-start/) for a screenshot-based walkthrough.
 
-This version of the application has been given a large overhaul both with regards to C++ and the user interface. To increase the interactive aspect of the application the user interface has been reimplemented using the ImGui - library (https://github.com/ocornut/imgui). This is an immediate mode user interface library that provides a state-less user interface rendered directly in the OpenGL window. 
+## Example Projects
 
-## Future development
+ObjectiveFrame ships with example `.df3` models for bridges, buildings, domes, masts, space frames, and multiple load cases. These are useful for demos, classroom exercises, regression checks, and learning finite element modelling step by step.
 
- * The ImGui implementation still builds on the FLTK library as it has been a large effort to unbind the close ties to this library. The next iterations will base the implementation directly on the GLFW library. (COMPLETED)
- * User interface improvements. There is a still a lot of non-standard ways of interacting with the application, but these are also some things that will be worked out in upcoming versions. (ONGOING)
- * Interactions with the CALFEM for Python library. I would like to see the application as a pre-processor for generating CALFEM code that can be used by students in Structural Mechanics. (ONGOING)
- * An improved solver - Currently the newmat-based solver works OK, but lacks scalability as it is not very actively maintained. The eigen-library would be a candidate to replace newmat. (COMPLETED)
- * More ways of extending the application with additional solvers, geometry generation and more. 
- * A richer scripting API.
+See the [examples gallery](https://jonaslindemann.github.io/objectiveframe/examples/).
 
- ## References
+## What Makes It Different?
 
- The latest version of ObjectiveFrame uses TetGen (included as an executable - tetgen.exe) for meshing beams. See:
- 
- * ang Si. 2015. "TetGen, a Delaunay-Based Quality Tetrahedral Mesh Generator". ACM Trans. on Mathematical Software. 41 (2), Article 11 (February 2015), 36 pages. DOI=10.1145/2629697 http://doi.acm.org/10.1145/2629697
+| Capability | ObjectiveFrame | Typical commercial FEA |
+| --- | --- | --- |
+| Open source | Yes | Usually no |
+| Real-time interaction | Core workflow | Often limited |
+| Educational FEM focus | Strong | Varies |
+| Lightweight desktop use | Yes | Often heavier |
+| Beam/frame exploration | Primary use case | One feature among many |
+| Scriptable examples | Yes | Varies |
+| Research lineage | Explicit | Usually product-focused |
 
- Solver is implemented using the Eigen matrix library:
+ObjectiveFrame is not trying to replace large industrial FEA suites. Its strength is interactive structural understanding: fast modelling, visual intuition, and immediate feedback for beam and frame behavior.
 
- * https://eigen.tuxfamily.org/
+## Students and Educators
 
-Jonas Lindemann
+ObjectiveFrame is well suited for teaching topics such as:
 
+- Beam and frame deformation.
+- Load paths and support reactions.
+- Boundary condition modelling.
+- Section forces and moments.
+- Eigenmodes and unstable structures.
+- The relationship between finite element models and structural intuition.
+
+Start with [Learning FEM with ObjectiveFrame](https://jonaslindemann.github.io/objectiveframe/learning/).
+
+## Implementation
+
+ObjectiveFrame is implemented in C++ using OpenGL for hardware-accelerated rendering. The current user interface uses [Dear ImGui](https://github.com/ocornut/imgui) with [GLFW](https://www.glfw.org/). Structural analysis uses [Eigen](https://eigen.tuxfamily.org/), and beam/truss structures can be generated from points using [TetGen](https://www.wias-berlin.de/software/index.jsp?id=TetGen&lang=1).
+
+The project also builds on the [Interactive Visualisation Framework - Ivf++](https://github.com/jonaslindemann/ivfplusplus).
+
+## Research Lineage
+
+ObjectiveFrame was originally developed at Structural Mechanics at Lund University by Jonas Lindemann as part of PhD work on real-time explorable finite element analysis and direct feedback methods.
+
+- [Objective Frame - An educational tool for understanding the behavior of structures](https://portal.research.lu.se/en/publications/objective-frame-an-educational-tool-for-understanding-the-behavio)
+- [Techniques for distributed access and visualisation computational mechanics](https://www.lth.se/fileadmin/byggnadsmekanik/publications/tvsm1000/web1016.pdf)
+- [CORBA in distributed finite element applications](https://portal.research.lu.se/en/publications/corba-in-distributed-finite-element-applications)
+- [Using 3D gesture controls for interacting with mechanical models](https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models-2)
+
+Pierre Olsson developed routines and user interfaces for computing section properties. Daniel Akesson implemented 3D gesture controls using a Leap Motion controller for interacting with finite element models.
+
+## Roadmap
+
+The short-term roadmap focuses on onboarding, examples, educational workflows, scripting, CALFEM integration, solver improvements, and broader platform support. See the [project roadmap](https://jonaslindemann.github.io/objectiveframe/roadmap/).
+
+## Contributing
+
+Issues, examples, documentation improvements, and educational exercises are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution guide.
+
+## Cite
+
+If ObjectiveFrame supports teaching, research, or published work, please cite the project. See [CITATION.cff](CITATION.cff) and the [citation guide](https://jonaslindemann.github.io/objectiveframe/cite/).
+
+## License
+
+ObjectiveFrame is distributed under the MIT License. See [LICENSE](LICENSE).

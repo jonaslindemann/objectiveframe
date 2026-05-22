@@ -30,7 +30,7 @@ On the screen is also a **Hints** windows displaying helpful hints for the diffe
 
 The top left toolbar contains the editing toolbar providing selection, move, copy, remove and property inspection functionality.
 
-The lower let toolbar contains functions for creating nodes, elements, loads, boundary conditions and section properties. These are described in the following sections.
+The lower left toolbar contains functions for creating nodes, elements, loads, boundary conditions and section properties. These are described in the following sections.
 
 ## Modeling
 
@@ -80,7 +80,7 @@ Clearing the current selection is done by clicking anywhere in the workspace.
 As ObjectiveFrame uses node based geometry the only objects that can be moved are nodes. Moving a node can be done in several ways. A single node can be moved by selecting it using the select tool and then clicking the inspect-tool.
 
 <figure markdown>
-![ObjectiveFrame](images/moving_nodes_001.png "Inpector tool"){width=100}
+![ObjectiveFrame](images/moving_nodes_001.png "Inspector tool"){width=100}
 <figcaption>Inspector tool</figcaption>
 </figure>
 
@@ -153,9 +153,9 @@ Elements are created by selecting 2 nodes. There is no need to click on the tool
 <figcaption>Creating an element stop 3</figcaption>
 </figure>
 
-### Subidiving a structure
+### Subdividing a structure
 
-To add more element to an existing structure ObjectiveFrame can subdived selected elements into smaller elements. This can be useful to better resolve deflections of a structure. The following example illustrates how this works.
+To add more elements to an existing structure ObjectiveFrame can subdivide selected elements into smaller elements. This can be useful to better resolve deflections of a structure. The following example illustrates how this works.
 
 We have the following structure:
 
@@ -174,22 +174,22 @@ We select all element by pressing [Ctrl+A]. We get the following:
 Now we select **Edit/Subdivde element** from the menu or press [Ctrl+D]. Now the structure becomes:
 
 <figure markdown>
-![ObjectiveFrame](images/subdivide_003.png "Subdvided structure 1st iteration.")
-<figcaption>Subdvided structure 1st iteration.</figcaption>
+![ObjectiveFrame](images/subdivide_003.png "Subdivided structure 1st iteration.")
+<figcaption>Subdivided structure 1st iteration.</figcaption>
 </figure>
 
 Repeating the same procedure one more time we can get the following structure:
 
 <figure markdown>
 ![ObjectiveFrame](images/subdivide_004.png "Structure to subdivide")
-<figcaption>Subdvided structure 2nd iteration.</figcaption>
+<figcaption>Subdivided structure 2nd iteration.</figcaption>
 </figure>
 
 ### Creating structures from points
 
-In many cases it can be tedious to create elements between nodes. To aid in this process ObjectiveFrame can automatically generate elements between points using the TetGen mesh generator. To illustrate this process we will crate a simple bridge from points, which we will connect using this method.
+In many cases it can be tedious to create elements between nodes. To aid in this process ObjectiveFrame can automatically generate elements between points using the TetGen mesh generator. To illustrate this process we will create a simple bridge from points, which we will connect using this method.
 
-First we will create a grid of nodes using the **Create/Grid** menu. This brings upp the following window:
+First we will create a grid of nodes using the **Create/Grid** menu. This brings up the following window:
 
 <figure markdown>
 ![ObjectiveFrame](images/mesh_001.png "Grid plugin window.")
@@ -231,7 +231,7 @@ We can now ask ObjectiveFrame to create elements between these nodes automatical
 <figcaption>Final mesh</figcaption>
 </figure>
 
-A nice truss like structure has now been created. ObjectiveFrame uses TetGen to generate tetrahedral mesh from wich it extracts the edges to create our structure.
+A nice truss-like structure has now been created. ObjectiveFrame uses TetGen to generate a tetrahedral mesh from which it extracts the edges to create our structure.
 
 ## Boundary conditions
 

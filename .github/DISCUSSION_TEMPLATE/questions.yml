@@ -1,0 +1,33 @@
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask a question about ObjectiveFrame usage, examples, teaching workflows, or structural mechanics modelling.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like help with?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Add screenshots, model files, or course context if relevant.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Getting started
+        - Modelling
+        - Results
+        - Feedback mode
+        - Eigenmodes
+        - Scripting/plugins
+        - Teaching
+        - Build/install
+        - Other

@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a reproducible ObjectiveFrame problem
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. A small model file, screenshot, or short reproduction video is especially helpful.
+  - type: input
+    id: version
+    attributes:
+      label: ObjectiveFrame version
+      description: Release version, commit hash, or build date.
+      placeholder: "v0.x.x or commit hash"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Modelling workflow
+        - Solver/results
+        - Eigenmode visualization
+        - Feedback mode
+        - File import/export
+        - Scripting/plugins
+        - AI/LLM integration
+        - Documentation
+        - Build/install
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What should someone do to see the problem?
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Run ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, Windows 10, Linux, macOS"
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Model files, screenshots, or logs
+      description: Drag and drop files here if they help explain the issue.

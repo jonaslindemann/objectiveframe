@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use ObjectiveFrame in teaching, research, or published work, please cite it using this metadata."
+type: software
+title: "ObjectiveFrame: Interactive real-time finite element analysis for structural mechanics education"
+authors:
+  - family-names: Lindemann
+    given-names: Jonas
+repository-code: "https://github.com/jonaslindemann/objectiveframe"
+url: "https://jonaslindemann.github.io/objectiveframe/"
+license: MIT
+keywords:
+  - finite element analysis
+  - FEA
+  - structural analysis
+  - beam analysis
+  - educational FEM
+  - structural mechanics
+  - eigenmode visualization
+  - open-source software
+abstract: >-
+  ObjectiveFrame is an open-source interactive finite element analysis tool for
+  beam and frame structures. It focuses on real-time structural feedback,
+  educational finite element workflows, eigenmode visualization, and lightweight
+  structural mechanics experimentation.

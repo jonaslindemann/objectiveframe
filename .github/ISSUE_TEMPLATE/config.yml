@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions and teaching discussions
+    url: https://github.com/jonaslindemann/objectiveframe/discussions
+    about: Ask usage questions, share examples, or discuss teaching workflows.
+  - name: Documentation
+    url: https://jonaslindemann.github.io/objectiveframe/
+    about: Read the ObjectiveFrame documentation.

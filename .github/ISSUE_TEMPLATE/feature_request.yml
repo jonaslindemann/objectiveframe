@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest an improvement to ObjectiveFrame
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What workflow, teaching use case, or modelling task would this improve?
+      placeholder: "When teaching/using/modelling..., it would help if..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you would like.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - User interface
+        - Examples
+        - Documentation
+        - Solver/results
+        - Eigenmode visualization
+        - Feedback mode
+        - CALFEM/Python export
+        - Scripting/plugins
+        - AI/LLM integration
+        - Packaging/platform support
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional. Mention workarounds or related tools if relevant.
+  - type: textarea
+    id: material
+    attributes:
+      label: Supporting material
+      description: Add screenshots, sketches, papers, model files, or example workflows if useful.

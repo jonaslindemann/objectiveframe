@@ -1,6 +1,6 @@
 [project]
-site_name = "ObjectiveFrame - An interactive beam analysis tool"
-site_description = "ObjectiveFrame is a finite element beam analysis application developed at Structural Mechanics at Lund University."
+site_name = "ObjectiveFrame - Interactive finite element analysis"
+site_description = "ObjectiveFrame is open-source FEA software for interactive structural analysis, beam analysis, educational FEM, eigenmode visualization, and real-time structural mechanics teaching."
 site_author = "Jonas Lindemann"
 site_url = "https://jonaslindemann.github.io/objectiveframe/"
 repo_url = "https://github.com/jonaslindemann/objectiveframe"
@@ -9,17 +9,22 @@ copyright = "Copyright &copy; 2026 Jonas Lindemann"
 nav = [
   { "Home" = "index.md" },
   { "Get Started" = [
-    { "About" = "about.md" },
     { "Download" = "download.md" },
+    { "Quick Start" = "quick-start.md" },
+    { "Examples" = "examples.md" },
     { "Videos" = "videos.md" },
+    { "About" = "about.md" },
   ] },
   { "User Guide" = [
     { "Using ObjectiveFrame" = "use.md" },
+    { "Learning FEM" = "learning.md" },
     { "AI / LLM Integration" = "llm-integration.md" },
     { "Eigenmode Solver" = "eigenmode-solver.md" },
     { "ChaiScript Scripting" = "chaiscript.md" },
   ] },
   { "Project" = [
+    { "Roadmap" = "roadmap.md" },
+    { "Cite" = "cite.md" },
     { "Develop" = "develop.md" },
     { "Links" = "links.md" },
     { "Contact" = "contact.md" },

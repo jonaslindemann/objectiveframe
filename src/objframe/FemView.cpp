@@ -18,6 +18,7 @@
 #include <ivf/TextLabel.h>
 #include <ivf/Texture.h>
 #include <ivfimage/SgiImage.h>
+#include <ivf/rc.h>
 
 #include <ofem/beam.h>
 #include <ofem/beam_load.h>

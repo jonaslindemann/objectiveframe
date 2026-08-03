@@ -5095,9 +5095,9 @@ void FemViewWindow::onButtonHover(ofui::OfToolbarButton &button)
     if (button.name() == "Select")
         console("Select nodes and beams.");
     if (button.name() == "Move")
-        console("Move nodes.");
+        console("Move nodes - [Shift] moves up/down.");
     if (button.name() == "Create node")
-        console("Create nodes");
+        console("Create nodes - [Shift] moves up/down.");
     if (button.name() == "Create beam")
         console("Create beams.");
     if (button.name() == "Feedback")

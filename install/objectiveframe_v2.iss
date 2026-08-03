@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ObjectiveFrame"
-#define MyAppVersion "2.5.0b"
+#define MyAppVersion "2.5.0"
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
 #define MyAppExeName "objframe.exe"
@@ -32,9 +32,9 @@ SetupIconFile=..\images\logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-SignTool=signtool_lu
-SignedUninstaller=yes
-ArchitecturesInstallIn64BitMode=x64
+;SignTool=signtool_lu
+;SignedUninstaller=yes
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Components]
 Name: main; Description: Main Files; Types: full compact; Flags: fixed

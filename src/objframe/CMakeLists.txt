@@ -26,3 +26,9 @@ target_link_libraries(objframe
 )
 
 set_target_properties(objframe PROPERTIES DEBUG_POSTFIX d)
+
+add_custom_command(TARGET objframe POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		"${PROJECT_SOURCE_DIR}/bin/maps"
+		"$<TARGET_FILE_DIR:objframe>/maps"
+	COMMENT "Copying colormap assets")

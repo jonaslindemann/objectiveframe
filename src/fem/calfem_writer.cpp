@@ -1,13 +1,11 @@
 #include <ofem/calfem_writer.h>
 
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>
-
-#define FMT_HEADER_ONLY
-#include <fmt/core.h>
-#include <fmt/ranges.h>
+#include <vector>
 
 #include <ofem/beam_load.h>
 #include <ofem/beam_model.h>
@@ -20,6 +18,35 @@ using namespace ofem;
 using namespace std;
 
 namespace fs = std::filesystem;
+
+namespace {
+
+template <typename T>
+void writePythonListRow(std::ostream &out, const std::vector<T> &values)
+{
+    out << "\t[";
+    for (size_t i = 0; i < values.size(); i++) {
+        if (i > 0)
+            out << ", ";
+        out << values[i];
+    }
+    out << "],\n";
+}
+
+template <typename T>
+void writePythonFloatListRow(std::ostream &out, const std::vector<T> &values)
+{
+    const auto oldFlags = out.flags();
+    const auto oldPrecision = out.precision();
+
+    out << std::defaultfloat << std::setprecision(6);
+    writePythonListRow(out, values);
+
+    out.flags(oldFlags);
+    out.precision(oldPrecision);
+}
+
+} // namespace
 
 CalfemWriter::CalfemWriter(const std::string fname, bool flipYZ) : InputFileWriter(fname), m_flipYZ{flipYZ}
 {
@@ -99,17 +126,17 @@ void ofem::CalfemWriter::beginArr1D(std::ostream &out, std::string name)
 
 void ofem::CalfemWriter::arrRow(std::ostream &out, std::vector<float> v)
 {
-    out << "\t" << fmt::format("{::g}", v) << ",\n";
+    writePythonFloatListRow(out, v);
 }
 
 void ofem::CalfemWriter::arrRow(std::ostream &out, std::vector<int> v)
 {
-    out << "\t" << fmt::format("{::d}", v) << ",\n";
+    writePythonListRow(out, v);
 }
 
 void ofem::CalfemWriter::arrRow(std::ostream &out, std::vector<double> v)
 {
-    out << "\t" << fmt::format("{::g}", v) << ",\n";
+    writePythonFloatListRow(out, v);
 }
 
 void ofem::CalfemWriter::endArr(std::ostream &out)

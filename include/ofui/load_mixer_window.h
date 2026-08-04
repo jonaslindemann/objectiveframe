@@ -10,8 +10,10 @@ namespace ofui {
 
 class LoadMixerWindow : public UiWindow {
 private:
+    static constexpr int MaxLoadScaleFactors = 255;
+
     ofem::BeamNodeLoadSet *m_femNodeLoadSet;
-    float m_loadScaleFactors[255];
+    float m_loadScaleFactors[MaxLoadScaleFactors];
     float m_loadSum;
     float m_lastSum;
     bool m_firstUpdate;

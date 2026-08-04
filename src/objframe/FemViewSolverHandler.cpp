@@ -24,6 +24,8 @@ void FemViewSolverHandler::executeCalc(FemViewWindow &view)
     view.m_solver.current->setBeamModel(view.m_beamModel.get());
     view.m_solver.current->execute();
 
+    view.m_solver.saneModel = false;
+
     if (view.m_solver.current->modelState() != ModelState::Ok)
     {
         switch (view.m_solver.current->modelState())
@@ -71,7 +73,10 @@ void FemViewSolverHandler::executeCalc(FemViewWindow &view)
         view.m_solver.needRecalc = true;
     }
     else
+    {
         view.m_solver.needRecalc = false;
+        view.m_solver.saneModel = true;
+    }
 
     auto maxNodeValue = view.m_solver.current->getMaxNodeValue();
     auto maxReactionForce = view.m_solver.current->getMaxReactionForce();
@@ -88,6 +93,7 @@ void FemViewSolverHandler::executeCalc(FemViewWindow &view)
             view.m_beamModel->setScaleFactor(view.getWorkspace() * 0.005 / maxNodeValue);
         else
             view.m_beamModel->setScaleFactor(1.0);
+        view.m_solver.haveScaleFactor = true;
     }
 
     view.m_settingsWindow->update();
@@ -138,9 +144,14 @@ void FemViewSolverHandler::recompute(FemViewWindow &view)
         view.m_beamModel->setMaxReactionForce(maxReactionForce);
         view.m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
+        auto maxNodeValue = view.m_solver.current->getMaxNodeValue();
+
         if (!view.m_solver.lockScaleFactor && !view.m_solver.haveScaleFactor)
         {
-            view.m_beamModel->setScaleFactor(view.getWorkspace() * 0.005 / view.m_solver.current->getMaxNodeValue());
+            if (maxNodeValue > 0.0)
+                view.m_beamModel->setScaleFactor(view.getWorkspace() * 0.005 / maxNodeValue);
+            else
+                view.m_beamModel->setScaleFactor(1.0);
             view.m_solver.haveScaleFactor = true;
         }
 
@@ -159,9 +170,14 @@ void FemViewSolverHandler::recompute(FemViewWindow &view)
         view.m_beamModel->setMaxReactionForce(maxReactionForce);
         view.m_beamModel->setMaxReactionMoment(maxReactionMoment);
 
+        auto maxNodeValue = view.m_solver.current->getMaxNodeValue();
+
         if (!view.m_solver.lockScaleFactor && !view.m_solver.haveScaleFactor)
         {
-            view.m_beamModel->setScaleFactor(view.getWorkspace() * 0.005 / view.m_solver.current->getMaxNodeValue());
+            if (maxNodeValue > 0.0)
+                view.m_beamModel->setScaleFactor(view.getWorkspace() * 0.005 / maxNodeValue);
+            else
+                view.m_beamModel->setScaleFactor(1.0);
             view.m_solver.haveScaleFactor = true;
         }
 

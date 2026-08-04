@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <vector>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -52,6 +53,19 @@ private:
     double m_minNavier;
     double m_maxReactionForce;
     double m_maxReactionMoment;
+
+    // Per-channel result samples collected during solve, used by finalizeMaxMin()
+    // to derive percentile-clipped color-mapping ranges instead of raw min/max.
+    // Raw extrema can be dominated by a handful of stress-concentration outliers,
+    // crushing the rest of the model into the dark end of the colormap.
+    std::vector<double> m_nPosSamples;
+    std::vector<double> m_nNegSamples;
+    std::vector<double> m_tSamples;
+    std::vector<double> m_vSamples;
+    std::vector<double> m_mSamples;
+    std::vector<double> m_navierSamples;
+
+    void finalizeMaxMin();
 
     calfem::SparseSolver m_sparseSolver;
 

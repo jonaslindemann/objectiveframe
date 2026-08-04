@@ -77,18 +77,18 @@ void ElementPropWindow::doDraw()
 
                     int pos = 0;
 
-                    // N          Vy         Vz         T          My         Mz
+                    // Stored per evaluation point as [N, T, Vy, Vz, My, Mz].
 
                     ImGui::BeginTable("SectForces", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("N");
                     ImGui::TableNextColumn();
+                    ImGui::Text("T");
+                    ImGui::TableNextColumn();
                     ImGui::Text("Vy");
                     ImGui::TableNextColumn();
                     ImGui::Text("Vz");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("T");
                     ImGui::TableNextColumn();
                     ImGui::Text("My");
                     ImGui::TableNextColumn();

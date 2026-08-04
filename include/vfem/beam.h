@@ -54,6 +54,7 @@ public:
 
     virtual void refresh() override;
     void initExtrusion();
+    void setLineRefreshMode(ivf::LineRefreshMode mode);
 
     // Get/set methods
 

@@ -546,29 +546,34 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
         ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+        this->setBeamRefreshMode(ivf::rmAll);
         break;
     case RepresentationMode::Geometry:
         log("Setting representation to FRAME_GEOMETRY.");
         ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_FACET | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_EXTRUSION);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+        this->setBeamRefreshMode(ivf::rmAll);
         break;
     case RepresentationMode::Displacements:
         log("Setting representation to FRAME_DISPLACEMENTS.");
         ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
+        this->setBeamRefreshMode(ivf::rmNodes);
         break;
     case RepresentationMode::Results:
         log("Setting representation to FRAME_RESULTS.");
         ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_RESULTS);
         m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
+        this->setBeamRefreshMode(ivf::rmNodes);
         break;
     default:
         log("Setting representation to DEFAULT.");
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+        this->setBeamRefreshMode(ivf::rmAll);
         break;
     }
 
@@ -728,7 +733,12 @@ void FemViewWindow::setBeamRefreshMode(ivf::LineRefreshMode mode)
     for (i = 0; i < scene->getSize(); i++)
     {
         auto shape = scene->getChild(i);
-        if (shape->isClass("vfem::SolidLine"))
+        if (shape->isClass("vfem::Beam"))
+        {
+            vfem::Beam *beam = static_cast<vfem::Beam *>(shape);
+            beam->setLineRefreshMode(mode);
+        }
+        else if (shape->isClass("SolidLine") || shape->isClass("vfem::SolidLine"))
         {
             SolidLine *solidLine = static_cast<SolidLine *>(shape);
             solidLine->setRefresh(mode);
@@ -876,6 +886,17 @@ ofem::BeamNodeBC *FemViewWindow::getCurrentNodeBC()
 void FemViewWindow::setResultType(int type)
 {
     m_beamModel->setResultType(type);
+
+    if ((type != IVF_BEAM_NO_RESULT) && ((m_solver.current == nullptr) || m_solver.needRecalc))
+        this->executeCalc();
+
+    if ((type != IVF_BEAM_NO_RESULT) && m_solver.saneModel && (m_view.representation != RepresentationMode::Results))
+    {
+        this->setRepresentation(RepresentationMode::Results);
+        return;
+    }
+
+    this->getScene()->getComposite()->refresh();
     this->set_changed();
     this->redraw();
 }
@@ -899,6 +920,31 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
 const std::string FemViewWindow::getProgPath()
 {
     return m_paths.progStr;
+}
+
+void FemViewWindow::resetSolverState(bool preserveScaleLock)
+{
+    bool lockScaleFactor = m_solver.lockScaleFactor;
+
+    m_solver.beam.reset();
+    m_solver.current = nullptr;
+    m_solver.needRecalc = true;
+    m_solver.saneModel = false;
+    m_solver.haveScaleFactor = false;
+    m_solver.lockScaleFactor = preserveScaleLock ? lockScaleFactor : false;
+}
+
+void FemViewWindow::resetResultDisplay()
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    m_view.representation = RepresentationMode::Fem;
+    m_beamModel->setBeamType(IVF_BEAM_SOLID);
+    m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
+    m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+    m_beamModel->setMaxScale(1.0);
+    m_beamModel->setMinScale(1.0);
 }
 
 // Widget methods
@@ -942,6 +988,7 @@ void FemViewWindow::restoreLastSnapShot()
 
     // Generate a Ivf++ representation
 
+    this->resetResultDisplay();
     m_beamModel->generateModel();
 
     // Update dialogs
@@ -961,9 +1008,7 @@ void FemViewWindow::restoreLastSnapShot()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_solver.needRecalc = true;
-
-    m_solver.current = nullptr;
+    this->resetSolverState();
 
     this->setEditMode(prevEditMode);
 }
@@ -985,6 +1030,7 @@ void FemViewWindow::revertLastSnapShot()
 
     // Generate a Ivf++ representation
 
+    this->resetResultDisplay();
     m_beamModel->generateModel();
 
     // Update dialogs
@@ -1004,9 +1050,7 @@ void FemViewWindow::revertLastSnapShot()
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_solver.needRecalc = true;
-
-    m_solver.current = nullptr;
+    this->resetSolverState();
 
     this->setEditMode(prevEditMode);
 }
@@ -1031,6 +1075,7 @@ void FemViewWindow::openFromString(const std::string df3_string)
 
     // Generate a Ivf++ representation
 
+    this->resetResultDisplay();
     m_beamModel->generateModel();
 
     // Update dialogs
@@ -1050,9 +1095,7 @@ void FemViewWindow::openFromString(const std::string df3_string)
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_solver.needRecalc = true;
-
-    m_solver.current = nullptr;
+    this->resetSolverState(false);
 
     this->setEditMode(WidgetMode::Select);
 
@@ -1104,6 +1147,7 @@ void FemViewWindow::open(std::string filename)
 
     // Generate a Ivf++ representation
 
+    this->resetResultDisplay();
     m_beamModel->generateModel();
 
     // Update dialogs
@@ -1123,9 +1167,7 @@ void FemViewWindow::open(std::string filename)
     m_tactileForce->setDirection(0.0, -1.0, 0.0);
     m_tactileForce->setOffset(-loadSize * 0.7);
 
-    m_solver.needRecalc = true;
-
-    m_solver.current = nullptr;
+    this->resetSolverState(false);
 
     this->setEditMode(WidgetMode::Select);
 
@@ -1241,6 +1283,7 @@ void FemViewWindow::newModel()
     m_beamModel->setTextFont(m_labelFont);
     m_beamModel->setCamera(this->getCamera());
 
+    this->resetResultDisplay();
     m_beamModel->generateModel();
 
     m_edit.currentMaterial = nullptr;
@@ -1298,9 +1341,7 @@ void FemViewWindow::newModel()
 
     this->getScene()->addChild(m_tactileForce);
 
-    m_solver.needRecalc = true;
-
-    m_solver.current = nullptr;
+    this->resetSolverState(false);
 
     this->setEditMode(WidgetMode::ViewZoom);
 
@@ -4783,7 +4824,13 @@ void FemViewWindow::onSelectFilter(Shape *shape, bool &select)
 
             double x, y, z;
             visNode->getPosition(x, y, z);
-            if ((y > -0.00001) && (y < 0.00001))
+
+            // Scale the ground tolerance with the workspace size so that models
+            // built at larger/smaller scales still recognise near-zero nodes as
+            // ground nodes despite accumulated floating point drift.
+            const double groundTolerance = std::max(this->getWorkspace() * 1.0e-4, 1.0e-5);
+
+            if (std::abs(y) < groundTolerance)
                 select = true;
             else
                 select = false;

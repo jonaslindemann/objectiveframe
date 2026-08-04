@@ -4,6 +4,8 @@
 
 #include <logger.h>
 
+#include <algorithm>
+#include <cmath>
 #include <sstream>
 
 #include <Eigen/Eigenvalues>
@@ -14,6 +16,39 @@
 using namespace ofem;
 using namespace calfem;
 using namespace ofsolver;
+
+namespace {
+
+void addElementLoadsToEq(ElementLoadSet *elementLoadSet, Matrix &Eq)
+{
+    if (elementLoadSet == nullptr)
+        return;
+
+    for (int i = 0; i < elementLoadSet->getSize(); i++)
+    {
+        double vx, vy, vz;
+
+        BeamLoad *elementLoad = static_cast<BeamLoad *>(elementLoadSet->getLoad(i));
+        elementLoad->getLocalDirection(vx, vy, vz);
+        double value = -elementLoad->getValue();
+
+        for (int j = 0; j < static_cast<int>(elementLoad->getElementsSize()); j++)
+        {
+            Element *element = elementLoad->getElement(j);
+            Eigen::Index row = static_cast<Eigen::Index>(element->getNumber() - 1);
+
+            if ((row < 0) || (row >= Eq.rows()))
+                continue;
+
+            Eq(row, 0) += vx * value;
+            Eq(row, 1) += vy * value;
+            Eq(row, 2) += vz * value;
+            Eq(row, 3) = 0.0;
+        }
+    }
+}
+
+} // namespace
 
 BeamSolver::BeamSolver()
     : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr}, m_modelState{ModelState::Ok},
@@ -134,27 +169,7 @@ void BeamSolver::execute()
     //
 
     Logger::instance()->log(LogLevel::Info, "Setting up element loads.");
-
-    for (i = 0; i < elementLoadSet->getSize(); i++)
-    {
-        double vx, vy, vz;
-        double value;
-
-        BeamLoad *elementLoad = (BeamLoad *)elementLoadSet->getLoad(i);
-
-        elementLoad->getLocalDirection(vx, vy, vz);
-        value = -elementLoad->getValue();
-
-        for (j = 0; j < elementLoad->getElementsSize(); j++)
-        {
-            Element *element = elementLoad->getElement(j);
-
-            Eq(element->getNumber(), 1) = Eq(element->getNumber(), 1) + vx * value;
-            Eq(element->getNumber(), 2) = Eq(element->getNumber(), 2) + vy * value;
-            Eq(element->getNumber(), 3) = Eq(element->getNumber(), 3) + vz * value;
-            Eq(element->getNumber(), 4) = 0.0;
-        }
-    }
+    addElementLoadsToEq(elementLoadSet, Eq);
 
     //
     // Calculate bandwidth
@@ -381,7 +396,7 @@ void BeamSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "solveq done...");
 
-    m_maxNodeValue = m_globalA.maxCoeff();
+    m_maxNodeValue = (m_globalA.size() > 0) ? m_globalA.cwiseAbs().maxCoeff() : 0.0;
 
     //
     // Store displacements in nodes
@@ -586,6 +601,7 @@ void BeamSolver::execute()
         }
     }
 
+    finalizeMaxMin();
     printMaxMin();
 
     Logger::instance()->log(LogLevel::Info, "Solver completed.");
@@ -713,7 +729,7 @@ void BeamSolver::recompute()
 
         Logger::instance()->log(LogLevel::Info, "solveq done...");
 
-        m_maxNodeValue = m_globalA.maxCoeff();
+        m_maxNodeValue = (m_globalA.size() > 0) ? m_globalA.cwiseAbs().maxCoeff() : 0.0;
 
         //
         // Store displacements in nodes
@@ -830,6 +846,7 @@ void BeamSolver::update()
     RowVec Ez(2);
     Matrix Eq(static_cast<int>(elementSet->getSize()), 4);
     Eq.setZero();
+    addElementLoadsToEq(elementLoadSet, Eq);
     RowVec Eo(3);
     RowVec Ep(6);
     Ep.setZero();
@@ -962,6 +979,7 @@ void BeamSolver::update()
         }
     }
 
+    finalizeMaxMin();
     printMaxMin();
 
     Logger::instance()->log(LogLevel::Info, "Update completed.");
@@ -1012,19 +1030,23 @@ void BeamSolver::updateMaxMin(double N, double T, double Vy, double Vz, double M
     if (fabs(Navier) < m_minNavier)
         m_minNavier = fabs(Navier);
 
-    if (m_beamModel != nullptr)
-    {
-        m_beamModel->setMaxN(m_maxN);
-        m_beamModel->setMaxT(m_maxT);
-        m_beamModel->setMaxV(m_maxV);
-        m_beamModel->setMaxM(m_maxM);
-        m_beamModel->setMinN(m_minN);
-        m_beamModel->setMinT(m_minT);
-        m_beamModel->setMinV(m_minV);
-        m_beamModel->setMinM(m_minM);
-        m_beamModel->setMaxNavier(m_maxNavier);
-        m_beamModel->setMinNavier(m_minNavier);
-    }
+    // Collect samples for finalizeMaxMin() to derive display color ranges.
+    // Raw extrema stay in the members above for diagnostics/logging.
+
+    if (std::isfinite(N) && N > 0.0)
+        m_nPosSamples.push_back(N);
+    else if (std::isfinite(N) && N < 0.0)
+        m_nNegSamples.push_back(-N);
+
+    auto addPositiveSample = [](std::vector<double> &samples, double sample) {
+        if (std::isfinite(sample) && sample > 0.0)
+            samples.push_back(sample);
+    };
+
+    addPositiveSample(m_tSamples, fabs(T));
+    addPositiveSample(m_vSamples, V);
+    addPositiveSample(m_mSamples, M);
+    addPositiveSample(m_navierSamples, fabs(Navier));
 }
 
 void BeamSolver::initMaxMin()
@@ -1040,6 +1062,13 @@ void BeamSolver::initMaxMin()
     m_maxNavier = -1.0e300;
     m_minNavier = 1.0e300;
 
+    m_nPosSamples.clear();
+    m_nNegSamples.clear();
+    m_tSamples.clear();
+    m_vSamples.clear();
+    m_mSamples.clear();
+    m_navierSamples.clear();
+
     if (m_beamModel != nullptr)
     {
         m_beamModel->setMaxN(m_maxN);
@@ -1052,6 +1081,81 @@ void BeamSolver::initMaxMin()
         m_beamModel->setMinM(m_minM);
         m_beamModel->setMaxNavier(m_maxNavier);
         m_beamModel->setMinNavier(m_minNavier);
+    }
+}
+
+namespace {
+
+// Value at percentile p (0..1) of an already-sorted vector, using linear
+// interpolation. Returns 0.0 for an empty vector.
+double percentileOf(const std::vector<double> &sorted, double p)
+{
+    if (sorted.empty())
+        return 0.0;
+
+    double clampedP = std::clamp(p, 0.0, 1.0);
+    double position = clampedP * static_cast<double>(sorted.size() - 1);
+    size_t lower = static_cast<size_t>(std::floor(position));
+    size_t upper = std::min(lower + 1, sorted.size() - 1);
+    double weight = position - static_cast<double>(lower);
+
+    return sorted[lower] * (1.0 - weight) + sorted[upper] * weight;
+}
+
+double displayUpperBound(const std::vector<double> &sorted)
+{
+    if (sorted.empty())
+        return 0.0;
+
+    constexpr size_t kMinSamplesForClipping = 32;
+    constexpr double kHighPercentile = 0.98;
+
+    if (sorted.size() < kMinSamplesForClipping)
+        return sorted.back();
+
+    double clipped = percentileOf(sorted, kHighPercentile);
+    return (clipped > 0.0) ? clipped : sorted.back();
+}
+
+} // namespace
+
+void BeamSolver::finalizeMaxMin()
+{
+    // Clip only the upper display bound, and only when there are enough samples
+    // for clipping to be meaningful. Small models should use their real maxima;
+    // otherwise percentile clipping can make ordinary members saturate to the
+    // extreme colors.
+
+    std::sort(m_nPosSamples.begin(), m_nPosSamples.end());
+    std::sort(m_nNegSamples.begin(), m_nNegSamples.end());
+    std::sort(m_tSamples.begin(), m_tSamples.end());
+    std::sort(m_vSamples.begin(), m_vSamples.end());
+    std::sort(m_mSamples.begin(), m_mSamples.end());
+    std::sort(m_navierSamples.begin(), m_navierSamples.end());
+
+    double clippedMaxN = displayUpperBound(m_nPosSamples);
+    double clippedMinN = m_nNegSamples.empty() ? 0.0 : -displayUpperBound(m_nNegSamples);
+    double clippedMaxT = displayUpperBound(m_tSamples);
+    double clippedMinT = 0.0;
+    double clippedMaxV = displayUpperBound(m_vSamples);
+    double clippedMinV = 0.0;
+    double clippedMaxM = displayUpperBound(m_mSamples);
+    double clippedMinM = 0.0;
+    double clippedMaxNavier = displayUpperBound(m_navierSamples);
+    double clippedMinNavier = 0.0;
+
+    if (m_beamModel != nullptr)
+    {
+        m_beamModel->setMaxN(clippedMaxN);
+        m_beamModel->setMinN(clippedMinN);
+        m_beamModel->setMaxT(clippedMaxT);
+        m_beamModel->setMinT(clippedMinT);
+        m_beamModel->setMaxV(clippedMaxV);
+        m_beamModel->setMinV(clippedMinV);
+        m_beamModel->setMaxM(clippedMaxM);
+        m_beamModel->setMinM(clippedMinM);
+        m_beamModel->setMaxNavier(clippedMaxNavier);
+        m_beamModel->setMinNavier(clippedMinNavier);
     }
 }
 

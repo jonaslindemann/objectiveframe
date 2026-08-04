@@ -4,8 +4,65 @@
 #include <ivf/Blending.h>
 #include <ivfmath/Vec3d.h>
 
+#include <cmath>
+
 using namespace ivf;
 using namespace vfem;
+
+namespace {
+
+constexpr int kResultTextureWidth = 8;
+
+double normalizePositive(double value, double maxValue)
+{
+    return (maxValue > 0.0) ? std::fabs(value) / maxValue : 0.0;
+}
+
+double normalizeNegative(double value, double minValue)
+{
+    return (minValue < 0.0) ? std::fabs(value) / std::fabs(minValue) : 0.0;
+}
+
+double normalizeRange(double value, double minValue, double maxValue)
+{
+    return (maxValue > minValue) ? (value - minValue) / (maxValue - minValue) : 0.0;
+}
+
+double clamp01(double value)
+{
+    if (value < 0.0)
+        return 0.0;
+    if (value > 1.0)
+        return 1.0;
+    return value;
+}
+
+double normalizeScalarMagnitude(double value, double minValue, double maxValue)
+{
+    constexpr double kScalarColorGamma = 1.45;
+    return std::pow(clamp01(normalizeRange(value, minValue, maxValue)), kScalarColorGamma);
+}
+
+void unsupportedResultColor(bool useBlending, float &r, float &g, float &b)
+{
+    float grey = useBlending ? 0.10f : 0.70f;
+    r = grey;
+    g = grey;
+    b = grey;
+}
+
+bool supportsResultType(ofem::Beam *beam, int resultType)
+{
+    if (beam == nullptr || resultType == IVF_BEAM_NO_RESULT)
+        return false;
+
+    if (beam->beamType() == ofem::btBar)
+        return resultType == IVF_BEAM_N;
+
+    return true;
+}
+
+} // namespace
 
 Beam::Beam() : Composite()
 {
@@ -60,7 +117,7 @@ Beam::Beam() : Composite()
     // Create texture for visualising section forces
 
     m_beamImage = Image::create();
-    m_beamImage->setSize(8, 8);
+    m_beamImage->setSize(kResultTextureWidth, 8);
 
     int i;
 
@@ -88,7 +145,7 @@ Beam::Beam() : Composite()
 
     m_beamTexture = Texture::create();
     m_beamTexture->setImage(m_beamImage);
-    m_beamTexture->setTextureMode(GL_MODULATE);
+    m_beamTexture->setTextureMode(GL_DECAL);
     m_beamTexture->setFilters(GL_LINEAR, GL_LINEAR);
     m_beamTexture->deactivate();
 
@@ -197,31 +254,38 @@ void Beam::refresh()
                 break;
             case IVF_BEAM_RESULTS:
                 if (m_beamModel != nullptr) {
-                    if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) {
+                    if (supportsResultType(m_femBeam, m_beamModel->getResultType())) {
                         m_solidLine->setRadius(m_beamModel->getLineRadius());
                         m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                         m_solidLine->setState(Shape::OS_ON);
+                        m_beamTexture->setTextureMode(GL_DECAL);
+                        initResults();
                         m_beamTexture->activate();
                         m_beamTexture->setTextureModifier(1.0, 0.8 / m_solidLine->getLength(), 0.0);
                         // m_beamTexture->setTextureModifier(1.0, 1.0, 0.0);
                         if (m_beamModel->getUseBlending()) {
-                            m_beamMaterial->setDiffuseColor(0.3f, 0.3f, 0.3f, 1.0f);
+                            m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
                             m_beamMaterial->setAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
                         }
                         else {
-                            m_beamMaterial->setDiffuseColor(0.4f, 0.4f, 0.4f, 1.0f);
+                            m_beamMaterial->setDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
                             m_beamMaterial->setAmbientColor(1.0f, 1.0f, 1.0f, 1.0f);
                         }
+                        m_beamMaterial->setSpecularColor(0.0f, 0.0f, 0.0f, 0.0f);
                         m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_VERTEX_MODEL_CYL);
                         if (m_solidLine->getSides() != m_beamModel->getLineSides())
                             m_solidLine->setSides(m_beamModel->getLineSides());
                         // m_solidLine->setTextureMode(GLE_TEXTURE_ENABLE | GLE_TEXTURE_NORMAL_FLAT);
-                        initResults();
                     }
                     else {
                         m_solidLine->setRadius(m_beamModel->getLineRadius());
                         m_solidLine->setNodes(m_nodes[0], m_nodes[1]);
                         m_solidLine->setState(Shape::OS_ON);
+                        if (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) {
+                            float grey = m_beamModel->getUseBlending() ? 0.10f : 0.70f;
+                            m_beamMaterial->setDiffuseColor(grey, grey, grey, 1.0f);
+                            m_beamMaterial->setAmbientColor(grey, grey, grey, 1.0f);
+                        }
                         m_beamTexture->deactivate();
                         m_beamTexture->setTextureModifier(1.0, 1.0 / m_solidLine->getLength(), 0.0);
                         m_solidLine->setTextureMode(0);
@@ -247,25 +311,24 @@ void Beam::refresh()
 void Beam::doCreateGeometry()
 {
     if (m_femBeam != nullptr) {
-        bool hasResults = (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT);
+        bool hasResultTexture = (m_beamModel != nullptr) &&
+            (m_beamModel->getResultType() != IVF_BEAM_NO_RESULT) &&
+            supportsResultType(m_femBeam, m_beamModel->getResultType());
 
-        if (hasResults) {
+        if (hasResultTexture) {
             glPushAttrib(GL_ALL_ATTRIB_BITS);
-            // Raise global ambient so texture colors are visible even on shadowed faces
-            GLfloat brightAmbient[] = {0.7f, 0.7f, 0.7f, 1.0f};
-            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, brightAmbient);
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glDisable(GL_LIGHTING);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
             if (m_beamModel->getUseBlending()) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_ONE, GL_ONE);
                 glDisable(GL_DEPTH_TEST);
-                glDisable(GL_LIGHTING);
             }
         }
 
         Composite::doCreateGeometry();
 
-        if (hasResults) {
+        if (hasResultTexture) {
             if (m_beamModel->getUseBlending()) {
                 glDisable(GL_BLEND);
                 glEnable(GL_DEPTH_TEST);
@@ -273,6 +336,11 @@ void Beam::doCreateGeometry()
             glPopAttrib();
         }
     }
+}
+
+void Beam::setLineRefreshMode(ivf::LineRefreshMode mode)
+{
+    m_solidLine->setRefresh(mode);
 }
 
 void Beam::setNodes(vfem::Node *node1, vfem::Node *node2)
@@ -429,6 +497,11 @@ void Beam::initResults()
 
         if (m_femBeam != nullptr) {
             int n = m_femBeam->getEvaluationPoints();
+            if (n <= 0)
+                return;
+
+            m_beamImage->setSize(kResultTextureWidth, n);
+
             int k;
             float red, green, blue;
             GLubyte r, g, b;
@@ -445,53 +518,54 @@ void Beam::initResults()
             red = green = blue = 0.0;
 
             for (k = 0; k < n; k++) {
+                bool useStdMap = false;
+
                 if (m_femBeam->beamType() == ofem::btBeam) {
                     switch (m_beamModel->getResultType()) {
                     case IVF_BEAM_N:
                         value = m_femBeam->getValue(0 + 6 * k);
                         if (value > 0) {
-                            value = fabs(value) / m_beamModel->maxN();
+                            value = normalizePositive(value, m_beamModel->maxN());
                             colorMapPos->getColor(value, red, green, blue);
                         }
                         else {
-                            value = fabs(value) / m_beamModel->minN();
-                            colorMapNeg->getColor(fabs(value), red, green, blue);
+                            value = normalizeNegative(value, m_beamModel->minN());
+                            colorMapNeg->getColor(value, red, green, blue);
                         }
 
                         break;
                     case IVF_BEAM_T:
-                        value = m_femBeam->getValue(3 + 6 * k);
-                        value = (m_beamModel->maxT() > m_beamModel->minT())
-                            ? (fabs(value) - m_beamModel->minT()) / (m_beamModel->maxT() - m_beamModel->minT())
-                            : 0.0;
+                        // Evaluation-point layout written by BeamSolver is
+                        // [N, T, Vy, Vz, My, Mz] per point (see beam_solver.cpp
+                        // updateMaxMin/setValue) -- T is index 1, not 3.
+                        value = m_femBeam->getValue(1 + 6 * k);
+                        value = normalizeScalarMagnitude(std::fabs(value), m_beamModel->minT(), m_beamModel->maxT());
+                        useStdMap = true;
                         break;
                     case IVF_BEAM_V:
-                        v1 = m_femBeam->getValue(1 + 6 * k);
-                        v2 = m_femBeam->getValue(2 + 6 * k);
-                        value = sqrt(v1*v1 + v2*v2);
-                        value = (m_beamModel->maxV() > m_beamModel->minV())
-                            ? (value - m_beamModel->minV()) / (m_beamModel->maxV() - m_beamModel->minV())
-                            : 0.0;
+                        v1 = m_femBeam->getValue(2 + 6 * k);
+                        v2 = m_femBeam->getValue(3 + 6 * k);
+                        value = std::sqrt(v1*v1 + v2*v2);
+                        value = normalizeScalarMagnitude(value, m_beamModel->minV(), m_beamModel->maxV());
+                        useStdMap = true;
                         break;
                     case IVF_BEAM_M:
                         v1 = m_femBeam->getValue(4 + 6 * k);
                         v2 = m_femBeam->getValue(5 + 6 * k);
-                        value = sqrt(v1*v1 + v2*v2);
-                        value = (m_beamModel->maxM() > m_beamModel->minM())
-                            ? (value - m_beamModel->minM()) / (m_beamModel->maxM() - m_beamModel->minM())
-                            : 0.0;
+                        value = std::sqrt(v1*v1 + v2*v2);
+                        value = normalizeScalarMagnitude(value, m_beamModel->minM(), m_beamModel->maxM());
+                        useStdMap = true;
                         break;
                     case IVF_BEAM_NAVIER:
                         N = m_femBeam->getValue(0 + 6 * k);
                         My = m_femBeam->getValue(4 + 6 * k);
                         Mz = m_femBeam->getValue(5 + 6 * k);
                         value = calcNavier(N, My, Mz);
-                        value = (m_beamModel->maxNavier() > m_beamModel->minNavier())
-                            ? (fabs(value) - m_beamModel->minNavier()) / (m_beamModel->maxNavier() - m_beamModel->minNavier())
-                            : 0.0;
+                        value = normalizeScalarMagnitude(std::fabs(value), m_beamModel->minNavier(), m_beamModel->maxNavier());
+                        useStdMap = true;
                         break;
                     default:
-                        value = 0.0;
+                        unsupportedResultColor(m_beamModel->getUseBlending(), red, green, blue);
                         break;
                     }
                 }
@@ -500,22 +574,22 @@ void Beam::initResults()
                     case IVF_BEAM_N:
                         value = m_femBeam->getValue(0 + 6 * k);
                         if (value > 0) {
-                            value = fabs(value) / m_beamModel->maxN();
+                            value = normalizePositive(value, m_beamModel->maxN());
                             colorMapPos->getColor(value, red, green, blue);
                         }
                         else {
-                            value = fabs(value) / m_beamModel->minN();
-                            colorMapNeg->getColor(fabs(value), red, green, blue);
+                            value = normalizeNegative(value, m_beamModel->minN());
+                            colorMapNeg->getColor(value, red, green, blue);
                         }
 
                         break;
                     default:
-                        value = 0.0;
+                        unsupportedResultColor(m_beamModel->getUseBlending(), red, green, blue);
                         break;
                     }
                 }
 
-                if (m_beamModel->getResultType() != IVF_BEAM_N)
+                if (useStdMap)
                     colorMapStd->getColor(value, red, green, blue);
 
                 r = (GLubyte)(255.0f * red);
@@ -532,15 +606,10 @@ void Beam::initResults()
                 m_beamImage->setPixel(k, 6, r, g, b);
                 m_beamImage->setPixel(k, 7, r, g, b);
                 */
-                m_beamImage->setPixel(0, k, r, g, b);
-                m_beamImage->setPixel(1, k, r, g, b);
-                m_beamImage->setPixel(2, k, r, g, b);
-                m_beamImage->setPixel(3, k, r, g, b);
-                m_beamImage->setPixel(4, k, r, g, b);
-                m_beamImage->setPixel(5, k, r, g, b);
-                m_beamImage->setPixel(6, k, r, g, b);
-                m_beamImage->setPixel(7, k, r, g, b);
+                for (int i = 0; i < kResultTextureWidth; i++)
+                    m_beamImage->setPixel(i, k, r, g, b);
             }
+            m_beamTexture->setImage(m_beamImage);
             m_beamTexture->setRepeat(GL_CLAMP, GL_CLAMP);
             m_beamTexture->refresh();
             m_beamTexture->bind();

@@ -167,7 +167,7 @@ private:
     struct ViewSettings {
         RepresentationMode representation{RepresentationMode::Fem};
         double relNodeSize{0.0055};
-        double relLoadSize{0.045};
+        double relLoadSize{0.08};
         double relLineRadius{0.0023};
         float  uiScale{1.0f};
         bool   useSphereCursor{false};
@@ -398,6 +398,8 @@ private:
     void drawMainMenuBar(bool &executeCalc, bool &quitApplication);
     void drawPopups();
     void drawFileDialogs();
+    void resetSolverState(bool preserveScaleLock = true);
+    void resetResultDisplay();
 
 public:
     FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,

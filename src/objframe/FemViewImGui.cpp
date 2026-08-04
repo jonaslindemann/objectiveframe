@@ -24,7 +24,7 @@ void FemViewWindow::drainScriptQueue()
         this->runScriptFromText(scriptFunc);
 
         if (m_scripting.calledNewModel)
-            this->fitWorkspaceToModel(1.2);
+            this->fitWorkspaceToModel();
     }
 }
 
@@ -157,6 +157,11 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
     if (ImGui::BeginMenu("View"))
     {
+        if (ImGui::MenuItem("Fit workspace to model", "", false, m_beamModel->getNodeSet()->getSize() > 0))
+            this->fitWorkspaceToModel();
+
+        ImGui::Separator();
+
         if (ImGui::MenuItem("Properties...", ""))
             m_propWindow->setVisible(true);
 

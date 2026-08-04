@@ -79,6 +79,15 @@ private:
 
     double m_workspaceSize;
 
+    // Standard view direction used by resetView(), in degrees. Azimuth is
+    // measured from +Z towards +X, elevation up from the XZ plane.
+    double m_viewAzimuth;
+    double m_viewElevation;
+
+    // Camera distance used by resetView(). Values <= 0 mean "derive from the
+    // workspace size", which is the default.
+    double m_viewDistance;
+
     GLfloat m_angleX;
     GLfloat m_angleY;
     GLfloat m_moveX;
@@ -218,6 +227,14 @@ public:
 
     /** Resets view to initial settings */
     void resetView();
+
+    /** Sets the view direction used by resetView(), in degrees. */
+    void setViewAngles(double azimuth, double elevation);
+    void getViewAngles(double &azimuth, double &elevation);
+
+    /** Sets the camera distance used by resetView(). <= 0 derives it from the workspace. */
+    void setViewDistance(double distance);
+    double getViewDistance();
 
     void clearSelection();
     void selectAll();

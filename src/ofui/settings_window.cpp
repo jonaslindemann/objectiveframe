@@ -12,7 +12,7 @@
 using namespace ofui;
 
 SettingsWindow::SettingsWindow(const std::string name)
-    : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.4f}, m_lineRadius{0.15f}, m_loadSize{7.0f},
+    : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.55f}, m_lineRadius{0.23f}, m_loadSize{4.5f},
       m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false}, m_showNodeNumbers{true}, m_uiScale{1.0f},
       m_lineSides{6}, m_sphereNodes{true}, m_useImGuiFileDialogs{true}, m_saveScreenShot{false}, m_aiApiKey{""}
 {

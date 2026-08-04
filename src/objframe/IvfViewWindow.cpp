@@ -26,7 +26,8 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
       m_zoomX{0.0f}, m_zoomY{0.0f}, m_snapToGrid{true}, m_selectedShape{nullptr}, m_editMode{WidgetMode::ViewPan},
       m_clickNumber{0}, m_nNodes{0}, m_nLines{0}, m_doOverlay{false}, m_doUnderlay{false}, m_editEnabled{true},
       m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false},
-      m_workspaceSize{10.0f}, m_quit{false}, m_customPick{false}, m_lockSceneRendering{false}
+      m_workspaceSize{10.0f}, m_viewAzimuth{0.0}, m_viewElevation{7.125}, m_viewDistance{-1.0}, m_quit{false},
+      m_customPick{false}, m_lockSceneRendering{false}
 {
     // Create default camera
 
@@ -356,9 +357,41 @@ void IvfViewWindow::centerSelected()
 
 void IvfViewWindow::resetView()
 {
-    m_camera->setPosition(0.0, m_workspaceSize / 8.0, m_workspaceSize);
+    // Place the camera on a sphere around the workspace centre, so the model is
+    // seen from a rotated, slightly elevated angle rather than straight on.
+
+    const double toRad = 0.017453292519943295;
+
+    double az = m_viewAzimuth * toRad;
+    double el = m_viewElevation * toRad;
+
+    double d = (m_viewDistance > 0.0) ? m_viewDistance : m_workspaceSize;
+
+    m_camera->setPosition(d * cos(el) * sin(az), d * sin(el), d * cos(el) * cos(az));
     m_camera->setTarget(0.0, 0.0, 0.0);
     redraw();
+}
+
+void IvfViewWindow::setViewDistance(double distance)
+{
+    m_viewDistance = distance;
+}
+
+double IvfViewWindow::getViewDistance()
+{
+    return m_viewDistance;
+}
+
+void IvfViewWindow::setViewAngles(double azimuth, double elevation)
+{
+    m_viewAzimuth = azimuth;
+    m_viewElevation = elevation;
+}
+
+void IvfViewWindow::getViewAngles(double &azimuth, double &elevation)
+{
+    azimuth = m_viewAzimuth;
+    elevation = m_viewElevation;
 }
 
 void IvfViewWindow::clearSelection()
@@ -682,6 +715,10 @@ void IvfViewWindow::updateCursor(int x, int y)
 void IvfViewWindow::setWorkspace(double size, bool resetCamera)
 {
     m_workspaceSize = size;
+
+    // Any previously fitted camera distance no longer applies to the new workspace
+
+    m_viewDistance = -1.0;
 
     m_scene->setSize(size);
 

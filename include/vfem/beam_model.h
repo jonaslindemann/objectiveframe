@@ -33,6 +33,7 @@ class BeamModel : public ofem::BeamModel {
 private:
     double m_nodeSize;
     double m_lineRadius;
+    double m_beamPickFactor;
     int m_lineSides;
     double m_loadSize;
     double m_beamLoadSize;
@@ -94,6 +95,11 @@ public:
 
     void setLineRadius(double radius);
     double getLineRadius();
+
+    // Beam pick radius is a multiple of the visual radius, so that slim beams
+    // stay easy to select. Model space, so it scales with zoom like everything else.
+    void setBeamPickFactor(double factor);
+    double getBeamPickFactor();
 
     void setNodeSize(double size);
     double getNodeSize();

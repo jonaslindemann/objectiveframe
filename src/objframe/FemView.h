@@ -166,9 +166,9 @@ private:
 
     struct ViewSettings {
         RepresentationMode representation{RepresentationMode::Fem};
-        double relNodeSize{0.004};
-        double relLoadSize{0.06};
-        double relLineRadius{0.0015};
+        double relNodeSize{0.0055};
+        double relLoadSize{0.045};
+        double relLineRadius{0.0023};
         float  uiScale{1.0f};
         bool   useSphereCursor{false};
         bool   useBlending{false};
@@ -485,7 +485,8 @@ public:
     bool isScaleFactorLocked();
 
     double autoScaleFactor();
-    void fitWorkspaceToModel(double padding = 1.2);
+    void fitWorkspaceToModel(double padding = 1.5);
+    double requiredViewDistance(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 
     virtual void setWorkspace(double size, bool resetCamera = true);
 

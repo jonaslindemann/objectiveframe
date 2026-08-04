@@ -386,77 +386,85 @@ void FemViewWindow::updateAxisLabels()
 {
     m_textLayer->clear();
 
+    // Label height and the gap out from the workspace edge, both relative to the
+    // workspace so they keep a constant apparent size at the reset camera distance.
+
+    const double textSize = this->getWorkspace() * 0.03;
+    const double textGap = this->getWorkspace() * 0.06;
+
+    const double edge = this->getWorkspace() / 2.0 + textGap;
+
     auto axisLabelPlusX = ivf::TextLabel::create();
 
     axisLabelPlusX->setCamera(this->getCamera());
     axisLabelPlusX->setFont(m_redFont);
-    axisLabelPlusX->setText("+X", 0.5);
+    axisLabelPlusX->setText("+X", float(textSize));
     axisLabelPlusX->setAlignObject(IVF_ALIGN_CAMERA);
     axisLabelPlusX->setVector(0.0, 1.0, 0.0);
-    axisLabelPlusX->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, 0.0);
+    axisLabelPlusX->setPosition(edge, 0.0, 0.0);
     axisLabelPlusX->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(axisLabelPlusX);
 
     auto axisLabelMinusX = ivf::TextLabel::create();
     axisLabelMinusX->setCamera(this->getCamera());
     axisLabelMinusX->setFont(m_redFont);
-    axisLabelMinusX->setText("-X", 0.5);
+    axisLabelMinusX->setText("-X", float(textSize));
     axisLabelMinusX->setAlignObject(IVF_ALIGN_CAMERA);
-    axisLabelMinusX->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, 0.0);
+    axisLabelMinusX->setPosition(-edge, 0.0, 0.0);
     axisLabelMinusX->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(axisLabelMinusX);
 
     auto axisLabelPlusY = ivf::TextLabel::create();
     axisLabelPlusY->setCamera(this->getCamera());
     axisLabelPlusY->setFont(m_greenFont);
-    axisLabelPlusY->setText("+Z", 0.5);
+    axisLabelPlusY->setText("+Z", float(textSize));
     axisLabelPlusY->setAlignObject(IVF_ALIGN_CAMERA);
-    axisLabelPlusY->setPosition(0.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
+    axisLabelPlusY->setPosition(0.0, 0.0, edge);
     axisLabelPlusY->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(axisLabelPlusY);
 
     auto axisLabelMinusY = ivf::TextLabel::create();
     axisLabelMinusY->setCamera(this->getCamera());
     axisLabelMinusY->setFont(m_greenFont);
-    axisLabelMinusY->setText("-Z", 0.5);
+    axisLabelMinusY->setText("-Z", float(textSize));
     axisLabelMinusY->setAlignObject(IVF_ALIGN_CAMERA);
-    axisLabelMinusY->setPosition(0.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
+    axisLabelMinusY->setPosition(0.0, 0.0, -edge);
     axisLabelMinusY->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(axisLabelMinusY);
 
     auto upperLeft = ivf::TextLabel::create();
     upperLeft->setCamera(this->getCamera());
     upperLeft->setFont(m_axisFont);
-    upperLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), 0.5);
+    upperLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), float(textSize));
     upperLeft->setAlignObject(IVF_ALIGN_CAMERA);
-    upperLeft->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
+    upperLeft->setPosition(-edge, 0.0, -edge);
     upperLeft->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(upperLeft);
 
     auto upperRight = ivf::TextLabel::create();
     upperRight->setCamera(this->getCamera());
     upperRight->setFont(m_axisFont);
-    upperRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), 0.5);
+    upperRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), float(textSize));
     upperRight->setAlignObject(IVF_ALIGN_CAMERA);
-    upperRight->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, -this->getWorkspace() / 2.0 - 1.0);
+    upperRight->setPosition(edge, 0.0, -edge);
     upperRight->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(upperRight);
 
     auto lowerLeft = ivf::TextLabel::create();
     lowerLeft->setCamera(this->getCamera());
     lowerLeft->setFont(m_axisFont);
-    lowerLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), 0.5);
+    lowerLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), float(textSize));
     lowerLeft->setAlignObject(IVF_ALIGN_CAMERA);
-    lowerLeft->setPosition(-this->getWorkspace() / 2.0 - 1.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
+    lowerLeft->setPosition(-edge, 0.0, edge);
     lowerLeft->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(lowerLeft);
 
     auto lowerRight = ivf::TextLabel::create();
     lowerRight->setCamera(this->getCamera());
     lowerRight->setFont(m_axisFont);
-    lowerRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), 0.5);
+    lowerRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), float(textSize));
     lowerRight->setAlignObject(IVF_ALIGN_CAMERA);
-    lowerRight->setPosition(this->getWorkspace() / 2.0 + 1.0, 0.0, this->getWorkspace() / 2.0 + 1.0);
+    lowerRight->setPosition(edge, 0.0, edge);
     lowerRight->setBillboardType(IVF_BILLBOARD_XY);
     m_textLayer->addChild(lowerRight);
 }
@@ -839,7 +847,10 @@ void FemViewWindow::setRelLoadSize(double size)
     m_view.relLoadSize = size;
 
     if (m_beamModel != nullptr)
+    {
         m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
+        m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
+    }
 }
 
 double FemViewWindow::getRelNodeSize()
@@ -1048,6 +1059,11 @@ void FemViewWindow::openFromString(const std::string df3_string)
     this->setUseBlending(false);
 
     this->unlockSceneRendering();
+
+    // Frame the loaded model in the standard rotated view
+
+    this->setViewAngles(-20.0, 28.0);
+    this->fitWorkspaceToModel();
 }
 
 void FemViewWindow::save(std::string filename)
@@ -1116,6 +1132,11 @@ void FemViewWindow::open(std::string filename)
     this->setUseBlending(false);
 
     this->unlockSceneRendering();
+
+    // Frame the loaded model in the standard rotated view
+
+    this->setViewAngles(-20.0, 28.0);
+    this->fitWorkspaceToModel();
 }
 
 void FemViewWindow::copy()
@@ -1188,6 +1209,11 @@ void FemViewWindow::newModel()
     namespace fs = std::filesystem;
 
     m_scripting.calledNewModel = true;
+
+    // A new model starts from the original straight-on view
+
+    this->setViewAngles(0.0, 7.125);
+    this->setViewDistance(-1.0);
 
     this->lockSceneRendering();
 
@@ -1287,6 +1313,66 @@ void FemViewWindow::newModel()
     this->redraw();
 }
 
+double FemViewWindow::requiredViewDistance(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
+{
+    // Smallest camera distance that keeps an axis-aligned box inside the frustum,
+    // with the camera on the resetView() direction and the target at the origin.
+    //
+    // With the target at the origin the camera basis is orthogonal to the view
+    // direction u, so a point's horizontal and vertical screen offsets do not
+    // depend on the distance. Only its depth does, which makes the bound exact:
+    //
+    //   depth = d - p.u,  so  |p.up| <= (d - p.u) * tanV  =>  d >= p.u + |p.up| / tanV
+    //
+    // and likewise for the horizontal direction.
+
+    const double toRad = 0.017453292519943295;
+
+    double azDeg, elDeg;
+    this->getViewAngles(azDeg, elDeg);
+
+    double az = azDeg * toRad;
+    double el = elDeg * toRad;
+
+    // View direction (origin towards camera), screen right and screen up
+
+    double ux = cos(el) * sin(az), uy = sin(el), uz = cos(el) * cos(az);
+    double rx = cos(az), ry = 0.0, rz = -sin(az);
+    double px = -sin(az) * sin(el), py = cos(el), pz = -cos(az) * sin(el);
+
+    double fov, zNear, zFar;
+    this->getCamera()->getPerspective(fov, zNear, zFar);
+
+    double aspect = (this->height() > 0) ? double(this->width()) / double(this->height()) : 1.0;
+
+    double tanV = tan(0.5 * fov * toRad);
+    double tanH = tanV * aspect;
+
+    if (tanV <= 0.0 || tanH <= 0.0)
+        return this->getWorkspace();
+
+    double required = 0.0;
+
+    for (int i = 0; i < 8; i++)
+    {
+        double x = (i & 1) ? maxX : minX;
+        double y = (i & 2) ? maxY : minY;
+        double z = (i & 4) ? maxZ : minZ;
+
+        double depthOffset = x * ux + y * uy + z * uz;
+        double vert = std::fabs(x * px + y * py + z * pz);
+        double horiz = std::fabs(x * rx + y * ry + z * rz);
+
+        required = std::max(required, depthOffset + vert / tanV);
+        required = std::max(required, depthOffset + horiz / tanH);
+    }
+
+    // Breathing room around the fitted model, and never closer than the plain
+    // workspace view
+
+    return std::max(required, this->getWorkspace()) * 1.2;
+}
+
 void FemViewWindow::fitWorkspaceToModel(double padding)
 {
     // Calculate bounding box of all nodes in the model
@@ -1362,7 +1448,16 @@ void FemViewWindow::fitWorkspaceToModel(double padding)
     
     // Update axis labels
     this->updateAxisLabels();
-    
+
+    // Pull the camera back until the whole model is inside the frustum. The camera
+    // keeps looking at the origin, so a model that is off-centre in the workspace is
+    // framed by zooming out rather than by moving the target.
+    this->setViewDistance(this->requiredViewDistance(minX, minY, minZ, maxX, maxY, maxZ));
+    this->resetView();
+
+    // Sync settings dialog with the new workspace size
+    m_settingsWindow->update();
+
     // Mark for recalculation and redraw
     m_solver.needRecalc = true;
     this->set_changed();

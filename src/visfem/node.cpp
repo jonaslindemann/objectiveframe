@@ -5,6 +5,10 @@ using namespace vfem;
 
 #include <sstream>
 
+// Node number label height, as a multiple of the node size.
+
+static const double NODE_LABEL_FACTOR = 2.5;
+
 Node::Node() : ivf::Node()
 {
     m_femNode = nullptr;
@@ -99,7 +103,7 @@ void Node::refresh()
         std::string s(ss.str());
 
         if (m_nodeLabel->text() != s)
-            m_nodeLabel->setText(s, float(m_beamModel->getNodeSize() * 1.5f));
+            m_nodeLabel->setText(s, float(m_beamModel->getNodeSize() * NODE_LABEL_FACTOR));
     }
     else
     {
@@ -109,6 +113,11 @@ void Node::refresh()
 
     if (m_beamModel != nullptr)
     {
+        // Track the current node size. setText() only applies a size when the text
+        // actually changes, so the label has to be resized explicitly here.
+
+        m_nodeLabel->setSize(float(m_beamModel->getNodeSize() * NODE_LABEL_FACTOR));
+
         this->setType(m_beamModel->getNodeRepr());
 
         if (m_beamModel->getNodeType() == IVF_NODE_DISPLACEMENT)
@@ -202,5 +211,5 @@ void Node::setBeamModel(BeamModel *model)
     m_beamModel = model;
     m_nodeLabel->setCamera(m_beamModel->camera());
     m_nodeLabel->setFont(m_beamModel->textFont());
-    m_nodeLabel->setSize(float(m_beamModel->getNodeSize() * 1.5f));
+    m_nodeLabel->setSize(float(m_beamModel->getNodeSize() * NODE_LABEL_FACTOR));
 }

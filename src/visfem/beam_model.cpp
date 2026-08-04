@@ -31,6 +31,7 @@ BeamModel::BeamModel() : ofem::BeamModel()
     m_nodeSize = 1.0;
     m_nodeType = IVF_NODE_GEOMETRY;
     m_lineRadius = 1.0;
+    m_beamPickFactor = 2.0;
     m_loadSize = 1.0;
     m_beamLoadSize = 1.0;
     m_scaleFactor = 1.0;
@@ -139,7 +140,7 @@ void BeamModel::generateModel()
         ivfNode->setFemNode(nodeSet->getNode(i));
         ivfNode->setMaterial(m_nodeMaterial);
         ivfNode->setDirectRefresh(true);
-        ivfNode->nodeLabel()->setSize(float(m_nodeSize * 1.5f));
+        ivfNode->nodeLabel()->setSize(float(m_nodeSize * 2.5));
         ivfNode->refresh();
         m_scene->addChild(ivfNode);
         ivfNodes.push_back(ivfNode);
@@ -302,6 +303,16 @@ ivf::Material *BeamModel::getNodeMaterial()
 double BeamModel::getLineRadius()
 {
     return m_lineRadius;
+}
+
+void BeamModel::setBeamPickFactor(double factor)
+{
+    m_beamPickFactor = factor;
+}
+
+double BeamModel::getBeamPickFactor()
+{
+    return m_beamPickFactor;
 }
 
 void BeamModel::setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std)
@@ -510,8 +521,7 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
 
             if (glm::intersectRaySphere(p_orig, v_dir, glm::vec3(x, y, z), float(r), p_intersect, v_intersect_normal))
             {
-                glm::vec3 v_orig_sphere = p_intersect - p_orig;
-                d = v_orig_sphere.length();
+                d = glm::length(p_intersect - p_orig);
                 if (d < min_node_d)
                 {
                     min_node_d = d;
@@ -520,12 +530,11 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
                 }
             }
         }
-        if (min_node_shape != nullptr)
-            std::cout << "node " << selected_node_idx << " found...\n";
 
-        // Check beam hits
+        // Check beam hits. The pick radius is inflated relative to the visual
+        // radius so slim beams remain selectable.
 
-        r = this->getLineRadius();
+        r = this->getLineRadius() * this->getBeamPickFactor();
 
         auto elementSet = this->getElementSet();
 
@@ -543,7 +552,6 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
 
             glm::vec3 v_n0(x0, y0, z0);
             glm::vec3 v_n1(x1, y1, z1);
-            glm::vec3 v_mid(0.5 * (x0 + x1), 0.5 * (y0 + y1), 0.5 * (z0 + z1));
 
             glm::vec3 v_cyl = v_n1 - v_n0;
 
@@ -554,9 +562,7 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
             if (ofmath::intersectRayOrientedCylinder(p_orig, v_dir, float(r), float(d), v_n0, v_cyl, p_intersect,
                                                      v_normal))
             {
-                glm::vec3 v_orig_sphere = v_mid - p_orig;
-
-                d = glm::length(v_orig_sphere);
+                d = glm::length(p_intersect - p_orig);
 
                 if (d < min_beam_d)
                 {
@@ -566,8 +572,6 @@ ivf::Shape *BeamModel::pick(int sx, int sy)
                 }
             }
         }
-        if (min_beam_shape != nullptr)
-            std::cout << "beam " << selected_beam_idx << " found...\n";
 
         if ((min_node_shape != nullptr) && (min_beam_shape != nullptr))
         {

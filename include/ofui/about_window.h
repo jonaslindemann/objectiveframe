@@ -16,6 +16,7 @@ private:
     std::string m_author1;
     std::string m_author2;
     std::string m_extra1;
+    std::string m_buildTimestamp;
 
 public:
     AboutWindow(const std::string name);
@@ -29,6 +30,7 @@ public:
     void setAuthor1(std::string text);
     void setAuthor2(std::string text);
     void setExtra1(std::string text);
+    void setBuildTimestamp(std::string text);
 
 protected:
     virtual void doDraw();

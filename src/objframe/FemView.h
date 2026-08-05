@@ -6,6 +6,7 @@ constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2026\nDivision of
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
 constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de/software/index.jsp?id=TetGen&lang=1";
+constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 
 #ifdef WIN32
 #include <shobjidl.h>

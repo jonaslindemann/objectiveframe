@@ -47,6 +47,11 @@ void ofui::AboutWindow::setExtra1(std::string text)
     m_extra1 = text;
 }
 
+void ofui::AboutWindow::setBuildTimestamp(std::string text)
+{
+    m_buildTimestamp = text;
+}
+
 void AboutWindow::doDraw()
 {
     ImGui::Dummy(ImVec2(400.0, 0.0));
@@ -54,6 +59,8 @@ void AboutWindow::doDraw()
     ImGui::Separator();
     ImGui::Text(m_release.c_str());
     ImGui::Text(m_copyright.c_str());
+    if (!m_buildTimestamp.empty())
+        ImGui::Text(m_buildTimestamp.c_str());
     ImGui::Separator();
     ImGui::Text(m_author1.c_str());
     ImGui::Text(m_author2.c_str());

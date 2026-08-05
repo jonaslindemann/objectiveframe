@@ -4189,6 +4189,7 @@ void FemViewWindow::onInit()
     m_aboutWindow->setAuthor1(OBJFRAME_AUTHOR1);
     m_aboutWindow->setAuthor2(OBJFRAME_AUTHOR2);
     m_aboutWindow->setExtra1(OBJFRAME_EXTRA1);
+    m_aboutWindow->setBuildTimestamp(OBJFRAME_BUILD_TIMESTAMP);
     m_aboutWindow->setVisible(false);
 
     m_windowList->add(m_aboutWindow);

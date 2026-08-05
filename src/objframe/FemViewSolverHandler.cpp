@@ -104,6 +104,9 @@ void FemViewSolverHandler::executeCalc(FemViewWindow &view)
     view.m_loadMixerWindow->show();
     view.m_loadMixerWindow->setPosition(100, 240);
 
+    if (view.m_beamModel->getResultType() == IVF_BEAM_NO_RESULT)
+        view.m_beamModel->setResultType(IVF_BEAM_N);
+
     view.setRepresentation(RepresentationMode::Results);
 }
 
@@ -181,7 +184,7 @@ void FemViewSolverHandler::recompute(FemViewWindow &view)
             view.m_solver.haveScaleFactor = true;
         }
 
-        view.getScene()->getComposite()->refresh();
+        view.refreshBeamModelVisuals();
         view.redraw();
     }
 }

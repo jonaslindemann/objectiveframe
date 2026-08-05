@@ -167,6 +167,17 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Show loads", "Alt+1", this->getShowLoads()))
+            this->setShowLoads(!this->getShowLoads());
+
+        if (ImGui::MenuItem("Show reaction forces", "Alt+2", this->getShowReactionForces()))
+            this->setShowReactionForces(!this->getShowReactionForces());
+
+        if (ImGui::MenuItem("Show node numbers", "Alt+3", this->getShowNodeNumbers()))
+            this->setShowNodeNumbers(!this->getShowNodeNumbers());
+
+        ImGui::Separator();
+
         if (ImGui::MenuItem("Node loads...", ""))
         {
             m_nodeLoadsWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
@@ -271,6 +282,12 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         {
             m_scaleWindow->show();
             m_scaleWindow->setPosition(100, 20);
+        }
+
+        if (ImGui::MenuItem("Color scale settings...", ""))
+        {
+            m_colorScaleWindow->show();
+            m_colorScaleWindow->setPosition(100, 20);
         }
 
         ImGui::EndMenu();

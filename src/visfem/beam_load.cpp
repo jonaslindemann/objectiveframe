@@ -158,6 +158,9 @@ void BeamLoad::setBeamLoad(ofem::BeamLoad *load)
 
 void BeamLoad::doCreateGeometry()
 {
+    if ((m_beamModel != nullptr) && !m_beamModel->showLoads())
+        return;
+
     int old_style = ivfGetGLEJoinStyle();
     int i;
     // gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);
@@ -171,6 +174,9 @@ void BeamLoad::doCreateGeometry()
 
 void BeamLoad::doCreateSelect()
 {
+    if ((m_beamModel != nullptr) && !m_beamModel->showLoads())
+        return;
+
     int old_style = ivfGetGLEJoinStyle();
     int i;
     // gleSetJoinStyle(TUBE_JN_ANGLE|TUBE_NORM_FACET|TUBE_JN_ANGLE);

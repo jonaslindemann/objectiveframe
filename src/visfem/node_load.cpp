@@ -25,6 +25,9 @@ NodeLoad::~NodeLoad()
 
 void NodeLoad::doCreateGeometry()
 {
+    if ((m_beamModel != nullptr) && !m_beamModel->showLoads())
+        return;
+
     for (auto &arrow : m_arrow)
         arrow->render();
 }

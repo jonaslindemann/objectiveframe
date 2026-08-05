@@ -48,12 +48,10 @@ constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de
 #include <ofsolve/solver_interface.h>
 #include <ofsolve/tetgen_beam_mesher.h>
 
-#include <ColorMap.h>
-#include <ResultInfo.h>
-
 #include <ofui/about_window.h>
 #include <ofui/bc_prop_popup.h>
 #include <ofui/console_window.h>
+#include <ofui/color_scale_window.h>
 #include <ofui/coord_window.h>
 #include <ofui/element_loads_window.h>
 #include <ofui/element_prop_window.h>
@@ -303,6 +301,7 @@ private:
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
     ofui::ScaleWindowPtr m_scaleWindow;
+    ofui::ColorScaleWindowPtr m_colorScaleWindow;
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
     ofui::LoadMixerWindowPtr m_loadMixerWindow;
@@ -400,6 +399,9 @@ private:
     void drawFileDialogs();
     void resetSolverState(bool preserveScaleLock = true);
     void resetResultDisplay();
+    void refreshBeamModelVisuals();
+    void initializeBeamColorTable();
+    void applyBeamModelVisualDefaults();
 
 public:
     FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
@@ -456,6 +458,15 @@ public:
 
     void setUseBlending(bool flag);
     bool getUseBlending();
+
+    void setShowLoads(bool flag);
+    bool getShowLoads();
+
+    void setShowReactionForces(bool flag);
+    bool getShowReactionForces();
+
+    void setShowNodeNumbers(bool flag);
+    bool getShowNodeNumbers();
 
     void setUseImGuiFileDialogs(bool flag);
     bool getUseImGuiFileDialogs();

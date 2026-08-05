@@ -16,9 +16,6 @@
 
 #include <ofmath/ray_cylinder.h>
 
-#include <ColorMap.h>
-#include <ResultInfo.h>
-
 #include <glm/glm.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -36,30 +33,18 @@ BeamModel::BeamModel() : ofem::BeamModel()
     m_beamLoadSize = 1.0;
     m_scaleFactor = 1.0;
     m_lineSides = 6;
-    m_nodeRepr = ivf::Node::NT_CUBE;
+    m_nodeRepr = vfem::Preferences::instance().useSphereNodes() ? ivf::Node::NT_SPHERE : ivf::Node::NT_CUBE;
 
     m_colorTable = ColorTable::create();
-
-    m_colorMapPos = ColorMap::create();
-    m_colorMapNeg = ColorMap::create();
-    m_colorMapStd = ColorMap::create();
-
-    m_colorMapPosBlack = ColorMap::create();
-    m_colorMapNegBlack = ColorMap::create();
 
     m_beamType = IVF_BEAM_SOLID;
     m_resultType = IVF_BEAM_NO_RESULT;
 
-    if (vfem::Preferences::instance().useSphereNodes())
-        m_nodeType = ivf::Node::NT_SPHERE;
-    else
-        m_nodeType = ivf::Node::NT_CUBE;
-
-    m_colorMapPath = "";
-
     m_textFont = nullptr;
     m_showNodeNumbers = vfem::Preferences::instance().showNodeNumbers();
     m_showElementNumbers = false;
+    m_showLoads = true;
+    m_showReactionForces = true;
     m_camera = nullptr;
 
     m_useBlending = false;
@@ -116,15 +101,6 @@ void vfem::BeamModel::onReadComplete()
 
 void BeamModel::generateModel()
 {
-    // Open color maps
-
-    m_colorMapPos->open("red.map");
-    m_colorMapNeg->open("blue.map");
-    m_colorMapStd->open("colormap11.map");
-
-    m_colorMapPosBlack->open("red_black.map");
-    m_colorMapNegBlack->open("blue_black.map");
-
     // Temporary lists
 
     std::vector<Node *> ivfNodes;
@@ -275,6 +251,16 @@ ColorTable *BeamModel::getColorTable()
     return m_colorTable;
 }
 
+BeamModel::ColorScale &BeamModel::colorScale()
+{
+    return m_colorScale;
+}
+
+void BeamModel::resetColorScaleToDefaults()
+{
+    m_colorScale = ColorScale();
+}
+
 void BeamModel::setLoadSize(double size)
 {
     m_loadSize = size;
@@ -315,13 +301,6 @@ double BeamModel::getBeamPickFactor()
     return m_beamPickFactor;
 }
 
-void BeamModel::setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std)
-{
-    m_colorMapPos = pos;
-    m_colorMapNeg = neg;
-    m_colorMapStd = std;
-}
-
 void BeamModel::setBeamType(int type)
 {
     m_beamType = type;
@@ -351,6 +330,26 @@ void vfem::BeamModel::setShowNodeNumbers(bool flag)
 bool vfem::BeamModel::showNodeNumbers()
 {
     return vfem::Preferences::instance().showNodeNumbers();
+}
+
+void vfem::BeamModel::setShowLoads(bool flag)
+{
+    m_showLoads = flag;
+}
+
+bool vfem::BeamModel::showLoads()
+{
+    return m_showLoads;
+}
+
+void vfem::BeamModel::setShowReactionForces(bool flag)
+{
+    m_showReactionForces = flag;
+}
+
+bool vfem::BeamModel::showReactionForces()
+{
+    return m_showReactionForces;
 }
 
 void vfem::BeamModel::setCamera(ivf::Camera *camera)
@@ -403,31 +402,6 @@ int BeamModel::getResultType()
     return m_resultType;
 }
 
-ColorMapPtr BeamModel::getColorMapPos()
-{
-    return m_colorMapPos;
-}
-
-ColorMapPtr vfem::BeamModel::getColorMapNegBlack()
-{
-    return m_colorMapNegBlack;
-}
-
-ColorMapPtr vfem::BeamModel::getColorMapPosBlack()
-{
-    return m_colorMapPosBlack;
-}
-
-ColorMapPtr BeamModel::getColorMapNeg()
-{
-    return m_colorMapNeg;
-}
-
-ColorMapPtr BeamModel::getColorMapStd()
-{
-    return m_colorMapStd;
-}
-
 void BeamModel::setScaleFactor(double factor)
 {
     m_scaleFactor = factor;
@@ -478,12 +452,7 @@ double BeamModel::getLoadSize()
 
 void BeamModel::setPath(const std::string &path)
 {
-    m_colorMapPath = path;
-    m_colorMapPos->setPath(m_colorMapPath);
-    m_colorMapNeg->setPath(m_colorMapPath);
-    m_colorMapStd->setPath(m_colorMapPath);
-    m_colorMapPosBlack->setPath(m_colorMapPath);
-    m_colorMapNegBlack->setPath(m_colorMapPath);
+    (void)path;
 }
 
 ivf::Shape *BeamModel::pick(int sx, int sy)

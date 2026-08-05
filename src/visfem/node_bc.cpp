@@ -73,8 +73,11 @@ void NodeBC::doCreateGeometry()
         }
         else
         {
-            for (auto &reaction : m_reaction)
-                reaction->render();
+            if (m_beamModel->showReactionForces())
+            {
+                for (auto &reaction : m_reaction)
+                    reaction->render();
+            }
         }
     }
 }

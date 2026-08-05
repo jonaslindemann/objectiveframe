@@ -5,15 +5,10 @@
 
 #include <ivf/Composite.h>
 #include <ivf/Extrusion.h>
-#include <ivf/Image.h>
 #include <ivf/LineSet.h>
 #include <ivf/Material.h>
 #include <ivf/SimpleLineSet.h>
 #include <ivf/SolidLine.h>
-#include <ivf/Texture.h>
-
-#include <ColorMap.h>
-#include <ResultInfo.h>
 
 #include <vfem/beam_model.h>
 #include <vfem/color_table.h>
@@ -32,15 +27,13 @@ private:
     ivf::MaterialPtr m_beamMaterial;
     ivf::ExtrusionPtr m_extrusion;
 
-    ivf::TexturePtr m_beamTexture;
-    ivf::ImagePtr m_beamImage;
-
     vfem::BeamModel *m_beamModel;
 
     double m_E{0.0}, m_G{0.0}, m_A{0.0}, m_Iy{0.0}, m_Iz{0.0}, m_Kv{0.0};
     double m_eyMax{0.0}, m_eyMin{0.0}, m_ezMax{0.0}, m_ezMin{0.0};
 
-    void initResults();
+    void initResultColors();
+    bool resultColorAtEvaluationPoint(int idx, float &red, float &green, float &blue);
     double calcNavier(double N, double My, double Mz);
 
 public:

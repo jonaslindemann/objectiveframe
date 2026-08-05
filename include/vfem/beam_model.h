@@ -7,8 +7,7 @@
 #include <ofem/beam_model.h>
 #include <vfem/color_table.h>
 
-#include <ColorMap.h>
-// #include <ResultInfo.h>
+#include <string>
 
 #define IVF_BEAM_N 0
 #define IVF_BEAM_T 1
@@ -30,6 +29,37 @@ namespace vfem {
 SmartPointer(BeamModel);
 
 class BeamModel : public ofem::BeamModel {
+public:
+    // Colors used by the procedural result color scales in vfem::Beam. Each
+    // scale is a small set of RGB stops that get blended between at render
+    // time (see axialResultColor/magnitudeResultColor/utilizationResultColor
+    // in beam.cpp). Default values match the previous hard-coded palette.
+    struct ColorScale {
+        float axialPos[4][3] = {
+            {0.82f, 0.36f, 0.34f},
+            {1.00f, 0.00f, 0.00f},
+            {0.86f, 0.00f, 0.00f},
+            {0.45f, 0.00f, 0.00f},
+        };
+        float axialNeg[4][3] = {
+            {0.34f, 0.38f, 0.82f},
+            {0.00f, 0.00f, 1.00f},
+            {0.00f, 0.00f, 0.75f},
+            {0.00f, 0.00f, 0.35f},
+        };
+        float magnitude[3][3] = {
+            {0.10f, 0.55f, 0.82f},
+            {1.00f, 0.72f, 0.16f},
+            {0.95f, 0.18f, 0.12f},
+        };
+        float navier[3][3] = {
+            {1.00f, 0.88f, 0.22f},
+            {1.00f, 0.45f, 0.08f},
+            {0.90f, 0.05f, 0.05f},
+        };
+        float navierOverload[3] = {0.80f, 0.00f, 0.70f};
+    };
+
 private:
     double m_nodeSize;
     double m_lineRadius;
@@ -50,6 +80,8 @@ private:
 
     bool m_showNodeNumbers;
     bool m_showElementNumbers;
+    bool m_showLoads;
+    bool m_showReactionForces;
     bool m_useBlending;
 
     ivf::CompositePtr m_scene;
@@ -60,14 +92,7 @@ private:
 
     ColorTablePtr m_colorTable;
 
-    ColorMapPtr m_colorMapPos;
-    ColorMapPtr m_colorMapNeg;
-    ColorMapPtr m_colorMapStd;
-
-    ColorMapPtr m_colorMapPosBlack;
-    ColorMapPtr m_colorMapNegBlack;
-
-    std::string m_colorMapPath;
+    ColorScale m_colorScale;
 
     ofem::BeamNodeBCPtr m_defaultNodePosBC;
     ofem::BeamNodeBCPtr m_defaultNodeFixedBC;
@@ -90,8 +115,6 @@ public:
 
     void setScene(ivf::Composite *scene);
     ivf::Composite *getScene();
-
-    void setColorMaps(ColorMapPtr pos, ColorMapPtr neg, ColorMapPtr std);
 
     void setLineRadius(double radius);
     double getLineRadius();
@@ -123,6 +146,9 @@ public:
 
     ColorTable *getColorTable();
 
+    ColorScale &colorScale();
+    void resetColorScaleToDefaults();
+
     void setPath(const std::string &path);
 
     void setScaleFactor(double factor);
@@ -133,15 +159,6 @@ public:
 
     void setUseBlending(bool flag);
     bool getUseBlending();
-
-    ColorMapPtr getColorMapStd();
-    ColorMapPtr getColorMapNeg();
-    ColorMapPtr getColorMapPos();
-
-    ColorMapPtr getColorMapNegBlack();
-    ColorMapPtr getColorMapPosBlack();
-
-    // ResultInfo* getResultInfo();
 
     void setResultType(int type);
     int getResultType();
@@ -154,6 +171,12 @@ public:
 
     void setShowNodeNumbers(bool flag);
     bool showNodeNumbers();
+
+    void setShowLoads(bool flag);
+    bool showLoads();
+
+    void setShowReactionForces(bool flag);
+    bool showReactionForces();
 
     void setCamera(ivf::Camera *camera);
     ivf::Camera *camera();

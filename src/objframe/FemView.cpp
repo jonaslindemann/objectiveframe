@@ -476,7 +476,6 @@ void FemViewWindow::setWorkspace(double size, bool resetCamera)
     if (m_beamModel != nullptr)
     {
         m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
-        m_beamModel->setNodeType(ivf::Node::NT_CUBE);
         m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
         m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
         m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
@@ -580,6 +579,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
     // Shapes has to be refreshed to represent the
     // the changes
 
+    this->refreshBeamModelVisuals();
     this->set_changed();
     this->redraw();
 }
@@ -896,7 +896,7 @@ void FemViewWindow::setResultType(int type)
         return;
     }
 
-    this->getScene()->getComposite()->refresh();
+    this->refreshBeamModelVisuals();
     this->set_changed();
     this->redraw();
 }
@@ -947,6 +947,102 @@ void FemViewWindow::resetResultDisplay()
     m_beamModel->setMinScale(1.0);
 }
 
+void FemViewWindow::refreshBeamModelVisuals()
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    auto nodeSet = m_beamModel->getNodeSet();
+    for (int i = 0; i < nodeSet->getSize(); i++)
+    {
+        auto node = nodeSet->getNode(i);
+        auto visNode = static_cast<vfem::Node *>(node->getUser());
+        if (visNode != nullptr)
+            visNode->refresh();
+    }
+
+    auto elementSet = m_beamModel->getElementSet();
+    for (int i = 0; i < elementSet->getSize(); i++)
+    {
+        auto femBeam = static_cast<ofem::Beam *>(elementSet->getElement(i));
+        auto visBeam = static_cast<vfem::Beam *>(femBeam->getUser());
+        if (visBeam != nullptr)
+            visBeam->refresh();
+    }
+
+    auto elementLoadSet = m_beamModel->getElementLoadSet();
+    for (int i = 0; i < elementLoadSet->getSize(); i++)
+    {
+        auto femLoad = static_cast<ofem::BeamLoad *>(elementLoadSet->getLoad(i));
+        auto visLoad = static_cast<vfem::BeamLoad *>(femLoad->getUser());
+        if (visLoad != nullptr)
+            visLoad->refresh();
+    }
+
+    auto nodeLoadSet = m_beamModel->getNodeLoadSet();
+    for (int i = 0; i < nodeLoadSet->getSize(); i++)
+    {
+        auto femLoad = static_cast<ofem::BeamNodeLoad *>(nodeLoadSet->getLoad(i));
+        auto visLoad = static_cast<vfem::NodeLoad *>(femLoad->getUser());
+        if (visLoad != nullptr)
+            visLoad->refresh();
+    }
+
+    auto nodeBCSet = m_beamModel->getNodeBCSet();
+    for (int i = 0; i < nodeBCSet->getSize(); i++)
+    {
+        auto femBC = static_cast<ofem::BeamNodeBC *>(nodeBCSet->getBC(i));
+        auto visBC = static_cast<vfem::NodeBC *>(femBC->getUser());
+        if (visBC != nullptr)
+            visBC->refresh();
+    }
+}
+
+void FemViewWindow::initializeBeamColorTable()
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    auto colorTable = m_beamModel->getColorTable();
+    if (colorTable == nullptr)
+        return;
+
+    unsigned int c, red, green, blue;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (i & 0xffffff00)
+            c = static_cast<unsigned int>(i);
+        else
+            c = fl_cmap[i];
+
+        red = uchar(c >> 24);
+        green = uchar(c >> 16);
+        blue = uchar(c >> 8);
+
+        colorTable->setColor(i, static_cast<float>(red) / 255.0f, static_cast<float>(green) / 255.0f,
+                             static_cast<float>(blue) / 255.0f);
+    }
+}
+
+void FemViewWindow::applyBeamModelVisualDefaults()
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    m_beamModel->setPath(m_paths.map.string());
+    m_beamModel->setScene(this->getScene()->getComposite());
+    m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
+    m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
+    m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
+    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
+    m_beamModel->setNodeMaterial(m_nodeMaterial);
+    m_beamModel->setBeamMaterial(m_lineMaterial);
+    m_beamModel->setTextFont(m_labelFont);
+    m_beamModel->setCamera(this->getCamera());
+    this->initializeBeamColorTable();
+}
+
 // Widget methods
 
 void FemViewWindow::exportAsCalfem(std::string filename)
@@ -979,10 +1075,9 @@ void FemViewWindow::restoreLastSnapShot()
     this->hideAllDialogs();
     this->deleteAll();
 
-    // Initialize and open beam model
+    // Restore visual state before rebuilding Ivf++ objects.
 
-    m_beamModel->setTextFont(m_labelFont);
-    m_beamModel->setCamera(this->getCamera());
+    this->applyBeamModelVisualDefaults();
 
     // m_beamModel->setShowNodeNumbers(false);
 
@@ -1023,10 +1118,9 @@ void FemViewWindow::revertLastSnapShot()
     this->hideAllDialogs();
     this->deleteAll();
 
-    // Initialize and open beam model
+    // Restore visual state before rebuilding Ivf++ objects.
 
-    m_beamModel->setTextFont(m_labelFont);
-    m_beamModel->setCamera(this->getCamera());
+    this->applyBeamModelVisualDefaults();
 
     // Generate a Ivf++ representation
 
@@ -1064,14 +1158,15 @@ void FemViewWindow::openFromString(const std::string df3_string)
 
     log("Setting color map path.");
 
-    // Initialize and open beam model
+    // Load into a fresh model so no solver/visual state survives from the
+    // previous document.
 
+    m_beamModel = vfem::BeamModel::create();
+    m_edit.currentMaterial = nullptr;
     m_beamModel->initialize();
     m_beamModel->setFileName(m_paths.fileName);
-    m_beamModel->setPath(m_paths.map.string());
     m_beamModel->openFromString(df3_string);
-    m_beamModel->setTextFont(m_labelFont);
-    m_beamModel->setCamera(this->getCamera());
+    this->applyBeamModelVisualDefaults();
 
     // Generate a Ivf++ representation
 
@@ -1136,14 +1231,15 @@ void FemViewWindow::open(std::string filename)
 
     log("Setting color map path.");
 
-    // Initialize and open beam model
+    // Load into a fresh model so no solver/visual state survives from the
+    // previous document.
 
+    m_beamModel = vfem::BeamModel::create();
+    m_edit.currentMaterial = nullptr;
     m_beamModel->initialize();
     m_beamModel->setFileName(m_paths.fileName);
-    m_beamModel->setPath(m_paths.map.string());
     m_beamModel->open();
-    m_beamModel->setTextFont(m_labelFont);
-    m_beamModel->setCamera(this->getCamera());
+    this->applyBeamModelVisualDefaults();
 
     // Generate a Ivf++ representation
 
@@ -1270,43 +1366,12 @@ void FemViewWindow::newModel()
     m_beamModel = vfem::BeamModel::create();
 
     m_beamModel->initialize();
-    m_beamModel->setPath(m_paths.map.string());
-    m_beamModel->setScene(this->getScene()->getComposite());
-    m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
-    m_beamModel->setNodeType(ivf::Node::NT_CUBE);
-    m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
-    m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
-    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
-    m_beamModel->setNodeMaterial(m_nodeMaterial);
-    m_beamModel->setBeamMaterial(m_lineMaterial);
-
-    m_beamModel->setTextFont(m_labelFont);
-    m_beamModel->setCamera(this->getCamera());
+    this->applyBeamModelVisualDefaults();
 
     this->resetResultDisplay();
     m_beamModel->generateModel();
 
     m_edit.currentMaterial = nullptr;
-
-    // Initialize color table
-
-    auto colorTable = m_beamModel->getColorTable();
-
-    unsigned int c, red, green, blue;
-
-    for (int i = 0; i < 256; i++)
-    {
-        if (i & 0xffffff00)
-            c = (unsigned)i;
-        else
-            c = fl_cmap[i];
-
-        red = uchar(c >> 24);
-        green = uchar(c >> 16);
-        blue = uchar(c >> 8);
-
-        colorTable->setColor(i, (float)red / 255.0f, (float)green / 255.0f, (float)blue / 255.0f);
-    }
 
     // Initialize dialogs
 
@@ -2523,7 +2588,7 @@ void FemViewWindow::doFeedback()
 
                 // Refresh scene (Solid lines must be updated)
 
-                this->getScene()->getComposite()->refresh();
+                this->refreshBeamModelVisuals();
                 this->redraw();
             }
         }
@@ -3548,6 +3613,49 @@ bool FemViewWindow::getUseBlending()
     return m_view.useBlending;
 }
 
+void FemViewWindow::setShowLoads(bool flag)
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    m_beamModel->setShowLoads(flag);
+    this->redraw();
+}
+
+bool FemViewWindow::getShowLoads()
+{
+    return (m_beamModel != nullptr) ? m_beamModel->showLoads() : false;
+}
+
+void FemViewWindow::setShowReactionForces(bool flag)
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    m_beamModel->setShowReactionForces(flag);
+    this->redraw();
+}
+
+bool FemViewWindow::getShowReactionForces()
+{
+    return (m_beamModel != nullptr) ? m_beamModel->showReactionForces() : false;
+}
+
+void FemViewWindow::setShowNodeNumbers(bool flag)
+{
+    if (m_beamModel == nullptr)
+        return;
+
+    m_beamModel->setShowNodeNumbers(flag);
+    this->refreshBeamModelVisuals();
+    this->redraw();
+}
+
+bool FemViewWindow::getShowNodeNumbers()
+{
+    return (m_beamModel != nullptr) ? m_beamModel->showNodeNumbers() : false;
+}
+
 float FemViewWindow::uiScale()
 {
     return m_view.uiScale;
@@ -3922,18 +4030,7 @@ void FemViewWindow::onInit()
     log("Initializing beam model.");
     m_beamModel = vfem::BeamModel::create();
     m_beamModel->initialize();
-    m_beamModel->setPath(m_paths.map.string());
-    m_beamModel->setScene(this->getScene()->getComposite());
-    m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
-    m_beamModel->setNodeType(ivf::Node::NT_CUBE);
-    m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
-    m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
-    m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
-    m_beamModel->setNodeMaterial(m_nodeMaterial);
-    m_beamModel->setBeamMaterial(m_lineMaterial);
-
-    m_beamModel->setTextFont(m_labelFont);
-    m_beamModel->setCamera(this->getCamera());
+    this->applyBeamModelVisualDefaults();
 
     m_beamModel->generateModel();
 
@@ -3949,27 +4046,6 @@ void FemViewWindow::onInit()
     ofem::ModelClipboardCreateElementFunc onCreateElement =
         std::bind(&FemViewWindow::onClipboardCreateElement, this, _1, _2);
     m_edit.clipBoard->assignOnCreateElement(onCreateElement);
-
-    // Initialize color table
-
-    log("Initializing color table.");
-    auto colorTable = m_beamModel->getColorTable();
-
-    unsigned int c, red, green, blue;
-
-    for (int i = 0; i < 256; i++)
-    {
-        if (i & 0xffffff00)
-            c = (unsigned)i;
-        else
-            c = fl_cmap[i];
-
-        red = uchar(c >> 24);
-        green = uchar(c >> 16);
-        blue = uchar(c >> 8);
-
-        colorTable->setColor(i, (float)red / 255.0f, (float)green / 255.0f, (float)blue / 255.0f);
-    }
 
     // Initialize gle library
 
@@ -4099,6 +4175,12 @@ void FemViewWindow::onInit()
     m_scaleWindow->setVisible(false);
 
     m_windowList->add(m_scaleWindow);
+
+    m_colorScaleWindow = ColorScaleWindow::create("Color scale");
+    m_colorScaleWindow->setView(this);
+    m_colorScaleWindow->setVisible(false);
+
+    m_windowList->add(m_colorScaleWindow);
 
     m_aboutWindow = AboutWindow::create("About");
     m_aboutWindow->setVersion(OBJFRAME_VERSION_STRING);
@@ -5127,6 +5209,15 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         else
             this->setUseBlending(true);
     }
+
+    if ((modifier == ModifierKey::mkAlt) && (key == '1'))
+        this->setShowLoads(!this->getShowLoads());
+
+    if ((modifier == ModifierKey::mkAlt) && (key == '2'))
+        this->setShowReactionForces(!this->getShowReactionForces());
+
+    if ((modifier == ModifierKey::mkAlt) && (key == '3'))
+        this->setShowNodeNumbers(!this->getShowNodeNumbers());
 }
 
 void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)

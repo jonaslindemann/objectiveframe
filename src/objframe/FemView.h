@@ -499,7 +499,7 @@ public:
     bool isScaleFactorLocked();
 
     double autoScaleFactor();
-    void fitWorkspaceToModel(double padding = 1.5);
+    void fitWorkspaceToModel(double padding = 2.0);
     double requiredViewDistance(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 
     virtual void setWorkspace(double size, bool resetCamera = true);

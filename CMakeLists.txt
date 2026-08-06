@@ -117,6 +117,17 @@ target_include_directories(chaiscript_headers INTERFACE ${CHAISCRIPT_INCLUDE_DIR
 
 option(USE_LEAP "Build with support for LeapMotion" OFF)
 
+# Selects the extrusion implementation used for beam geometry. See
+# include/vfem/beam_geometry.h. Off keeps the original gle backed classes.
+option(OF_SWEPT_EXTRUSION "Build beam geometry on the gle free swept extrusion classes" ON)
+
+if(OF_SWEPT_EXTRUSION)
+    message(STATUS "Beam geometry: ivf::SweptExtrusion / ivf::SweptSolidLine (vertex buffers, no gle)")
+    add_compile_definitions(OF_SWEPT_EXTRUSION)
+else()
+    message(STATUS "Beam geometry: ivf::Extrusion / ivf::SolidLine (gle)")
+endif()
+
 if(DEFINED ENV{IVF_ROOT})
     set(IVF_ROOT "$ENV{IVF_ROOT}" CACHE PATH "IVF++ root directory")
 elseif(NOT DEFINED IVF_ROOT)

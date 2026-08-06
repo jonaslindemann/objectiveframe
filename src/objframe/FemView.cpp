@@ -542,28 +542,32 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
     {
     case RepresentationMode::Fem:
         log("Setting representation to FRAME_FEM.");
-        ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        ivfSetGLEJoinStyle(TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
         this->setBeamRefreshMode(ivf::rmAll);
         break;
     case RepresentationMode::Geometry:
         log("Setting representation to FRAME_GEOMETRY.");
-        ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_FACET | TUBE_JN_ANGLE);
+        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_FACET | TUBE_JN_ANGLE);
+        ivfSetGLEJoinStyle(TUBE_NORM_FACET | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_EXTRUSION);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
         this->setBeamRefreshMode(ivf::rmAll);
         break;
     case RepresentationMode::Displacements:
         log("Setting representation to FRAME_DISPLACEMENTS.");
-        ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        ivfSetGLEJoinStyle(TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
         this->setBeamRefreshMode(ivf::rmNodes);
         break;
     case RepresentationMode::Results:
         log("Setting representation to FRAME_RESULTS.");
-        ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        ivfSetGLEJoinStyle(TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_RESULTS);
         m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
         this->setBeamRefreshMode(ivf::rmNodes);
@@ -738,11 +742,27 @@ void FemViewWindow::setBeamRefreshMode(ivf::LineRefreshMode mode)
             vfem::Beam *beam = static_cast<vfem::Beam *>(shape);
             beam->setLineRefreshMode(mode);
         }
-        else if (shape->isClass("SolidLine") || shape->isClass("vfem::SolidLine"))
+        else if (shape->isClass(vfem::BeamSolidLineClassName) || shape->isClass("vfem::SolidLine"))
         {
-            SolidLine *solidLine = static_cast<SolidLine *>(shape);
+            // Whichever solid line implementation this build selected. The two
+            // report different class names, so take the name from
+            // beam_geometry.h rather than hard coding it here.
+
+            vfem::BeamSolidLine *solidLine = static_cast<vfem::BeamSolidLine *>(shape);
             solidLine->setRefresh(mode);
         }
+    }
+}
+
+void FemViewWindow::setBeamsDynamic(bool flag)
+{
+    auto scene = this->getScene()->getComposite();
+
+    for (int i = 0; i < scene->getSize(); i++)
+    {
+        auto shape = scene->getChild(i);
+        if (shape->isClass("vfem::Beam"))
+            static_cast<vfem::Beam *>(shape)->setDynamicGeometry(flag);
     }
 }
 
@@ -3898,12 +3918,10 @@ void FemViewWindow::hideAllDialogs()
 
 void FemViewWindow::onInit()
 {
-    // Configure gle VBO mode
-    // 
-    gleInitVBOCache(10000);
+    // Cache the GLU tessellator used for extrusion end caps.
+
     gleInitTessCache();
-    gleSetVBOMode(1);
-    // 
+
     // Setup web service
 
     // Create log window early as it will be called by the logger.
@@ -5519,7 +5537,20 @@ void FemViewWindow::onInitImGui()
 
 void FemViewWindow::onPostRender()
 {
-    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->isAnimate())
+    // Animation rewrites the beam geometry every frame, which would leave the
+    // cached display lists permanently dirty and recompiling once per frame --
+    // strictly worse than not caching at all. Suspend the lists for as long as
+    // the animation runs.
+
+    const bool animating = (m_eigenmodeWindow != nullptr) && m_eigenmodeWindow->isAnimate();
+
+    if (animating != m_eigenmode.animatingGeometry)
+    {
+        m_eigenmode.animatingGeometry = animating;
+        this->setBeamsDynamic(animating);
+    }
+
+    if (animating)
     {
         float deltaTime = ImGui::GetIO().DeltaTime;
         m_eigenmodeWindow->updateAnimationPhase(deltaTime);

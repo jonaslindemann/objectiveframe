@@ -20,6 +20,14 @@ private:
     bool m_directRefresh;
     vfem::BeamModel *m_beamModel;
 
+    // Number currently shown by m_nodeLabel. Cached so refresh() -- which runs
+    // every frame when direct refresh is enabled -- does not have to format the
+    // number into a string just to discover it is unchanged.
+
+    long m_labelNumber;
+
+    void updateLabelText();
+
 public:
     Node();
     virtual ~Node();

@@ -318,6 +318,10 @@ private:
         bool inSecondaryView{false};
         bool showing{false};
         bool savedShowNodeNumbers{true};
+
+        // Tracks whether the beams are currently marked dynamic, so the display
+        // list suspension is toggled only on animation start/stop.
+        bool animatingGeometry{false};
     };
     EigenmodeState m_eigenmode;
 
@@ -421,6 +425,7 @@ public:
     const std::string getFileName();
     void setSelectFilter(SelectMode filter);
     void setBeamRefreshMode(ivf::LineRefreshMode mode);
+    void setBeamsDynamic(bool flag);
     void setEditMode(WidgetMode mode);
     void setCustomMode(CustomMode mode);
     void setScalefactor(double scalefactor);

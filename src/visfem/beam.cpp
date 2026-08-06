@@ -184,7 +184,7 @@ bool supportsResultType(ofem::Beam *beam, int resultType)
     return true;
 }
 
-void resetResultLineGeometry(ivf::SolidLine *solidLine)
+void resetResultLineGeometry(vfem::BeamSolidLine *solidLine)
 {
     if (solidLine == nullptr)
         return;
@@ -211,10 +211,21 @@ Beam::Beam() : Composite()
 
     // Set up the solid line
 
-    m_solidLine = SolidLine::create();
+    m_solidLine = BeamSolidLine::create();
     m_solidLine->setMaterial(m_beamMaterial);
     m_solidLine->setUseName(false);
     m_solidLine->setUseSelectShape(false);
+
+    // Cache the swept tube in a display list. Without this, GLE re-tessellates the
+    // extrusion and re-emits it in immediate mode on every frame, for every beam.
+    // The list is invalidated by the Extrusion setters and by refresh() below, and
+    // is bypassed automatically while the beam is selected or highlighted.
+    //
+    // Under OF_SWEPT_EXTRUSION this is a no-op: that implementation keeps the
+    // mesh in a vertex buffer, which is already the cache a display list would
+    // be wrapping. The invalidation calls below still apply either way.
+    m_solidLine->setUselist(true);
+
     this->addChild(m_solidLine);
 
     // Set up line set
@@ -235,7 +246,7 @@ Beam::Beam() : Composite()
 
     // Set up extrusion
 
-    m_extrusion = Extrusion::create();
+    m_extrusion = BeamExtrusion::create();
     m_extrusion->setState(Shape::OS_OFF);
     m_extrusion->setMaterial(m_beamMaterial);
     m_extrusion->setUseName(false);
@@ -272,6 +283,14 @@ ofem::Beam *Beam::getBeam()
 void Beam::refresh()
 {
     if (m_femBeam != nullptr) {
+        // Every visual property of the beam is (re)assigned from here, including
+        // the material colours. The Extrusion setters invalidate the solid line's
+        // display list on their own, but a material mutated through m_beamMaterial
+        // is invisible to them, so invalidate up front and cover both.
+
+        m_solidLine->markListDirty();
+        m_extrusion->markListDirty();
+
         double x1, y1, z1;
         double x2, y2, z2;
         ofem::Node *node1 = m_nodes[0]->getFemNode();
@@ -399,14 +418,33 @@ void Beam::doCreateGeometry()
         bool suppressResultColors = hasResultBeam && !renderResultColors;
         bool oldUseResultColors = false;
 
+        // glPushAttrib(GL_ALL_ATTRIB_BITS) saves the entire GL state vector and is
+        // one of the most expensive calls in the legacy API -- far too costly to
+        // pay once per beam per frame. Only a handful of enables actually change
+        // here, so set and restore exactly those.
+        //
+        // These are set unconditionally rather than probed with glIsEnabled():
+        // state queries can force a driver flush, which is a worse deal than the
+        // redundant glEnable/glDisable pairs they would save. Textures are left
+        // disabled afterwards because that is the scene's resting state -- shapes
+        // that use a texture enable and disable it around themselves in
+        // Shape::doBeginTransform/doEndTransform.
+
+        bool useBlending = false;
+
         if (renderResultColors) {
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            useBlending = m_beamModel->getUseBlending();
+
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_TEXTURE_1D);
             glEnable(GL_COLOR_MATERIAL);
             glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
-            if (m_beamModel->getUseBlending()) {
+            // glColorMaterial() changes material state without going through
+            // ivf::Material, so its redundancy cache can no longer be trusted.
+            ivf::Material::invalidateStateCache();
+
+            if (useBlending) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_ONE, GL_ONE);
                 glDisable(GL_DEPTH_TEST);
@@ -414,6 +452,11 @@ void Beam::doCreateGeometry()
         }
         else if (suppressResultColors) {
             oldUseResultColors = m_solidLine->getUseColor();
+
+            // These two toggles are reverted immediately after the draw, which
+            // would leave the display list permanently dirty and recompiling every
+            // frame. Draw directly instead for as long as the suppression lasts.
+            m_solidLine->setDynamic(true);
             m_solidLine->setUseColor(false);
             m_solidLine->setTextureMode(0);
         }
@@ -421,14 +464,18 @@ void Beam::doCreateGeometry()
         Composite::doCreateGeometry();
 
         if (renderResultColors) {
-            if (m_beamModel->getUseBlending()) {
+            if (useBlending) {
                 glDisable(GL_BLEND);
                 glEnable(GL_DEPTH_TEST);
             }
-            glPopAttrib();
+
+            glDisable(GL_COLOR_MATERIAL);
+
+            ivf::Material::invalidateStateCache();
         }
         else if (suppressResultColors) {
             m_solidLine->setUseColor(oldUseResultColors);
+            m_solidLine->setDynamic(false);
         }
     }
 }
@@ -436,6 +483,12 @@ void Beam::doCreateGeometry()
 void Beam::setLineRefreshMode(ivf::LineRefreshMode mode)
 {
     m_solidLine->setRefresh(mode);
+}
+
+void Beam::setDynamicGeometry(bool flag)
+{
+    m_solidLine->setDynamic(flag);
+    m_extrusion->setDynamic(flag);
 }
 
 bool Beam::resultColorAtEvaluationPoint(int idx, float &red, float &green, float &blue)
@@ -615,6 +668,9 @@ void Beam::doCreateSelect()
         case IVF_BEAM_EXTRUSION:
             if (m_femBeam->getMaterial() != nullptr) {
                 if (m_extrusion->getState() == Shape::OS_ON) {
+                    // Shape::useDisplayList() already declines to replay a cached
+                    // list while the select state is on, so this draws live without
+                    // having to destroy and recompile the list around it.
                     m_extrusion->setSelect(Shape::SS_ON);
                     m_extrusion->render();
                     m_extrusion->setSelect(Shape::SS_OFF);
@@ -706,6 +762,13 @@ void Beam::initExtrusion()
         y = 0.1 * ey + y;
         z = 0.1 * ez + z;
         m_extrusion->setSpineCoord(m_extrusion->getSpineSize() - 1, x, y, z);
+
+        // Cache the (expensive) GLE tessellation in a display list. The list is
+        // recompiled here whenever the extrusion geometry is (re)initialized, i.e.
+        // whenever the beam is refreshed due to structural edits, load changes or
+        // a calculation run (see BeamModel::generateModel / FemViewWindow::refreshBeamModelVisuals).
+        // This avoids re-tessellating the extrusion via GLE on every single frame.
+        m_extrusion->setUselist(true);
     }
 }
 

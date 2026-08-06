@@ -4,12 +4,11 @@
 #include <ofem/node.h>
 
 #include <ivf/Composite.h>
-#include <ivf/Extrusion.h>
 #include <ivf/LineSet.h>
 #include <ivf/Material.h>
 #include <ivf/SimpleLineSet.h>
-#include <ivf/SolidLine.h>
 
+#include <vfem/beam_geometry.h>
 #include <vfem/beam_model.h>
 #include <vfem/color_table.h>
 #include <vfem/node.h>
@@ -22,10 +21,10 @@ class Beam : public ivf::Composite {
 private:
     ofem::Beam *m_femBeam;
     ivf::SimpleLineSetPtr m_lineSet;
-    ivf::SolidLinePtr m_solidLine;
+    vfem::BeamSolidLinePtr m_solidLine;
     vfem::Node *m_nodes[2];
     ivf::MaterialPtr m_beamMaterial;
-    ivf::ExtrusionPtr m_extrusion;
+    vfem::BeamExtrusionPtr m_extrusion;
 
     vfem::BeamModel *m_beamModel;
 
@@ -48,6 +47,16 @@ public:
     virtual void refresh() override;
     void initExtrusion();
     void setLineRefreshMode(ivf::LineRefreshMode mode);
+
+    /**
+     * Marks the beam's geometry as changing every frame.
+     *
+     * While set, the cached display lists are bypassed. Recompiling a list per
+     * frame costs more than regenerating the geometry, so this should be enabled
+     * for the duration of anything that moves the beam continuously -- eigenmode
+     * animation in particular -- and cleared when it stops.
+     */
+    void setDynamicGeometry(bool flag);
 
     // Get/set methods
 

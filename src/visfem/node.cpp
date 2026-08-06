@@ -3,7 +3,7 @@
 // using namespace ivf;
 using namespace vfem;
 
-#include <sstream>
+#include <string>
 
 // Node number label height, as a multiple of the node size.
 
@@ -13,6 +13,7 @@ Node::Node() : ivf::Node()
 {
     m_femNode = nullptr;
     m_directRefresh = false;
+    m_labelNumber = -1;
     m_nodeLabel = ivf::TextLabel::create();
 
     m_beamModel = nullptr;
@@ -24,6 +25,25 @@ Node::Node() : ivf::Node()
 Node::~Node()
 {}
 
+void Node::updateLabelText()
+{
+    if (m_femNode == nullptr)
+        return;
+
+    const long number = m_femNode->getNumber();
+
+    if (number == m_labelNumber)
+        return;
+
+    m_labelNumber = number;
+
+    float size = 1.0f;
+    if (m_beamModel != nullptr)
+        size = float(m_beamModel->getNodeSize() * NODE_LABEL_FACTOR);
+
+    m_nodeLabel->setText(std::to_string(number), size);
+}
+
 void Node::setFemNode(ofem::Node *node)
 {
     double x, y, z;
@@ -31,11 +51,7 @@ void Node::setFemNode(ofem::Node *node)
     m_femNode->getCoord(x, y, z);
     Shape::setPosition(x, y, z);
 
-    std::ostringstream ss;
-    ss << m_femNode->getNumber();
-    std::string s(ss.str());
-
-    m_nodeLabel->setText(s);
+    this->updateLabelText();
 }
 
 ofem::Node *Node::getFemNode()
@@ -98,12 +114,7 @@ void Node::refresh()
         dy = m_femNode->getValue(1);
         dz = m_femNode->getValue(2);
 
-        std::ostringstream ss;
-        ss << m_femNode->getNumber();
-        std::string s(ss.str());
-
-        if (m_nodeLabel->text() != s)
-            m_nodeLabel->setText(s, float(m_beamModel->getNodeSize() * NODE_LABEL_FACTOR));
+        this->updateLabelText();
     }
     else
     {
@@ -113,8 +124,9 @@ void Node::refresh()
 
     if (m_beamModel != nullptr)
     {
-        // Track the current node size. setText() only applies a size when the text
-        // actually changes, so the label has to be resized explicitly here.
+        // Track the current node size. updateLabelText() only applies a size when
+        // the number actually changes, so the label has to be resized explicitly
+        // here. setSize() itself is a no-op when the size is unchanged.
 
         m_nodeLabel->setSize(float(m_beamModel->getNodeSize() * NODE_LABEL_FACTOR));
 

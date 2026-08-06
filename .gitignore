@@ -24,3 +24,4 @@ reference/html/
 /build-test
 .claude/settings.json
 bin/RelWithDebInfo.zip
+/build-relwithdebinfo

@@ -68,6 +68,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/plugin_prop_window.h>
 #include <ofui/prop_window.h>
 #include <ofui/scale_window.h>
+#include <ofui/result_toolbar_window.h>
 #include <ofui/settings_window.h>
 #include <ofui/notification_overlay.h>
 #include <ofui/start_popup.h>
@@ -143,6 +144,11 @@ enum ToolbarButton {
     Run
 };
 
+enum BeamType {
+    Beam,
+    Bar
+};
+
 template <typename T> std::string to_string(T Number)
 {
     std::ostringstream ss;
@@ -155,6 +161,11 @@ class FemViewWindow : public IvfViewWindow {
     friend class FemViewSolverHandler;
     friend class FemViewEigenmodeHandler;
     friend class FemViewAiHandler;
+
+public:
+    // Side of the square workspace a new model starts with.
+
+    static constexpr double defaultWorkspaceSize = 20.0;
 
 private:
     std::string m_coordText;
@@ -173,6 +184,12 @@ private:
         bool   useBlending{false};
         bool   useImGuiFileDialogs{true};
         bool   saveScreenShot{false};
+
+        // Node numbers are hidden while results are displayed. The user's own
+        // setting is remembered here so it can be put back afterwards.
+
+        bool   showNodeNumbersSuppressed{false};
+        bool   savedShowNodeNumbers{true};
     };
     ViewSettings m_view;
 
@@ -200,6 +217,8 @@ private:
         bool lockScaleFactor{false};
     };
     SolverState m_solver;
+
+    BeamType m_beamType{BeamType::Beam};
 
     bool m_overWorkspace;
     bool m_lastOverWorkspace;
@@ -308,6 +327,7 @@ private:
     ofui::LoadMixerWindowPtr m_loadMixerWindow;
     ofui::ToolbarWindowPtr m_mainToolbarWindow;
     ofui::ToolbarWindowPtr m_editToolbarWindow;
+    ofui::ResultToolbarWindowPtr m_resultToolbarWindow;
     ofui::StartPopupPtr m_startPopup;
     ofui::ScriptWindowPtr m_scriptWindow;
     ofui::PromptWindowPtr m_promptWindow;
@@ -405,6 +425,7 @@ private:
     void resetSolverState(bool preserveScaleLock = true);
     void resetResultDisplay();
     void refreshBeamModelVisuals();
+    void updateNodeNumberVisibility(RepresentationMode repr);
     void initializeBeamColorTable();
     void applyBeamModelVisualDefaults();
 
@@ -439,6 +460,7 @@ public:
     void setProgramPath(const std::string &progPath);
     const std::string getProgPath();
     void setResultType(int type);
+    int getResultType();
     ofem::BeamNodeBC *getCurrentNodeBC();
     void setRelLoadSize(double size);
     double getRelLoadSize();

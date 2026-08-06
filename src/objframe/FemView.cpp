@@ -536,6 +536,8 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
         m_beamModel->setShowNodeNumbers(m_eigenmode.savedShowNodeNumbers);
     }
 
+    this->updateNodeNumberVisibility(repr);
+
     m_view.representation = repr;
 
     switch (m_view.representation)
@@ -662,7 +664,12 @@ void FemViewWindow::setEditMode(WidgetMode mode)
     case WidgetMode::CreateLine:
         log("WidgetMode::CreateLine");
         m_consoleWindow->clear();
-        m_editToolbarWindow->selectButton(1, 1);
+
+        if (m_beamType==BeamType::Beam)
+            m_editToolbarWindow->selectButton(1, 1);
+        else
+            m_editToolbarWindow->selectButton(2, 1);
+
         console("Create beams: Select 2 nodes to create a beam element.");
         setHighlightFilter(HighlightMode::Nodes);
         setSelectFilter(SelectMode::Nodes);
@@ -908,7 +915,15 @@ void FemViewWindow::setResultType(int type)
     m_beamModel->setResultType(type);
 
     if ((type != IVF_BEAM_NO_RESULT) && ((m_solver.current == nullptr) || m_solver.needRecalc))
+    {
         this->executeCalc();
+
+        // executeCalc() lands on displacements with no result type, which is the
+        // right default after a solve but not what was asked for here -- the
+        // calculation was only run so this result type could be shown.
+
+        m_beamModel->setResultType(type);
+    }
 
     if ((type != IVF_BEAM_NO_RESULT) && m_solver.saneModel && (m_view.representation != RepresentationMode::Results))
     {
@@ -919,6 +934,14 @@ void FemViewWindow::setResultType(int type)
     this->refreshBeamModelVisuals();
     this->set_changed();
     this->redraw();
+}
+
+int FemViewWindow::getResultType()
+{
+    if (m_beamModel == nullptr)
+        return IVF_BEAM_NO_RESULT;
+
+    return m_beamModel->getResultType();
 }
 
 void FemViewWindow::setProgramPath(const std::string &progPath)
@@ -959,12 +982,40 @@ void FemViewWindow::resetResultDisplay()
     if (m_beamModel == nullptr)
         return;
 
+    this->updateNodeNumberVisibility(RepresentationMode::Fem);
+
     m_view.representation = RepresentationMode::Fem;
     m_beamModel->setBeamType(IVF_BEAM_SOLID);
     m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
     m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
     m_beamModel->setMaxScale(1.0);
     m_beamModel->setMinScale(1.0);
+}
+
+void FemViewWindow::updateNodeNumberVisibility(RepresentationMode repr)
+{
+    // Node numbers clutter the coloured result diagrams and sit at the
+    // undeformed positions in the deformed shape, so they are turned off for as
+    // long as results or displacements are shown. The setting the user had
+    // before is put back when leaving those representations.
+
+    if (m_beamModel == nullptr)
+        return;
+
+    if ((repr == RepresentationMode::Results) || (repr == RepresentationMode::Displacements))
+    {
+        if (!m_view.showNodeNumbersSuppressed)
+        {
+            m_view.savedShowNodeNumbers = m_beamModel->showNodeNumbers();
+            m_view.showNodeNumbersSuppressed = true;
+            m_beamModel->setShowNodeNumbers(false);
+        }
+    }
+    else if (m_view.showNodeNumbersSuppressed)
+    {
+        m_view.showNodeNumbersSuppressed = false;
+        m_beamModel->setShowNodeNumbers(m_view.savedShowNodeNumbers);
+    }
 }
 
 void FemViewWindow::refreshBeamModelVisuals()
@@ -1368,10 +1419,12 @@ void FemViewWindow::newModel()
 
     m_scripting.calledNewModel = true;
 
-    // A new model starts from the original straight-on view
+    // A new model starts from the default workspace, seen straight on from the
+    // front, i.e. with the camera on +Z looking down the negative Z axis.
 
-    this->setViewAngles(0.0, 7.125);
+    this->setViewAngles(0.0, 30.0);
     this->setViewDistance(-1.0);
+    this->setWorkspace(defaultWorkspaceSize);
 
     this->lockSceneRendering();
 
@@ -3666,6 +3719,12 @@ void FemViewWindow::setShowNodeNumbers(bool flag)
     if (m_beamModel == nullptr)
         return;
 
+    // An explicit toggle overrides the setting remembered when the results
+    // representation hid the node numbers.
+
+    if (m_view.showNodeNumbersSuppressed)
+        m_view.savedShowNodeNumbers = flag;
+
     m_beamModel->setShowNodeNumbers(flag);
     this->refreshBeamModelVisuals();
     this->redraw();
@@ -4007,7 +4066,7 @@ void FemViewWindow::onInit()
     // Common 3D gui state variables
 
     log("Initializing variables.");
-    this->setWorkspace(20.0);
+    this->setWorkspace(defaultWorkspaceSize);
 
     // Initialize Ivf++ variables
 
@@ -4145,6 +4204,18 @@ void FemViewWindow::onInit()
     m_coordWindow = CoordWindow::create("Coord window");
 
     m_windowList->add(m_coordWindow);
+
+    // Drawn after the coord window so it can anchor itself below the coord
+    // window's current-frame position.
+
+    m_resultToolbarWindow = ResultToolbarWindow::create("Results");
+    m_resultToolbarWindow->setView(this);
+    m_resultToolbarWindow->setAnchorWindow(m_coordWindow);
+    m_resultToolbarWindow->setVisible(true);
+
+    m_coordWindow->setContentWidth(m_resultToolbarWindow->contentWidth());
+
+    m_windowList->add(m_resultToolbarWindow);
 
     m_newModelPopup = NewModelPopup::create("Workspace", true);
     m_messagePopup = MessagePopup::create("Message", true);
@@ -4285,7 +4356,7 @@ void FemViewWindow::onInit()
     m_windowList->add(m_mainToolbarWindow);
 
     m_editToolbarWindow = ToolbarWindow::create("Model");
-    m_editToolbarWindow->setSize(400, 0);
+    m_editToolbarWindow->setSize(450, 0);
 
     m_editToolbarWindow->setVisible(true);
 
@@ -4294,6 +4365,9 @@ void FemViewWindow::onInit()
 
     m_editToolbarWindow->addButton("Create beam", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlsolidline.png")).string(), 1);
+
+    m_editToolbarWindow->addButton("Create bar", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlbarline.png")).string(), 1);
 
     m_editToolbarWindow->addSpacer();
 
@@ -4428,6 +4502,11 @@ void FemViewWindow::onCreateLine(ivf::Node *node1, ivf::Node *node2, Shape *&new
 
     femBeam->setMaterial((ofem::BeamMaterial *)m_beamModel->getMaterialSet()->currentMaterial());
     femBeam->setUser(static_cast<void *>(visBeam));
+
+    if (m_beamType == BeamType::Bar)
+        femBeam->setBeamType(ofem::BeamType::btBar);
+    else
+        femBeam->setBeamType(ofem::BeamType::btBeam);
 
     // Add beam element to beam model
 
@@ -5305,6 +5384,13 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
 
     if (button.name() == "Create beam")
     {
+        m_beamType = BeamType::Beam;
+        this->setEditMode(WidgetMode::CreateLine);
+    }
+
+    if (button.name() == "Create bar")
+    {
+        m_beamType = BeamType::Bar;
         this->setEditMode(WidgetMode::CreateLine);
     }
 

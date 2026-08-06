@@ -46,7 +46,7 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
             m_newModelPopup->nodeSize(float(m_view.relNodeSize * 100.0f));
             m_newModelPopup->loadSize(float(m_view.relLoadSize * 100.0f));
             m_newModelPopup->lineRadius(float(m_view.relLineRadius * 100.0f));
-            m_newModelPopup->modelSize(float(this->getWorkspace()));
+            m_newModelPopup->modelSize(float(defaultWorkspaceSize));
             m_newModelPopup->show();
         }
 
@@ -337,8 +337,12 @@ void FemViewWindow::drawPopups()
             m_view.relNodeSize = m_newModelPopup->nodeSize() / 100.0;
             m_view.relLineRadius = m_newModelPopup->lineRadius() / 100.0;
             m_view.relLoadSize = m_newModelPopup->loadSize() / 100.0;
-            this->setWorkspace(m_newModelPopup->modelSize());
+
+            // newModel() starts from the default workspace, so the size chosen
+            // in the dialog is applied afterwards.
+
             this->newModel();
+            this->setWorkspace(m_newModelPopup->modelSize());
         }
         else if (m_newModelPopup->modalResult() == PopupResult::CANCEL)
         {

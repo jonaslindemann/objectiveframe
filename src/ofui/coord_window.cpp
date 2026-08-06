@@ -1,8 +1,11 @@
 #include <ofui/coord_window.h>
 
+#include <algorithm>
+#include <cstdio>
+
 using namespace ofui;
 
-CoordWindow::CoordWindow(const std::string name) : UiWindow(name), m_coord{0.0, 0.0, 0.0}
+CoordWindow::CoordWindow(const std::string name) : UiWindow(name), m_coord{0.0, 0.0, 0.0}, m_contentWidth{130.0f}
 {
     this->setWindowFlags(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
@@ -28,6 +31,16 @@ void CoordWindow::coord(double &x, double &y, double &z)
     z = m_coord[2];
 }
 
+void CoordWindow::setContentWidth(float width)
+{
+    m_contentWidth = width;
+}
+
+float CoordWindow::contentWidth() const
+{
+    return m_contentWidth;
+}
+
 std::shared_ptr<CoordWindow> CoordWindow::create(const std::string name)
 {
     return std::make_shared<CoordWindow>(name);
@@ -48,10 +61,28 @@ void CoordWindow::doPreDraw()
     ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 }
 
+void CoordWindow::drawCoord(const char *label, double value)
+{
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%.2f", value);
+
+    ImGui::TextUnformatted(label);
+
+    // Right-align the value against the content width, so the window keeps the
+    // same width as the result toolbar below it regardless of the value length.
+
+    float labelWidth = ImGui::CalcTextSize(label).x;
+    float valueWidth = ImGui::CalcTextSize(buffer).x;
+    float offset = m_contentWidth - valueWidth;
+
+    ImGui::SameLine(std::max(offset, labelWidth + ImGui::GetStyle().ItemSpacing.x));
+    ImGui::TextUnformatted(buffer);
+}
+
 void CoordWindow::doDraw()
 {
-    ImGui::Dummy(ImVec2(100.0, 0.0));
-    ImGui::Text("X = %10.2f", m_coord[0]);
-    ImGui::Text("Y = %10.2f", m_coord[1]);
-    ImGui::Text("Z = %10.2f", m_coord[2]);
+    ImGui::Dummy(ImVec2(m_contentWidth, 0.0f));
+    this->drawCoord("X", m_coord[0]);
+    this->drawCoord("Y", m_coord[1]);
+    this->drawCoord("Z", m_coord[2]);
 }

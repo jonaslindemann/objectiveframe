@@ -104,10 +104,11 @@ void FemViewSolverHandler::executeCalc(FemViewWindow &view)
     view.m_loadMixerWindow->show();
     view.m_loadMixerWindow->setPosition(100, 240);
 
-    if (view.m_beamModel->getResultType() == IVF_BEAM_NO_RESULT)
-        view.m_beamModel->setResultType(IVF_BEAM_N);
+    // A finished calculation shows the deformed structure and nothing else.
+    // Result colouring is opt-in from there, via setResultType().
 
-    view.setRepresentation(RepresentationMode::Results);
+    view.m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+    view.setRepresentation(RepresentationMode::Displacements);
 }
 
 void FemViewSolverHandler::recompute(FemViewWindow &view)
@@ -159,7 +160,12 @@ void FemViewSolverHandler::recompute(FemViewWindow &view)
         }
 
         view.m_solver.needRecalc = false;
-        view.setRepresentation(RepresentationMode::Results);
+
+        // This branch ran a fresh solve, so land on displacements exactly as
+        // executeCalc() does.
+
+        view.m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+        view.setRepresentation(RepresentationMode::Displacements);
     }
 
     if (view.m_solver.saneModel && view.m_solver.current != nullptr)

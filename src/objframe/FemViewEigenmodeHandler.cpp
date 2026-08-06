@@ -82,7 +82,13 @@ void FemViewEigenmodeHandler::compute(FemViewWindow &view, int numModes)
         }
 
         view.setEigenmodeVisualization(0);
-        view.setRepresentation(RepresentationMode::Results);
+
+        // An eigenmode is a displacement shape. Any result type still selected
+        // from an earlier solve would colour it with values that do not belong to
+        // this mode, so clear it.
+
+        view.m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+        view.setRepresentation(RepresentationMode::Displacements);
     }
     else
     {
@@ -300,7 +306,10 @@ void FemViewEigenmodeHandler::setInSecondaryView(FemViewWindow &view, bool flag)
     else
     {
         if (view.m_solver.current != nullptr && view.m_solver.current->hasEigenModes())
-            view.setRepresentation(RepresentationMode::Results);
+        {
+            view.m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+            view.setRepresentation(RepresentationMode::Displacements);
+        }
     }
 }
 

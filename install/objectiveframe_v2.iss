@@ -32,8 +32,8 @@ SetupIconFile=..\images\logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-;SignTool=signtool_lu
-;SignedUninstaller=yes
+SignTool=signtool_lu
+SignedUninstaller=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Components]

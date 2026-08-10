@@ -77,7 +77,11 @@ void PropWindow::doDraw()
         else
         {
             ImGui::InputFloat3("Position", m_nodePos, "%.4g");
-            m_node->getPosition(x, y, z);
+
+            // Compare against the fem coordinate, not the ivf shape position. In
+            // displacement mode the shape is drawn at the deformed position, which
+            // would make this test fire every frame and write back deformed coords.
+
             if (abs(x - m_nodePos[0]) > 1e-6 || abs(y - m_nodePos[1]) > 1e-6 || abs(z - m_nodePos[2]) > 1e-6)
                 m_node->setPosition(m_nodePos[0], m_nodePos[1], m_nodePos[2]);
         }
@@ -184,7 +188,11 @@ void PropWindow::doDraw()
                     {
                         auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                         double x, y, z;
-                        node->getPosition(x, y, z);
+
+                        // Read the fem coordinate. getPosition() returns the ivf shape
+                        // position, which is the deformed position in displacement mode.
+
+                        node->getFemNode()->getCoord(x, y, z);
                         node->setPosition(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
                     }
                 }
@@ -207,7 +215,7 @@ void PropWindow::doDraw()
                     {
                         auto node = static_cast<vfem::Node *>(m_selectedShapes->getChild(i));
                         double x, y, z;
-                        node->getPosition(x, y, z);
+                        node->getFemNode()->getCoord(x, y, z);
                         auto newNode = m_view->addNode(x + m_nodeMove[0], y + m_nodeMove[1], z + m_nodeMove[2]);
                         newSelected.push_back(newNode);
                     }

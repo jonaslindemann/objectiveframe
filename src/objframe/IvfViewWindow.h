@@ -23,6 +23,7 @@ enum class WidgetMode {
     SelectPosition,
     SelectVolume,
     BoxSelection,
+    PaintSelect,
     Manipulate,
     User
 };
@@ -309,6 +310,20 @@ public:
 
     void selectAllBox();
     bool isInsideVolume(ivf::Shape *shape);
+
+    /**
+     * Add or remove the shape under (x, y) from the selection.
+     *
+     * Used by WidgetMode::PaintSelect to "paint" a selection while the mouse
+     * button is held down. Picking nothing is a no-op - a paint stroke must
+     * never wipe the selection it is building.
+     *
+     * \param deselect remove the shape instead of adding it
+     */
+    void paintSelectAt(int x, int y, bool deselect);
+
+    /** Removes a single shape from the current selection. */
+    void removeSelection(ivf::Shape *shape);
 
     void setUseCustomPick(bool flag);
     bool useCustomPick();

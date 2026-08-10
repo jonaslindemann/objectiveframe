@@ -67,6 +67,18 @@ void ofui::ToolbarWindow::selectButton(int idx, int group)
     m_buttons[idx].select();
     m_selectedButton = idx;
 }
+void ofui::ToolbarWindow::selectButton(const std::string name, int group)
+{
+    for (size_t i = 0; i < m_buttons.size(); i++)
+    {
+        if (m_buttons[i].name() == name)
+        {
+            this->selectButton(int(i), group);
+            return;
+        }
+    }
+}
+
 ofui::OfToolbarButton &ofui::ToolbarWindow::button(int idx)
 {
     return m_buttons[idx];

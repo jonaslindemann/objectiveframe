@@ -26,6 +26,14 @@ void FemViewScriptRunner::runPlugin(FemViewWindow &view, ScriptPlugin *plugin)
     view.m_scripting.pluginRunning = false;
     script.set_state(state);
 
+    // The plugin is placed at the position picked in onSelectPosition, which
+    // addNode() adds to every coordinate. Clear it again so the offset does not
+    // leak into later addNode() calls (property inspector Copy, REST API, ...).
+
+    view.m_selectedPos[0] = 0.0;
+    view.m_selectedPos[1] = 0.0;
+    view.m_selectedPos[2] = 0.0;
+
     view.m_beamModel->enumerate();
 }
 
@@ -61,6 +69,10 @@ void FemViewScriptRunner::runScriptFromText(FemViewWindow &view, const std::stri
     view.m_beamModel->enumerate();
 
     view.snapShot();
+
+    view.m_selectedPos[0] = 0.0;
+    view.m_selectedPos[1] = 0.0;
+    view.m_selectedPos[2] = 0.0;
 
     chaiscript::ChaiScript chai;
     view.setupScript(chai);

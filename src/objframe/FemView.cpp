@@ -636,7 +636,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
     case WidgetMode::Select:
         log("WidgetMode::Select");
         m_consoleWindow->clear();
-        m_mainToolbarWindow->selectButton(0, 1);
+        m_mainToolbarWindow->selectButton("Select", 1);
         console("Select: Click on objects to select. Click outside to deselect.");
         setHighlightFilter(HighlightMode::All);
         setSelectFilter(SelectMode::All);
@@ -646,16 +646,26 @@ void FemViewWindow::setEditMode(WidgetMode mode)
     case WidgetMode::BoxSelection:
         log("WidgetMode::BoxSelect");
         m_consoleWindow->clear();
-        m_mainToolbarWindow->selectButton(1, 1);
+        m_mainToolbarWindow->selectButton("Box select", 1);
         console("Select: Click on objects to select. Click outside to deselect.");
         setHighlightFilter(HighlightMode::All);
         setSelectFilter(SelectMode::All);
         setRepresentation(RepresentationMode::Fem);
         break;
+    case WidgetMode::PaintSelect:
+        log("WidgetMode::PaintSelect");
+        m_consoleWindow->clear();
+        m_mainToolbarWindow->selectButton("Paint select", 1);
+        console("Paint select: Hold the mouse button down and drag over objects to select them. [Ctrl] deselects.");
+        setHighlightFilter(HighlightMode::All);
+        setSelectFilter(SelectMode::All);
+        setRepresentation(RepresentationMode::Fem);
+        m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+        break;
     case WidgetMode::CreateNode:
         log("WidgetMode::CreateNode");
         m_consoleWindow->clear();
-        m_editToolbarWindow->selectButton(0, 1);
+        m_editToolbarWindow->selectButton("Create node", 1);
         console("Create nodes: Use the cursor to create nodes. [Shift] moves up/down.");
         setHighlightFilter(HighlightMode::Nodes);
         setSelectFilter(SelectMode::Nodes);
@@ -666,9 +676,9 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         m_consoleWindow->clear();
 
         if (m_beamType==BeamType::Beam)
-            m_editToolbarWindow->selectButton(1, 1);
+            m_editToolbarWindow->selectButton("Create beam", 1);
         else
-            m_editToolbarWindow->selectButton(2, 1);
+            m_editToolbarWindow->selectButton("Create bar", 1);
 
         console("Create beams: Select 2 nodes to create a beam element.");
         setHighlightFilter(HighlightMode::Nodes);
@@ -678,7 +688,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
     case WidgetMode::Move:
         log("WidgetMode::Move");
         m_consoleWindow->clear();
-        m_mainToolbarWindow->selectButton(2, 1);
+        m_mainToolbarWindow->selectButton("Move", 1);
         console("Move: Move selected nodes with cursor. Click and hold mouse to move. [Shift] moves up/down.");
         break;
     default:
@@ -694,7 +704,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
             "Feedback mode: Click on a node to apply interactive force. Move mouse with button down to move force.");
         setHighlightFilter(HighlightMode::Nodes);
         setSelectFilter(SelectMode::Nodes);
-        m_mainToolbarWindow->selectButton(5, 1);
+        m_mainToolbarWindow->selectButton("Feedback", 1);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
         m_windowList->placeWindow(m_loadMixerWindow);
@@ -4336,6 +4346,8 @@ void FemViewWindow::onInit()
                                    (m_paths.image / fs::path("tlselect.png")).string(), 1);
     m_mainToolbarWindow->addButton("Box select", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlselectbox.png")).string(), 1);
+    m_mainToolbarWindow->addButton("Paint select", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlselectpaint.png")).string(), 1);
     m_mainToolbarWindow->addButton("Move", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlmove.png")).string(), 1);
     m_mainToolbarWindow->addSpacer();
@@ -5273,6 +5285,14 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
+    if ((modifier == ModifierKey::mkAlt) && (key == 'P'))
+    {
+        m_editButtons->clearChecked();
+        m_objectButtons->clearChecked();
+        this->setEditMode(WidgetMode::PaintSelect);
+        this->redraw();
+    }
+
     if ((modifier == ModifierKey::mkAlt) && (key == 'M'))
     {
         m_editButtons->clearChecked();
@@ -5332,6 +5352,11 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
     if (button.name() == "Box select")
     {
         this->setEditMode(WidgetMode::BoxSelection);
+    }
+
+    if (button.name() == "Paint select")
+    {
+        this->setEditMode(WidgetMode::PaintSelect);
     }
 
     if (button.name() == "Move")
@@ -5432,6 +5457,10 @@ void FemViewWindow::onButtonHover(ofui::OfToolbarButton &button)
     m_consoleWindow->clear();
     if (button.name() == "Select")
         console("Select nodes and beams.");
+    if (button.name() == "Box select")
+        console("Select nodes and beams inside a box.");
+    if (button.name() == "Paint select")
+        console("Paint a selection - drag with the mouse button down. [Ctrl] deselects.");
     if (button.name() == "Move")
         console("Move nodes - [Shift] moves up/down.");
     if (button.name() == "Create node")

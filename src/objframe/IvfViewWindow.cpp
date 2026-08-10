@@ -553,7 +553,7 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    if (getEditMode() == WidgetMode::Select)
+    if ((getEditMode() == WidgetMode::Select) || (getEditMode() == WidgetMode::PaintSelect))
     {
         m_selectedShape = NULL;
         m_scene->disableCursor();
@@ -643,6 +643,84 @@ void IvfViewWindow::addSelection(ivf::Shape *shape)
     onSelect(m_selectedShapes);
 
     redraw();
+}
+
+void IvfViewWindow::removeSelection(ivf::Shape *shape)
+{
+    for (auto i = 0; i < m_selectedShapes->getSize(); i++)
+    {
+        if (m_selectedShapes->getChild(i) == shape)
+        {
+            m_selectedShapes->removeChild(i);
+            shape->setSelect(GLBase::SS_OFF);
+            return;
+        }
+    }
+}
+
+void IvfViewWindow::paintSelectAt(int x, int y, bool deselect)
+{
+    if (!m_selectEnabled)
+        return;
+
+    // Pick under the cursor. doPassiveMotion() is not running while a button
+    // is held, so m_selectedShape is stale here and we have to pick ourselves.
+
+    Shape *shape;
+
+    if (m_customPick)
+        shape = onPick(x, y);
+    else
+    {
+        m_scene->pick(x, y);
+        shape = m_scene->getSelectedShape();
+    }
+
+    // Painting over empty space does nothing. Clearing the selection here would
+    // make a single stray pixel of background undo the whole stroke.
+
+    if (shape == nullptr)
+        return;
+
+    // Keep the highlight following the stroke.
+
+    if ((m_selectedShape != nullptr) && (m_selectedShape != shape))
+        m_selectedShape->setHighlight(Shape::HS_OFF);
+
+    m_selectedShape = shape;
+
+    bool highlight = true;
+    onHighlightFilter(shape, highlight);
+
+    if (highlight)
+        shape->setHighlight(Shape::HS_ON);
+
+    if (deselect)
+    {
+        if (shape->getSelect() != GLBase::SS_ON)
+            return;
+
+        this->removeSelection(shape);
+    }
+    else
+    {
+        if (shape->getSelect() == GLBase::SS_ON)
+            return;
+
+        bool select = true;
+        onSelectFilter(shape, select);
+
+        if (!select)
+            return;
+
+        shape->setSelect(GLBase::SS_ON);
+        m_selectedShapes->addChild(shape);
+    }
+
+    onSelect(m_selectedShapes);
+
+    redraw();
+    draw();
 }
 
 bool IvfViewWindow::selectionContains(std::string shapeName)
@@ -995,7 +1073,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     // m_scene->updateCursor(x, y);
     this->updateCursor(x, y);
 
-    if ((getEditMode() == WidgetMode::Select) && (m_selectEnabled))
+    if (((getEditMode() == WidgetMode::Select) || (getEditMode() == WidgetMode::PaintSelect)) && (m_selectEnabled))
     {
         if (m_selectedShape != nullptr)
         {
@@ -1152,6 +1230,12 @@ void IvfViewWindow::doMotion(int x, int y)
         }
     }
 
+    // Paint selection. Every motion event with the left button held adds the
+    // shape under the cursor to the selection - [Ctrl] removes it instead.
+
+    if ((getEditMode() == WidgetMode::PaintSelect) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+        this->paintSelectAt(x, y, isCtrlDown());
+
     if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
         // m_scene->updateCursor(x, y);
@@ -1232,6 +1316,12 @@ void IvfViewWindow::doMouse(int x, int y)
             draw();
         }
     }
+
+    // Start of a paint stroke. Handled here as well as in doMotion() so that a
+    // plain click still selects a single shape without moving the mouse.
+
+    if ((m_editMode == WidgetMode::PaintSelect) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+        this->paintSelectAt(x, y, isCtrlDown());
 
     // Handle node creation
 

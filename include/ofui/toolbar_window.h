@@ -81,6 +81,14 @@ public:
 
     void selectButton(int idx, int group);
 
+    /**
+     * Selects a button by name.
+     *
+     * Preferred over the index overload - spacers occupy button slots, so the
+     * indices shift whenever a button or spacer is inserted.
+     */
+    void selectButton(const std::string name, int group);
+
     OfToolbarButton &button(int idx);
     size_t buttonCount();
 

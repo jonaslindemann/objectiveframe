@@ -5405,11 +5405,11 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         this->redraw();
     }
 
+    // Selects everything the active filter allows, rather than forcing the
+    // filter to All and leaving it disagreeing with the toolbar.
+
     if ((modifier == ModifierKey::mkCtrl) && (key == 'A'))
-    {
-        this->setSelectFilter(SelectMode::All);
         this->selectAll();
-    }
 
     if ((modifier == ModifierKey::mkCtrl) && (key == 'C'))
         this->copy();

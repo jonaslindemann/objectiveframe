@@ -115,10 +115,7 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         ImGui::Separator();
 
         if (ImGui::MenuItem("Select all", "Ctrl-A"))
-        {
-            this->setSelectFilter(SelectMode::All);
-            this->selectAllNodes();
-        }
+            this->selectAll();
         if (ImGui::MenuItem("Select all nodes", ""))
             this->selectAllNodes();
         if (ImGui::MenuItem("Select all elements", ""))

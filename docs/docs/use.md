@@ -59,21 +59,79 @@ By default the cursor is locked in the XZ-plane, but can be moved vertically in 
 
 ### Selecting elements/nodes
 
-Selecting nodes and elements is done using the select tool (Top tool in the top left toolbar). 
+There are three selection tools in the top left toolbar. They differ only in how you point at things — what happens to what you point at is the same for all three.
 
 <figure markdown>
 ![ObjectiveFrame](images/selecting_nodes_002.png){width=100}
 <figcaption>Select tool</figcaption>
 </figure>
 
-Nodes that are selected are highlighted when the mouse is moved over them. Clicking on a node will add it to the selection. The current selection is highlighted in yellow.
+* **Select** — click on a node or element. Objects highlight as the mouse passes over them.
+* **Box select** — hold the mouse button down and drag a rectangle.
+* **Paint select** — hold the mouse button down and sweep the cursor over objects. Useful for an irregular group that no rectangle fits.
+
+The current selection is highlighted in yellow.
 
 <figure markdown>
 ![ObjectiveFrame](images/selecting_nodes_001.png "Selected nodes.")
 <figcaption>Selected nodes.</figcaption>
 </figure>
 
-Clearing the current selection is done by clicking anywhere in the workspace.
+#### Adding and removing
+
+All three tools follow the same convention:
+
+| Modifier | Effect |
+| -------- | ------ |
+| *none* | Replaces the current selection |
+| [Shift] | Adds to the current selection |
+| [Ctrl] | Removes from the current selection |
+
+Clicking empty workspace without a modifier clears the selection.
+
+#### Box select
+
+The rectangle is drawn on the screen rather than in the model, so the camera decides what it catches. Rotate the view until the objects you want line up behind one another, then drag across them. This is usually the quickest way to grab everything at one level of a frame, or one face of a structure.
+
+The direction you drag changes what is caught:
+
+* **Left to right** takes only what falls *entirely* inside the rectangle. The rectangle is drawn in blue.
+* **Right to left** also takes anything the rectangle *touches*, including elements crossing it with both ends outside. The rectangle is drawn in green.
+
+For nodes there is no difference — a node is either in the rectangle or it is not. The distinction matters for elements.
+
+#### Restricting what can be selected
+
+The three filter buttons next to the selection tools decide what the tools are allowed to pick up: everything, nodes only, or elements only. On a dense frame this stops a rectangle from catching elements you meant to leave alone.
+
+The filter stays in force when you switch between the three selection tools. The active filter and the number of selected objects are shown in the coordinate display at the top right of the window.
+
+**Edit / Select all** ([Ctrl+A]) also honours the filter, so it selects everything, only the nodes, or only the elements depending on which filter button is active. **Edit / Select all nodes** and **Edit / Select all elements** ignore the filter and leave it untouched.
+
+!!! note "Screenshot placeholder"
+
+    Add a picture of the top left toolbar showing the three selection tools and the three filter buttons, and one of the coordinate display showing the filter and selection counts.
+
+#### Selecting from the current selection
+
+**Edit / Select from selection** holds commands that follow the structure rather than the screen. Each one starts from whatever is already selected:
+
+| Command | Selects |
+| ------- | ------- |
+| **Grow** [Ctrl++] | One more ring of nodes and elements outwards |
+| **Shrink** [Ctrl+-] | Strips the outer ring, the inverse of **Grow** |
+| **Connected** | Everything reachable through elements from the selection |
+| **Whole member** | Extends the selected elements along their member |
+| **Same material** | Every element sharing a material with the selected elements |
+| **Same X**, **Same level (Y)**, **Same Z** | Everything lying in the same plane as the selection |
+
+**Whole member** walks outwards through joints where exactly two elements meet in a straight line, so it recovers a column or beam that has been subdivided — select one segment, pick **Whole member**, and the whole original member comes back.
+
+**Same level (Y)** picks a storey: select any node at that level and the rest of the floor comes with it.
+
+!!! tip
+
+    These commands honour the selection filter as well. With the filter set to nodes, **Connected** gives you the nodes of the connected structure without its elements.
 
 ### Moving/Copying nodes
 
@@ -164,7 +222,7 @@ We have the following structure:
 <figcaption>Creating an element stop 3</figcaption>
 </figure>
 
-We select all element by pressing [Ctrl+A]. We get the following:
+We select everything by pressing [Ctrl+A]. Only the elements matter here, so you can also set the selection filter to elements first. We get the following:
 
 <figure markdown>
 ![ObjectiveFrame](images/subdivide_002.png "Selecting all elements")
@@ -217,7 +275,7 @@ We will move these points up 0.6 units using the property inspector as shown bef
 <figcaption>Moved points</figcaption>
 </figure>
 
-Next we select all nodes using [Ctrl+A].
+Next we select the nodes. Set the selection filter to nodes and press [Ctrl+A].
 
 <figure markdown>
 ![ObjectiveFrame](images/mesh_005.png "All nodes selected")

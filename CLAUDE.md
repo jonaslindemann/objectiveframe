@@ -60,6 +60,8 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 | `FemViewSolverHandler.cpp` | `executeCalc`, `recompute` |
 | `FemViewEigenmodeHandler.cpp` | All eigenmode compute/visualize/animate operations |
 | `FemViewAiHandler.cpp` | `makeRequest`, `onGenerationComplete` |
+| `FemViewSelectionHandler.cpp` | Structure-aware selection (grow, shrink, connected, member, same plane, same material) |
+| `FemViewScriptRunner.cpp` | `runPlugin`, `runScript`, `runScriptFromText` |
 
 **Static handler class pattern** — operation clusters are extracted into classes with only `static` methods that take `FemViewWindow &view`. Each handler is declared `friend class` in `FemView.h` so it can access private members directly. Follow this pattern when adding new operation groups.
 
@@ -75,6 +77,22 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 - `AiState m_ai` — `apiKey`, `structureGenerator`, `promptDatabase`, `isProcessing`, `autoRunScript`, `systemPromptFilename`, `scriptQueueMutex`, `pendingScripts`
 
 **IntelliSense false positives** — VS Code may report `cannot open source file "ivf/Base.h"` on handler `.cpp` files. This is an IDE include-path issue; CMake configures the paths correctly and the build succeeds. Do not treat these as real errors.
+
+### Selection system
+
+Selection lives in `IvfViewWindow` (gestures, screen-space maths) with FEM-specific decisions delegated to `FemViewWindow` through virtuals.
+
+**Three gestures, three modes** — `WidgetMode::Select` (click), `WidgetMode::BoxSelection` (screen-space rubber band drag), `WidgetMode::PaintSelect` (drag over objects). All share one modifier convention via `IvfViewWindow::currentSelectOp()`: plain = `SelectOp::Replace`, `[Shift]` = `Add`, `[Ctrl]` = `Remove`. Apply this convention to any new selection gesture.
+
+**Rubber band** — `BoxSelection` projects each shape through `Camera::glmProjectionMatrix() * glmViewMatrix()` into window pixels (`projectToScreen`). Dragging right-to-left sets `m_rubberBandCrossing`, switching from "fully enclosed" to "touched". Point-like shapes are tested by `isInsideRect()`; everything else goes to the virtual `onInsideRect()`, which `FemViewWindow` overrides to test beams as segments. This mirrors the older `isInsideVolume()` / `onInsideVolume()` pair.
+
+**Rubber band drawing must happen before `onDrawImGui()`** in `IvfViewWindow::doDrawImGui()`. `FemViewWindow::onDrawImGui()` ends with `ImGui::Render()`, which finalizes all draw lists — appending to `GetForegroundDrawList()` after that point crashes on an already-popped clip-rect stack.
+
+**Never call `draw()` from a GLFW callback.** `GLFWApplication::run()` renders continuously, so `redraw()` is sufficient; a nested `draw()` opens a second ImGui frame inside the one already in flight.
+
+**Selection filter** — `m_selectFilter` is what is in force; `m_userSelectFilter` is the user's toolbar choice. Modes that need their own filter (e.g. `CreateLine` needs nodes) override `m_selectFilter`; the three selection modes restore `m_userSelectFilter`. One-off commands that need a temporary filter must save and restore it.
+
+**Dormant code** — `WidgetMode::SelectVolume`, the `m_volumeSelection` wire brick and `selectAllBox()` are the pre-rubber-band world-space volume selection. Nothing reaches them from the UI.
 
 ### Library modules (each compiled as a separate static lib)
 

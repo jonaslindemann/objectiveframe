@@ -161,6 +161,7 @@ class FemViewWindow : public IvfViewWindow {
     friend class FemViewSolverHandler;
     friend class FemViewEigenmodeHandler;
     friend class FemViewAiHandler;
+    friend class FemViewSelectionHandler;
 
 public:
     // Side of the square workspace a new model starts with.
@@ -179,17 +180,17 @@ private:
         double relNodeSize{0.0055};
         double relLoadSize{0.08};
         double relLineRadius{0.0023};
-        float  uiScale{1.0f};
-        bool   useSphereCursor{false};
-        bool   useBlending{false};
-        bool   useImGuiFileDialogs{true};
-        bool   saveScreenShot{false};
+        float uiScale{1.0f};
+        bool useSphereCursor{false};
+        bool useBlending{false};
+        bool useImGuiFileDialogs{true};
+        bool saveScreenShot{false};
 
         // Node numbers are hidden while results are displayed. The user's own
         // setting is remembered here so it can be put back afterwards.
 
-        bool   showNodeNumbersSuppressed{false};
-        bool   savedShowNodeNumbers{true};
+        bool showNodeNumbersSuppressed{false};
+        bool savedShowNodeNumbers{true};
     };
     ViewSettings m_view;
 
@@ -241,6 +242,11 @@ private:
     SelectMode m_selectFilter;
     DeleteMode m_deleteFilter;
     HighlightMode m_highlightFilter;
+
+    // The filter the user picked on the toolbar. m_selectFilter is what is
+    // actually in force, which some modes override for their own purposes
+    // (creating beams only ever picks nodes). Selection modes restore this.
+    SelectMode m_userSelectFilter;
 
     int m_width;
     int m_height;
@@ -445,6 +451,9 @@ public:
     ofem::BeamMaterial *getCurrentMaterial();
     const std::string getFileName();
     void setSelectFilter(SelectMode filter);
+    void setUserSelectFilter(SelectMode filter);
+    SelectMode userSelectFilter() const;
+    static std::string selectFilterName(SelectMode filter);
     void setBeamRefreshMode(ivf::LineRefreshMode mode);
     void setBeamsDynamic(bool flag);
     void setEditMode(WidgetMode mode);
@@ -549,6 +558,16 @@ public:
     void assignBeamLoadSelected();
     void selectAllElements();
     void selectAllNodes();
+    void updateSelectionCount();
+
+    // Structure aware selection - see FemViewSelectionHandler
+
+    void growSelection();
+    void shrinkSelection();
+    void selectConnected();
+    void selectMember();
+    void selectSamePlane(int axis);
+    void selectSameMaterial();
     void showMaterials();
     void showProperties();
     void executeCalc();
@@ -572,8 +591,7 @@ public:
 
     void doFeedback();
     void showMessage(std::string message);
-    void notify(const std::string &message,
-                ofui::NotificationLevel level = ofui::NotificationLevel::Info,
+    void notify(const std::string &message, ofui::NotificationLevel level = ofui::NotificationLevel::Info,
                 float duration = 4.0f);
     void updateAxisLabels();
     void updateButtonState();
@@ -630,8 +648,7 @@ public:
     bool isNodeFixedAt(int i);
     bool isNodePosBCAt(int i);
 
-    void modelBounds(double &xmin, double &ymin, double &zmin,
-                     double &xmax, double &ymax, double &zmax);
+    void modelBounds(double &xmin, double &ymin, double &zmin, double &xmax, double &ymax, double &zmax);
     size_t materialCount();
 
     void addNodeLoadAt(int i, double fx, double fy, double fz);
@@ -683,6 +700,7 @@ public:
     virtual void onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape *&newLine) override;
     virtual void onSelect(ivf::Composite *selectedShapes) override;
     virtual bool onInsideVolume(ivf::Shape *shape) override;
+    virtual bool onInsideRect(ivf::Shape *shape) override;
     virtual void onCoordinate(double x, double y, double z) override;
     virtual void onDeleteShape(ivf::Shape *shape, bool &doit) override;
     virtual void onHighlightShape(ivf::Shape *shape) override;

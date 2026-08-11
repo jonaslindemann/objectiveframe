@@ -5,6 +5,7 @@
 #include "FemViewSolverHandler.h"
 #include "FemViewEigenmodeHandler.h"
 #include "FemViewAiHandler.h"
+#include "FemViewSelectionHandler.h"
 
 #include <filesystem>
 #include <functional>
@@ -296,14 +297,13 @@ unsigned int fl_cmap[256] = {
 // Constructor/Destructor
 
 FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor, GLFWwindow *shared)
-    : IvfViewWindow(width, height, title, monitor, shared), m_controllerAdapter{*this}, m_service{nullptr}, m_width{width},
-      m_height{height}, m_tactileForce{nullptr}, m_customMode{CustomMode::Feedback}, m_customModeSet{false},
-      m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
+    : IvfViewWindow(width, height, title, monitor, shared), m_controllerAdapter{*this}, m_service{nullptr},
+      m_width{width}, m_height{height}, m_tactileForce{nullptr}, m_customMode{CustomMode::Feedback},
+      m_customModeSet{false}, m_alfa{0.0}, m_beta{0.0}, m_startAlfa{0.0}, m_startBeta{M_PI / 2.0},
       m_selectFilter{SelectMode::All}, m_deleteFilter{DeleteMode::All}, m_highlightFilter{HighlightMode::All},
-      m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},
-      m_selectedPos{0.0, 0.0, 0.0}, m_tactileForceValue{1000.0},
-      m_prevButton{nullptr}, m_nodeSelection{false}, m_elementSelection{false},
-      m_mixedSelection{false}
+      m_userSelectFilter{SelectMode::All}, m_overWorkspace{true}, m_lastOverWorkspace{true}, m_hintFinished{true},
+      m_selectedPos{0.0, 0.0, 0.0}, m_tactileForceValue{1000.0}, m_prevButton{nullptr}, m_nodeSelection{false},
+      m_elementSelection{false}, m_mixedSelection{false}
 {
     this->setUseEscQuit(false);
     this->setUseCustomPick(true);
@@ -435,7 +435,8 @@ void FemViewWindow::updateAxisLabels()
     auto upperLeft = ivf::TextLabel::create();
     upperLeft->setCamera(this->getCamera());
     upperLeft->setFont(m_axisFont);
-    upperLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), float(textSize));
+    upperLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0),
+                       float(textSize));
     upperLeft->setAlignObject(IVF_ALIGN_CAMERA);
     upperLeft->setPosition(-edge, 0.0, -edge);
     upperLeft->setBillboardType(IVF_BILLBOARD_XY);
@@ -444,7 +445,8 @@ void FemViewWindow::updateAxisLabels()
     auto upperRight = ivf::TextLabel::create();
     upperRight->setCamera(this->getCamera());
     upperRight->setFont(m_axisFont);
-    upperRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0), float(textSize));
+    upperRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, -this->getWorkspace() / 2.0),
+                        float(textSize));
     upperRight->setAlignObject(IVF_ALIGN_CAMERA);
     upperRight->setPosition(edge, 0.0, -edge);
     upperRight->setBillboardType(IVF_BILLBOARD_XY);
@@ -453,7 +455,8 @@ void FemViewWindow::updateAxisLabels()
     auto lowerLeft = ivf::TextLabel::create();
     lowerLeft->setCamera(this->getCamera());
     lowerLeft->setFont(m_axisFont);
-    lowerLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), float(textSize));
+    lowerLeft->setText(ofutil::to_coord_string(-this->getWorkspace() / 2.0, this->getWorkspace() / 2.0),
+                       float(textSize));
     lowerLeft->setAlignObject(IVF_ALIGN_CAMERA);
     lowerLeft->setPosition(-edge, 0.0, edge);
     lowerLeft->setBillboardType(IVF_BILLBOARD_XY);
@@ -462,7 +465,8 @@ void FemViewWindow::updateAxisLabels()
     auto lowerRight = ivf::TextLabel::create();
     lowerRight->setCamera(this->getCamera());
     lowerRight->setFont(m_axisFont);
-    lowerRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, this->getWorkspace() / 2.0), float(textSize));
+    lowerRight->setText(ofutil::to_coord_string(this->getWorkspace() / 2.0, this->getWorkspace() / 2.0),
+                        float(textSize));
     lowerRight->setAlignObject(IVF_ALIGN_CAMERA);
     lowerRight->setPosition(edge, 0.0, edge);
     lowerRight->setBillboardType(IVF_BILLBOARD_XY);
@@ -544,7 +548,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
     {
     case RepresentationMode::Fem:
         log("Setting representation to FRAME_FEM.");
-        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        // ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         ivfSetGLEJoinStyle(TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
@@ -552,7 +556,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
         break;
     case RepresentationMode::Geometry:
         log("Setting representation to FRAME_GEOMETRY.");
-        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_FACET | TUBE_JN_ANGLE);
+        // ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_FACET | TUBE_JN_ANGLE);
         ivfSetGLEJoinStyle(TUBE_NORM_FACET | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_EXTRUSION);
         m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
@@ -560,7 +564,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
         break;
     case RepresentationMode::Displacements:
         log("Setting representation to FRAME_DISPLACEMENTS.");
-        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        // ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         ivfSetGLEJoinStyle(TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_SOLID);
         m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
@@ -568,7 +572,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
         break;
     case RepresentationMode::Results:
         log("Setting representation to FRAME_RESULTS.");
-        //ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
+        // ivfSetGLEJoinStyle(TUBE_JN_CAP | TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         ivfSetGLEJoinStyle(TUBE_NORM_EDGE | TUBE_JN_ANGLE);
         m_beamModel->setBeamType(IVF_BEAM_RESULTS);
         m_beamModel->setNodeType(IVF_NODE_DISPLACEMENT);
@@ -637,9 +641,9 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         log("WidgetMode::Select");
         m_consoleWindow->clear();
         m_mainToolbarWindow->selectButton("Select", 1);
-        console("Select: Click on objects to select. Click outside to deselect.");
+        console("Select: Click to select, [Shift] adds, [Ctrl] removes. Click outside to deselect.");
         setHighlightFilter(HighlightMode::All);
-        setSelectFilter(SelectMode::All);
+        setSelectFilter(m_userSelectFilter);
         setRepresentation(RepresentationMode::Fem);
         m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
         break;
@@ -647,18 +651,20 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         log("WidgetMode::BoxSelect");
         m_consoleWindow->clear();
         m_mainToolbarWindow->selectButton("Box select", 1);
-        console("Select: Click on objects to select. Click outside to deselect.");
+        console("Box select: Drag a rectangle to select. Left to right selects what is fully enclosed, right to left "
+                "also takes anything the rectangle touches. [Shift] adds to the selection, [Ctrl] removes.");
         setHighlightFilter(HighlightMode::All);
-        setSelectFilter(SelectMode::All);
+        setSelectFilter(m_userSelectFilter);
         setRepresentation(RepresentationMode::Fem);
         break;
     case WidgetMode::PaintSelect:
         log("WidgetMode::PaintSelect");
         m_consoleWindow->clear();
         m_mainToolbarWindow->selectButton("Paint select", 1);
-        console("Paint select: Hold the mouse button down and drag over objects to select them. [Ctrl] deselects.");
+        console("Paint select: Hold the mouse button down and drag over objects to select them. [Shift] adds to the "
+                "selection, [Ctrl] removes.");
         setHighlightFilter(HighlightMode::All);
-        setSelectFilter(SelectMode::All);
+        setSelectFilter(m_userSelectFilter);
         setRepresentation(RepresentationMode::Fem);
         m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
         break;
@@ -675,7 +681,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         log("WidgetMode::CreateLine");
         m_consoleWindow->clear();
 
-        if (m_beamType==BeamType::Beam)
+        if (m_beamType == BeamType::Beam)
             m_editToolbarWindow->selectButton("Create beam", 1);
         else
             m_editToolbarWindow->selectButton("Create bar", 1);
@@ -856,6 +862,54 @@ void FemViewWindow::setCustomMode(CustomMode mode)
 void FemViewWindow::setSelectFilter(SelectMode filter)
 {
     m_selectFilter = filter;
+
+    if (m_coordWindow != nullptr)
+        m_coordWindow->setSelectionFilter(selectFilterName(filter));
+}
+
+void FemViewWindow::setUserSelectFilter(SelectMode filter)
+{
+    m_userSelectFilter = filter;
+
+    switch (filter)
+    {
+    case SelectMode::Nodes:
+        m_mainToolbarWindow->selectButton("Filter nodes", 2);
+        break;
+    case SelectMode::Elements:
+        m_mainToolbarWindow->selectButton("Filter beams", 2);
+        break;
+    default:
+        m_mainToolbarWindow->selectButton("Filter all", 2);
+        break;
+    }
+
+    // Only the selection modes honour the user filter. The others set their own
+    // and will pick this up again when the user returns to a selection mode.
+
+    if ((this->getEditMode() == WidgetMode::Select) || (this->getEditMode() == WidgetMode::BoxSelection) ||
+        (this->getEditMode() == WidgetMode::PaintSelect))
+        this->setSelectFilter(filter);
+}
+
+SelectMode FemViewWindow::userSelectFilter() const
+{
+    return m_userSelectFilter;
+}
+
+std::string FemViewWindow::selectFilterName(SelectMode filter)
+{
+    switch (filter)
+    {
+    case SelectMode::Nodes:
+        return "Nodes";
+    case SelectMode::Elements:
+        return "Beams";
+    case SelectMode::GroundNodes:
+        return "Ground";
+    default:
+        return "All";
+    }
 }
 
 void FemViewWindow::setDeleteFilter(DeleteMode filter)
@@ -1565,29 +1619,29 @@ double FemViewWindow::requiredViewDistance(double minX, double minY, double minZ
 void FemViewWindow::fitWorkspaceToModel(double padding)
 {
     // Calculate bounding box of all nodes in the model
-    
+
     auto nodeSet = m_beamModel->getNodeSet();
-    
+
     if (nodeSet->getSize() == 0)
     {
         log("No nodes in model, cannot fit workspace.");
         return;
     }
-    
+
     double minX = std::numeric_limits<double>::max();
     double minY = std::numeric_limits<double>::max();
     double minZ = std::numeric_limits<double>::max();
     double maxX = std::numeric_limits<double>::lowest();
     double maxY = std::numeric_limits<double>::lowest();
     double maxZ = std::numeric_limits<double>::lowest();
-    
+
     // Find bounding box
     for (size_t i = 0; i < nodeSet->getSize(); i++)
     {
         auto node = nodeSet->getNode(i);
         double x, y, z;
         node->getCoord(x, y, z);
-        
+
         minX = std::min(minX, x);
         minY = std::min(minY, y);
         minZ = std::min(minZ, z);
@@ -1595,46 +1649,46 @@ void FemViewWindow::fitWorkspaceToModel(double padding)
         maxY = std::max(maxY, y);
         maxZ = std::max(maxZ, z);
     }
-    
+
     // Calculate extent in each direction
     double extentX = maxX - minX;
     double extentY = maxY - minY;
     double extentZ = maxZ - minZ;
-    
+
     // Find maximum extent (for square workspace)
     double maxExtent = std::max({extentX, extentY, extentZ});
-    
+
     // Apply padding
     double newWorkspaceSize = maxExtent * padding;
-    
+
     // Round up to whole meters
     newWorkspaceSize = std::ceil(newWorkspaceSize);
-    
+
     // Ensure minimum workspace size
     if (newWorkspaceSize < 1.0)
         newWorkspaceSize = 10.0;
-    
-    log("Fitting workspace to model. Extent: " + std::to_string(maxExtent) + 
+
+    log("Fitting workspace to model. Extent: " + std::to_string(maxExtent) +
         ", New workspace: " + std::to_string(newWorkspaceSize));
-    
+
     // Set the new workspace size
     this->setWorkspace(newWorkspaceSize, true);
-    
+
     // Update beam model properties based on new workspace
     m_beamModel->setNodeSize(this->getWorkspace() * m_view.relNodeSize);
     m_beamModel->setLineRadius(this->getWorkspace() * m_view.relLineRadius);
     m_beamModel->setLoadSize(this->getWorkspace() * m_view.relLoadSize);
     m_beamModel->setBeamLoadSize(this->getWorkspace() * m_view.relLoadSize);
-    
+
     // Update tactile force size
     double loadSize = m_beamModel->getLoadSize();
     m_tactileForce->setSize(loadSize * 0.6, loadSize * 0.6 * 0.20);
     m_tactileForce->setRadius(loadSize * 0.055, loadSize * 0.035);
-    
+
     // Update cursor sizes
     m_sphereCursor->setRadius(m_beamModel->getNodeSize());
     m_cubeCursor->setSize(m_beamModel->getNodeSize() * 1.5);
-    
+
     // Update axis labels
     this->updateAxisLabels();
 
@@ -2472,7 +2526,7 @@ void FemViewWindow::assignNodeFixedBCGround()
     this->assignNodeFixedBCSelected();
 }
 
-void FemViewWindow::assignNodePosBCGround() 
+void FemViewWindow::assignNodePosBCGround()
 {
     this->snapShot();
     this->clearSelection();
@@ -2513,14 +2567,21 @@ void FemViewWindow::updateEigenmodeVisualization(float phase)
 
 void FemViewWindow::selectAllNodes()
 {
+    // Restore afterwards - these are one-off commands and should not silently
+    // change the filter the user picked on the toolbar.
+
+    auto previous = m_selectFilter;
     setSelectFilter(SelectMode::Nodes);
     selectAll();
+    setSelectFilter(previous);
 }
 
 void FemViewWindow::selectAllElements()
 {
+    auto previous = m_selectFilter;
     setSelectFilter(SelectMode::Elements);
     selectAll();
+    setSelectFilter(previous);
 }
 
 void FemViewWindow::doFeedback()
@@ -2546,7 +2607,7 @@ void FemViewWindow::doFeedback()
 
             m_tactileForce->getDirection(v[0], v[1], v[2]);
             m_solver.current->setFeedbackForce(m_interactionNode->getFemNode(), m_tactileForceValue * v[0],
-                                              m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
+                                               m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
 
             m_solver.current->execute();
 
@@ -2639,7 +2700,7 @@ void FemViewWindow::doFeedback()
 
                 m_tactileForce->getDirection(v[0], v[1], v[2]);
                 m_solver.current->setFeedbackForce(m_interactionNode->getFemNode(), m_tactileForceValue * v[0],
-                                                  m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
+                                                   m_tactileForceValue * v[1], m_tactileForceValue * v[2]);
 
                 // Execute calculation
 
@@ -3364,8 +3425,7 @@ bool FemViewWindow::isNodePosBCAt(int i)
     return m_beamModel->defaultNodePosBC()->contains(node);
 }
 
-void FemViewWindow::modelBounds(double &xmin, double &ymin, double &zmin,
-                                 double &xmax, double &ymax, double &zmax)
+void FemViewWindow::modelBounds(double &xmin, double &ymin, double &zmin, double &xmax, double &ymax, double &zmax)
 {
     if (m_beamModel->getNodeSet()->getSize() == 0)
     {
@@ -3381,12 +3441,18 @@ void FemViewWindow::modelBounds(double &xmin, double &ymin, double &zmin,
         auto ivfNode = static_cast<vfem::Node *>(node->getUser());
         double x, y, z;
         ivfNode->getPosition(x, y, z);
-        if (x < xmin) xmin = x;
-        if (x > xmax) xmax = x;
-        if (y < ymin) ymin = y;
-        if (y > ymax) ymax = y;
-        if (z < zmin) zmin = z;
-        if (z > zmax) zmax = z;
+        if (x < xmin)
+            xmin = x;
+        if (x > xmax)
+            xmax = x;
+        if (y < ymin)
+            ymin = y;
+        if (y > ymax)
+            ymax = y;
+        if (z < zmin)
+            zmin = z;
+        if (z > zmax)
+            zmax = z;
     }
 }
 
@@ -3414,9 +3480,14 @@ void FemViewWindow::addNodeLoadAt(int i, double fx, double fy, double fz)
         double dx, dy, dz;
         load->getDirection(dx, dy, dz);
         double dmag = std::sqrt(dx * dx + dy * dy + dz * dz);
-        if (dmag > 1e-12) { dx /= dmag; dy /= dmag; dz /= dmag; }
-        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6
-            && std::abs(load->getValue() - mag) < 1e-3)
+        if (dmag > 1e-12)
+        {
+            dx /= dmag;
+            dy /= dmag;
+            dz /= dmag;
+        }
+        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6 &&
+            std::abs(load->getValue() - mag) < 1e-3)
         {
             targetLoad = load;
             break;
@@ -3500,9 +3571,14 @@ void FemViewWindow::addBeamLoadAt(int i, double fx, double fy, double fz)
         double dx, dy, dz;
         load->getLocalDirection(dx, dy, dz);
         double dmag = std::sqrt(dx * dx + dy * dy + dz * dz);
-        if (dmag > 1e-12) { dx /= dmag; dy /= dmag; dz /= dmag; }
-        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6
-            && std::abs(load->getValue() - mag) < 1e-3)
+        if (dmag > 1e-12)
+        {
+            dx /= dmag;
+            dy /= dmag;
+            dz /= dmag;
+        }
+        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6 &&
+            std::abs(load->getValue() - mag) < 1e-3)
         {
             targetLoad = load;
             break;
@@ -3577,7 +3653,7 @@ void FemViewWindow::showTextLayer(bool show)
 
 bool FemViewWindow::isTextLayerShown()
 {
-    return m_textLayer->getState() == ivf::Shape::OS_ON;   
+    return m_textLayer->getState() == ivf::Shape::OS_ON;
 }
 
 void FemViewWindow::startService()
@@ -4351,6 +4427,17 @@ void FemViewWindow::onInit()
     m_mainToolbarWindow->addButton("Move", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlmove.png")).string(), 1);
     m_mainToolbarWindow->addSpacer();
+
+    // What the selection modes are allowed to pick. Own radio group, so it is
+    // independent of the edit mode above and survives switching between modes.
+
+    m_mainToolbarWindow->addButton("Filter all", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlfilterall.png")).string(), 2);
+    m_mainToolbarWindow->addButton("Filter nodes", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlfilternodes.png")).string(), 2);
+    m_mainToolbarWindow->addButton("Filter beams", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlfilterbeams.png")).string(), 2);
+    m_mainToolbarWindow->addSpacer();
     m_mainToolbarWindow->addButton("Inspect", OfToolbarButtonType::Button,
                                    (m_paths.image / fs::path("tlinspect.png")).string());
     m_mainToolbarWindow->addButton("Delete", OfToolbarButtonType::Button,
@@ -4425,6 +4512,11 @@ void FemViewWindow::onInit()
     // Set initial edit mode
 
     log("Setting initial edit mode...");
+
+    // Push the default through the setter so the toolbar button and the
+    // readout start out agreeing with m_userSelectFilter.
+
+    this->setUserSelectFilter(m_userSelectFilter);
     this->setEditMode(WidgetMode::Select);
 
     this->setupPlugins();
@@ -4438,7 +4530,8 @@ void FemViewWindow::onInit()
         this->open(to_string(m_argv[1]));
     }
     else
-    {}
+    {
+    }
 }
 
 void FemViewWindow::doMouse(int x, int y)
@@ -4600,6 +4693,8 @@ void FemViewWindow::onSelect(Composite *selectedShapes)
                 m_mixedSelection = m_nodeSelection && m_elementSelection;
             }
         }
+
+        this->updateSelectionCount();
     }
     else if (m_customMode == CustomMode::Feedback)
     {
@@ -4630,6 +4725,18 @@ bool FemViewWindow::onInsideVolume(ivf::Shape *shape)
         auto n1 = beam->getNode(1);
 
         return (this->isInsideVolume(n0)) && (this->isInsideVolume(n1));
+    }
+    else
+        return false;
+}
+
+bool FemViewWindow::onInsideRect(ivf::Shape *shape)
+{
+    if (shape->isClass("vfem::Beam"))
+    {
+        auto beam = static_cast<vfem::Beam *>(shape);
+
+        return this->isSegmentInsideRect(beam->getNode(0), beam->getNode(1));
     }
     else
         return false;
@@ -4954,6 +5061,44 @@ void FemViewWindow::onMotion(int x, int y)
     }
 }
 
+void FemViewWindow::growSelection()
+{
+    FemViewSelectionHandler::growSelection(*this);
+}
+
+void FemViewWindow::shrinkSelection()
+{
+    FemViewSelectionHandler::shrinkSelection(*this);
+}
+
+void FemViewWindow::selectConnected()
+{
+    FemViewSelectionHandler::selectConnected(*this);
+}
+
+void FemViewWindow::selectMember()
+{
+    FemViewSelectionHandler::selectMember(*this);
+}
+
+void FemViewWindow::selectSamePlane(int axis)
+{
+    FemViewSelectionHandler::selectSamePlane(*this, axis);
+}
+
+void FemViewWindow::selectSameMaterial()
+{
+    FemViewSelectionHandler::selectSameMaterial(*this);
+}
+
+void FemViewWindow::updateSelectionCount()
+{
+    if (m_coordWindow == nullptr)
+        return;
+
+    m_coordWindow->setSelectionCount(this->selectionShapeCount("vfem::Node"), this->selectionShapeCount("vfem::Beam"));
+}
+
 void FemViewWindow::onDeSelect()
 {
     log("onDeSelect");
@@ -4961,6 +5106,8 @@ void FemViewWindow::onDeSelect()
     m_propWindow->setNode(nullptr);
     m_propWindow->setBeam(nullptr);
     m_propWindow->setSelectedShapes(nullptr);
+
+    this->updateSelectionCount();
 
     if (m_customMode == CustomMode::Feedback)
     {
@@ -5243,6 +5390,21 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         m_dlg.saveFile = true;
     }
 
+    // Grow/shrink the selection. Accept both the main row and the keypad, and
+    // note that '+' arrives as GLFW_KEY_EQUAL because it needs shift.
+
+    if ((modifier == ModifierKey::mkCtrl) && ((key == GLFW_KEY_EQUAL) || (key == GLFW_KEY_KP_ADD)))
+    {
+        this->growSelection();
+        this->redraw();
+    }
+
+    if ((modifier == ModifierKey::mkCtrl) && ((key == GLFW_KEY_MINUS) || (key == GLFW_KEY_KP_SUBTRACT)))
+    {
+        this->shrinkSelection();
+        this->redraw();
+    }
+
     if ((modifier == ModifierKey::mkCtrl) && (key == 'A'))
     {
         this->setSelectFilter(SelectMode::All);
@@ -5359,6 +5521,15 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
         this->setEditMode(WidgetMode::PaintSelect);
     }
 
+    if (button.name() == "Filter all")
+        this->setUserSelectFilter(SelectMode::All);
+
+    if (button.name() == "Filter nodes")
+        this->setUserSelectFilter(SelectMode::Nodes);
+
+    if (button.name() == "Filter beams")
+        this->setUserSelectFilter(SelectMode::Elements);
+
     if (button.name() == "Move")
     {
         this->setEditMode(WidgetMode::Move);
@@ -5458,7 +5629,13 @@ void FemViewWindow::onButtonHover(ofui::OfToolbarButton &button)
     if (button.name() == "Select")
         console("Select nodes and beams.");
     if (button.name() == "Box select")
-        console("Select nodes and beams inside a box.");
+        console("Drag a rectangle to select - right to left also takes what it touches.");
+    if (button.name() == "Filter all")
+        console("Selection picks up both nodes and beams.");
+    if (button.name() == "Filter nodes")
+        console("Selection picks up nodes only.");
+    if (button.name() == "Filter beams")
+        console("Selection picks up beams only.");
     if (button.name() == "Paint select")
         console("Paint a selection - drag with the mouse button down. [Ctrl] deselects.");
     if (button.name() == "Move")
@@ -5611,6 +5788,11 @@ void FemViewWindow::onDrawImGui()
     bool executeCalc = false;
     bool quitApplication = false;
 
+    // Refreshed per frame rather than only from onSelect(), because
+    // clearSelection() deliberately does not raise a deselect event.
+
+    this->updateSelectionCount();
+
     drainScriptQueue();
     drawMainMenuBar(executeCalc, quitApplication);
     drawPopups();
@@ -5705,8 +5887,7 @@ bool FemViewWindow::shouldAnimateInSecondaryView() const
     if (m_eigenmode.inSecondaryView)
         return true;
     // Auto-route: secondary view is visible while main view is in edit mode
-    return m_viewWindow != nullptr && m_viewWindow->visible() &&
-           m_view.representation == RepresentationMode::Fem;
+    return m_viewWindow != nullptr && m_viewWindow->visible() && m_view.representation == RepresentationMode::Fem;
 }
 
 void FemViewWindow::setEigenmodeInSecondaryView(bool flag)
@@ -5723,7 +5904,6 @@ void FemViewWindow::clearEigenmodeAnimation()
 {
     FemViewEigenmodeHandler::clearAnimation(*this);
 }
-
 
 void FemViewWindow::onGlfwResize(int width, int height)
 {

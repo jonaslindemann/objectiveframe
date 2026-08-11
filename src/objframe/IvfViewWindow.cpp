@@ -1,5 +1,7 @@
 #include "IvfViewWindow.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 // #undef GLAD_GL_IMPLEMENTATION
@@ -25,9 +27,10 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
       m_currentModifier{ButtonState::bsNoButton}, m_angleX{0.0f}, m_angleY{0.0f}, m_moveX{0.0f}, m_moveY{0.0f},
       m_zoomX{0.0f}, m_zoomY{0.0f}, m_snapToGrid{true}, m_selectedShape{nullptr}, m_editMode{WidgetMode::ViewPan},
       m_clickNumber{0}, m_nNodes{0}, m_nLines{0}, m_doOverlay{false}, m_doUnderlay{false}, m_editEnabled{true},
-      m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false},
-      m_workspaceSize{10.0f}, m_viewAzimuth{0.0}, m_viewElevation{7.125}, m_viewDistance{-1.0}, m_quit{false},
-      m_customPick{false}, m_lockSceneRendering{false}
+      m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false}, m_workspaceSize{10.0f},
+      m_viewAzimuth{0.0}, m_viewElevation{7.125}, m_viewDistance{-1.0}, m_quit{false}, m_customPick{false},
+      m_lockSceneRendering{false}, m_volumeElevated{false}, m_rubberBandActive{false}, m_rubberBandCrossing{false},
+      m_rubberBandStart{0, 0}, m_rubberBandEnd{0, 0}
 {
     // Create default camera
 
@@ -218,9 +221,9 @@ void IvfViewWindow::onGlfwDraw()
     {
         std::lock_guard<std::mutex> lock(m_sceneLockMutex);
         shouldRender = !m_lockSceneRendering;
-        //cout << "Lock scene rendering: " << m_lockSceneRendering << "\n";
+        // cout << "Lock scene rendering: " << m_lockSceneRendering << "\n";
     }
-    
+
     if (shouldRender)
         m_scene->render();
 
@@ -261,6 +264,7 @@ void IvfViewWindow::deleteAll()
     this->redraw();
     m_selectedShapes->clear();
     m_scene->addChild(m_volumeSelection);
+    this->cancelVolumeSelection();
 }
 
 void IvfViewWindow::deleteSelected()
@@ -460,6 +464,330 @@ void IvfViewWindow::selectAllBox()
     redraw();
 }
 
+namespace {
+
+// A drag shorter than this in both axes counts as a click, not a rectangle.
+
+constexpr int RUBBER_BAND_MIN_DRAG = 3;
+
+// Screen space helpers for the rubber band. All coordinates are window pixels
+// with the origin in the top left corner.
+
+struct ScreenRect {
+    double x0, y0, x1, y1;
+
+    bool contains(double x, double y) const
+    {
+        return (x >= x0) && (x <= x1) && (y >= y0) && (y <= y1);
+    }
+};
+
+ScreenRect makeRect(const int a[2], const int b[2])
+{
+    ScreenRect r;
+    r.x0 = double(std::min(a[0], b[0]));
+    r.x1 = double(std::max(a[0], b[0]));
+    r.y0 = double(std::min(a[1], b[1]));
+    r.y1 = double(std::max(a[1], b[1]));
+    return r;
+}
+
+// Do the segments p0-p1 and q0-q1 cross?
+
+bool segmentsIntersect(double p0x, double p0y, double p1x, double p1y, double q0x, double q0y, double q1x, double q1y)
+{
+    double rx = p1x - p0x;
+    double ry = p1y - p0y;
+    double sx = q1x - q0x;
+    double sy = q1y - q0y;
+
+    double denom = rx * sy - ry * sx;
+
+    if (std::abs(denom) < 1e-12)
+        return false; // parallel - the endpoint tests cover the collinear case
+
+    double t = ((q0x - p0x) * sy - (q0y - p0y) * sx) / denom;
+    double u = ((q0x - p0x) * ry - (q0y - p0y) * rx) / denom;
+
+    return (t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0);
+}
+
+bool segmentCrossesRect(const ScreenRect &r, double ax, double ay, double bx, double by)
+{
+    if (r.contains(ax, ay) || r.contains(bx, by))
+        return true;
+
+    return segmentsIntersect(ax, ay, bx, by, r.x0, r.y0, r.x1, r.y0) ||
+           segmentsIntersect(ax, ay, bx, by, r.x1, r.y0, r.x1, r.y1) ||
+           segmentsIntersect(ax, ay, bx, by, r.x1, r.y1, r.x0, r.y1) ||
+           segmentsIntersect(ax, ay, bx, by, r.x0, r.y1, r.x0, r.y0);
+}
+
+} // namespace
+
+void IvfViewWindow::cancelRubberBand()
+{
+    m_rubberBandActive = false;
+    m_rubberBandCrossing = false;
+}
+
+void IvfViewWindow::finishRubberBand()
+{
+    if (!m_rubberBandActive)
+        return;
+
+    SelectOp op = this->currentSelectOp();
+
+    // A drag too small to be a rectangle is a plain click. Pick the single
+    // shape under the cursor instead, so clicking still selects.
+
+    if ((std::abs(m_rubberBandEnd[0] - m_rubberBandStart[0]) < RUBBER_BAND_MIN_DRAG) &&
+        (std::abs(m_rubberBandEnd[1] - m_rubberBandStart[1]) < RUBBER_BAND_MIN_DRAG))
+        this->selectSingleAt(m_rubberBandEnd[0], m_rubberBandEnd[1], op);
+    else
+        this->selectAllRubberBand(op);
+
+    this->cancelRubberBand();
+
+    redraw();
+}
+
+bool IvfViewWindow::rubberBandCrossing()
+{
+    return m_rubberBandCrossing;
+}
+
+bool IvfViewWindow::projectToScreen(ivf::Shape *shape, double &sx, double &sy)
+{
+    if (shape == nullptr)
+        return false;
+
+    double x, y, z;
+    shape->getPosition(x, y, z);
+
+    glm::mat4 mvp = m_camera->glmProjectionMatrix() * m_camera->glmViewMatrix();
+    glm::vec4 clip = mvp * glm::vec4(float(x), float(y), float(z), 1.0f);
+
+    // Anything at or behind the eye plane has no meaningful screen position
+
+    if (clip.w <= 1e-6f)
+        return false;
+
+    // Normalised device coordinates have y pointing up, window coordinates
+    // have y pointing down.
+
+    double ndcX = clip.x / clip.w;
+    double ndcY = clip.y / clip.w;
+
+    sx = (ndcX * 0.5 + 0.5) * double(this->width());
+    sy = (0.5 - ndcY * 0.5) * double(this->height());
+
+    return true;
+}
+
+bool IvfViewWindow::isInsideRect(ivf::Shape *shape)
+{
+    if (shape == nullptr)
+        return false;
+
+    if (shape->isClass("Node"))
+    {
+        double sx, sy;
+
+        if (!this->projectToScreen(shape, sx, sy))
+            return false;
+
+        return makeRect(m_rubberBandStart, m_rubberBandEnd).contains(sx, sy);
+    }
+    else
+        return this->onInsideRect(shape);
+}
+
+bool IvfViewWindow::isSegmentInsideRect(ivf::Shape *shape0, ivf::Shape *shape1)
+{
+    double ax, ay, bx, by;
+
+    bool aVisible = this->projectToScreen(shape0, ax, ay);
+    bool bVisible = this->projectToScreen(shape1, bx, by);
+
+    auto rect = makeRect(m_rubberBandStart, m_rubberBandEnd);
+
+    if (!m_rubberBandCrossing)
+    {
+        // Window mode - the whole segment has to be inside
+
+        if (!aVisible || !bVisible)
+            return false;
+
+        return rect.contains(ax, ay) && rect.contains(bx, by);
+    }
+
+    // Crossing mode - touching the rectangle anywhere is enough. An endpoint
+    // behind the camera still counts if the other end is inside.
+
+    if (aVisible && bVisible)
+        return segmentCrossesRect(rect, ax, ay, bx, by);
+
+    if (aVisible)
+        return rect.contains(ax, ay);
+
+    if (bVisible)
+        return rect.contains(bx, by);
+
+    return false;
+}
+
+SelectOp IvfViewWindow::currentSelectOp()
+{
+    if (isShiftDown())
+        return SelectOp::Add;
+
+    if (isCtrlDown())
+        return SelectOp::Remove;
+
+    return SelectOp::Replace;
+}
+
+void IvfViewWindow::setSelection(const std::vector<ivf::Shape *> &shapes)
+{
+    m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+    m_selectedShapes->clear();
+    m_selectedShape = nullptr;
+
+    for (auto shape : shapes)
+    {
+        if (shape == nullptr)
+            continue;
+
+        bool select = true;
+        onSelectFilter(shape, select);
+
+        if (!select)
+            continue;
+
+        if (shape->getSelect() == GLBase::SS_ON)
+            continue;
+
+        shape->setSelect(GLBase::SS_ON);
+        m_selectedShapes->addChild(shape);
+    }
+
+    onSelect(m_selectedShapes);
+
+    redraw();
+}
+
+void IvfViewWindow::selectSingleAt(int x, int y, SelectOp op)
+{
+    if (!m_selectEnabled)
+        return;
+
+    Shape *shape;
+
+    if (m_customPick)
+        shape = onPick(x, y);
+    else
+    {
+        m_scene->pick(x, y);
+        shape = m_scene->getSelectedShape();
+    }
+
+    if (shape == nullptr)
+    {
+        // Clicking empty space clears, but only when not extending a selection
+
+        if (op == SelectOp::Replace)
+        {
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+            m_selectedShapes->clear();
+            m_selectedShape = nullptr;
+            onDeSelect();
+        }
+
+        redraw();
+        return;
+    }
+
+    bool select = true;
+    onSelectFilter(shape, select);
+
+    if (!select)
+        return;
+
+    if (op == SelectOp::Remove)
+    {
+        this->removeSelection(shape);
+    }
+    else
+    {
+        if (op == SelectOp::Replace)
+        {
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+            m_selectedShapes->clear();
+        }
+
+        if (shape->getSelect() != GLBase::SS_ON)
+        {
+            shape->setSelect(GLBase::SS_ON);
+            m_selectedShapes->addChild(shape);
+        }
+    }
+
+    onSelect(m_selectedShapes);
+
+    redraw();
+}
+
+void IvfViewWindow::selectAllRubberBand(SelectOp op)
+{
+    if (op == SelectOp::Replace)
+    {
+        m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+        m_selectedShapes->clear();
+        m_selectedShape = nullptr;
+    }
+
+    auto scene = this->getScene()->getComposite();
+
+    for (int i = 0; i < scene->getSize(); i++)
+    {
+        auto shape = scene->getChild(i);
+
+        bool select = true;
+        onSelectFilter(shape, select);
+
+        if (!select)
+            continue;
+
+        if (!this->isInsideRect(shape))
+            continue;
+
+        if (op == SelectOp::Remove)
+        {
+            this->removeSelection(shape);
+        }
+        else
+        {
+            if (shape->getSelect() == GLBase::SS_ON)
+                continue;
+
+            shape->setSelect(GLBase::SS_ON);
+            m_selectedShapes->addChild(shape);
+        }
+    }
+
+    onSelect(m_selectedShapes);
+
+    redraw();
+}
+
+void IvfViewWindow::cancelVolumeSelection()
+{
+    m_volumeSelection->setState(Shape::OS_OFF);
+    m_volumeElevated = false;
+    m_clickNumber = 0;
+}
+
 bool IvfViewWindow::isInsideVolume(ivf::Shape *shape)
 {
     double x_min, y_min, z_min;
@@ -546,6 +874,13 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
 {
     m_editMode = mode;
 
+    // A box selection with only its first corner placed belongs to the mode we
+    // are leaving. Drop it here, otherwise the wire box is left hanging in the
+    // scene for every mode that follows.
+
+    this->cancelVolumeSelection();
+    this->cancelRubberBand();
+
     m_angleX = 0.0f;
     m_angleY = 0.0f;
     m_moveX = 0.0f;
@@ -585,13 +920,22 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->unlockCursor();
     }
 
-    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
+    if (getEditMode() == WidgetMode::SelectVolume)
     {
         clearSelection();
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_selectedShapes->clear();
         m_scene->unlockCursor();
+    }
+
+    // Rubber band selection works purely in screen space, so it needs neither
+    // the construction plane cursor nor a cleared selection to start from.
+
+    if (getEditMode() == WidgetMode::BoxSelection)
+    {
+        m_selectedShape = nullptr;
+        m_scene->disableCursor();
     }
 
     if (getEditMode() == WidgetMode::Move)
@@ -980,6 +1324,34 @@ void IvfViewWindow::doDrawImGui()
 
     //----------------------------------------------------------------------------------
 
+    // Rubber band rectangle, drawn on top of everything else. ImGui works in
+    // viewport coordinates, mouse positions are window relative.
+    //
+    // This has to happen before onDrawImGui(), which ends with ImGui::Render().
+    // Render() finalizes every draw list, so appending to the foreground list
+    // afterwards walks an already popped clip rect stack and crashes. Populating
+    // it earlier in the frame is fine - the foreground list is still drawn last.
+
+    if (m_rubberBandActive && isAnyMouseButtonDown())
+    {
+        ImVec2 origin = ImGui::GetMainViewport()->Pos;
+
+        auto rect = makeRect(m_rubberBandStart, m_rubberBandEnd);
+
+        ImVec2 p0(origin.x + float(rect.x0), origin.y + float(rect.y0));
+        ImVec2 p1(origin.x + float(rect.x1), origin.y + float(rect.y1));
+
+        // Crossing selections get their own colour so the two behaviours are
+        // never confused with each other.
+
+        ImU32 fill = m_rubberBandCrossing ? IM_COL32(120, 220, 130, 40) : IM_COL32(90, 160, 255, 40);
+        ImU32 line = m_rubberBandCrossing ? IM_COL32(150, 240, 160, 220) : IM_COL32(150, 200, 255, 220);
+
+        auto *drawList = ImGui::GetForegroundDrawList();
+        drawList->AddRectFilled(p0, p1, fill);
+        drawList->AddRect(p0, p1, line, 0.0f, 0, 1.5f);
+    }
+
     onDrawImGui();
 
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
@@ -1016,6 +1388,11 @@ bool IvfViewWindow::onInsideVolume(ivf::Shape *shape)
     return false;
 }
 
+bool IvfViewWindow::onInsideRect(ivf::Shape *shape)
+{
+    return false;
+}
+
 void IvfViewWindow::onSelectPosition(double x, double y, double z)
 {}
 
@@ -1047,6 +1424,17 @@ void IvfViewWindow::doMouseUp(int x, int y)
     if (getEditMode() == WidgetMode::Move)
         onMoveCompleted();
 
+    // Complete a rubber band drag.
+
+    if ((getEditMode() == WidgetMode::BoxSelection) && (m_rubberBandActive) &&
+        (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        m_rubberBandEnd[0] = x;
+        m_rubberBandEnd[1] = y;
+
+        this->finishRubberBand();
+    }
+
     this->getScene()->showCursor();
     onMouseUp(x, y);
 }
@@ -1061,6 +1449,13 @@ void IvfViewWindow::doMouseDown(int x, int y)
 
 void IvfViewWindow::doPassiveMotion(int x, int y)
 {
+    // A drag released over an ImGui panel never reaches doMouseUp(), because
+    // onGlfwMouseButton() drops the event when ImGui wants the mouse. Complete
+    // the band here instead of leaving the rectangle hanging on screen.
+
+    if (m_rubberBandActive)
+        this->finishRubberBand();
+
     m_angleX = 0.0f;
     m_angleY = 0.0f;
     m_moveX = 0.0f;
@@ -1162,7 +1557,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
             redraw();
     }
 
-    if ((getEditMode() == WidgetMode::SelectVolume) || (getEditMode() == WidgetMode::BoxSelection))
+    if (getEditMode() == WidgetMode::SelectVolume)
     {
         // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
@@ -1230,6 +1625,22 @@ void IvfViewWindow::doMotion(int x, int y)
         }
     }
 
+    // Rubber band selection. Dragging right to left switches from window mode
+    // (fully enclosed) to crossing mode (anything touched).
+
+    if ((getEditMode() == WidgetMode::BoxSelection) && (m_rubberBandActive) &&
+        (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        m_rubberBandEnd[0] = x;
+        m_rubberBandEnd[1] = y;
+        m_rubberBandCrossing = (m_rubberBandEnd[0] < m_rubberBandStart[0]);
+
+        // No draw() here - the application loop renders continuously, and a
+        // nested render from inside a GLFW callback opens a second ImGui frame.
+
+        redraw();
+    }
+
     // Paint selection. Every motion event with the left button held adds the
     // shape under the cursor to the selection - [Ctrl] removes it instead.
 
@@ -1291,37 +1702,26 @@ void IvfViewWindow::doMouse(int x, int y)
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
     if ((m_editMode == WidgetMode::Select) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
-    {
-        if (m_selectedShape != NULL)
-        {
-            if (m_selectedShape->getSelect() != GLBase::SS_ON)
-            {
-                bool select = true;
-                onSelectFilter(m_selectedShape, select);
-                if (select)
-                {
-                    m_selectedShape->setSelect(GLBase::SS_ON);
-                    m_selectedShapes->addChild(m_selectedShape);
-                    onSelect(m_selectedShapes);
-                }
-                redraw();
-            }
-        }
-        else
-        {
-            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
-            m_selectedShapes->clear();
-            onDeSelect();
-            redraw();
-            draw();
-        }
-    }
+        this->selectSingleAt(x, y, this->currentSelectOp());
 
     // Start of a paint stroke. Handled here as well as in doMotion() so that a
     // plain click still selects a single shape without moving the mouse.
+    //
+    // A stroke as a whole replaces the selection unless a modifier is held -
+    // the individual motion events that follow are always additive, otherwise
+    // each one would wipe what the stroke had picked up so far.
 
     if ((m_editMode == WidgetMode::PaintSelect) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        if (this->currentSelectOp() == SelectOp::Replace)
+        {
+            m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+            m_selectedShapes->clear();
+            m_selectedShape = nullptr;
+        }
+
         this->paintSelectAt(x, y, isCtrlDown());
+    }
 
     // Handle node creation
 
@@ -1361,8 +1761,20 @@ void IvfViewWindow::doMouse(int x, int y)
         onSelectPosition(vx, vy, vz);
     }
 
-    if (((m_editMode == WidgetMode::SelectVolume) || (m_editMode == WidgetMode::BoxSelection)) &&
-        (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    // Start a rubber band drag. The rectangle is not evaluated until the button
+    // is released in doMouseUp().
+
+    if ((m_editMode == WidgetMode::BoxSelection) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    {
+        m_rubberBandStart[0] = x;
+        m_rubberBandStart[1] = y;
+        m_rubberBandEnd[0] = x;
+        m_rubberBandEnd[1] = y;
+        m_rubberBandCrossing = false;
+        m_rubberBandActive = true;
+    }
+
+    if ((m_editMode == WidgetMode::SelectVolume) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
         double vx, vy, vz;
         Node *node = NULL;
@@ -1382,6 +1794,11 @@ void IvfViewWindow::doMouse(int x, int y)
             m_volumeEnd[1] = vy;
             m_volumeEnd[2] = vz;
 
+            // updateCursor() lifts the cursor off the ground plane while [Shift]
+            // is held, so this corner can be placed at any height.
+
+            m_volumeElevated = isShiftDown();
+
             ivf::Point3d p0, p1;
             p0.setComponents(m_volumeStart);
             p1.setComponents(m_volumeEnd);
@@ -1396,20 +1813,23 @@ void IvfViewWindow::doMouse(int x, int y)
             m_volumeEnd[1] = vy;
             m_volumeEnd[2] = vz;
 
-            if (m_volumeStart[1] == m_volumeEnd[1])
+            if (isShiftDown())
+                m_volumeElevated = true;
+
+            // A rectangle drawn flat on the ground selects the whole column
+            // above and below it. Lifting either corner with [Shift] bounds the
+            // box by the two corner heights instead.
+
+            if (!m_volumeElevated)
             {
                 m_volumeStart[1] = -1e300;
                 m_volumeEnd[1] = 1e300;
             }
 
-            if (m_editMode == WidgetMode::SelectVolume)
-                onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1],
-                               m_volumeEnd[2]);
-            else
-                this->selectAllBox();
+            onSelectVolume(m_volumeStart[0], m_volumeStart[1], m_volumeStart[2], m_volumeEnd[0], m_volumeEnd[1],
+                           m_volumeEnd[2]);
 
-            m_volumeSelection->setState(Shape::OS_OFF);
-            m_clickNumber = 0;
+            this->cancelVolumeSelection();
         }
     }
 

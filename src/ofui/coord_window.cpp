@@ -5,7 +5,9 @@
 
 using namespace ofui;
 
-CoordWindow::CoordWindow(const std::string name) : UiWindow(name), m_coord{0.0, 0.0, 0.0}, m_contentWidth{130.0f}
+CoordWindow::CoordWindow(const std::string name)
+    : UiWindow(name), m_coord{0.0, 0.0, 0.0}, m_contentWidth{130.0f}, m_selectedNodes{0}, m_selectedBeams{0},
+      m_selectionFilter{"All"}
 {
     this->setWindowFlags(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
@@ -29,6 +31,17 @@ void CoordWindow::coord(double &x, double &y, double &z)
     x = m_coord[0];
     y = m_coord[1];
     z = m_coord[2];
+}
+
+void CoordWindow::setSelectionCount(int nodes, int beams)
+{
+    m_selectedNodes = nodes;
+    m_selectedBeams = beams;
+}
+
+void CoordWindow::setSelectionFilter(const std::string filter)
+{
+    m_selectionFilter = filter;
 }
 
 void CoordWindow::setContentWidth(float width)
@@ -79,10 +92,30 @@ void CoordWindow::drawCoord(const char *label, double value)
     ImGui::TextUnformatted(buffer);
 }
 
+void CoordWindow::drawValue(const char *label, const std::string &value)
+{
+    ImGui::TextUnformatted(label);
+
+    float labelWidth = ImGui::CalcTextSize(label).x;
+    float valueWidth = ImGui::CalcTextSize(value.c_str()).x;
+    float offset = m_contentWidth - valueWidth;
+
+    ImGui::SameLine(std::max(offset, labelWidth + ImGui::GetStyle().ItemSpacing.x));
+    ImGui::TextUnformatted(value.c_str());
+}
+
 void CoordWindow::doDraw()
 {
     ImGui::Dummy(ImVec2(m_contentWidth, 0.0f));
     this->drawCoord("X", m_coord[0]);
     this->drawCoord("Y", m_coord[1]);
     this->drawCoord("Z", m_coord[2]);
+
+    // Selection readout. Always drawn, so the window keeps a constant height
+    // and the toolbar anchored below it does not jump around.
+
+    ImGui::Separator();
+    this->drawValue("Filter", m_selectionFilter);
+    this->drawValue("Sel. nodes", std::to_string(m_selectedNodes));
+    this->drawValue("Sel. beams", std::to_string(m_selectedBeams));
 }

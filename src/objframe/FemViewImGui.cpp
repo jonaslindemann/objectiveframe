@@ -124,6 +124,34 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         if (ImGui::MenuItem("Select all elements", ""))
             this->selectAllElements();
 
+        if (ImGui::BeginMenu("Select from selection"))
+        {
+            if (ImGui::MenuItem("Grow", "Ctrl-+"))
+                this->growSelection();
+            if (ImGui::MenuItem("Shrink", "Ctrl--"))
+                this->shrinkSelection();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Connected", ""))
+                this->selectConnected();
+            if (ImGui::MenuItem("Whole member", ""))
+                this->selectMember();
+            if (ImGui::MenuItem("Same material", ""))
+                this->selectSameMaterial();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Same X", ""))
+                this->selectSamePlane(0);
+            if (ImGui::MenuItem("Same level (Y)", ""))
+                this->selectSamePlane(1);
+            if (ImGui::MenuItem("Same Z", ""))
+                this->selectSamePlane(2);
+
+            ImGui::EndMenu();
+        }
+
         ImGui::Separator();
 
         if (ImGui::MenuItem("Fix selected nodes", ""))

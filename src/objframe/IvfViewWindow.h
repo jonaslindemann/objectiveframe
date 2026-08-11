@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <GLFWWindow.h>
 
@@ -63,6 +64,14 @@ enum ModifierKey {
     mkNone
 };
 
+// How a selection gesture combines with the existing selection
+
+enum class SelectOp {
+    Replace,
+    Add,
+    Remove
+};
+
 class IvfViewWindow : public GLFWWindow {
 private:
     // State variables
@@ -101,6 +110,18 @@ private:
 
     double m_volumeStart[3];
     double m_volumeEnd[3];
+
+    // True when [Shift] was used to lift either corner of the selection box off
+    // the ground plane. A box drawn flat on the ground is treated as unbounded
+    // in y, an elevated one is bounded by its two corner heights.
+    bool m_volumeElevated;
+
+    // Screen space rubber band selection. The rectangle is in window pixels
+    // with the origin in the top left corner, matching mouseX()/mouseY().
+    bool m_rubberBandActive;
+    bool m_rubberBandCrossing;
+    int m_rubberBandStart[2];
+    int m_rubberBandEnd[2];
 
     double m_manipStartPos[3];
     double m_manipEndPos[3];
@@ -312,6 +333,83 @@ public:
     bool isInsideVolume(ivf::Shape *shape);
 
     /**
+     * Aborts a box/volume selection in progress.
+     *
+     * Hides the wire box and resets the click state. Called whenever the edit
+     * mode changes so a half-finished box never survives into another mode.
+     */
+    void cancelVolumeSelection();
+
+    /** Aborts a rubber band drag in progress and hides the rectangle. */
+    void cancelRubberBand();
+
+    /**
+     * Applies the rubber band rectangle and ends the drag.
+     *
+     * [Shift] adds to the selection, [Ctrl] removes from it, otherwise the
+     * selection is replaced. A drag too small to be a rectangle falls back to
+     * picking the single shape under the cursor.
+     */
+    void finishRubberBand();
+
+    /**
+     * Projects a shape's position into window coordinates.
+     *
+     * \returns false if the shape is behind the camera, in which case sx/sy
+     * are meaningless.
+     */
+    bool projectToScreen(ivf::Shape *shape, double &sx, double &sy);
+
+    /**
+     * Tests a shape against the current rubber band rectangle.
+     *
+     * Point-like shapes (nodes) are tested by their projected position.
+     * Everything else is delegated to onInsideRect().
+     */
+    bool isInsideRect(ivf::Shape *shape);
+
+    /**
+     * Tests the line between two shapes against the rubber band rectangle.
+     *
+     * In window mode both endpoints must be inside. In crossing mode it is
+     * enough that the line touches the rectangle anywhere.
+     */
+    bool isSegmentInsideRect(ivf::Shape *shape0, ivf::Shape *shape1);
+
+    /** True when the current rubber band uses crossing (touch) semantics. */
+    bool rubberBandCrossing();
+
+    /**
+     * Selects everything inside the current rubber band rectangle.
+     *
+     * \param op how the hits combine with the existing selection
+     */
+    void selectAllRubberBand(SelectOp op);
+
+    /**
+     * Selects the single shape under (x, y).
+     *
+     * With SelectOp::Replace, picking nothing clears the selection.
+     */
+    void selectSingleAt(int x, int y, SelectOp op);
+
+    /**
+     * The selection operation implied by the modifier keys currently held.
+     *
+     * [Shift] adds, [Ctrl] removes, nothing replaces. Shared by every
+     * selection gesture so they all behave the same way.
+     */
+    SelectOp currentSelectOp();
+
+    /**
+     * Replaces the selection with the given shapes.
+     *
+     * Shapes are passed through onSelectFilter(), and onSelect() is called
+     * once when the whole set is in place.
+     */
+    void setSelection(const std::vector<ivf::Shape *> &shapes);
+
+    /**
      * Add or remove the shape under (x, y) from the selection.
      *
      * Used by WidgetMode::PaintSelect to "paint" a selection while the mouse
@@ -422,6 +520,15 @@ public:
     virtual void onSelect(ivf::Composite *selectedShapes);
 
     virtual bool onInsideVolume(ivf::Shape *shape);
+
+    /**
+     * onInsideRect event
+     *
+     * Called by isInsideRect() for shapes that are not point-like, so derived
+     * classes can decide what "inside the rubber band" means for them. Use
+     * isInsideRect() and isSegmentInsideRect() to test the parts.
+     */
+    virtual bool onInsideRect(ivf::Shape *shape);
 
     virtual void onSelectPosition(double x, double y, double z);
 

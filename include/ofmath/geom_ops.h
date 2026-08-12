@@ -49,4 +49,38 @@ void applyTaper(std::vector<glm::dvec3> &pts, int axis, double s0, double s1, co
 
 glm::dvec3 transformPoint(const glm::dmat4 &m, const glm::dvec3 &p);
 
+/**
+ * One smoothing pass over an adjacency list.
+ *
+ * Each movable point moves a fraction `factor` of the way towards the weighted
+ * average of its neighbours. A positive factor shrinks the cloud, a negative
+ * one inflates it - alternating the two is what makes Taubin smoothing keep
+ * the overall size (see taubinSmooth).
+ *
+ * All new positions are computed from the old ones, so the result does not
+ * depend on the order the points happen to be stored in.
+ *
+ * \param movable       points with false are held fixed, but still act as
+ *                      neighbours for the points that move
+ * \param lengthWeighted weight neighbours by 1/distance instead of uniformly.
+ *                      Uniform pulls a point to the centroid of its
+ *                      neighbours, which evens out member lengths; inverse
+ *                      distance is gentler on irregular spacing.
+ */
+void laplacianPass(std::vector<glm::dvec3> &pts, const std::vector<std::vector<int>> &adjacency,
+                   const std::vector<bool> &movable, double factor, bool lengthWeighted);
+
+/**
+ * Taubin smoothing: `iterations` shrink/inflate pairs.
+ *
+ * Plain Laplacian smoothing (mu == 0) pulls a free standing structure towards
+ * its own centroid, which on a truss changes the span rather than just
+ * tidying it. The second pass with a slightly larger negative factor pushes
+ * back out and cancels most of that.
+ *
+ * Typical values are lambda 0.5 and mu -0.53. mu == 0 runs plain Laplacian.
+ */
+void taubinSmooth(std::vector<glm::dvec3> &pts, const std::vector<std::vector<int>> &adjacency,
+                  const std::vector<bool> &movable, int iterations, double lambda, double mu, bool lengthWeighted);
+
 } // namespace ofmath

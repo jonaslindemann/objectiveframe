@@ -92,10 +92,24 @@ bool FemViewGeometryHandler::hasAnyLoad(FemViewWindow &view, ofem::Node *node)
     return false;
 }
 
-bool FemViewGeometryHandler::gatherNodes(FemViewWindow &view, const std::string &what, const PinPolicy &pins,
-                                         std::vector<ofem::Node *> &nodes)
+void FemViewGeometryHandler::TransformContext::clear()
 {
     nodes.clear();
+    baseline.clear();
+    adjacency.clear();
+    affected.clear();
+    hasBC.clear();
+    hasLoad.clear();
+}
+
+bool FemViewGeometryHandler::TransformContext::empty() const
+{
+    return nodes.empty();
+}
+
+bool FemViewGeometryHandler::captureContext(FemViewWindow &view, const std::string &what, TransformContext &ctx)
+{
+    ctx.clear();
 
     ModelGraph graph;
 
@@ -111,45 +125,132 @@ bool FemViewGeometryHandler::gatherNodes(FemViewWindow &view, const std::string 
 
     // Selected nodes, plus the ends of any selected beam
 
-    std::set<ofem::Node *> affected = graph.selectedNodes;
+    std::set<ofem::Node *> selected = graph.selectedNodes;
 
     for (auto beam : graph.selectedBeams)
     {
-        affected.insert(beam->getNode(0));
-        affected.insert(beam->getNode(1));
+        selected.insert(beam->getNode(0));
+        selected.insert(beam->getNode(1));
     }
 
+    // Capture every node, not only the selected ones. Smoothing needs the
+    // neighbours just outside the selection to pull on the ones inside it,
+    // and model order keeps the indices meaning what they mean everywhere
+    // else in the application.
+
+    std::map<ofem::Node *, int> indexOf;
+
+    ctx.nodes = graph.nodes;
+    ctx.baseline.reserve(ctx.nodes.size() * 3);
+    ctx.adjacency.resize(ctx.nodes.size());
+    ctx.affected.resize(ctx.nodes.size());
+    ctx.hasBC.resize(ctx.nodes.size());
+    ctx.hasLoad.resize(ctx.nodes.size());
+
+    for (int i = 0; i < int(ctx.nodes.size()); i++)
+    {
+        auto node = ctx.nodes[i];
+
+        indexOf[node] = i;
+
+        double x, y, z;
+        node->getCoord(x, y, z);
+
+        ctx.baseline.push_back(x);
+        ctx.baseline.push_back(y);
+        ctx.baseline.push_back(z);
+
+        ctx.affected[i] = (selected.count(node) > 0);
+        ctx.hasBC[i] = hasAnyBC(view, node);
+        ctx.hasLoad[i] = hasAnyLoad(view, node);
+    }
+
+    for (int i = 0; i < int(ctx.nodes.size()); i++)
+    {
+        for (auto beam : graph.beamsAt[ctx.nodes[i]])
+        {
+            ofem::Node *other = nullptr;
+            ofview_detail::otherEnd(beam, ctx.nodes[i], other);
+
+            if (other == nullptr)
+                continue;
+
+            auto it = indexOf.find(other);
+
+            if (it != indexOf.end())
+                ctx.adjacency[i].push_back(it->second);
+        }
+    }
+
+    return true;
+}
+
+size_t FemViewGeometryHandler::movableFor(FemViewWindow &view, const TransformContext &ctx, const PinPolicy &pins,
+                                          const std::string &what, bool report, std::vector<bool> &movable)
+{
+    movable.assign(ctx.nodes.size(), false);
+
+    size_t count = 0;
     size_t pinned = 0;
 
-    // Walk the model order rather than the set order, so the resulting node
-    // list is deterministic and matches what the rest of the application calls
-    // node 0, node 1 and so on.
-
-    for (auto node : graph.nodes)
+    for (size_t i = 0; i < ctx.nodes.size(); i++)
     {
-        if (affected.count(node) == 0)
+        if (!ctx.affected[i])
             continue;
 
-        if ((pins.bcNodes && hasAnyBC(view, node)) || (pins.loadedNodes && hasAnyLoad(view, node)))
+        if ((pins.bcNodes && ctx.hasBC[i]) || (pins.loadedNodes && ctx.hasLoad[i]))
         {
             pinned++;
             continue;
         }
 
-        nodes.push_back(node);
+        movable[i] = true;
+        count++;
     }
 
-    if (nodes.empty())
+    if (report)
     {
-        view.console(what + ": every selected node is pinned.");
-        view.notify("Every selected node is pinned.", ofui::NotificationLevel::Warning);
-        return false;
+        if (count == 0)
+        {
+            view.console(what + ": every selected node is pinned.");
+            view.notify("Every selected node is pinned.", ofui::NotificationLevel::Warning);
+        }
+        else if (pinned > 0)
+            view.console(what + ": " + std::to_string(pinned) + " pinned node(s) held in place.");
     }
 
-    if (pinned > 0)
-        view.console(what + ": " + std::to_string(pinned) + " pinned node(s) held in place.");
+    return count;
+}
 
-    return true;
+std::vector<glm::dvec3> FemViewGeometryHandler::baselinePoints(const TransformContext &ctx)
+{
+    std::vector<glm::dvec3> pts;
+    pts.reserve(ctx.nodes.size());
+
+    for (size_t i = 0; i < ctx.nodes.size(); i++)
+        pts.emplace_back(ctx.baseline[i * 3], ctx.baseline[i * 3 + 1], ctx.baseline[i * 3 + 2]);
+
+    return pts;
+}
+
+std::vector<glm::dvec3> FemViewGeometryHandler::movablePoints(const TransformContext &ctx,
+                                                              const std::vector<bool> &movable)
+{
+    std::vector<glm::dvec3> pts;
+
+    for (size_t i = 0; i < ctx.nodes.size(); i++)
+        if (movable[i])
+            pts.emplace_back(ctx.baseline[i * 3], ctx.baseline[i * 3 + 1], ctx.baseline[i * 3 + 2]);
+
+    return pts;
+}
+
+void FemViewGeometryHandler::writeMovable(const TransformContext &ctx, const std::vector<bool> &movable,
+                                          const std::vector<glm::dvec3> &pts)
+{
+    for (size_t i = 0; i < ctx.nodes.size(); i++)
+        if (movable[i])
+            ctx.nodes[i]->setCoord(pts[i].x, pts[i].y, pts[i].z);
 }
 
 void FemViewGeometryHandler::dropDisplacementMode(FemViewWindow &view)
@@ -234,21 +335,36 @@ glm::dvec3 FemViewGeometryHandler::originFor(FemViewWindow &view, Origin origin,
     return resolveOrigin(origin, pts, glm::dvec3(view.m_selectedPos[0], view.m_selectedPos[1], view.m_selectedPos[2]));
 }
 
-bool FemViewGeometryHandler::applyTo(std::vector<glm::dvec3> &pts, const TransformParams &params,
-                                     const glm::dvec3 &origin)
+bool FemViewGeometryHandler::applyTo(const TransformContext &ctx, const TransformParams &params,
+                                     const std::vector<bool> &movable, const glm::dvec3 &origin,
+                                     std::vector<glm::dvec3> &pts)
 {
-    switch (params.kind)
-    {
-    case TransformKind::Translate: {
-        auto m = ofmath::translationMatrix(glm::dvec3(params.delta[0], params.delta[1], params.delta[2]));
+    pts = baselinePoints(ctx);
 
-        for (auto &p : pts)
-            p = ofmath::transformPoint(m, p);
+    // Smoothing is the one operation that reads its neighbours, so it works on
+    // the whole point set and lets the movable mask decide who actually moves.
+    // The matrix transforms touch only the movable points.
+
+    if (params.kind == TransformKind::Smooth)
+    {
+        if (params.iterations <= 0)
+            return false;
+
+        ofmath::taubinSmooth(pts, ctx.adjacency, movable, params.iterations, params.lambda, params.mu,
+                             params.lengthWeighted);
 
         return true;
     }
 
-    case TransformKind::Scale: {
+    glm::dmat4 m(1.0);
+
+    switch (params.kind)
+    {
+    case TransformKind::Translate:
+        m = ofmath::translationMatrix(glm::dvec3(params.delta[0], params.delta[1], params.delta[2]));
+        break;
+
+    case TransformKind::Scale:
         // A zero factor collapses the selection onto a plane and cannot be
         // undone by scaling back, so refuse it rather than quietly destroying
         // the geometry.
@@ -257,13 +373,8 @@ bool FemViewGeometryHandler::applyTo(std::vector<glm::dvec3> &pts, const Transfo
             if (std::abs(params.factors[i]) < 1e-12)
                 return false;
 
-        auto m = ofmath::scaleMatrix(glm::dvec3(params.factors[0], params.factors[1], params.factors[2]), origin);
-
-        for (auto &p : pts)
-            p = ofmath::transformPoint(m, p);
-
-        return true;
-    }
+        m = ofmath::scaleMatrix(glm::dvec3(params.factors[0], params.factors[1], params.factors[2]), origin);
+        break;
 
     case TransformKind::Rotate: {
         glm::dvec3 axis(params.axis[0], params.axis[1], params.axis[2]);
@@ -271,42 +382,60 @@ bool FemViewGeometryHandler::applyTo(std::vector<glm::dvec3> &pts, const Transfo
         if (glm::length(axis) < 1e-12)
             return false;
 
-        auto m = ofmath::rotationMatrix(axis, params.angleDeg * pi / 180.0, origin);
-
-        for (auto &p : pts)
-            p = ofmath::transformPoint(m, p);
-
-        return true;
+        m = ofmath::rotationMatrix(axis, params.angleDeg * pi / 180.0, origin);
+        break;
     }
 
     case TransformKind::Taper: {
         if ((params.taperAxis < 0) || (params.taperAxis > 2))
             return false;
 
-        ofmath::applyTaper(pts, params.taperAxis, params.s0, params.s1, origin);
+        // The taper interpolates over the extent of what it is given, so it
+        // must see the movable points alone rather than the whole model.
+
+        auto subset = movablePoints(ctx, movable);
+        ofmath::applyTaper(subset, params.taperAxis, params.s0, params.s1, origin);
+
+        size_t k = 0;
+
+        for (size_t i = 0; i < pts.size(); i++)
+            if (movable[i])
+                pts[i] = subset[k++];
 
         return true;
     }
+
+    default:
+        return false;
     }
 
-    return false;
+    for (size_t i = 0; i < pts.size(); i++)
+        if (movable[i])
+            pts[i] = ofmath::transformPoint(m, pts[i]);
+
+    return true;
 }
 
 void FemViewGeometryHandler::runOnce(FemViewWindow &view, const std::string &what, const TransformParams &params)
 {
-    std::vector<ofem::Node *> nodes;
+    TransformContext ctx;
 
-    if (!gatherNodes(view, what, PinPolicy{}, nodes))
+    if (!captureContext(view, what, ctx))
         return;
 
-    auto pts = coordsOf(nodes);
+    std::vector<bool> movable;
+
+    size_t count = movableFor(view, ctx, params.pins, what, true, movable);
+
+    if (count == 0)
+        return;
 
     // Validate before taking a snapshot, so a refused command leaves no undo
     // entry behind.
 
-    auto probe = pts;
+    std::vector<glm::dvec3> pts;
 
-    if (!applyTo(probe, params, originFor(view, params.origin, pts)))
+    if (!applyTo(ctx, params, movable, originFor(view, params.origin, movablePoints(ctx, movable)), pts))
     {
         view.console(what + ": the parameters are degenerate and would collapse the selection.");
         view.notify(what + ": invalid parameters.", ofui::NotificationLevel::Warning);
@@ -315,8 +444,8 @@ void FemViewGeometryHandler::runOnce(FemViewWindow &view, const std::string &wha
 
     begin(view);
 
-    writeCoords(nodes, probe);
-    commit(view, what, nodes.size());
+    writeMovable(ctx, movable, pts);
+    commit(view, what, count);
 }
 
 void FemViewGeometryHandler::translate(FemViewWindow &view, double dx, double dy, double dz)
@@ -372,6 +501,21 @@ void FemViewGeometryHandler::taper(FemViewWindow &view, int axis, double s0, dou
     runOnce(view, "Taper", params);
 }
 
+void FemViewGeometryHandler::smooth(FemViewWindow &view, int iterations, double lambda, double mu, bool lengthWeighted,
+                                    PinPolicy pins)
+{
+    TransformParams params;
+
+    params.kind = TransformKind::Smooth;
+    params.pins = pins;
+    params.iterations = iterations;
+    params.lambda = lambda;
+    params.mu = mu;
+    params.lengthWeighted = lengthWeighted;
+
+    runOnce(view, "Smooth", params);
+}
+
 bool FemViewGeometryHandler::previewActive(FemViewWindow &view)
 {
     return view.m_geometry.previewActive;
@@ -385,23 +529,10 @@ bool FemViewGeometryHandler::beginPreview(FemViewWindow &view)
     if (view.m_geometry.previewActive)
         cancelPreview(view);
 
-    std::vector<ofem::Node *> nodes;
-
-    if (!gatherNodes(view, "Transform", PinPolicy{}, nodes))
-        return false;
-
-    view.m_geometry.nodes = nodes;
-    view.m_geometry.baseline.clear();
-    view.m_geometry.baseline.reserve(nodes.size() * 3);
-
-    for (auto node : nodes)
+    if (!captureContext(view, "Transform", view.m_geometry.context))
     {
-        double x, y, z;
-        node->getCoord(x, y, z);
-
-        view.m_geometry.baseline.push_back(x);
-        view.m_geometry.baseline.push_back(y);
-        view.m_geometry.baseline.push_back(z);
+        view.m_geometry.context.clear();
+        return false;
     }
 
     view.m_geometry.previewActive = true;
@@ -413,10 +544,10 @@ bool FemViewGeometryHandler::beginPreview(FemViewWindow &view)
 
 void FemViewGeometryHandler::restoreBaseline(FemViewWindow &view)
 {
-    auto &state = view.m_geometry;
+    const auto &ctx = view.m_geometry.context;
 
-    for (size_t i = 0; i < state.nodes.size(); i++)
-        state.nodes[i]->setCoord(state.baseline[i * 3], state.baseline[i * 3 + 1], state.baseline[i * 3 + 2]);
+    for (size_t i = 0; i < ctx.nodes.size(); i++)
+        ctx.nodes[i]->setCoord(ctx.baseline[i * 3], ctx.baseline[i * 3 + 1], ctx.baseline[i * 3 + 2]);
 }
 
 void FemViewGeometryHandler::updatePreview(FemViewWindow &view, const TransformParams &params)
@@ -426,19 +557,21 @@ void FemViewGeometryHandler::updatePreview(FemViewWindow &view, const TransformP
     if (!state.previewActive)
         return;
 
-    // Always transform the captured coordinates rather than the current ones.
-    // Compounding would make the result depend on how the slider was dragged.
+    // The pin policy is re-derived on every update rather than baked into the
+    // capture, so toggling a pin checkbox takes effect without recapturing.
 
+    std::vector<bool> movable;
     std::vector<glm::dvec3> pts;
-    pts.reserve(state.nodes.size());
 
-    for (size_t i = 0; i < state.nodes.size(); i++)
-        pts.emplace_back(state.baseline[i * 3], state.baseline[i * 3 + 1], state.baseline[i * 3 + 2]);
+    size_t count = movableFor(view, state.context, params.pins, "Transform", false, movable);
 
-    // The origin comes from the baseline too, so it does not drift as the
-    // preview moves the nodes around.
+    // Everything transforms from the captured coordinates, never from the
+    // current ones - compounding would make the result depend on how the
+    // slider was dragged. The origin comes from the baseline too, so it does
+    // not drift as the preview moves the nodes around.
 
-    if (!applyTo(pts, params, originFor(view, params.origin, pts)))
+    if ((count == 0) || !applyTo(state.context, params, movable,
+                                 originFor(view, params.origin, movablePoints(state.context, movable)), pts))
     {
         restoreBaseline(view);
         view.refreshBeamModelVisuals();
@@ -446,7 +579,8 @@ void FemViewGeometryHandler::updatePreview(FemViewWindow &view, const TransformP
         return;
     }
 
-    writeCoords(state.nodes, pts);
+    restoreBaseline(view);
+    writeMovable(state.context, movable, pts);
 
     view.refreshBeamModelVisuals();
     view.redraw();
@@ -459,36 +593,32 @@ void FemViewGeometryHandler::applyPreview(FemViewWindow &view, const TransformPa
     if (!state.previewActive)
         return;
 
-    size_t moved = state.nodes.size();
+    std::vector<bool> movable;
+    std::vector<glm::dvec3> pts;
+
+    size_t count = movableFor(view, state.context, params.pins, "Transform", true, movable);
 
     // Put the model back before snapshotting, so undo returns to where the
     // gesture started rather than to the last previewed position.
 
     restoreBaseline(view);
 
-    std::vector<glm::dvec3> pts;
-    pts.reserve(state.nodes.size());
-
-    for (size_t i = 0; i < state.nodes.size(); i++)
-        pts.emplace_back(state.baseline[i * 3], state.baseline[i * 3 + 1], state.baseline[i * 3 + 2]);
-
-    if (!applyTo(pts, params, originFor(view, params.origin, pts)))
+    if ((count == 0) || !applyTo(state.context, params, movable,
+                                 originFor(view, params.origin, movablePoints(state.context, movable)), pts))
     {
         cancelPreview(view);
-        view.console("Transform: the parameters are degenerate, nothing was applied.");
-        view.notify("Transform: invalid parameters.", ofui::NotificationLevel::Warning);
+        view.console("Transform: nothing to apply.");
         return;
     }
 
     begin(view);
 
-    writeCoords(state.nodes, pts);
+    writeMovable(state.context, movable, pts);
 
     state.previewActive = false;
-    state.nodes.clear();
-    state.baseline.clear();
+    state.context.clear();
 
-    commit(view, "Transform", moved);
+    commit(view, "Transform", count);
 }
 
 void FemViewGeometryHandler::cancelPreview(FemViewWindow &view)
@@ -501,8 +631,7 @@ void FemViewGeometryHandler::cancelPreview(FemViewWindow &view)
     restoreBaseline(view);
 
     state.previewActive = false;
-    state.nodes.clear();
-    state.baseline.clear();
+    state.context.clear();
 
     view.refreshBeamModelVisuals();
     view.redraw();

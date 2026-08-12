@@ -25,7 +25,8 @@ public:
         Scale = 1,
         Rotate = 2,
         Taper = 3,
-        Mirror = 4
+        Smooth = 4,
+        Mirror = 5
     };
 
     /**
@@ -50,6 +51,13 @@ public:
         int taperAxis{1};
         float taperS0{1.0f};
         float taperS1{1.0f};
+
+        int smoothIterations{10};
+        float smoothLambda{0.5f};
+        float smoothMu{-0.53f};
+        bool smoothLengthWeighted{false};
+        bool pinBC{true};
+        bool pinLoaded{true};
 
         int mirrorAxis{0};
         int mirrorOrigin{2};

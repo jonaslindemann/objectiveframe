@@ -61,7 +61,7 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 | `FemViewEigenmodeHandler.cpp` | All eigenmode compute/visualize/animate operations |
 | `FemViewAiHandler.cpp` | `makeRequest`, `onGenerationComplete` |
 | `FemViewSelectionHandler.cpp` | Structure-aware selection (grow, shrink, connected, member, same plane, same material) |
-| `FemViewGeometryHandler.cpp` | Geometry modification (translate, scale, rotate, mirror, taper) |
+| `FemViewGeometryHandler.cpp` | Geometry modification (translate, scale, rotate, taper, smooth, mirror) |
 | `FemViewModelGraph.cpp` | Shared `ofview_detail::ModelGraph` — model topology, model↔shape maps, selection readback |
 | `FemViewScriptRunner.cpp` | `runPlugin`, `runScript`, `runScriptFromText` |
 
@@ -112,9 +112,13 @@ Selection lives in `IvfViewWindow` (gestures, screen-space maths) with FEM-speci
 
 `mirror()` copies geometry and materials only — BCs and loads have direction, and reflecting them would change the load case without saying so. It also welds via `connectNearNodes()`, which takes its own snapshot, so a welded mirror currently costs two undo steps.
 
-The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`, `rotateSelection`, `mirrorSelection`, `taperSelection`) take the origin as an `int` (0 world, 1 centroid, 2 bounding box centre, 3 cursor, 4 bounding box low face, 5 high face) so they bind directly into ChaiScript. Mirror must use 0, 4 or 5 — a plane through the middle of the selection reflects it onto itself and the weld then removes the copy.
+The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`, `rotateSelection`, `taperSelection`, `smoothSelection`, `mirrorSelection`) take the origin as an `int` (0 world, 1 centroid, 2 bounding box centre, 3 cursor, 4 bounding box low face, 5 high face) so they bind directly into ChaiScript. Mirror must use 0, 4 or 5 — a plane through the middle of the selection reflects it onto itself and the weld then removes the copy.
 
-**One transform path** — `TransformParams` describes any node-moving transform, and `applyTo()` is the only place that implements one. Both the one-shot commands (via `runOnce()`) and the live preview go through it, so they cannot drift apart. `applyTo()` returns false for degenerate parameters; `runOnce()` validates on a throwaway copy *before* `begin()`, so a refused command leaves no undo entry.
+**One transform path** — `TransformParams` describes any node-moving operation (translate, scale, rotate, taper, smooth), and `applyTo()` is the only place that implements one. Both the one-shot commands (via `runOnce()`) and the live preview go through it, so they cannot drift apart. `applyTo()` returns false for degenerate parameters, and `runOnce()` validates *before* `begin()`, so a refused command leaves no undo entry.
+
+**`TransformContext` captures the whole model, not the selection.** Smoothing has to see the neighbours just outside the selection so a boundary node is pulled toward the structure it is attached to rather than only toward its selected neighbours. The context therefore holds every node in model order, plus `adjacency`, and three parallel flag arrays: `affected` (in selection), `hasBC`, `hasLoad`. A `movable` mask is derived from those *per call* via `movableFor()`, so toggling a pin checkbox takes effect without recapturing the model. Matrix transforms touch only movable points; smoothing runs over all points and lets the mask decide who moves. Taper is the exception that needs `movablePoints()` — it interpolates over the extent of what it is given, so handing it the whole model would measure the wrong span.
+
+**Smoothing is Taubin, not Laplacian.** `ofmath::taubinSmooth` alternates a shrink pass (`lambda`) with an inflate pass (`mu`, negative). Plain Laplacian (`mu == 0`) pulls a free-standing frame toward its centroid, which changes the span rather than tidying it. `laplacianPass` computes every new position from the old ones, so results don't depend on node storage order.
 
 **Live preview** (`ofui::TransformWindow`) — `beginPreview()` captures the affected nodes and their coordinates into `GeometryState m_geometry`. Every parameter change re-applies the transform **from that baseline** rather than compounding, so the result depends only on the current values, never on how the slider was dragged; the origin is resolved from the baseline too, so it doesn't drift. `applyPreview()` restores the baseline, *then* snapshots, then applies — which puts the undo point at the start of the gesture and yields exactly one undo entry per gesture.
 

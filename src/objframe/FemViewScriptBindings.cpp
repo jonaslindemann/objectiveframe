@@ -72,6 +72,7 @@ void FemViewScriptBindings::bind(chaiscript::ChaiScript &script, FemViewWindow &
     script.add(chaiscript::fun(&FemViewWindow::rotateSelection, &view), "rotateSelection");
     script.add(chaiscript::fun(&FemViewWindow::mirrorSelection, &view), "mirrorSelection");
     script.add(chaiscript::fun(&FemViewWindow::taperSelection, &view), "taperSelection");
+    script.add(chaiscript::fun(&FemViewWindow::smoothSelection, &view), "smoothSelection");
 
     script.add(chaiscript::fun(&FemViewWindow::addBeamLoadAt, &view), "addBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::clearBeamLoadAt, &view), "clearBeamLoadAt");

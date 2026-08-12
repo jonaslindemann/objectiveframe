@@ -142,4 +142,76 @@ glm::dvec3 transformPoint(const glm::dmat4 &m, const glm::dvec3 &p)
     return glm::dvec3(m * glm::dvec4(p, 1.0));
 }
 
+void laplacianPass(std::vector<glm::dvec3> &pts, const std::vector<std::vector<int>> &adjacency,
+                   const std::vector<bool> &movable, double factor, bool lengthWeighted)
+{
+    if (pts.size() != adjacency.size() || pts.size() != movable.size())
+        return;
+
+    // Read from the old positions throughout and write into a copy. Updating
+    // in place would make each point see some neighbours already moved, which
+    // makes the result depend on storage order.
+
+    std::vector<glm::dvec3> next = pts;
+
+    for (size_t i = 0; i < pts.size(); i++)
+    {
+        if (!movable[i])
+            continue;
+
+        const auto &neighbours = adjacency[i];
+
+        if (neighbours.empty())
+            continue;
+
+        glm::dvec3 sum(0.0);
+        double totalWeight = 0.0;
+
+        for (int j : neighbours)
+        {
+            if ((j < 0) || (j >= int(pts.size())))
+                continue;
+
+            double w = 1.0;
+
+            if (lengthWeighted)
+            {
+                double d = glm::length(pts[j] - pts[i]);
+
+                // Coincident nodes would give an infinite weight and swallow
+                // every other neighbour.
+
+                if (d < 1e-12)
+                    continue;
+
+                w = 1.0 / d;
+            }
+
+            sum += w * pts[j];
+            totalWeight += w;
+        }
+
+        if (totalWeight < 1e-12)
+            continue;
+
+        glm::dvec3 average = sum / totalWeight;
+
+        next[i] = pts[i] + factor * (average - pts[i]);
+    }
+
+    pts.swap(next);
+}
+
+void taubinSmooth(std::vector<glm::dvec3> &pts, const std::vector<std::vector<int>> &adjacency,
+                  const std::vector<bool> &movable, int iterations, double lambda, double mu, bool lengthWeighted)
+{
+    for (int i = 0; i < iterations; i++)
+    {
+        laplacianPass(pts, adjacency, movable, lambda, lengthWeighted);
+
+        if (std::abs(mu) > 1e-12)
+            laplacianPass(pts, adjacency, movable, mu, lengthWeighted);
+    }
+}
+
 } // namespace ofmath

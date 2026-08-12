@@ -282,6 +282,26 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Smooth"))
+        {
+            // Taubin by default. Supports and load points are held, so
+            // smoothing never quietly moves what the model is standing on.
+
+            if (ImGui::MenuItem("Light (3 iterations)", ""))
+                this->smoothSelection(3, 0.5, -0.53, false, true, true);
+            if (ImGui::MenuItem("Medium (10 iterations)", ""))
+                this->smoothSelection(10, 0.5, -0.53, false, true, true);
+            if (ImGui::MenuItem("Heavy (30 iterations)", ""))
+                this->smoothSelection(30, 0.5, -0.53, false, true, true);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Laplacian, shrinks (5 iterations)", ""))
+                this->smoothSelection(5, 0.5, 0.0, false, true, true);
+
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMenu();
     }
 

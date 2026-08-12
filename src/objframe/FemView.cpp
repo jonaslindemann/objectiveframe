@@ -5155,6 +5155,17 @@ void FemViewWindow::taperSelection(int axis, double s0, double s1, int origin)
     FemViewGeometryHandler::taper(*this, axis, s0, s1, toOrigin(origin));
 }
 
+void FemViewWindow::smoothSelection(int iterations, double lambda, double mu, bool lengthWeighted, bool pinBC,
+                                    bool pinLoaded)
+{
+    FemViewGeometryHandler::PinPolicy pins;
+
+    pins.bcNodes = pinBC;
+    pins.loadedNodes = pinLoaded;
+
+    FemViewGeometryHandler::smooth(*this, iterations, lambda, mu, lengthWeighted, pins);
+}
+
 bool FemViewWindow::beginTransformPreview()
 {
     return FemViewGeometryHandler::beginPreview(*this);

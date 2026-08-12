@@ -83,8 +83,25 @@ Handler::TransformParams toParams(const TransformWindow::Fields &f)
         p.s1 = f.taperS1;
         break;
 
+    case TransformWindow::Smooth:
+        p.kind = Handler::TransformKind::Smooth;
+        p.iterations = f.smoothIterations;
+        p.lambda = f.smoothLambda;
+        p.mu = f.smoothMu;
+        p.lengthWeighted = f.smoothLengthWeighted;
+        break;
+
     default:
         break;
+    }
+
+    // Only smoothing pins by default. An explicit transform should move
+    // exactly what was selected.
+
+    if (f.mode == TransformWindow::Smooth)
+    {
+        p.pins.bcNodes = f.pinBC;
+        p.pins.loadedNodes = f.pinLoaded;
     }
 
     return p;
@@ -125,6 +142,9 @@ bool TransformWindow::hasChange() const
 
     case Taper:
         return (m_fields.taperS0 != 1.0f) || (m_fields.taperS1 != 1.0f);
+
+    case Smooth:
+        return m_fields.smoothIterations > 0;
 
     default:
         return false;
@@ -229,6 +249,36 @@ void TransformWindow::doDraw()
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Smooth"))
+        {
+            m_fields.mode = Smooth;
+
+            if (ImGui::SliderInt("Iterations", &m_fields.smoothIterations, 0, 100))
+                pushPreview();
+
+            if (ImGui::SliderFloat("Lambda", &m_fields.smoothLambda, 0.0f, 1.0f))
+                pushPreview();
+
+            if (ImGui::SliderFloat("Mu", &m_fields.smoothMu, -1.0f, 0.0f))
+                pushPreview();
+
+            if (m_fields.smoothMu == 0.0f)
+                ImGui::TextUnformatted("Mu 0 is plain Laplacian - it shrinks.");
+
+            if (ImGui::Checkbox("Weight by 1/length", &m_fields.smoothLengthWeighted))
+                pushPreview();
+
+            ImGui::Separator();
+
+            if (ImGui::Checkbox("Hold fixed nodes", &m_fields.pinBC))
+                pushPreview();
+
+            if (ImGui::Checkbox("Hold loaded nodes", &m_fields.pinLoaded))
+                pushPreview();
+
+            ImGui::EndTabItem();
+        }
+
         if (ImGui::BeginTabItem("Mirror"))
         {
             m_fields.mode = Mirror;
@@ -238,12 +288,23 @@ void TransformWindow::doDraw()
         ImGui::EndTabBar();
     }
 
-    // Switching tabs abandons whatever the previous tab was previewing.
+    // Switching tabs abandons whatever the previous tab was previewing. This
+    // has to happen after the tab bar, because that is where the new mode
+    // becomes known.
 
-    if (m_fields.mode != previousMode)
+    bool modeChanged = (m_fields.mode != previousMode);
+
+    if (modeChanged)
     {
         m_view->cancelTransformPreview();
         resetFields();
+
+        // Smoothing has no neutral setting to sit at - opening the tab is
+        // itself a request to see what it would do. Seeded once on entry, so
+        // Reset still leaves the preview off until something is edited.
+
+        if (m_fields.mode == Smooth)
+            pushPreview();
     }
 
     ImGui::Separator();
@@ -267,9 +328,10 @@ void TransformWindow::doDraw()
     }
 
     // Move has no origin - a delta means the same thing wherever it is
-    // measured from.
+    // measured from - and smoothing is defined by the topology rather than by
+    // any point in space.
 
-    if (m_fields.mode != Move)
+    if ((m_fields.mode != Move) && (m_fields.mode != Smooth))
     {
         if (ImGui::Combo("About", &m_fields.origin, originNames))
             pushPreview();

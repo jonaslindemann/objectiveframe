@@ -228,8 +228,7 @@ private:
 
     struct GeometryState {
         bool previewActive{false};
-        std::vector<ofem::Node *> nodes;
-        std::vector<double> baseline; //!< Three doubles per node
+        FemViewGeometryHandler::TransformContext context;
     };
     GeometryState m_geometry;
 
@@ -591,6 +590,7 @@ public:
     void rotateSelection(double ax, double ay, double az, double angleDeg, int origin);
     void mirrorSelection(int axis, int origin, double weldTolerance);
     void taperSelection(int axis, double s0, double s1, int origin);
+    void smoothSelection(int iterations, double lambda, double mu, bool lengthWeighted, bool pinBC, bool pinLoaded);
 
     // Live transform preview, driven by ofui::TransformWindow
 

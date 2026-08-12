@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.5.2";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.5.3";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2026\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -162,6 +162,7 @@ class FemViewWindow : public IvfViewWindow {
     friend class FemViewEigenmodeHandler;
     friend class FemViewAiHandler;
     friend class FemViewSelectionHandler;
+    friend class FemViewGeometryHandler;
 
 public:
     // Side of the square workspace a new model starts with.
@@ -568,6 +569,15 @@ public:
     void selectMember();
     void selectSamePlane(int axis);
     void selectSameMaterial();
+
+    // Geometry modification - see FemViewGeometryHandler
+
+    void translateSelection(double dx, double dy, double dz);
+    void scaleSelection(double sx, double sy, double sz, int origin);
+    void rotateSelection(double ax, double ay, double az, double angleDeg, int origin);
+    void mirrorSelection(int axis, int origin, double weldTolerance);
+    void taperSelection(int axis, double s0, double s1, int origin);
+
     void showMaterials();
     void showProperties();
     void executeCalc();

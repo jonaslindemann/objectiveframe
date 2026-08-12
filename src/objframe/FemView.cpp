@@ -6,6 +6,7 @@
 #include "FemViewEigenmodeHandler.h"
 #include "FemViewAiHandler.h"
 #include "FemViewSelectionHandler.h"
+#include "FemViewGeometryHandler.h"
 
 #include <filesystem>
 #include <functional>
@@ -5091,6 +5092,57 @@ void FemViewWindow::selectSameMaterial()
     FemViewSelectionHandler::selectSameMaterial(*this);
 }
 
+// Geometry modification. The origin arrives as an int so that these forward
+// straight into the scripting interface, which has no notion of the enum.
+
+namespace {
+
+FemViewGeometryHandler::Origin toOrigin(int origin)
+{
+    switch (origin)
+    {
+    case 1:
+        return FemViewGeometryHandler::Origin::Centroid;
+    case 2:
+        return FemViewGeometryHandler::Origin::BoundingBoxCentre;
+    case 3:
+        return FemViewGeometryHandler::Origin::Cursor;
+    case 4:
+        return FemViewGeometryHandler::Origin::BoundingBoxLow;
+    case 5:
+        return FemViewGeometryHandler::Origin::BoundingBoxHigh;
+    default:
+        return FemViewGeometryHandler::Origin::World;
+    }
+}
+
+} // namespace
+
+void FemViewWindow::translateSelection(double dx, double dy, double dz)
+{
+    FemViewGeometryHandler::translate(*this, dx, dy, dz);
+}
+
+void FemViewWindow::scaleSelection(double sx, double sy, double sz, int origin)
+{
+    FemViewGeometryHandler::scale(*this, sx, sy, sz, toOrigin(origin));
+}
+
+void FemViewWindow::rotateSelection(double ax, double ay, double az, double angleDeg, int origin)
+{
+    FemViewGeometryHandler::rotate(*this, ax, ay, az, angleDeg, toOrigin(origin));
+}
+
+void FemViewWindow::mirrorSelection(int axis, int origin, double weldTolerance)
+{
+    FemViewGeometryHandler::mirror(*this, axis, toOrigin(origin), weldTolerance);
+}
+
+void FemViewWindow::taperSelection(int axis, double s0, double s1, int origin)
+{
+    FemViewGeometryHandler::taper(*this, axis, s0, s1, toOrigin(origin));
+}
+
 void FemViewWindow::updateSelectionCount()
 {
     if (m_coordWindow == nullptr)
@@ -5390,8 +5442,10 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
         m_dlg.saveFile = true;
     }
 
-    // Grow/shrink the selection. Accept both the main row and the keypad, and
-    // note that '+' arrives as GLFW_KEY_EQUAL because it needs shift.
+    // Grow/shrink the selection. Any key that prints '+' or '-' in the active
+    // layout has already been normalized to the keypad tokens by
+    // IvfViewWindow::onGlfwKey, so the main row only has to add the US layout
+    // case where '+' needs shift and arrives as GLFW_KEY_EQUAL.
 
     if ((modifier == ModifierKey::mkCtrl) && ((key == GLFW_KEY_EQUAL) || (key == GLFW_KEY_KP_ADD)))
     {

@@ -180,6 +180,98 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         ImGui::EndMenu();
     }
 
+    if (ImGui::BeginMenu("Modify"))
+    {
+        // Fixed step commands until the transform panel lands. Scale and
+        // rotate work about the centroid of the selection, which is the origin
+        // that keeps the selection where the user left it.
+
+        // Welding uses the same tolerance rule as the rest of the application,
+        // so "coincident" means one thing everywhere.
+
+        const double weldTolerance = std::max(this->getWorkspace() * 1.0e-4, 1.0e-5);
+
+        if (ImGui::BeginMenu("Scale"))
+        {
+            if (ImGui::MenuItem("Grow 10%", ""))
+                this->scaleSelection(1.1, 1.1, 1.1, 1);
+            if (ImGui::MenuItem("Shrink 10%", ""))
+                this->scaleSelection(1.0 / 1.1, 1.0 / 1.1, 1.0 / 1.1, 1);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Stretch X 10%", ""))
+                this->scaleSelection(1.1, 1.0, 1.0, 1);
+            if (ImGui::MenuItem("Stretch Y 10%", ""))
+                this->scaleSelection(1.0, 1.1, 1.0, 1);
+            if (ImGui::MenuItem("Stretch Z 10%", ""))
+                this->scaleSelection(1.0, 1.0, 1.1, 1);
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Rotate"))
+        {
+            if (ImGui::MenuItem("90 about X", ""))
+                this->rotateSelection(1.0, 0.0, 0.0, 90.0, 1);
+            if (ImGui::MenuItem("90 about Y", ""))
+                this->rotateSelection(0.0, 1.0, 0.0, 90.0, 1);
+            if (ImGui::MenuItem("90 about Z", ""))
+                this->rotateSelection(0.0, 0.0, 1.0, 90.0, 1);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("15 about X", ""))
+                this->rotateSelection(1.0, 0.0, 0.0, 15.0, 1);
+            if (ImGui::MenuItem("15 about Y", ""))
+                this->rotateSelection(0.0, 1.0, 0.0, 15.0, 1);
+            if (ImGui::MenuItem("15 about Z", ""))
+                this->rotateSelection(0.0, 0.0, 1.0, 15.0, 1);
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Mirror"))
+        {
+            // The mirror plane has to sit at the edge of the selection or at
+            // the world origin. A plane through the middle of the selection
+            // would reflect it onto itself and the weld would eat the copy.
+
+            const char *axisName[3] = {"X", "Y", "Z"};
+
+            for (int axis = 0; axis < 3; axis++)
+            {
+                if (ImGui::BeginMenu(axisName[axis]))
+                {
+                    if (ImGui::MenuItem("About world origin", ""))
+                        this->mirrorSelection(axis, 0, weldTolerance);
+                    if (ImGui::MenuItem("About low face", ""))
+                        this->mirrorSelection(axis, 4, weldTolerance);
+                    if (ImGui::MenuItem("About high face", ""))
+                        this->mirrorSelection(axis, 5, weldTolerance);
+
+                    ImGui::EndMenu();
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Taper"))
+        {
+            if (ImGui::MenuItem("Along X, 1.0 to 0.5", ""))
+                this->taperSelection(0, 1.0, 0.5, 1);
+            if (ImGui::MenuItem("Along Y, 1.0 to 0.5", ""))
+                this->taperSelection(1, 1.0, 0.5, 1);
+            if (ImGui::MenuItem("Along Z, 1.0 to 0.5", ""))
+                this->taperSelection(2, 1.0, 0.5, 1);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenu();
+    }
+
     if (ImGui::BeginMenu("View"))
     {
         if (ImGui::MenuItem("Fit workspace to model", "", false, m_beamModel->getNodeSet()->getSize() > 0))

@@ -16,6 +16,33 @@
 using namespace std;
 using namespace ivf;
 
+namespace {
+
+/**
+ * GLFW key tokens name physical keys by their US layout position, so the key
+ * that actually prints '+' or '-' moves around between layouts -- on a Swedish
+ * layout '+' sits where GLFW reports GLFW_KEY_MINUS and '-' where it reports
+ * GLFW_KEY_SLASH. glfwGetKeyName() asks the active layout what the key prints,
+ * which lets us funnel both of them into the keypad tokens so shortcuts can be
+ * written once.
+ */
+int normalizeShortcutKey(int key, int scancode)
+{
+    const char *keyName = glfwGetKeyName(key, scancode);
+
+    if ((keyName != nullptr) && (keyName[0] != '\0') && (keyName[1] == '\0'))
+    {
+        if (keyName[0] == '+')
+            return GLFW_KEY_KP_ADD;
+        if (keyName[0] == '-')
+            return GLFW_KEY_KP_SUBTRACT;
+    }
+
+    return key;
+}
+
+} // namespace
+
 std::shared_ptr<IvfViewWindow> IvfViewWindow::create(int width, int height, const std::string title,
                                                      GLFWmonitor *monitor, GLFWwindow *shared)
 {
@@ -80,12 +107,14 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 
     if ((key < GLFW_KEY_LEFT_SHIFT) && (m_currentModifier != ButtonState::bsNoButton) && (action == GLFW_PRESS))
     {
+        int shortcutKey = normalizeShortcutKey(key, scancode);
+
         if (m_currentModifier == ButtonState::bsShift)
-            doShortcut(ModifierKey::mkShift, key);
+            doShortcut(ModifierKey::mkShift, shortcutKey);
         if (m_currentModifier == ButtonState::bsCtrl)
-            doShortcut(ModifierKey::mkCtrl, key);
+            doShortcut(ModifierKey::mkCtrl, shortcutKey);
         if (m_currentModifier == ButtonState::bsAlt)
-            doShortcut(ModifierKey::mkAlt, key);
+            doShortcut(ModifierKey::mkAlt, shortcutKey);
     }
     else
     {

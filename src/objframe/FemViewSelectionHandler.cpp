@@ -1,179 +1,20 @@
 #include "FemViewSelectionHandler.h"
 
 #include "FemView.h"
+#include "FemViewModelGraph.h"
 
 #include <algorithm>
 #include <cmath>
-#include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-namespace {
-
-// The beam model as a plain graph, plus the mapping back to the shapes the
-// scene actually holds. Built fresh for each command - the models are small
-// enough that this is cheaper than keeping an index in sync.
-
-struct ModelGraph {
-    std::vector<ofem::Node *> nodes;
-    std::vector<ofem::Beam *> beams;
-
-    // Beams meeting at a node
-    std::map<ofem::Node *, std::vector<ofem::Beam *>> beamsAt;
-
-    // The scene shape representing each model object
-    std::map<ofem::Node *, ivf::Shape *> nodeShape;
-    std::map<ofem::Beam *, ivf::Shape *> beamShape;
-
-    // The current selection, expressed in model terms
-    std::set<ofem::Node *> selectedNodes;
-    std::set<ofem::Beam *> selectedBeams;
-
-    bool hasSelection() const
-    {
-        return !selectedNodes.empty() || !selectedBeams.empty();
-    }
-};
-
-ofem::Beam *otherEnd(ofem::Beam *beam, ofem::Node *node, ofem::Node *&other)
-{
-    auto n0 = beam->getNode(0);
-    auto n1 = beam->getNode(1);
-
-    if (n0 == node)
-        other = n1;
-    else if (n1 == node)
-        other = n0;
-    else
-        other = nullptr;
-
-    return beam;
-}
-
-void nodeCoord(ofem::Node *node, double v[3])
-{
-    node->getCoord(v[0], v[1], v[2]);
-}
-
-// Unit vector from one node to the other. Returns false for a zero length beam.
-
-bool beamDirection(ofem::Beam *beam, double dir[3])
-{
-    if (beam->getSize() < 2)
-        return false;
-
-    double a[3], b[3];
-    nodeCoord(beam->getNode(0), a);
-    nodeCoord(beam->getNode(1), b);
-
-    dir[0] = b[0] - a[0];
-    dir[1] = b[1] - a[1];
-    dir[2] = b[2] - a[2];
-
-    double length = std::sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-
-    if (length < 1e-12)
-        return false;
-
-    dir[0] /= length;
-    dir[1] /= length;
-    dir[2] /= length;
-
-    return true;
-}
-
-// Builds the graph and reads the current selection out of the scene.
-
-bool buildGraph(FemViewWindow &view, ModelGraph &graph)
-{
-    auto model = view.getModel();
-
-    if (model == nullptr)
-        return false;
-
-    auto nodeSet = model->getNodeSet();
-    auto beamSet = model->getElementSet();
-
-    if ((nodeSet == nullptr) || (beamSet == nullptr))
-        return false;
-
-    for (long i = 0; i < long(nodeSet->getSize()); i++)
-        graph.nodes.push_back(nodeSet->getNode(i));
-
-    for (long i = 0; i < long(beamSet->getSize()); i++)
-    {
-        auto beam = static_cast<ofem::Beam *>(beamSet->getElement(i));
-
-        if (beam == nullptr || beam->getSize() < 2)
-            continue;
-
-        graph.beams.push_back(beam);
-        graph.beamsAt[beam->getNode(0)].push_back(beam);
-        graph.beamsAt[beam->getNode(1)].push_back(beam);
-    }
-
-    // Map model objects to scene shapes. Reading it from the scene rather than
-    // from Base::getUser() keeps this honest about what is actually selectable.
-
-    auto scene = view.getScene()->getComposite();
-
-    for (int i = 0; i < scene->getSize(); i++)
-    {
-        auto shape = scene->getChild(i);
-
-        if (shape->isClass("vfem::Node"))
-        {
-            auto visNode = static_cast<vfem::Node *>(shape);
-            graph.nodeShape[visNode->getFemNode()] = shape;
-        }
-        else if (shape->isClass("vfem::Beam"))
-        {
-            auto visBeam = static_cast<vfem::Beam *>(shape);
-            graph.beamShape[visBeam->getBeam()] = shape;
-        }
-    }
-
-    auto selected = view.getSelectedShapes();
-
-    for (int i = 0; i < selected->getSize(); i++)
-    {
-        auto shape = selected->getChild(i);
-
-        if (shape->isClass("vfem::Node"))
-            graph.selectedNodes.insert(static_cast<vfem::Node *>(shape)->getFemNode());
-        else if (shape->isClass("vfem::Beam"))
-            graph.selectedBeams.insert(static_cast<vfem::Beam *>(shape)->getBeam());
-    }
-
-    return true;
-}
-
-// Pushes a model level selection back into the view.
-
-void applySelection(FemViewWindow &view, ModelGraph &graph, const std::set<ofem::Node *> &nodes,
-                    const std::set<ofem::Beam *> &beams)
-{
-    std::vector<ivf::Shape *> shapes;
-
-    for (auto node : nodes)
-    {
-        auto it = graph.nodeShape.find(node);
-        if (it != graph.nodeShape.end())
-            shapes.push_back(it->second);
-    }
-
-    for (auto beam : beams)
-    {
-        auto it = graph.beamShape.find(beam);
-        if (it != graph.beamShape.end())
-            shapes.push_back(it->second);
-    }
-
-    view.setSelection(shapes);
-}
-
-} // namespace
+using ofview_detail::applySelection;
+using ofview_detail::beamDirection;
+using ofview_detail::buildGraph;
+using ofview_detail::ModelGraph;
+using ofview_detail::nodeCoord;
+using ofview_detail::otherEnd;
 
 void FemViewSelectionHandler::report(FemViewWindow &view, const std::string what)
 {

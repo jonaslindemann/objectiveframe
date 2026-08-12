@@ -61,9 +61,13 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 | `FemViewEigenmodeHandler.cpp` | All eigenmode compute/visualize/animate operations |
 | `FemViewAiHandler.cpp` | `makeRequest`, `onGenerationComplete` |
 | `FemViewSelectionHandler.cpp` | Structure-aware selection (grow, shrink, connected, member, same plane, same material) |
+| `FemViewGeometryHandler.cpp` | Geometry modification (translate, scale, rotate, mirror, taper) |
+| `FemViewModelGraph.cpp` | Shared `ofview_detail::ModelGraph` — model topology, model↔shape maps, selection readback |
 | `FemViewScriptRunner.cpp` | `runPlugin`, `runScript`, `runScriptFromText` |
 
 **Static handler class pattern** — operation clusters are extracted into classes with only `static` methods that take `FemViewWindow &view`. Each handler is declared `friend class` in `FemView.h` so it can access private members directly. Follow this pattern when adding new operation groups.
+
+**`ModelGraph`** — handlers that need topology rather than screen geometry build an `ofview_detail::ModelGraph` (`FemViewModelGraph.h`) with `buildGraph(view, graph)`. It gives the node/beam lists in model order, the `beamsAt` adjacency, the model↔scene-shape maps, and the current selection expressed in model terms. It is built fresh per command — the models are small enough that this beats keeping an index in sync.
 
 **Nested state struct pattern** — related private member variables are grouped into nested structs with default member initializers. Current structs:
 
@@ -93,6 +97,28 @@ Selection lives in `IvfViewWindow` (gestures, screen-space maths) with FEM-speci
 **Selection filter** — `m_selectFilter` is what is in force; `m_userSelectFilter` is the user's toolbar choice. Modes that need their own filter (e.g. `CreateLine` needs nodes) override `m_selectFilter`; the three selection modes restore `m_userSelectFilter`. One-off commands that need a temporary filter must save and restore it.
 
 **Dormant code** — `WidgetMode::SelectVolume`, the `m_volumeSelection` wire brick and `selectAllBox()` are the pre-rubber-band world-space volume selection. Nothing reaches them from the UI.
+
+### Geometry modification
+
+`FemViewGeometryHandler` holds the commands that change model geometry. Pure maths lives in `ofmath` (`include/ofmath/geom_ops.h`) and knows nothing about FEM or scene types. Four invariants apply to every geometry command — follow them when adding more:
+
+**Move nodes, never rebuild them.** Node and beam indices must survive, or scripts holding indices and result arrays indexed by node silently misalign. Only `mirror()` adds anything, and it appends.
+
+**Write to the model, refresh once.** Commands call `ofem::Node::setCoord` and then `refreshBeamModelVisuals()` exactly once. Do not use `updateNodePosAt` in a loop — it goes through `vfem::Node::setPosition`, which updates the node's own shape but leaves the attached beams stale.
+
+**Reset the representation, but only from a displacement mode.** `begin()` does `snapShot()` → drop to `RepresentationMode::Geometry` *if* the current mode is `Displacements` or `Results` → `m_solver.needRecalc = true`. `vfem::Node::refresh()` draws a node at its model coordinate *plus* its scaled displacement, so moving nodes while displacements are on screen would blend new geometry with old deformation. Do **not** reset unconditionally: `Fem` and `Geometry` are both undeformed but render differently (`IVF_BEAM_SOLID` tubes vs `IVF_BEAM_EXTRUSION` cross-sections), so forcing the switch visibly changes beam thickness for no reason — and because selected beams bypass the display list while unselected ones replay it, the two halves of the model end up drawn in different modes until the next deselect.
+
+**The affected set is selected nodes ∪ endpoints of selected beams**, so selecting a beam and scaling behaves as it looks. `PinPolicy` then excludes nodes with BCs or loads: transforms default to pinning neither (an explicit transform should do exactly what was asked), while smoothing and projection default to pinning both, because silently relaxing a support or load point changes what the model means.
+
+`mirror()` copies geometry and materials only — BCs and loads have direction, and reflecting them would change the load case without saying so. It also welds via `connectNearNodes()`, which takes its own snapshot, so a welded mirror currently costs two undo steps.
+
+The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`, `rotateSelection`, `mirrorSelection`, `taperSelection`) take the origin as an `int` (0 world, 1 centroid, 2 bounding box centre, 3 cursor, 4 bounding box low face, 5 high face) so they bind directly into ChaiScript. Mirror must use 0, 4 or 5 — a plane through the middle of the selection reflects it onto itself and the weld then removes the copy.
+
+### Keyboard shortcuts
+
+`IvfViewWindow::onGlfwKey()` dispatches modifier + key combinations to the virtual `doShortcut()` / `onShortcut()` pair; `FemViewWindow::onShortcut()` holds all application shortcuts. Only one modifier is reported per event — shift, then ctrl, then alt win in that order — and keys at or above `GLFW_KEY_LEFT_SHIFT` are never treated as shortcuts.
+
+**Punctuation keys are layout-dependent.** GLFW key tokens name *physical* keys by their US-layout position, so `GLFW_KEY_MINUS` is not the key that prints `-` on a non-US keyboard (on a Swedish layout it prints `+`, and `-` sits at `GLFW_KEY_SLASH`). `onGlfwKey()` therefore runs every shortcut through `normalizeShortcutKey()`, which asks `glfwGetKeyName()` what the key actually prints in the active layout and funnels anything printing `+` or `-` into `GLFW_KEY_KP_ADD` / `GLFW_KEY_KP_SUBTRACT`. Match against the keypad tokens when binding a punctuation shortcut; add the US-layout token (e.g. `GLFW_KEY_EQUAL` for `+`, which needs shift there) only as an extra case.
 
 ### Library modules (each compiled as a separate static lib)
 

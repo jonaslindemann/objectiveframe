@@ -64,6 +64,15 @@ void FemViewScriptBindings::bind(chaiscript::ChaiScript &script, FemViewWindow &
     script.add(chaiscript::fun(&FemViewWindow::hasNodeLoadAt, &view), "hasNodeLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::nodeLoadCount, &view), "nodeLoadCount");
 
+    // Geometry modification. The origin argument is 0 world, 1 centroid,
+    // 2 bounding box centre, 3 cursor.
+
+    script.add(chaiscript::fun(&FemViewWindow::translateSelection, &view), "translateSelection");
+    script.add(chaiscript::fun(&FemViewWindow::scaleSelection, &view), "scaleSelection");
+    script.add(chaiscript::fun(&FemViewWindow::rotateSelection, &view), "rotateSelection");
+    script.add(chaiscript::fun(&FemViewWindow::mirrorSelection, &view), "mirrorSelection");
+    script.add(chaiscript::fun(&FemViewWindow::taperSelection, &view), "taperSelection");
+
     script.add(chaiscript::fun(&FemViewWindow::addBeamLoadAt, &view), "addBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::clearBeamLoadAt, &view), "clearBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::hasBeamLoadAt, &view), "hasBeamLoadAt");

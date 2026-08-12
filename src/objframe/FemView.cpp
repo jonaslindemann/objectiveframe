@@ -4400,6 +4400,12 @@ void FemViewWindow::onInit()
 
     m_windowList->add(m_eigenmodeWindow);
 
+    m_transformWindow = ofui::TransformWindow::create("Transform");
+    m_transformWindow->setView(this);
+    m_transformWindow->setVisible(false);
+
+    m_windowList->add(m_transformWindow);
+
     m_viewWindow = ofui::ViewWindow::create("View");
     m_viewWindow->setScene(getScene());
     m_viewWindow->setSourceView(this);
@@ -4638,6 +4644,12 @@ void FemViewWindow::onCreateLine(ivf::Node *node1, ivf::Node *node2, Shape *&new
 
 void FemViewWindow::onSelect(Composite *selectedShapes)
 {
+    // A live preview holds the nodes it captured. Once the selection moves on,
+    // those are no longer what the panel is talking about - and if the user
+    // goes on to delete them, they would dangle.
+
+    this->cancelTransformPreview();
+
     // Handle object selection
 
     if (m_customMode == CustomMode::Normal)
@@ -5143,6 +5155,31 @@ void FemViewWindow::taperSelection(int axis, double s0, double s1, int origin)
     FemViewGeometryHandler::taper(*this, axis, s0, s1, toOrigin(origin));
 }
 
+bool FemViewWindow::beginTransformPreview()
+{
+    return FemViewGeometryHandler::beginPreview(*this);
+}
+
+void FemViewWindow::updateTransformPreview(const FemViewGeometryHandler::TransformParams &params)
+{
+    FemViewGeometryHandler::updatePreview(*this, params);
+}
+
+void FemViewWindow::applyTransformPreview(const FemViewGeometryHandler::TransformParams &params)
+{
+    FemViewGeometryHandler::applyPreview(*this, params);
+}
+
+void FemViewWindow::cancelTransformPreview()
+{
+    FemViewGeometryHandler::cancelPreview(*this);
+}
+
+bool FemViewWindow::isTransformPreviewActive()
+{
+    return FemViewGeometryHandler::previewActive(*this);
+}
+
 void FemViewWindow::updateSelectionCount()
 {
     if (m_coordWindow == nullptr)
@@ -5154,6 +5191,8 @@ void FemViewWindow::updateSelectionCount()
 void FemViewWindow::onDeSelect()
 {
     log("onDeSelect");
+
+    this->cancelTransformPreview();
 
     m_propWindow->setNode(nullptr);
     m_propWindow->setBeam(nullptr);
@@ -5858,6 +5897,12 @@ void FemViewWindow::onDrawImGui()
         this->executeCalc();
 
     m_windowList->draw();
+
+    // Closing the transform panel mid-gesture would otherwise leave the
+    // previewed geometry in place with no undo entry behind it.
+
+    if ((m_transformWindow != nullptr) && !m_transformWindow->visible() && this->isTransformPreviewActive())
+        this->cancelTransformPreview();
 
     ImGui::Render();
 

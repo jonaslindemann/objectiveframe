@@ -182,6 +182,19 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
     if (ImGui::BeginMenu("Modify"))
     {
+        if (ImGui::MenuItem("Transform...", "", m_transformWindow->visible()))
+        {
+            if (m_transformWindow->visible())
+                m_transformWindow->hide();
+            else
+            {
+                m_transformWindow->show();
+                m_windowList->placeWindow(m_transformWindow);
+            }
+        }
+
+        ImGui::Separator();
+
         // Fixed step commands until the transform panel lands. Scale and
         // rotate work about the centroid of the selection, which is the origin
         // that keeps the selection where the user left it.

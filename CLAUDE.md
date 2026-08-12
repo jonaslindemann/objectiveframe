@@ -114,6 +114,14 @@ Selection lives in `IvfViewWindow` (gestures, screen-space maths) with FEM-speci
 
 The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`, `rotateSelection`, `mirrorSelection`, `taperSelection`) take the origin as an `int` (0 world, 1 centroid, 2 bounding box centre, 3 cursor, 4 bounding box low face, 5 high face) so they bind directly into ChaiScript. Mirror must use 0, 4 or 5 — a plane through the middle of the selection reflects it onto itself and the weld then removes the copy.
 
+**One transform path** — `TransformParams` describes any node-moving transform, and `applyTo()` is the only place that implements one. Both the one-shot commands (via `runOnce()`) and the live preview go through it, so they cannot drift apart. `applyTo()` returns false for degenerate parameters; `runOnce()` validates on a throwaway copy *before* `begin()`, so a refused command leaves no undo entry.
+
+**Live preview** (`ofui::TransformWindow`) — `beginPreview()` captures the affected nodes and their coordinates into `GeometryState m_geometry`. Every parameter change re-applies the transform **from that baseline** rather than compounding, so the result depends only on the current values, never on how the slider was dragged; the origin is resolved from the baseline too, so it doesn't drift. `applyPreview()` restores the baseline, *then* snapshots, then applies — which puts the undo point at the start of the gesture and yields exactly one undo entry per gesture.
+
+A preview holds raw `ofem::Node *`, so it is cancelled from `onSelect()`/`onDeSelect()` and whenever the panel is found hidden in `onDrawImGui()`. Any new path that deletes nodes while a preview could be live must cancel it too.
+
+`ofui` headers must not include `objframe` headers — `transform_window.h` keeps its widget values in a plain `Fields` struct and translates them to `TransformParams` in the `.cpp`, which is the only place that includes `FemView.h`.
+
 ### Keyboard shortcuts
 
 `IvfViewWindow::onGlfwKey()` dispatches modifier + key combinations to the virtual `doShortcut()` / `onShortcut()` pair; `FemViewWindow::onShortcut()` holds all application shortcuts. Only one modifier is reported per event — shift, then ctrl, then alt win in that order — and keys at or above `GLFW_KEY_LEFT_SHIFT` are never treated as shortcuts.

@@ -152,10 +152,8 @@ bool FemViewGeometryHandler::gatherNodes(FemViewWindow &view, const std::string 
     return true;
 }
 
-void FemViewGeometryHandler::begin(FemViewWindow &view)
+void FemViewGeometryHandler::dropDisplacementMode(FemViewWindow &view)
 {
-    view.snapShot();
-
     // Results belong to the old geometry. Showing them over the new one would
     // draw nodes at their new coordinate plus their old scaled displacement.
     //
@@ -168,8 +166,12 @@ void FemViewGeometryHandler::begin(FemViewWindow &view)
 
     if ((repr == RepresentationMode::Displacements) || (repr == RepresentationMode::Results))
         view.setRepresentation(RepresentationMode::Geometry);
+}
 
-    view.m_solver.needRecalc = true;
+void FemViewGeometryHandler::begin(FemViewWindow &view)
+{
+    view.snapShot();
+    dropDisplacementMode(view);
 }
 
 void FemViewGeometryHandler::commit(FemViewWindow &view, const std::string &what, size_t moved)
@@ -179,6 +181,7 @@ void FemViewGeometryHandler::commit(FemViewWindow &view, const std::string &what
 
     view.refreshBeamModelVisuals();
     view.set_changed();
+    view.m_solver.needRecalc = true;
     view.redraw();
 
     view.console(what + ": " + std::to_string(moved) + " node(s) moved.");
@@ -231,100 +234,278 @@ glm::dvec3 FemViewGeometryHandler::originFor(FemViewWindow &view, Origin origin,
     return resolveOrigin(origin, pts, glm::dvec3(view.m_selectedPos[0], view.m_selectedPos[1], view.m_selectedPos[2]));
 }
 
-void FemViewGeometryHandler::translate(FemViewWindow &view, double dx, double dy, double dz)
+bool FemViewGeometryHandler::applyTo(std::vector<glm::dvec3> &pts, const TransformParams &params,
+                                     const glm::dvec3 &origin)
 {
-    std::vector<ofem::Node *> nodes;
+    switch (params.kind)
+    {
+    case TransformKind::Translate: {
+        auto m = ofmath::translationMatrix(glm::dvec3(params.delta[0], params.delta[1], params.delta[2]));
 
-    if (!gatherNodes(view, "Translate", PinPolicy{}, nodes))
-        return;
+        for (auto &p : pts)
+            p = ofmath::transformPoint(m, p);
 
-    begin(view);
+        return true;
+    }
 
-    auto pts = coordsOf(nodes);
-    auto m = ofmath::translationMatrix(glm::dvec3(dx, dy, dz));
+    case TransformKind::Scale: {
+        // A zero factor collapses the selection onto a plane and cannot be
+        // undone by scaling back, so refuse it rather than quietly destroying
+        // the geometry.
 
-    for (auto &p : pts)
-        p = ofmath::transformPoint(m, p);
+        for (int i = 0; i < 3; i++)
+            if (std::abs(params.factors[i]) < 1e-12)
+                return false;
 
-    writeCoords(nodes, pts);
-    commit(view, "Translate", nodes.size());
+        auto m = ofmath::scaleMatrix(glm::dvec3(params.factors[0], params.factors[1], params.factors[2]), origin);
+
+        for (auto &p : pts)
+            p = ofmath::transformPoint(m, p);
+
+        return true;
+    }
+
+    case TransformKind::Rotate: {
+        glm::dvec3 axis(params.axis[0], params.axis[1], params.axis[2]);
+
+        if (glm::length(axis) < 1e-12)
+            return false;
+
+        auto m = ofmath::rotationMatrix(axis, params.angleDeg * pi / 180.0, origin);
+
+        for (auto &p : pts)
+            p = ofmath::transformPoint(m, p);
+
+        return true;
+    }
+
+    case TransformKind::Taper: {
+        if ((params.taperAxis < 0) || (params.taperAxis > 2))
+            return false;
+
+        ofmath::applyTaper(pts, params.taperAxis, params.s0, params.s1, origin);
+
+        return true;
+    }
+    }
+
+    return false;
 }
 
-void FemViewGeometryHandler::scale(FemViewWindow &view, double sx, double sy, double sz, Origin origin)
+void FemViewGeometryHandler::runOnce(FemViewWindow &view, const std::string &what, const TransformParams &params)
 {
     std::vector<ofem::Node *> nodes;
 
-    if (!gatherNodes(view, "Scale", PinPolicy{}, nodes))
+    if (!gatherNodes(view, what, PinPolicy{}, nodes))
         return;
 
-    // A zero factor collapses the model onto a plane and cannot be undone by
-    // scaling back, so refuse it rather than quietly destroying the geometry.
+    auto pts = coordsOf(nodes);
 
-    if ((std::abs(sx) < 1e-12) || (std::abs(sy) < 1e-12) || (std::abs(sz) < 1e-12))
+    // Validate before taking a snapshot, so a refused command leaves no undo
+    // entry behind.
+
+    auto probe = pts;
+
+    if (!applyTo(probe, params, originFor(view, params.origin, pts)))
     {
-        view.console("Scale: a scale factor of zero would collapse the selection.");
-        view.notify("Scale factors must be non-zero.", ofui::NotificationLevel::Warning);
+        view.console(what + ": the parameters are degenerate and would collapse the selection.");
+        view.notify(what + ": invalid parameters.", ofui::NotificationLevel::Warning);
         return;
     }
 
     begin(view);
 
-    auto pts = coordsOf(nodes);
-    auto m = ofmath::scaleMatrix(glm::dvec3(sx, sy, sz), originFor(view, origin, pts));
+    writeCoords(nodes, probe);
+    commit(view, what, nodes.size());
+}
 
-    for (auto &p : pts)
-        p = ofmath::transformPoint(m, p);
+void FemViewGeometryHandler::translate(FemViewWindow &view, double dx, double dy, double dz)
+{
+    TransformParams params;
 
-    writeCoords(nodes, pts);
-    commit(view, "Scale", nodes.size());
+    params.kind = TransformKind::Translate;
+    params.delta[0] = dx;
+    params.delta[1] = dy;
+    params.delta[2] = dz;
+
+    runOnce(view, "Translate", params);
+}
+
+void FemViewGeometryHandler::scale(FemViewWindow &view, double sx, double sy, double sz, Origin origin)
+{
+    TransformParams params;
+
+    params.kind = TransformKind::Scale;
+    params.origin = origin;
+    params.factors[0] = sx;
+    params.factors[1] = sy;
+    params.factors[2] = sz;
+
+    runOnce(view, "Scale", params);
 }
 
 void FemViewGeometryHandler::rotate(FemViewWindow &view, double ax, double ay, double az, double angleDeg,
                                     Origin origin)
 {
+    TransformParams params;
+
+    params.kind = TransformKind::Rotate;
+    params.origin = origin;
+    params.axis[0] = ax;
+    params.axis[1] = ay;
+    params.axis[2] = az;
+    params.angleDeg = angleDeg;
+
+    runOnce(view, "Rotate", params);
+}
+
+void FemViewGeometryHandler::taper(FemViewWindow &view, int axis, double s0, double s1, Origin origin)
+{
+    TransformParams params;
+
+    params.kind = TransformKind::Taper;
+    params.origin = origin;
+    params.taperAxis = axis;
+    params.s0 = s0;
+    params.s1 = s1;
+
+    runOnce(view, "Taper", params);
+}
+
+bool FemViewGeometryHandler::previewActive(FemViewWindow &view)
+{
+    return view.m_geometry.previewActive;
+}
+
+bool FemViewGeometryHandler::beginPreview(FemViewWindow &view)
+{
+    // Starting a second session over a live one would capture the previewed
+    // coordinates as the new baseline and bake the first transform in.
+
+    if (view.m_geometry.previewActive)
+        cancelPreview(view);
+
     std::vector<ofem::Node *> nodes;
 
-    if (!gatherNodes(view, "Rotate", PinPolicy{}, nodes))
+    if (!gatherNodes(view, "Transform", PinPolicy{}, nodes))
+        return false;
+
+    view.m_geometry.nodes = nodes;
+    view.m_geometry.baseline.clear();
+    view.m_geometry.baseline.reserve(nodes.size() * 3);
+
+    for (auto node : nodes)
+    {
+        double x, y, z;
+        node->getCoord(x, y, z);
+
+        view.m_geometry.baseline.push_back(x);
+        view.m_geometry.baseline.push_back(y);
+        view.m_geometry.baseline.push_back(z);
+    }
+
+    view.m_geometry.previewActive = true;
+
+    dropDisplacementMode(view);
+
+    return true;
+}
+
+void FemViewGeometryHandler::restoreBaseline(FemViewWindow &view)
+{
+    auto &state = view.m_geometry;
+
+    for (size_t i = 0; i < state.nodes.size(); i++)
+        state.nodes[i]->setCoord(state.baseline[i * 3], state.baseline[i * 3 + 1], state.baseline[i * 3 + 2]);
+}
+
+void FemViewGeometryHandler::updatePreview(FemViewWindow &view, const TransformParams &params)
+{
+    auto &state = view.m_geometry;
+
+    if (!state.previewActive)
         return;
 
-    glm::dvec3 axis(ax, ay, az);
+    // Always transform the captured coordinates rather than the current ones.
+    // Compounding would make the result depend on how the slider was dragged.
 
-    if (glm::length(axis) < 1e-12)
+    std::vector<glm::dvec3> pts;
+    pts.reserve(state.nodes.size());
+
+    for (size_t i = 0; i < state.nodes.size(); i++)
+        pts.emplace_back(state.baseline[i * 3], state.baseline[i * 3 + 1], state.baseline[i * 3 + 2]);
+
+    // The origin comes from the baseline too, so it does not drift as the
+    // preview moves the nodes around.
+
+    if (!applyTo(pts, params, originFor(view, params.origin, pts)))
     {
-        view.console("Rotate: the rotation axis has zero length.");
-        view.notify("The rotation axis must be non-zero.", ofui::NotificationLevel::Warning);
+        restoreBaseline(view);
+        view.refreshBeamModelVisuals();
+        view.redraw();
+        return;
+    }
+
+    writeCoords(state.nodes, pts);
+
+    view.refreshBeamModelVisuals();
+    view.redraw();
+}
+
+void FemViewGeometryHandler::applyPreview(FemViewWindow &view, const TransformParams &params)
+{
+    auto &state = view.m_geometry;
+
+    if (!state.previewActive)
+        return;
+
+    size_t moved = state.nodes.size();
+
+    // Put the model back before snapshotting, so undo returns to where the
+    // gesture started rather than to the last previewed position.
+
+    restoreBaseline(view);
+
+    std::vector<glm::dvec3> pts;
+    pts.reserve(state.nodes.size());
+
+    for (size_t i = 0; i < state.nodes.size(); i++)
+        pts.emplace_back(state.baseline[i * 3], state.baseline[i * 3 + 1], state.baseline[i * 3 + 2]);
+
+    if (!applyTo(pts, params, originFor(view, params.origin, pts)))
+    {
+        cancelPreview(view);
+        view.console("Transform: the parameters are degenerate, nothing was applied.");
+        view.notify("Transform: invalid parameters.", ofui::NotificationLevel::Warning);
         return;
     }
 
     begin(view);
 
-    auto pts = coordsOf(nodes);
-    auto m = ofmath::rotationMatrix(axis, angleDeg * pi / 180.0, originFor(view, origin, pts));
+    writeCoords(state.nodes, pts);
 
-    for (auto &p : pts)
-        p = ofmath::transformPoint(m, p);
+    state.previewActive = false;
+    state.nodes.clear();
+    state.baseline.clear();
 
-    writeCoords(nodes, pts);
-    commit(view, "Rotate", nodes.size());
+    commit(view, "Transform", moved);
 }
 
-void FemViewGeometryHandler::taper(FemViewWindow &view, int axis, double s0, double s1, Origin origin)
+void FemViewGeometryHandler::cancelPreview(FemViewWindow &view)
 {
-    if ((axis < 0) || (axis > 2))
+    auto &state = view.m_geometry;
+
+    if (!state.previewActive)
         return;
 
-    std::vector<ofem::Node *> nodes;
+    restoreBaseline(view);
 
-    if (!gatherNodes(view, "Taper", PinPolicy{}, nodes))
-        return;
+    state.previewActive = false;
+    state.nodes.clear();
+    state.baseline.clear();
 
-    begin(view);
-
-    auto pts = coordsOf(nodes);
-    ofmath::applyTaper(pts, axis, s0, s1, originFor(view, origin, pts));
-
-    writeCoords(nodes, pts);
-    commit(view, "Taper", nodes.size());
+    view.refreshBeamModelVisuals();
+    view.redraw();
 }
 
 void FemViewGeometryHandler::mirror(FemViewWindow &view, int axis, Origin origin, double weldTolerance)

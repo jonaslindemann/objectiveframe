@@ -68,6 +68,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/plugin_prop_window.h>
 #include <ofui/prop_window.h>
 #include <ofui/scale_window.h>
+#include <ofui/transform_window.h>
 #include <ofui/result_toolbar_window.h>
 #include <ofui/settings_window.h>
 #include <ofui/notification_overlay.h>
@@ -86,6 +87,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include "AppControllerAdapter.h"
 #include "Area2D.h"
 #include "ButtonGroup.h"
+#include "FemViewGeometryHandler.h"
 #include "IvfViewWindow.h"
 #include "PlaneButton.h"
 #include "script_plugin.h"
@@ -220,6 +222,17 @@ private:
     };
     SolverState m_solver;
 
+    // Live transform preview. The affected nodes and their coordinates are
+    // captured when the gesture starts, so every parameter change re-applies
+    // the transform from the same baseline instead of compounding.
+
+    struct GeometryState {
+        bool previewActive{false};
+        std::vector<ofem::Node *> nodes;
+        std::vector<double> baseline; //!< Three doubles per node
+    };
+    GeometryState m_geometry;
+
     BeamType m_beamType{BeamType::Beam};
 
     bool m_overWorkspace;
@@ -328,6 +341,7 @@ private:
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
     ofui::ScaleWindowPtr m_scaleWindow;
+    ofui::TransformWindowPtr m_transformWindow;
     ofui::ColorScaleWindowPtr m_colorScaleWindow;
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
@@ -577,6 +591,14 @@ public:
     void rotateSelection(double ax, double ay, double az, double angleDeg, int origin);
     void mirrorSelection(int axis, int origin, double weldTolerance);
     void taperSelection(int axis, double s0, double s1, int origin);
+
+    // Live transform preview, driven by ofui::TransformWindow
+
+    bool beginTransformPreview();
+    void updateTransformPreview(const FemViewGeometryHandler::TransformParams &params);
+    void applyTransformPreview(const FemViewGeometryHandler::TransformParams &params);
+    void cancelTransformPreview();
+    bool isTransformPreviewActive();
 
     void showMaterials();
     void showProperties();

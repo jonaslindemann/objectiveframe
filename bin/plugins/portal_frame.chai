@@ -1,0 +1,129 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Portal frame,string%%";
+var pluginCategory = "%%pluginCategory,Frames,string%%";
+var bays = %%bays,2,int%%;
+var baySpan = %%baySpan,6.0,float%%;
+var storeys = %%storeys,1,int%%;
+var storeyHeight = %%storeyHeight,3.5,float%%;
+var pitch = %%pitch,15.0,float%%;
+var eaveTie = %%eaveTie,0,int%%;
+var frames = %%frames,1,int%%;
+var frameSpacing = %%frameSpacing,5.0,float%%;
+
+// A pitched multi-bay portal, optionally repeated along z with longitudinal
+// beams to give the whole building rather than a single frame.
+//
+// eaveTie adds a horizontal member at eave level. Without it the frame resists
+// sway purely by bending at the knees, which is what makes it a portal frame;
+// with it, the rafters become a tied truss and the columns shed their moment.
+
+if (bays < 1) { bays = 1; }
+if (storeys < 1) { storeys = 1; }
+if (frames < 1) { frames = 1; }
+
+var pi = 3.14159265358979323846;
+
+var totalSpan = double(bays) * baySpan;
+var x0 = -totalSpan / 2.0;
+var eaveY = double(storeys) * storeyHeight;
+var apexY = eaveY + (baySpan / 2.0) * tan(pitch * pi / 180.0);
+
+// Per frame the nodes are laid out as:
+//   column grid  c*(storeys+1) + s      for c = 0..bays, s = 0..storeys
+//   apex nodes   (bays+1)*(storeys+1) + b   for b = 0..bays-1
+
+var columnNodes = (bays + 1) * (storeys + 1);
+var perFrame = columnNodes + bays;
+
+var base = nodeCount();
+
+var z0 = -double(frames - 1) * frameSpacing / 2.0;
+
+for (var f = 0; f < frames; ++f)
+{
+	var z = z0 + double(f) * frameSpacing;
+
+	for (var c = 0; c <= bays; ++c)
+	{
+		for (var s = 0; s <= storeys; ++s)
+		{
+			addNode(x0 + double(c) * baySpan, double(s) * storeyHeight, z);
+		}
+	}
+
+	for (var b = 0; b < bays; ++b)
+	{
+		addNode(x0 + (double(b) + 0.5) * baySpan, apexY, z);
+	}
+}
+
+for (var f = 0; f < frames; ++f)
+{
+	var frameBase = base + f * perFrame;
+	var apexBase = frameBase + columnNodes;
+
+	// Columns
+
+	for (var c = 0; c <= bays; ++c)
+	{
+		for (var s = 0; s < storeys; ++s)
+		{
+			addBeam(frameBase + c * (storeys + 1) + s, frameBase + c * (storeys + 1) + s + 1);
+		}
+	}
+
+	// Intermediate floor beams
+
+	for (var s = 1; s < storeys; ++s)
+	{
+		for (var c = 0; c < bays; ++c)
+		{
+			addBeam(frameBase + c * (storeys + 1) + s, frameBase + (c + 1) * (storeys + 1) + s);
+		}
+	}
+
+	// Optional tie at eave level
+
+	if (eaveTie == 1)
+	{
+		for (var c = 0; c < bays; ++c)
+		{
+			addBeam(frameBase + c * (storeys + 1) + storeys, frameBase + (c + 1) * (storeys + 1) + storeys);
+		}
+	}
+
+	// Rafters
+
+	for (var b = 0; b < bays; ++b)
+	{
+		addBeam(frameBase + b * (storeys + 1) + storeys, apexBase + b);
+		addBeam(apexBase + b, frameBase + (b + 1) * (storeys + 1) + storeys);
+	}
+}
+
+// Longitudinal beams between adjacent frames. Base nodes are left unconnected -
+// they are the support points, not a ground beam.
+
+for (var f = 0; f < frames - 1; ++f)
+{
+	var a = base + f * perFrame;
+	var b = base + (f + 1) * perFrame;
+
+	for (var c = 0; c <= bays; ++c)
+	{
+		for (var s = 1; s <= storeys; ++s)
+		{
+			addBeam(a + c * (storeys + 1) + s, b + c * (storeys + 1) + s);
+		}
+	}
+
+	for (var k = 0; k < bays; ++k)
+	{
+		addBeam(a + columnNodes + k, b + columnNodes + k);
+	}
+}
+
+}

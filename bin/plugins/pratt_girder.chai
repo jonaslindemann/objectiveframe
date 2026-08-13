@@ -1,0 +1,70 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Bridge - Pratt girder,string%%";
+var pluginCategory = "%%pluginCategory,Bridges,string%%";
+var span = %%span,20.0,float%%;
+var depth = %%depth,2.5,float%%;
+var panels = %%panels,8,int%%;
+
+// Pratt girder: verticals at every panel point, diagonals sloping down toward
+// mid span so they carry tension under gravity load and the shorter verticals
+// take the compression. Mirror the diagonals to get a Howe girder, where the
+// roles are reversed.
+
+if (panels < 2) { panels = 2; }
+
+var base = nodeCount();
+
+var panelLen = span / double(panels);
+var x0 = -span / 2.0;
+
+// Bottom chord: base + 0 .. base + panels
+
+for (var i = 0; i <= panels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, 0.0, 0.0);
+}
+
+// Top chord: topBase + 0 .. topBase + panels
+
+var topBase = base + panels + 1;
+
+for (var i = 0; i <= panels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, depth, 0.0);
+}
+
+// Chords
+
+for (var i = 0; i < panels; ++i)
+{
+	addBeam(base + i, base + i + 1);
+	addBeam(topBase + i, topBase + i + 1);
+}
+
+// Verticals, including the end posts
+
+for (var i = 0; i <= panels; ++i)
+{
+	addBeam(base + i, topBase + i);
+}
+
+// Diagonals, pointing down toward mid span from both ends
+
+var mid = panels / 2;
+
+for (var i = 0; i < panels; ++i)
+{
+	if (i < mid)
+	{
+		addBeam(topBase + i, base + i + 1);
+	}
+	else
+	{
+		addBeam(base + i, topBase + i + 1);
+	}
+}
+
+}

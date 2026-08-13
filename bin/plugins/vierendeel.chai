@@ -1,0 +1,54 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Vierendeel girder,string%%";
+var pluginCategory = "%%pluginCategory,Frames,string%%";
+var span = %%span,18.0,float%%;
+var depth = %%depth,2.5,float%%;
+var panels = %%panels,6,int%%;
+
+// Rectangular panels with no diagonals, so the girder carries shear by bending
+// in the chords and posts instead of by axial force in a diagonal. Worth having
+// precisely because it performs badly next to a Pratt or Warren of the same
+// depth - it shows what triangulation buys, and why the rigid joints matter.
+
+if (panels < 1) { panels = 1; }
+
+var base = nodeCount();
+
+var panelLen = span / double(panels);
+var x0 = -span / 2.0;
+
+// Bottom chord: base + 0 .. base + panels
+
+for (var i = 0; i <= panels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, 0.0, 0.0);
+}
+
+// Top chord: topBase + 0 .. topBase + panels
+
+var topBase = base + panels + 1;
+
+for (var i = 0; i <= panels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, depth, 0.0);
+}
+
+// Chords
+
+for (var i = 0; i < panels; ++i)
+{
+	addBeam(base + i, base + i + 1);
+	addBeam(topBase + i, topBase + i + 1);
+}
+
+// Posts
+
+for (var i = 0; i <= panels; ++i)
+{
+	addBeam(base + i, topBase + i);
+}
+
+}

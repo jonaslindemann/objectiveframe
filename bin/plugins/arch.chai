@@ -1,0 +1,54 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Arch,string%%";
+var pluginCategory = "%%pluginCategory,Arches,string%%";
+var span = %%span,10.0,float%%;
+var rise = %%rise,3.0,float%%;
+var segments = %%segments,12,int%%;
+var shape = %%shape,0,int%%;
+
+// shape: 0 = parabolic, 1 = circular.
+//
+// The parabola is the funicular form for a uniformly distributed load, so a
+// parabolic arch carries pure compression under its own deck load. A circular
+// arch of the same span and rise does not, which is the comparison this plugin
+// exists to make.
+
+if (segments < 2) { segments = 2; }
+if (rise < 0.001) { rise = 0.001; }
+
+var base = nodeCount();
+
+var halfSpan = span / 2.0;
+
+// Radius of the circle through both springings and the crown.
+
+var radius = (rise * rise + halfSpan * halfSpan) / (2.0 * rise);
+var yCentre = rise - radius;
+
+for (var i = 0; i <= segments; ++i)
+{
+	var u = -halfSpan + span * double(i) / double(segments);
+	var y = 0.0;
+
+	if (shape == 1)
+	{
+		y = sqrt(radius * radius - u * u) + yCentre;
+	}
+	else
+	{
+		var t = u / halfSpan;
+		y = rise * (1.0 - t * t);
+	}
+
+	addNode(u, y, 0.0);
+}
+
+for (var i = 0; i < segments; ++i)
+{
+	addBeam(base + i, base + i + 1);
+}
+
+}

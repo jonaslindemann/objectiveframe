@@ -1,0 +1,87 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Schwedler dome,string%%";
+var pluginCategory = "%%pluginCategory,Roofs and domes,string%%";
+var radius = %%radius,8.0,float%%;
+var rings = %%rings,6,int%%;
+var segments = %%segments,12,int%%;
+var diagonals = %%diagonals,1,int%%;
+
+// Ribbed dome: meridional ribs, horizontal hoops, and one diagonal per panel.
+// The hoops carry the ring tension that would otherwise split the dome open at
+// its base, and the diagonals brace each panel against asymmetric load - which
+// is what distinguishes a Schwedler from a plain ribbed dome.
+//
+// Unlike the meshed Dome plugin this builds the members explicitly, so member
+// forces are meaningful rather than an artefact of the surface mesher.
+
+if (rings < 1) { rings = 1; }
+if (segments < 3) { segments = 3; }
+
+var pi = 3.14159265358979323846;
+
+var base = nodeCount();
+
+// Crown node, then ring i (1..rings) segment j (0..segments-1) at
+// base + 1 + (i-1)*segments + j
+
+addNode(0.0, radius, 0.0);
+
+for (var i = 1; i <= rings; ++i)
+{
+	var phi = (pi / 2.0) * double(i) / double(rings);
+	var y = radius * cos(phi);
+	var r = radius * sin(phi);
+
+	for (var j = 0; j < segments; ++j)
+	{
+		var theta = 2.0 * pi * double(j) / double(segments);
+		addNode(r * cos(theta), y, r * sin(theta));
+	}
+}
+
+// Crown to first ring
+
+for (var j = 0; j < segments; ++j)
+{
+	addBeam(base, base + 1 + j);
+}
+
+// Meridional ribs
+
+for (var i = 1; i < rings; ++i)
+{
+	for (var j = 0; j < segments; ++j)
+	{
+		addBeam(base + 1 + (i - 1) * segments + j, base + 1 + i * segments + j);
+	}
+}
+
+// Hoops
+
+for (var i = 1; i <= rings; ++i)
+{
+	for (var j = 0; j < segments; ++j)
+	{
+		var jNext = (j + 1) % segments;
+		addBeam(base + 1 + (i - 1) * segments + j, base + 1 + (i - 1) * segments + jNext);
+	}
+}
+
+// Panel diagonals
+
+if (diagonals == 1)
+{
+	for (var i = 1; i < rings; ++i)
+	{
+		for (var j = 0; j < segments; ++j)
+		{
+			var jNext = (j + 1) % segments;
+			addBeam(base + 1 + (i - 1) * segments + j, base + 1 + i * segments + jNext);
+		}
+	}
+}
+
+}

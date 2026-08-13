@@ -1,0 +1,77 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Barrel vault,string%%";
+var pluginCategory = "%%pluginCategory,Roofs and domes,string%%";
+var span = %%span,12.0,float%%;
+var rise = %%rise,4.0,float%%;
+var length = %%length,20.0,float%%;
+var arcSegments = %%arcSegments,10,int%%;
+var lengthSegments = %%lengthSegments,10,int%%;
+var diagonals = %%diagonals,1,int%%;
+
+// A circular arc profile extruded along z. Without diagonals the quadrilateral
+// panels are mechanisms in shear and the vault relies entirely on joint
+// stiffness, so leave them on unless that is what you want to look at.
+
+if (arcSegments < 2) { arcSegments = 2; }
+if (lengthSegments < 1) { lengthSegments = 1; }
+if (rise < 0.001) { rise = 0.001; }
+
+var base = nodeCount();
+
+var halfSpan = span / 2.0;
+var radius = (rise * rise + halfSpan * halfSpan) / (2.0 * rise);
+var yCentre = rise - radius;
+
+var z0 = -length / 2.0;
+var cols = arcSegments + 1;
+
+// Node (i, j) = base + j*cols + i, i along the arc, j along the length
+
+for (var j = 0; j <= lengthSegments; ++j)
+{
+	var z = z0 + length * double(j) / double(lengthSegments);
+
+	for (var i = 0; i <= arcSegments; ++i)
+	{
+		var x = -halfSpan + span * double(i) / double(arcSegments);
+		addNode(x, sqrt(radius * radius - x * x) + yCentre, z);
+	}
+}
+
+// Arch ribs
+
+for (var j = 0; j <= lengthSegments; ++j)
+{
+	for (var i = 0; i < arcSegments; ++i)
+	{
+		addBeam(base + j * cols + i, base + j * cols + i + 1);
+	}
+}
+
+// Longitudinal members
+
+for (var j = 0; j < lengthSegments; ++j)
+{
+	for (var i = 0; i <= arcSegments; ++i)
+	{
+		addBeam(base + j * cols + i, base + (j + 1) * cols + i);
+	}
+}
+
+// One diagonal per panel
+
+if (diagonals == 1)
+{
+	for (var j = 0; j < lengthSegments; ++j)
+	{
+		for (var i = 0; i < arcSegments; ++i)
+		{
+			addBeam(base + j * cols + i, base + (j + 1) * cols + i + 1);
+		}
+	}
+}
+
+}

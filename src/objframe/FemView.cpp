@@ -2385,8 +2385,16 @@ void FemViewWindow::setupPlugins()
             log("Loading plugin - " + filename.string() + " - " + plugin->name());
         }
 
+        // Sorted by category first, then name. Uncategorized plugins have an
+        // empty category, which sorts before everything else - drawMainMenuBar
+        // relies on that to list them at the top of the Create menu.
+
         std::sort(m_scripting.plugins.begin(), m_scripting.plugins.end(),
-                  [](const ScriptPluginPtr a, const ScriptPluginPtr b) -> bool { return a->name() > b->name(); });
+                  [](const ScriptPluginPtr &a, const ScriptPluginPtr &b) -> bool {
+                      if (a->category() != b->category())
+                          return a->category() < b->category();
+                      return a->name() < b->name();
+                  });
     }
     else
         log("Couldn't find load any plugins...");

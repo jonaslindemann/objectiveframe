@@ -1,0 +1,68 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Bridge - Bowstring / tied arch,string%%";
+var pluginCategory = "%%pluginCategory,Bridges,string%%";
+var span = %%span,24.0,float%%;
+var rise = %%rise,5.0,float%%;
+var panels = %%panels,8,int%%;
+
+// Tied arch: a parabolic arch whose horizontal thrust is taken by the deck tie
+// rather than by the supports, with the deck hung from the arch. Because the
+// thrust is internal the supports only need to carry vertical load, which is
+// what makes this form useful where the ground is poor.
+
+if (panels < 2) { panels = 2; }
+
+var base = nodeCount();
+
+var panelLen = span / double(panels);
+var x0 = -span / 2.0;
+var halfSpan = span / 2.0;
+
+// Deck tie: base + 0 .. base + panels
+
+for (var i = 0; i <= panels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, 0.0, 0.0);
+}
+
+// Arch nodes, interior only - the arch springs from the tie end nodes.
+// archBase + (i-1) holds the arch node above tie node i, for i = 1 .. panels-1
+
+var archBase = base + panels + 1;
+
+for (var i = 1; i < panels; ++i)
+{
+	var u = x0 + double(i) * panelLen;
+	var t = u / halfSpan;
+	addNode(u, rise * (1.0 - t * t), 0.0);
+}
+
+// Deck tie
+
+for (var i = 0; i < panels; ++i)
+{
+	addBeam(base + i, base + i + 1);
+}
+
+// Arch, springing from the tie ends
+
+addBeam(base + 0, archBase + 0);
+
+for (var i = 1; i < panels - 1; ++i)
+{
+	addBeam(archBase + i - 1, archBase + i);
+}
+
+addBeam(archBase + panels - 2, base + panels);
+
+// Hangers
+
+for (var i = 1; i < panels; ++i)
+{
+	addBeam(archBase + i - 1, base + i);
+}
+
+}

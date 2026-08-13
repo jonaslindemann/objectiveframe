@@ -3,6 +3,7 @@
 // Parameters
 
 var pluginName = "%%pluginName,Truss - King Post,string%%";
+var pluginCategory = "%%pluginCategory,Trusses,string%%";
 var angle = %%angle,30.0,float%%;
 var width = %%width,5.0,float%%;
 

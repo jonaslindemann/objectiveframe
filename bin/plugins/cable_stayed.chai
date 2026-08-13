@@ -1,0 +1,110 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Bridge - Cable stayed,string%%";
+var pluginCategory = "%%pluginCategory,Bridges,string%%";
+var span = %%span,40.0,float%%;
+var deckPanels = %%deckPanels,16,int%%;
+var pylonHeight = %%pylonHeight,12.0,float%%;
+var pylons = %%pylons,1,int%%;
+var stays = %%stays,4,int%%;
+var pattern = %%pattern,0,int%%;
+
+// pattern: 0 = fan (all stays from the pylon top), 1 = harp (stays parallel,
+// anchored up the pylon).
+//
+// The fan is more efficient - every stay takes the steepest possible angle to
+// the deck - while the harp puts less bending into the pylon. Comparing the
+// two under the same deck load is the point of having both.
+
+if (deckPanels < 4) { deckPanels = 4; }
+if (stays < 1) { stays = 1; }
+if (pylons < 1) { pylons = 1; }
+if (pylons > 2) { pylons = 2; }
+if (pylonHeight < 0.001) { pylonHeight = 0.001; }
+
+var deckBase = nodeCount();
+
+var panelLen = span / double(deckPanels);
+var x0 = -span / 2.0;
+
+// Deck
+
+for (var i = 0; i <= deckPanels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, 0.0, 0.0);
+}
+
+for (var i = 0; i < deckPanels; ++i)
+{
+	addBeam(deckBase + i, deckBase + i + 1);
+}
+
+// Stay anchors are spaced evenly over the deck available on each side of a
+// pylon, so the stays fan out rather than bunching at the tower.
+
+var spacing = deckPanels / (2 * stays);
+if (spacing < 1) { spacing = 1; }
+
+for (var t = 0; t < pylons; ++t)
+{
+	var pylonIdx = deckPanels / 2;
+
+	if (pylons == 2)
+	{
+		if (t == 0)
+		{
+			pylonIdx = deckPanels / 3;
+		}
+		else
+		{
+			pylonIdx = 2 * deckPanels / 3;
+		}
+	}
+
+	var pylonX = x0 + double(pylonIdx) * panelLen;
+
+	// Pylon column above the deck
+
+	var colBase = nodeCount();
+
+	for (var k = 1; k <= stays; ++k)
+	{
+		addNode(pylonX, pylonHeight * double(k) / double(stays), 0.0);
+	}
+
+	addBeam(deckBase + pylonIdx, colBase);
+
+	for (var k = 0; k < stays - 1; ++k)
+	{
+		addBeam(colBase + k, colBase + k + 1);
+	}
+
+	// Stays
+
+	for (var k = 1; k <= stays; ++k)
+	{
+		var anchor = colBase + stays - 1;
+
+		if (pattern == 1)
+		{
+			anchor = colBase + k - 1;
+		}
+
+		var left = pylonIdx - k * spacing;
+		var right = pylonIdx + k * spacing;
+
+		if (left >= 0)
+		{
+			addBeam(anchor, deckBase + left);
+		}
+
+		if (right <= deckPanels)
+		{
+			addBeam(anchor, deckBase + right);
+		}
+	}
+}
+
+}

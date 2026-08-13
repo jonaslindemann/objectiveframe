@@ -1,0 +1,73 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Hypar gridshell,string%%";
+var pluginCategory = "%%pluginCategory,Roofs and domes,string%%";
+var width = %%width,12.0,float%%;
+var depth = %%depth,12.0,float%%;
+var nx = %%nx,8,int%%;
+var nz = %%nz,8,int%%;
+var warp = %%warp,3.0,float%%;
+var diagonals = %%diagonals,1,int%%;
+
+// Hyperbolic paraboloid: y = warp * u * v over normalised u, v in [-1, 1]. Two
+// corners lift and two drop, and although the surface is doubly curved every
+// grid line stays straight - which is why it can be built from straight
+// members. Set warp to 0 for a flat plate to compare against.
+
+if (nx < 1) { nx = 1; }
+if (nz < 1) { nz = 1; }
+
+var base = nodeCount();
+
+var cols = nx + 1;
+
+// Node (i, j) = base + j*cols + i
+
+for (var j = 0; j <= nz; ++j)
+{
+	var v = 2.0 * double(j) / double(nz) - 1.0;
+	var z = -depth / 2.0 + depth * double(j) / double(nz);
+
+	for (var i = 0; i <= nx; ++i)
+	{
+		var u = 2.0 * double(i) / double(nx) - 1.0;
+		var x = -width / 2.0 + width * double(i) / double(nx);
+
+		addNode(x, warp * u * v, z);
+	}
+}
+
+// Grid lines in both directions - straight generators of the surface
+
+for (var j = 0; j <= nz; ++j)
+{
+	for (var i = 0; i < nx; ++i)
+	{
+		addBeam(base + j * cols + i, base + j * cols + i + 1);
+	}
+}
+
+for (var j = 0; j < nz; ++j)
+{
+	for (var i = 0; i <= nx; ++i)
+	{
+		addBeam(base + j * cols + i, base + (j + 1) * cols + i);
+	}
+}
+
+// One diagonal per panel to brace it in shear
+
+if (diagonals == 1)
+{
+	for (var j = 0; j < nz; ++j)
+	{
+		for (var i = 0; i < nx; ++i)
+		{
+			addBeam(base + j * cols + i, base + (j + 1) * cols + i + 1);
+		}
+	}
+}
+
+}

@@ -9,12 +9,10 @@
 using namespace ofui;
 
 PluginPropWindow::PluginPropWindow(const std::string name) : UiWindow(name), m_plugin{nullptr}, m_view{nullptr}
-{
-}
+{}
 
 PluginPropWindow::~PluginPropWindow()
-{
-}
+{}
 
 std::shared_ptr<PluginPropWindow> PluginPropWindow::create(const std::string name)
 {
@@ -39,9 +37,12 @@ void ofui::PluginPropWindow::setView(FemViewWindow *view)
 void PluginPropWindow::doDraw()
 {
     ImGui::Dummy(ImVec2(150.0, 0.0));
-    if (m_plugin != nullptr) {
-        for (auto &name : m_plugin->paramNames()) {
-            if (name != "pluginName") {
+    if (m_plugin != nullptr)
+    {
+        for (auto &name : m_plugin->paramNames())
+        {
+            if (!ScriptPlugin::isReservedParam(name))
+            {
                 if (m_plugin->paramType(name) == "float")
                     ImGui::InputFloat(name.c_str(), m_plugin->floatParamRef(name));
                 else if (m_plugin->paramType(name) == "int")

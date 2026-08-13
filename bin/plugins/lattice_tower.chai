@@ -1,0 +1,98 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Lattice tower,string%%";
+var pluginCategory = "%%pluginCategory,Towers,string%%";
+var height = %%height,30.0,float%%;
+var baseWidth = %%baseWidth,6.0,float%%;
+var topWidth = %%topWidth,2.0,float%%;
+var segments = %%segments,10,int%%;
+var bracing = %%bracing,0,int%%;
+var horizontals = %%horizontals,1,int%%;
+
+// Tapered four legged lattice tower.
+//
+// bracing: 0 = X (both diagonals per face), 1 = single diagonal alternating
+// direction up the tower. X bracing is stiffer and each diagonal can be sized
+// for tension only; single diagonals halve the member count but must take
+// compression on one side of the panel.
+//
+// The taper is what carries overturning: widening the base increases the lever
+// arm of the leg forces, so the legs stay in near-pure axial action.
+
+if (segments < 1) { segments = 1; }
+
+var base = nodeCount();
+
+// Level s, corner k at base + s*4 + k. Corners run around the square:
+// 0 = (-w, -w), 1 = (+w, -w), 2 = (+w, +w), 3 = (-w, +w)
+
+for (var s = 0; s <= segments; ++s)
+{
+	var t = double(s) / double(segments);
+	var y = height * t;
+	var w = (baseWidth + (topWidth - baseWidth) * t) / 2.0;
+
+	addNode(-w, y, -w);
+	addNode(w, y, -w);
+	addNode(w, y, w);
+	addNode(-w, y, w);
+}
+
+// Legs
+
+for (var s = 0; s < segments; ++s)
+{
+	for (var k = 0; k < 4; ++k)
+	{
+		addBeam(base + s * 4 + k, base + (s + 1) * 4 + k);
+	}
+}
+
+// Horizontal ring at each level above the base
+
+if (horizontals == 1)
+{
+	for (var s = 1; s <= segments; ++s)
+	{
+		for (var k = 0; k < 4; ++k)
+		{
+			addBeam(base + s * 4 + k, base + s * 4 + (k + 1) % 4);
+		}
+	}
+}
+
+// Face bracing
+
+for (var s = 0; s < segments; ++s)
+{
+	for (var k = 0; k < 4; ++k)
+	{
+		var kNext = (k + 1) % 4;
+
+		var lowA = base + s * 4 + k;
+		var lowB = base + s * 4 + kNext;
+		var highA = base + (s + 1) * 4 + k;
+		var highB = base + (s + 1) * 4 + kNext;
+
+		if (bracing == 1)
+		{
+			if ((s + k) % 2 == 0)
+			{
+				addBeam(lowA, highB);
+			}
+			else
+			{
+				addBeam(lowB, highA);
+			}
+		}
+		else
+		{
+			addBeam(lowA, highB);
+			addBeam(lowB, highA);
+		}
+	}
+}
+
+}

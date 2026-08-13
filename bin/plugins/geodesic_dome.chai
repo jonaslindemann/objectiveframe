@@ -1,0 +1,184 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Geodesic dome,string%%";
+var pluginCategory = "%%pluginCategory,Roofs and domes,string%%";
+var radius = %%radius,8.0,float%%;
+var frequency = %%frequency,3,int%%;
+var levelBase = %%levelBase,1,int%%;
+
+// Class I icosahedral geodesic dome. Each of the 20 icosahedron faces is
+// subdivided into frequency^2 triangles and projected onto the sphere, which
+// gives near-uniform member lengths - unlike a latitude/longitude dome, whose
+// members shrink toward the crown.
+//
+// An icosahedron has no edge loop lying on the equator, so a hemisphere cannot
+// be cut cleanly: triangles are kept when their centroid is above the equator,
+// which leaves a slightly ragged rim. levelBase = 1 pulls the nodes that fall
+// below the equator up onto y = 0 to give a flat, supportable base ring. That
+// shortens the lowest struts a little, which is exactly what is done on site.
+//
+// Vertices and edges are deduplicated here in script, so the dome comes out
+// with no coincident nodes and no doubled members. The search is O(n^2) - a
+// frequency above 4 gets slow.
+
+if (frequency < 1) { frequency = 1; }
+
+var phi = (1.0 + sqrt(5.0)) / 2.0;
+
+// The 12 icosahedron vertices
+
+var ivx = [-1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, phi, phi, -phi, -phi];
+var ivy = [phi, phi, -phi, -phi, -1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0];
+var ivz = [0.0, 0.0, 0.0, 0.0, phi, phi, -phi, -phi, -1.0, 1.0, -1.0, 1.0];
+
+// The 20 faces
+
+var fa = [0, 0, 0, 0, 0, 1, 5, 11, 10, 7, 3, 3, 3, 3, 3, 4, 2, 6, 8, 9];
+var fb = [11, 5, 1, 7, 10, 5, 11, 10, 7, 1, 9, 4, 2, 6, 8, 9, 4, 2, 6, 8];
+var fc = [5, 1, 7, 10, 11, 9, 4, 2, 6, 8, 4, 2, 6, 8, 9, 5, 11, 10, 7, 1];
+
+var base = nodeCount();
+var tol = radius * 0.0001;
+
+var ux = [];
+var uy = [];
+var uz = [];
+var ea = [];
+var eb = [];
+
+for (var f = 0; f < 20; ++f)
+{
+	var a = fa[f];
+	var b = fb[f];
+	var c = fc[f];
+
+	for (var i = 0; i < frequency; ++i)
+	{
+		for (var j = 0; j <= i; ++j)
+		{
+			// Each cell of the subdivision grid carries an upward triangle, and
+			// a downward one as well once it is off the left edge.
+
+			var triCount = 1;
+			if (j < i) { triCount = 2; }
+
+			for (var d = 0; d < triCount; ++d)
+			{
+				var gp = [i, i + 1, i + 1];
+				var gq = [j, j, j + 1];
+
+				if (d == 1)
+				{
+					gp = [i, i + 1, i];
+					gq = [j, j + 1, j + 1];
+				}
+
+				// Barycentric point on the face, projected onto the sphere
+
+				var px = [];
+				var py = [];
+				var pz = [];
+
+				for (var k = 0; k < 3; ++k)
+				{
+					var wa = double(frequency - gp[k]) / double(frequency);
+					var wb = double(gp[k] - gq[k]) / double(frequency);
+					var wc = double(gq[k]) / double(frequency);
+
+					var x = ivx[a] * wa + ivx[b] * wb + ivx[c] * wc;
+					var y = ivy[a] * wa + ivy[b] * wb + ivy[c] * wc;
+					var z = ivz[a] * wa + ivz[b] * wb + ivz[c] * wc;
+
+					var len = sqrt(x * x + y * y + z * z);
+
+					px.push_back(radius * x / len);
+					py.push_back(radius * y / len);
+					pz.push_back(radius * z / len);
+				}
+
+				// Keep the upper hemisphere only
+
+				if ((py[0] + py[1] + py[2]) / 3.0 >= 0.0)
+				{
+					var tri = [];
+
+					for (var k = 0; k < 3; ++k)
+					{
+						var vx = px[k];
+						var vy = py[k];
+						var vz = pz[k];
+
+						if (levelBase == 1)
+						{
+							if (vy < 0.0) { vy = 0.0; }
+						}
+
+						var found = -1;
+
+						for (var m = 0; m < ux.size(); ++m)
+						{
+							var dx = ux[m] - vx;
+							var dy = uy[m] - vy;
+							var dz = uz[m] - vz;
+
+							if (sqrt(dx * dx + dy * dy + dz * dz) < tol)
+							{
+								found = m;
+							}
+						}
+
+						if (found < 0)
+						{
+							ux.push_back(vx);
+							uy.push_back(vy);
+							uz.push_back(vz);
+							addNode(vx, vy, vz);
+							found = ux.size() - 1;
+						}
+
+						tri.push_back(found);
+					}
+
+					for (var k = 0; k < 3; ++k)
+					{
+						var e0 = tri[k];
+						var e1 = tri[(k + 1) % 3];
+
+						if (e0 != e1)
+						{
+							var lo = e0;
+							var hi = e1;
+
+							if (lo > hi)
+							{
+								lo = e1;
+								hi = e0;
+							}
+
+							var seen = 0;
+
+							for (var m = 0; m < ea.size(); ++m)
+							{
+								if (ea[m] == lo)
+								{
+									if (eb[m] == hi) { seen = 1; }
+								}
+							}
+
+							if (seen == 0)
+							{
+								ea.push_back(lo);
+								eb.push_back(hi);
+								addBeam(base + lo, base + hi);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+}

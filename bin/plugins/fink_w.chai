@@ -3,6 +3,7 @@
 // Parameters
 
 var pluginName = "%%pluginName,Truss - Fink W,string%%";
+var pluginCategory = "%%pluginCategory,Trusses,string%%";
 var angle = %%angle,30.0,float%%;
 var w = %%w,5.0,float%%;
 

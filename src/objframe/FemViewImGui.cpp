@@ -385,8 +385,46 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         ImGui::Separator();
 
+        // The plugin list is sorted by (category, name), so walking it in order
+        // gives the uncategorized plugins first, then one contiguous run per
+        // category. Open a submenu whenever the category changes.
+
+        std::string currentCategory;
+        bool inSubMenu = false;
+        bool haveTopLevelItems = false;
+
         for (auto &p : m_scripting.plugins)
         {
+            const auto category = p->category();
+
+            if (category != currentCategory)
+            {
+                if (inSubMenu)
+                {
+                    ImGui::EndMenu();
+                    inSubMenu = false;
+                }
+
+                currentCategory = category;
+
+                if (!category.empty())
+                {
+                    if (haveTopLevelItems)
+                    {
+                        ImGui::Separator();
+                        haveTopLevelItems = false;
+                    }
+
+                    inSubMenu = ImGui::BeginMenu(category.c_str());
+                }
+            }
+
+            // A collapsed submenu draws no items, and calling EndMenu() for it
+            // would unbalance the stack.
+
+            if (!category.empty() && !inSubMenu)
+                continue;
+
             if (ImGui::MenuItem(p->name().c_str(), ""))
             {
                 this->setCustomMode(CustomMode::Structure);
@@ -394,7 +432,14 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
                 m_pluginWindow->center();
                 m_pluginWindow->show();
             }
+
+            if (category.empty())
+                haveTopLevelItems = true;
         }
+
+        if (inSubMenu)
+            ImGui::EndMenu();
+
         ImGui::EndMenu();
     }
 

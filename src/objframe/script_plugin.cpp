@@ -11,7 +11,8 @@ using namespace std;
 
 void ScriptPlugin::loadSource()
 {
-    if (m_filename != "") {
+    if (m_filename != "")
+    {
         fstream f;
         f.open(m_filename, ios::in | ios::binary);
 
@@ -41,7 +42,8 @@ void ScriptPlugin::parse()
     //  |     secondPos
     //  firstPos
 
-    while ((firstPos != string::npos) && (secondPos != string::npos)) {
+    while ((firstPos != string::npos) && (secondPos != string::npos))
+    {
         string paramStr = m_scriptSource.substr(firstPos + 2, secondPos - firstPos - 2);
 
         auto sep = paramStr.find(",");
@@ -59,7 +61,8 @@ void ScriptPlugin::parse()
         if (valueType == "float")
             m_floatParams[name] = ofutil::to_float(m_params[name][0]);
 
-        if (valueType == "string") {
+        if (valueType == "string")
+        {
             std::fill(m_stringParams[name].begin(), m_stringParams[name].end(), 0);
             std::copy(m_params[name][0].begin(), m_params[name][0].end(), m_stringParams[name].data());
         }
@@ -73,17 +76,41 @@ void ScriptPlugin::parse()
     }
 
     m_pluginName = this->param("pluginName");
+
+    // Absent for plugins written before categories existed - param() returns an
+    // empty string for an unknown name, which is exactly the "uncategorized"
+    // case, so nothing more is needed to keep those working.
+
+    m_pluginCategory = this->param("pluginCategory");
+}
+
+bool ScriptPlugin::isReservedParam(const std::string &name)
+{
+    return (name == "pluginName") || (name == "pluginCategory");
 }
 
 void ScriptPlugin::updateParams()
 {
-    for (auto &name : m_paramNames) {
+    for (auto &name : m_paramNames)
+    {
         auto valueType = m_params[name][2];
 
         if (valueType == "int")
             m_params[name][0] = ofutil::to_string(m_intParams[name]);
         if (valueType == "float")
-            m_params[name][0] = ofutil::to_string(m_floatParams[name]);
+        {
+            auto text = ofutil::to_string(m_floatParams[name]);
+
+            // to_string() is std::format("{}", value), which renders 2.0f as
+            // "2". Substituted back into the script that is an int literal, and
+            // ChaiScript then refuses to dispatch a double-only function such
+            // as cosh() on it. Keep whole values looking like floats.
+
+            if (text.find_first_not_of("+-0123456789") == std::string::npos)
+                text += ".0";
+
+            m_params[name][0] = text;
+        }
         // if (valueType == "string")
         //     m_params[name][0] = ofutil::to_string(m_stringParams[name]);
     }
@@ -135,6 +162,11 @@ const std::string ScriptPlugin::name()
     return m_pluginName;
 }
 
+const std::string ScriptPlugin::category()
+{
+    return m_pluginCategory;
+}
+
 float *ScriptPlugin::floatParamRef(const std::string name)
 {
     if (m_floatParams.find(name) != m_floatParams.end())
@@ -170,7 +202,8 @@ const std::string ScriptPlugin::source()
 
     std::string modifiedSource = m_scriptSource;
 
-    for (auto &p : m_params) {
+    for (auto &p : m_params)
+    {
         string tag = "%%" + p.first + "," + p.second[1] + "," + p.second[2] + "%%";
         auto tagPos = modifiedSource.find(tag);
         auto tagLength = tag.length();

@@ -1,0 +1,100 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Space grid - double layer,string%%";
+var pluginCategory = "%%pluginCategory,Roofs and domes,string%%";
+var nx = %%nx,6,int%%;
+var nz = %%nz,6,int%%;
+var gridSize = %%gridSize,2.0,float%%;
+var depth = %%depth,1.5,float%%;
+
+// Square-on-square offset double layer grid: the bottom layer is shifted half a
+// module in both directions, so every bottom node ties to the four top nodes
+// around it. This is the standard long span roof structure and cannot be built
+// from a single node grid plus meshing.
+//
+// Efficient depth is roughly span/15 to span/20.
+
+if (nx < 1) { nx = 1; }
+if (nz < 1) { nz = 1; }
+
+var base = nodeCount();
+
+var xOffset = -double(nx) * gridSize / 2.0;
+var zOffset = -double(nz) * gridSize / 2.0;
+
+// Top layer: (nx+1) x (nz+1) nodes, index base + j*(nx+1) + i
+
+for (var j = 0; j <= nz; ++j)
+{
+	for (var i = 0; i <= nx; ++i)
+	{
+		addNode(xOffset + double(i) * gridSize, depth, zOffset + double(j) * gridSize);
+	}
+}
+
+// Bottom layer: nx x nz nodes offset by half a module, index botBase + j*nx + i
+
+var botBase = base + (nx + 1) * (nz + 1);
+
+for (var j = 0; j < nz; ++j)
+{
+	for (var i = 0; i < nx; ++i)
+	{
+		addNode(xOffset + (double(i) + 0.5) * gridSize, 0.0, zOffset + (double(j) + 0.5) * gridSize);
+	}
+}
+
+// Top chords
+
+for (var j = 0; j <= nz; ++j)
+{
+	for (var i = 0; i < nx; ++i)
+	{
+		addBeam(base + j * (nx + 1) + i, base + j * (nx + 1) + i + 1);
+	}
+}
+
+for (var j = 0; j < nz; ++j)
+{
+	for (var i = 0; i <= nx; ++i)
+	{
+		addBeam(base + j * (nx + 1) + i, base + (j + 1) * (nx + 1) + i);
+	}
+}
+
+// Bottom chords
+
+for (var j = 0; j < nz; ++j)
+{
+	for (var i = 0; i < nx - 1; ++i)
+	{
+		addBeam(botBase + j * nx + i, botBase + j * nx + i + 1);
+	}
+}
+
+for (var j = 0; j < nz - 1; ++j)
+{
+	for (var i = 0; i < nx; ++i)
+	{
+		addBeam(botBase + j * nx + i, botBase + (j + 1) * nx + i);
+	}
+}
+
+// Diagonals - each bottom node to the four top nodes surrounding it
+
+for (var j = 0; j < nz; ++j)
+{
+	for (var i = 0; i < nx; ++i)
+	{
+		var b = botBase + j * nx + i;
+
+		addBeam(b, base + j * (nx + 1) + i);
+		addBeam(b, base + j * (nx + 1) + i + 1);
+		addBeam(b, base + (j + 1) * (nx + 1) + i);
+		addBeam(b, base + (j + 1) * (nx + 1) + i + 1);
+	}
+}
+
+}

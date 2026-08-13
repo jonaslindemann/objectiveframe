@@ -1,0 +1,60 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Bridge - Warren girder,string%%";
+var pluginCategory = "%%pluginCategory,Bridges,string%%";
+var span = %%span,20.0,float%%;
+var depth = %%depth,2.5,float%%;
+var panels = %%panels,8,int%%;
+
+// Warren girder: equilateral triangles, no verticals. The top chord nodes sit
+// half a panel offset from the bottom chord nodes, so diagonals alternate
+// between tension and compression along the span.
+
+if (panels < 2) { panels = 2; }
+
+var base = nodeCount();
+
+var panelLen = span / double(panels);
+var x0 = -span / 2.0;
+
+// Bottom chord: base + 0 .. base + panels
+
+for (var i = 0; i <= panels; ++i)
+{
+	addNode(x0 + double(i) * panelLen, 0.0, 0.0);
+}
+
+// Top chord: base + (panels+1) + 0 .. base + (panels+1) + (panels-1)
+
+var topBase = base + panels + 1;
+
+for (var i = 0; i < panels; ++i)
+{
+	addNode(x0 + (double(i) + 0.5) * panelLen, depth, 0.0);
+}
+
+// Bottom chord
+
+for (var i = 0; i < panels; ++i)
+{
+	addBeam(base + i, base + i + 1);
+}
+
+// Top chord
+
+for (var i = 0; i < panels - 1; ++i)
+{
+	addBeam(topBase + i, topBase + i + 1);
+}
+
+// Diagonals - up from bottom i, back down to bottom i+1
+
+for (var i = 0; i < panels; ++i)
+{
+	addBeam(base + i, topBase + i);
+	addBeam(topBase + i, base + i + 1);
+}
+
+}

@@ -122,12 +122,15 @@ Scripts in the plugin folder can declare editable parameters using `%%name,defau
 
 ```chaiscript
 var pluginName = "%%pluginName,Node grid,string%%";
+var pluginCategory = "%%pluginCategory,Grids,string%%";
 var rows = %%rows,4,int%%;
 var cols = %%cols,4,int%%;
 var dx = %%dx,1.0,float%%;
 ```
 
 Supported parameter types are `int`, `float`, and `string`.
+
+`pluginName` and `pluginCategory` describe the plugin itself and are not shown as editable fields in the parameter panel. `pluginCategory` is optional: plugins that declare it are grouped into a submenu of that name under **Create**, and plugins without it are listed directly in the **Create** menu above the submenus.
 
 ## Practical advice
 

@@ -1,0 +1,42 @@
+{
+
+// Parameters
+
+var pluginName = "%%pluginName,Catenary arch,string%%";
+var pluginCategory = "%%pluginCategory,Arches,string%%";
+var span = %%span,10.0,float%%;
+var rise = %%rise,4.0,float%%;
+var segments = %%segments,12,int%%;
+var shapeFactor = %%shapeFactor,2.0,float%%;
+
+// The catenary is the funicular form for self weight - a hanging chain
+// inverted. Compare against the parabolic arch, which is funicular for a load
+// uniform over the span rather than along the curve.
+//
+// shapeFactor controls how pointed the curve is. Small values approach a
+// parabola, large values give a steep gothic profile.
+
+if (segments < 2) { segments = 2; }
+if (shapeFactor < 0.1) { shapeFactor = 0.1; }
+
+var base = nodeCount();
+
+var halfSpan = span / 2.0;
+var c = shapeFactor;
+var denom = cosh(c) - 1.0;
+
+for (var i = 0; i <= segments; ++i)
+{
+	var u = -halfSpan + span * double(i) / double(segments);
+	var t = u / halfSpan;
+	var y = rise * (cosh(c) - cosh(c * t)) / denom;
+
+	addNode(u, y, 0.0);
+}
+
+for (var i = 0; i < segments; ++i)
+{
+	addBeam(base + i, base + i + 1);
+}
+
+}

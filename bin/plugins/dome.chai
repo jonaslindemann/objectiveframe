@@ -4,7 +4,7 @@
 // Parameters
 
 var pluginName = "%%pluginName,Dome,string%%";
-var pluginCategory = "%%pluginCategory,Geometry,string%%";
+var pluginCategory = "%%pluginCategory,Roofs and domes,string%%";
 var stacks = %%stacks,8,int%%;
 var slices = %%slices,16,int%%;
 var radius = %%radius,4.0,float%%;

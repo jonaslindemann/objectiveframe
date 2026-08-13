@@ -4,7 +4,7 @@
 // Parameters
 
 var pluginName = "%%pluginName,Mast,string%%";
-var pluginCategory = "%%pluginCategory,Structures,string%%";
+var pluginCategory = "%%pluginCategory,Towers,string%%";
 var levels = %%levels,4,int%%;
 var levelDist =%%levelDist,2.0,float%%;
 var nSupports = %%nSupports,4,int%%;

@@ -4,7 +4,7 @@
 // Parameters
 
 var pluginName = "%%pluginName,Regular frame,string%%";
-var pluginCategory = "%%pluginCategory,Geometry,string%%";
+var pluginCategory = "%%pluginCategory,Structures,string%%";
 var floors = %%floors,4,int%%;
 var rows = %%rows,4,int%%;
 var cols = %%cols,4,int%%;

@@ -4,7 +4,7 @@
 // Parameters
 
 var pluginName = "%%pluginName,Node grid,string%%";
-var pluginCategory = "%%pluginCategory,Geometry,string%%";
+var pluginCategory = "%%pluginCategory,Grids,string%%";
 var floors = %%floors,4,int%%;
 var rows = %%rows,4,int%%;
 var cols = %%cols,4,int%%;

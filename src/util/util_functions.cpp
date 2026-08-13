@@ -53,11 +53,14 @@ int run_process(std::string cmd)
     // Wait until child process exits.
     WaitForSingleObject(pi.hProcess, INFINITE);
 
+    DWORD exitCode = 1;
+    GetExitCodeProcess(pi.hProcess, &exitCode);
+
     // Close process and thread handles.
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 
-    return 0;
+    return (int)exitCode;
 }
 
 #endif

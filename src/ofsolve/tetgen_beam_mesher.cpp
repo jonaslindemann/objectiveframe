@@ -2,6 +2,7 @@
 
 #include <logger.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -223,6 +224,17 @@ void TetgenEdges::load(const std::string filename)
 
 void ofsolver::TetgenEdges::updateIndices(const std::vector<int> &indices)
 {
+    auto inRange = [&indices](int i) { return (i >= 0) && (i < (int)indices.size()); };
+
+    // tetgen can silently merge coincident/near-duplicate input points,
+    // which shifts its own point numbering out of sync with our input
+    // order. Rather than index out of bounds (and wire up a beam to some
+    // unrelated node), drop any edge that no longer maps cleanly.
+
+    m_edges.erase(std::remove_if(m_edges.begin(), m_edges.end(),
+                                  [&](TetgenEdge &edge) { return !inRange(edge.i0()) || !inRange(edge.i1()); }),
+                  m_edges.end());
+
     for (auto &edge : m_edges) {
         auto i0 = edge.i0();
         auto i1 = edge.i1();
@@ -281,6 +293,14 @@ void ofsolver::TetgenFaces::load(const std::string filename)
 
 void ofsolver::TetgenFaces::updateIndices(const std::vector<int> &indices)
 {
+    auto inRange = [&indices](int i) { return (i >= 0) && (i < (int)indices.size()); };
+
+    m_faces.erase(std::remove_if(m_faces.begin(), m_faces.end(),
+                                  [&](TetgenFace &face) {
+                                      return !inRange(face.i0()) || !inRange(face.i1()) || !inRange(face.i2());
+                                  }),
+                  m_faces.end());
+
     for (auto &face : m_faces) {
         auto i0 = face.i0();
         auto i1 = face.i1();
@@ -351,13 +371,29 @@ void ofsolver::TetgenBeamMesher::generate()
 
     m_nodes.save(nodeFilename);
 
+#ifdef WIN32
+    std::string edgeFilename = workDir + "tetmesh.1.edge";
+    std::string faceFilename = workDir + "tetmesh.1.face";
+#else
+    std::string edgeFilename = workDir + "/tetmesh.1.edge";
+    std::string faceFilename = workDir + "/tetmesh.1.face";
+#endif
+
+    // Remove any leftover output from a previous run so that a failed
+    // tetgen invocation below can never be mistaken for success by
+    // silently re-reading stale edges/faces from an earlier, differently
+    // sized point set.
+
+    std::filesystem::remove(edgeFilename);
+    std::filesystem::remove(faceFilename);
+
 std::string tetgenExec;
 
 #ifdef WIN32
     if (m_progPath.empty())
-        tetgenExec = "tetgen.exe -e " + nodeFilename;
+        tetgenExec = "tetgen.exe -e \"" + nodeFilename + "\"";
     else
-        tetgenExec = "\"" + m_progPath + "\\tetgen.exe\" -e " + nodeFilename;
+        tetgenExec = "\"" + m_progPath + "\\tetgen.exe\" -e \"" + nodeFilename + "\"";
 #else
     std::string tetgenExec = "tetgen -e \"" + nodeFilename + "\"";
 #endif
@@ -371,12 +407,6 @@ Logger::instance()->log(LogLevel::Info, tetgenExec);
 #endif
 
     if (result == 0) {
-#ifdef WIN32
-        std::string edgeFilename = workDir + "tetmesh.1.edge";
-#else
-        std::string edgeFilename = workDir + "/tetmesh.1.edge";
-#endif
-
         if (std::filesystem::exists(edgeFilename)) {
             m_edges.load(edgeFilename);
             m_edges.updateIndices(m_nodes.nodeIndices());
@@ -384,11 +414,6 @@ Logger::instance()->log(LogLevel::Info, tetgenExec);
         else
             m_edges.clear();
 
-#ifdef WIN32
-        std::string faceFilename = workDir + "tetmesh.1.face";
-#else
-        std::string faceFilename = workDir + "/tetmesh.1.face";
-#endif
         if (std::filesystem::exists(faceFilename)) {
             m_faces.load(faceFilename);
             m_faces.updateIndices(m_nodes.nodeIndices());
@@ -396,8 +421,11 @@ Logger::instance()->log(LogLevel::Info, tetgenExec);
         else
             m_faces.clear();
     }
-    else
+    else {
+        Logger::instance()->log(LogLevel::Error, "tetgen failed with exit code " + std::to_string(result));
         m_edges.clear();
+        m_faces.clear();
+    }
 }
 
 TetgenNodes &ofsolver::TetgenBeamMesher::nodes()

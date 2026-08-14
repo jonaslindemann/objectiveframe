@@ -53,6 +53,15 @@ public:
     void   addBeamLoadAt(int i, double fx, double fy, double fz) override;
     void   clearBeamLoadAt(int i) override;
 
+    // Geometry modification
+    void   arraySelection(int count, double dx, double dy, double dz, bool spanStep,
+                          bool copyLoadsAndBCs, double weldTolerance) override;
+    void   polarArraySelection(int count, double ax, double ay, double az, double totalAngleDeg,
+                               int origin, bool rotateCopies, bool fullCircle,
+                               bool copyLoadsAndBCs, double weldTolerance) override;
+    void   planeArraySelection(int plane, int count1, double step1, int count2, double step2,
+                               bool spanStep, bool copyLoadsAndBCs, double weldTolerance) override;
+
     // Mesh generation
     void   meshSelectedNodes() override;
     void   surfaceSelectedNodes() override;

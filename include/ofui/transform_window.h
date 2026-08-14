@@ -14,8 +14,9 @@ namespace ofui {
  * coordinates on every change. Apply makes the current preview permanent as a
  * single undo entry, Reset puts the nodes back.
  *
- * Mirror is on its own tab and is not previewed - it adds geometry rather than
- * moving it, so there is nothing to restore from a baseline.
+ * Mirror and Array are on their own tabs and are not previewed - they add
+ * geometry rather than moving it, so there is nothing to restore from a
+ * baseline. Both are driven by a button instead.
  */
 class TransformWindow : public UiWindow {
 public:
@@ -26,7 +27,8 @@ public:
         Rotate = 2,
         Taper = 3,
         Smooth = 4,
-        Mirror = 5
+        Mirror = 5,
+        Array = 6
     };
 
     /**
@@ -61,7 +63,43 @@ public:
 
         int mirrorAxis{0};
         int mirrorOrigin{2};
+
+        // Shared by mirror and array - "coincident" should mean one thing on
+        // both tabs.
+
         float weldTolerance{0.001f};
+
+        int arrayKind{0};  //!< 0 linear, 1 polar, 2 grid
+        int arrayCount{4}; //!< Instances including the original
+
+        float arrayOffset[3]{1.0f, 0.0f, 0.0f};
+        bool arraySpanStep{true}; //!< Offset counted in selection lengths
+
+        int arrayAxis{1};
+        float arrayTotalAngle{360.0f};
+        bool arrayFullCircle{true};
+        bool arrayRotateCopies{true};
+        int arrayOrigin{0}; //!< Index into the panel's polar origin combo
+
+        bool arrayCopyLoads{true};
+
+        // Grid. The plane names its two axes in order, so xz means count/step
+        // along x and count2/step2 along z.
+
+        int arrayPlane{1}; //!< 0 xy, 1 xz, 2 yz
+        int arrayCount2{3};
+        float arrayStep1{5.0f};
+        float arrayStep2{5.0f};
+
+        /**
+         * Grid keeps its own span flag, off by default.
+         *
+         * A grid usually repeats a planar frame both along itself and out of
+         * its plane, and the selection has no extent in that second direction -
+         * measuring the step against it would give zero. Sharing the linear
+         * flag, which defaults on, would make that the first thing you hit.
+         */
+        bool arrayGridSpanStep{false};
     };
 
 private:
@@ -70,6 +108,9 @@ private:
 
     /** Starts the session if needed, then pushes the current values. */
     void pushPreview();
+
+    /** The array tab, which is button driven rather than previewed. */
+    void drawArrayTab();
 
     /** Returns the fields of the active tab to their neutral values. */
     void resetFields();

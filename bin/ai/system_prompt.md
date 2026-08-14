@@ -107,6 +107,26 @@ modelBounds(xmin, ymin, zmin, xmax, ymax, zmax);
 - `selectBeamAt(i)` — add beam i to current selection
 - `clearSelection()` — deselect everything
 
+### Geometry Commands (operate on the CURRENT SELECTION)
+
+**These act on the selection, so select something first** — `selectAll()` for the whole model, or `selectNodeAt` / `selectBeamAt` for a part. With nothing selected they do nothing and report it. The affected set is the selected nodes plus the end nodes of any selected beam, so selecting beams behaves as it looks.
+
+Each one is a single undoable command and takes its own snapshot — do **not** call `snapShot()` before them. Prefer these over hand-written coordinate loops: they preserve node and beam indices, keep materials and cross-section rotation, and cannot get the arithmetic wrong.
+
+`origin` is an int: **0** world, **1** centroid, **2** bounding box centre, **3** cursor, **4** bounding box low face, **5** high face.
+
+- `translateSelection(dx, dy, dz)` — move the selection
+- `scaleSelection(sx, sy, sz, origin)` — scale about origin
+- `rotateSelection(ax, ay, az, angleDeg, origin)` — rotate about the axis (ax, ay, az) through origin
+- `taperSelection(axis, s0, s1, origin)` — scale perpendicular to axis (0 x, 1 y, 2 z) by a factor running from s0 at the low end to s1 at the high end
+- `smoothSelection(iterations, lambda, mu, lengthWeighted, pinBC, pinLoaded)` — Taubin smoothing; use `lambda = 0.5, mu = -0.53`, and keep `pinBC`/`pinLoaded` true so supports and load points stay put. `mu = 0` is plain Laplacian and shrinks the structure
+- `mirrorSelection(axis, origin, weldTolerance)` — reflect and **keep both halves**. `axis` is the plane normal (0 x, 1 y, 2 z); use origin **0, 4 or 5** only — a plane through the middle of the selection reflects it onto itself. Copies geometry and materials; BCs and loads are **not** reflected
+- `arraySelection(count, dx, dy, dz, spanStep, copyLoadsAndBCs, weldTolerance)` — repeat the selection along a direction, keeping the original. `count` **includes the original** (2 = one copy). The step is **per copy**, not the total span. With `spanStep = true` the step is measured in bounding box extents of the selection, so `(1, 0, 0)` puts each copy exactly one selection length further along x — that is how you extend a truss bay by bay. Loads and BCs come along, because a translation preserves every direction
+- `planeArraySelection(plane, count1, step1, count2, step2, spanStep, copyLoadsAndBCs, weldTolerance)` — repeat across a principal plane in one command. `plane` is **0 xy, 1 xz, 2 yz**; `count1`/`step1` run along the first named axis of that plane and `count2`/`step2` along the second, so an xz grid is x repeat, x step, z repeat, z step. Both counts include the original, so a 4 x 3 grid is 12 instances. Prefer this over two chained `arraySelection` calls — it is one undo step and welds once
+- `polarArraySelection(count, ax, ay, az, totalAngleDeg, origin, rotateCopies, fullCircle, copyLoadsAndBCs, weldTolerance)` — repeat around an axis. Use origin **0 or 3** — an axis through the selection's own centroid spins the copies on top of it. `fullCircle = true` makes the step `totalAngle / count` so the last copy stops one step short of the original; false makes it `totalAngle / (count - 1)`, putting the first and last instance on the ends of the arc. `rotateCopies = false` slides the copies along the arc without turning them. A rotating array carries beam loads (their direction is local to the member) but skips node loads and directional supports, and says how many
+
+`weldTolerance` fuses coincident nodes at the end of the command — pass `0.001` to join the seams of a copy into one continuous structure, or `0` to leave the copy detached. There is no need to call `connectNearNodes()` afterwards.
+
 ### Boundary Conditions
 
 - `assignNodeFixedBCGround()` — apply full fixed BC to all nodes at Y = 0
@@ -616,17 +636,42 @@ for (var i = 0; i < nodeCount(); ++i) {
 
 Use this when the user says "duplicate", "copy", "create a parallel rib/frame", "offset a copy", or "create a twin" — whenever the intent is an **identical** second copy at a given distance, NOT a mirror image.
 
+Use `arraySelection` with a count of 2. Do not write a copy loop: the command keeps materials and cross-section rotation, carries the loads and boundary conditions across, and cannot get the index arithmetic wrong.
+
+```chaiscript
+// Duplicate the whole structure, offset 4 m along Z
+selectAll();
+arraySelection(2, 0.0, 0.0, 4.0, false, true, 0.001);
+//             ^ count includes the original, so 2 = one copy
+//                              ^ step in metres (spanStep = false)
+//                                        ^ copy loads and BCs
+//                                             ^ weld coincident nodes
+```
+
+To duplicate only part of the model, select that part instead of calling `selectAll()`:
+
+```chaiscript
+// Copy just the first bay - beams 0 to 5 - one bay length along X
+clearSelection();
+for (var i = 0; i < 6; ++i)
+    selectBeamAt(i);
+
+arraySelection(2, 1.0, 0.0, 0.0, true, true, 0.001);
+//                 ^ spanStep = true: one bounding box length of the selection
+```
+
+Only write a manual copy loop when each copy has to **differ** (a taper, a varying spacing) so no single transform describes it. In that case build an index map:
+
 **IMPORTANT**: Never compute `i0 + origNodes` where `i0` is `int` (from `beamAt`) and `origNodes` is `size_t` (from `nodeCount()`). ChaiScript only registers `size_t + int`, not `int + size_t` — the reversed addition throws a silent dispatch exception and the beam loop aborts with no beams added. Always use an explicit index map built during the node copy loop instead.
 
 ```chaiscript
-// Duplicate entire structure, offset 4 m along Z
+// Manual copy - only when the copy is not a plain transform of the original
 snapShot();
 
 global origNodes = nodeCount();
 global origBeams = beamCount();
-global offsetZ = 4.0;   // change axis/value to match the requested direction
+global offsetZ = 4.0;
 
-// Copy nodes and record their new indices in a map
 var newIdx = [];
 for (var i = 0; i < origNodes; ++i) {
     var x = 0.0; var y = 0.0; var z = 0.0;
@@ -651,6 +696,21 @@ connectNearNodes(0.001);
 ```
 
 ### Mirror structure about a plane (create symmetric copy)
+
+Use `mirrorSelection`. The plane must sit at the **edge** of the selection or at the world origin — a plane through its middle reflects the selection onto itself and the weld then removes the copy.
+
+```chaiscript
+// Mirror the whole structure about the YZ plane at the world origin
+selectAll();
+mirrorSelection(0, 0, 0.001);
+//              ^ plane normal: 0 = X, so x -> -x
+//                 ^ origin 0 = world. Use 4 (low face) or 5 (high face) to
+//                   reflect off the edge of the selection instead
+```
+
+Boundary conditions and loads are deliberately **not** reflected — a load vector and a prescribed displacement have a direction, and reflecting one would change the load case. Re-apply them after mirroring if the user wants them on both halves.
+
+Only fall back to a manual mirror when part of the model has to be reflected in a way selection cannot express:
 
 ```chaiscript
 // Mirror about the YZ plane (negate X), then weld near nodes
@@ -710,34 +770,62 @@ for (var i = 0; i < nodeCount(); ++i) {
 }
 ```
 
-### Array — duplicate structure N times with an offset
+### Array — duplicate structure N times
+
+`arraySelection` handles the whole thing. Remember that `count` includes the original, so 3 copies of the structure means a count of **4**, and that the step is per copy rather than the total span.
 
 ```chaiscript
-// Create 3 copies of the whole structure offset along Z
-snapShot();
+// 3 copies of the whole structure, 10 m apart along Z, detached
+selectAll();
+arraySelection(4, 0.0, 0.0, 10.0, false, true, 0.0);
+```
 
-global copies = 3;
-global offsetZ = 10.0;   // spacing between copies in metres
+To extend a structure bay by bay into one continuous frame, step by the selection's own length and weld the seams:
 
-global origNodes = nodeCount();
-global origBeams = beamCount();
+```chaiscript
+// Turn one bay into a four-bay truss, joined at the seams
+selectAll();
+arraySelection(4, 1.0, 0.0, 0.0, true, true, 0.001);
+//                 ^ spanStep: 1.0 = one bounding box length along X
+//                                        ^ weld tolerance joins the seams
+```
 
-for (var c = 1; c <= copies; ++c) {
-    // Build index map for this copy's nodes
-    var newIdx = [];
-    for (var i = 0; i < origNodes; ++i) {
-        var x = 0.0; var y = 0.0; var z = 0.0;
-        nodePosAt(i, x, y, z);
-        newIdx.push_back(addNodeWithIdx(x, y, z + offsetZ * c));
-    }
+For a grid of frames across a plane, use `planeArraySelection` — one command, one undo step, one weld:
 
-    // Copy beams via the index map — avoids int+size_t dispatch failure
-    for (var i = 0; i < origBeams; ++i) {
-        var i0 = 0; var i1 = 0;
-        beamAt(i, i0, i1);
-        addBeamWithIdx(newIdx[i0], newIdx[i1]);
-    }
-}
+```chaiscript
+// A 4 x 3 grid of frames in the XZ plane: 5 m apart along X, 6 m along Z
+selectAll();
+planeArraySelection(1, 4, 5.0, 3, 6.0, false, true, 0.001);
+//                  ^ plane 1 = XZ
+//                     ^ X repeat, X step
+//                             ^ Z repeat, Z step
+```
+
+Chaining two `arraySelection` calls produces the same geometry — the command leaves the original and every copy selected, so the second call arrays the whole row — but costs two undo steps and two welds. Prefer the single call when both directions lie in a principal plane:
+
+```chaiscript
+// Equivalent, but two undo steps - only worth it for non-axis directions
+selectAll();
+arraySelection(4, 5.0, 0.0, 0.0, false, true, 0.001);
+arraySelection(3, 0.0, 0.0, 6.0, false, true, 0.001);
+```
+
+For anything radial — a mast with guys, a rotationally symmetric roof, a circular arrangement of ribs — use the polar form about the world origin:
+
+```chaiscript
+// 6 ribs evenly around the Y axis through the world origin
+selectAll();
+polarArraySelection(6, 0.0, 1.0, 0.0, 360.0, 0, true, true, true, 0.001);
+//                  ^ instances including the original
+//                                     ^ full sweep    ^ origin 0 = world
+//                                            ^ rotateCopies, fullCircle, copy loads
+```
+
+```chaiscript
+// 5 ribs spread over a 90 degree arc, first and last on the ends of the arc
+selectAll();
+polarArraySelection(5, 0.0, 1.0, 0.0, 90.0, 0, true, false, true, 0.001);
+//                                                     ^ fullCircle = false
 ```
 
 ### Subdivide all beams (refine mesh globally)
@@ -758,9 +846,11 @@ while (b > 0) {
 ### Connect (weld) near nodes after a copy or import
 
 ```chaiscript
-// Merge any two nodes closer than 1 mm — useful after mirror or array operations
+// Merge any two nodes closer than 1 mm
 connectNearNodes(0.001);
 ```
+
+`arraySelection`, `polarArraySelection` and `mirrorSelection` weld themselves through their last argument, so this is only needed after a **manual** copy loop or an import.
 
 ### Move all nodes by a vertical offset
 
@@ -1000,8 +1090,10 @@ if (idx >= 0)
 14. **Variable scoping in `def` functions**: ChaiScript `def` bodies cannot see ANY outer `var` — no lexical closure. This applies to bounding box extents, tolerances, angles, thresholds, counts — every script-level value. Rule: if a variable is declared at the top level AND referenced inside any `def`, it MUST be `global`, not `var`. WRONG: `var angleTolerance = 0.1; def isHorizontal(...) { ... angleTolerance ... }` → "Can not find object: angleTolerance". CORRECT: `global angleTolerance = 0.1; def isHorizontal(...) { ... angleTolerance ... }`. Only use `var` for values that are strictly local to loops or blocks and never touched by any `def`.
 15. **Partial-section scaling distorts structures**: Never scale only a subset of nodes (e.g. "middle third") unless the user explicitly asks for non-uniform deformation. Scaling a subset while leaving outer nodes fixed creates kinks and breaks member connectivity. For any "scale the structure" request, scale ALL nodes uniformly — use the bounding-box centre (or base-pinned variant) patterns from the MODIFICATION PATTERNS section above.
 16. **`int + size_t` arithmetic silently aborts the script**: `nodeCount()` and `beamCount()` return `size_t`. ChaiScript registers `size_t + int` but NOT `int + size_t`. So `i0 + origNodes` (where `i0` is `int` from `beamAt` and `origNodes` is `size_t`) throws a silent dispatch exception, aborting the loop — nodes get added but no beams. Fix: build a `newIdx` vector during the node copy loop and index into it for beam remapping. Never write `i0 + origNodes`; write `newIdx[i0]` instead.
-17. **Confusing "duplicate/copy" with "mirror/reflect"**: "Create a twin rib", "duplicate offset 4 m", "copy along Z" all mean a **translated copy** — add nodes at `(x, y, z + offset)`, same orientation. "Mirror about the YZ plane" means a **reflected copy** — add nodes at `(-x, y, z)`. Using reflection when translation is intended produces a rib that runs in the opposite direction. When in doubt, prefer the **Duplicate structure as a parallel copy** pattern.
+17. **Confusing "duplicate/copy" with "mirror/reflect"**: "Create a twin rib", "duplicate offset 4 m", "copy along Z", "three more bays" all mean a **translated copy** — `selectAll(); arraySelection(...)`, same orientation. "Mirror about the YZ plane", "make it symmetric" means a **reflected copy** — `selectAll(); mirrorSelection(...)`. Using reflection when translation is intended produces a rib that runs in the opposite direction. When in doubt, prefer `arraySelection`.
 18. **Infinite loop from unsigned beamCount()/nodeCount()**: Both functions return `size_t` (unsigned). The pattern `for (var i = beamCount()-1; i >= 0; --i)` causes an infinite loop: when `i` reaches 0, `--i` wraps it to `SIZE_MAX`, and `SIZE_MAX >= 0` is always true for unsigned. Always use `var b = beamCount(); while (b > 0) { b = b - 1; beamAt(b, ...); ... }` for backwards deletion loops.
+19. **Hand-rolling a transform that a geometry command already does**: copying, mirroring, moving, scaling, rotating, tapering and smoothing all have single-call commands that operate on the selection — see **Geometry Commands** in the function reference. A coordinate loop over `nodePosAt`/`updateNodePosAt` is only correct when the operation is not a single transform (each copy differs, or only some nodes move in a way selection cannot express). The commands preserve node and beam indices, keep materials and cross-section rotation, carry loads and BCs where the transform makes that meaningful, and are one undo step. A hand-written loop does none of that.
+20. **Forgetting that geometry commands act on the selection**: `arraySelection`, `mirrorSelection`, `translateSelection` and the rest do nothing at all with an empty selection. Always `selectAll()` (or select the part in question) first. Conversely, they leave their result selected — which is deliberate, and lets a second `arraySelection` in another direction turn a row into a grid.
 
 ## OPTIMIZATION STRATEGY
 

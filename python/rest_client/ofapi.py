@@ -165,6 +165,61 @@ class ObjectiveFrame:
     def clear_beam_load_at(self, index):
         self._post("/cmds/clear_beam_load_at", {"index": index})
 
+    # ── Geometry modification ─────────────────────────────────────────────────
+
+    def array_selection(self, count, step=(1.0, 0.0, 0.0), span_step=True,
+                        copy_loads=True, tolerance=0.0):
+        """Repeat the selection along a direction, keeping the original.
+
+        count      instances including the original, so 1 is a no-op
+        step       offset per copy, not the total span
+        span_step  measure step in bounding box extents of the selection, so
+                   (1, 0, 0) puts each copy one selection length further along x
+        copy_loads carry loads and boundary conditions onto the copies. Safe
+                   here: a linear array is a pure translation
+        tolerance  weld coincident nodes afterwards, 0 to leave them apart
+        """
+        self._post("/cmds/array_selection",
+                   {"count": count, "step": list(step), "span_step": span_step,
+                    "copy_loads": copy_loads, "tolerance": tolerance})
+
+    def polar_array_selection(self, count, axis=(0.0, 1.0, 0.0), angle=360.0, origin=0,
+                              rotate_copies=True, full_circle=True, copy_loads=True,
+                              tolerance=0.0):
+        """Repeat the selection around an axis, keeping the original.
+
+        origin        point the axis passes through: 0 world, 3 cursor. An axis
+                      through the selection's own centroid spins the copies on
+                      top of it
+        angle         swept by the array as a whole
+        full_circle   step is angle / count, so the last copy stops one step
+                      short of the original. False divides by count - 1, putting
+                      the first and last instance on the ends of the arc
+        rotate_copies False slides the copies along the arc unrotated
+        copy_loads    beam loads always come along (their direction is local),
+                      but a rotating array skips node loads and directional
+                      supports and reports how many
+        """
+        self._post("/cmds/polar_array_selection",
+                   {"count": count, "axis": list(axis), "angle": angle, "origin": origin,
+                    "rotate_copies": rotate_copies, "full_circle": full_circle,
+                    "copy_loads": copy_loads, "tolerance": tolerance})
+
+    def plane_array_selection(self, plane, count1, step1, count2, step2,
+                              span_step=False, copy_loads=True, tolerance=0.0):
+        """Repeat the selection across a principal plane, keeping the original.
+
+        plane   0 xy, 1 xz, 2 yz. count1/step1 run along the first named axis of
+                the plane and count2/step2 along the second, so an xz grid is
+                x repeat, x step, z repeat, z step
+        count1  repeats along the first axis, including the original, so a
+                4 x 3 grid is 12 instances and 11 copies
+        """
+        self._post("/cmds/plane_array_selection",
+                   {"plane": plane, "count1": count1, "step1": step1,
+                    "count2": count2, "step2": step2, "span_step": span_step,
+                    "copy_loads": copy_loads, "tolerance": tolerance})
+
     # ── Mesh generation ───────────────────────────────────────────────────────
 
     def mesh_selected_nodes(self):

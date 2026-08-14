@@ -1,5 +1,7 @@
 #include <ofui/transform_window.h>
 
+#include <ofui/plane_axes.h>
+
 #ifdef USE_FEMVIEW
 #include <FemView.h>
 #else
@@ -21,6 +23,12 @@ const int originValues[4] = {0, 1, 2, 3};
 
 const char *mirrorOriginNames = "World origin\0Low face\0High face\0";
 const int mirrorOriginValues[3] = {0, 4, 5};
+
+// A polar axis has to miss the selection to be useful - one through its own
+// centroid spins the copies on top of it.
+
+const char *polarOriginNames = "World origin\0Cursor\0";
+const int polarOriginValues[2] = {0, 3};
 
 const char *axisNames = "X\0Y\0Z\0";
 
@@ -178,6 +186,126 @@ void TransformWindow::pushPreview()
     m_view->updateTransformPreview(toParams(m_fields));
 }
 
+void TransformWindow::drawArrayTab()
+{
+    ImGui::RadioButton("Linear", &m_fields.arrayKind, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("Polar", &m_fields.arrayKind, 1);
+    ImGui::SameLine();
+    ImGui::RadioButton("Grid", &m_fields.arrayKind, 2);
+
+    ImGui::Separator();
+
+    // The counts include the original, which is worth saying out loud - it is
+    // the one thing people get wrong about an array command.
+
+    if (m_fields.arrayKind == 2)
+    {
+        ImGui::Combo("Plane", &m_fields.arrayPlane, planeNames());
+
+        ImGui::Separator();
+
+        const std::string axis1 = planeAxisLabel(m_fields.arrayPlane, 0);
+        const std::string axis2 = planeAxisLabel(m_fields.arrayPlane, 1);
+
+        ImGui::DragInt((axis1 + " repeat").c_str(), &m_fields.arrayCount, 0.2f, 1, 100);
+        ImGui::DragFloat((axis1 + " step").c_str(), &m_fields.arrayStep1, 0.05f);
+
+        ImGui::DragInt((axis2 + " repeat").c_str(), &m_fields.arrayCount2, 0.2f, 1, 100);
+        ImGui::DragFloat((axis2 + " step").c_str(), &m_fields.arrayStep2, 0.05f);
+
+        ImGui::Separator();
+
+        ImGui::Checkbox("Steps in selection lengths", &m_fields.arrayGridSpanStep);
+
+        if (m_fields.arrayGridSpanStep)
+            ImGui::TextUnformatted("A flat selection has no length across its plane -\nthat step would come out zero.");
+
+        const int instances = m_fields.arrayCount * m_fields.arrayCount2;
+
+        ImGui::Text("Repeats include the original: %d x %d = %d instances, %d copies.", m_fields.arrayCount,
+                    m_fields.arrayCount2, instances, (instances > 0) ? instances - 1 : 0);
+    }
+    else
+    {
+        ImGui::DragInt("Instances", &m_fields.arrayCount, 0.2f, 2, 200);
+        ImGui::TextUnformatted("Instances include the original.");
+    }
+
+    ImGui::Separator();
+
+    if (m_fields.arrayKind == 0)
+    {
+        ImGui::Checkbox("Step in selection lengths", &m_fields.arraySpanStep);
+
+        if (m_fields.arraySpanStep)
+        {
+            ImGui::DragFloat3("Step", m_fields.arrayOffset, 0.05f);
+            ImGui::TextUnformatted("1.0 puts each copy one selection length on.");
+        }
+        else
+            ImGui::DragFloat3("Step", m_fields.arrayOffset, 0.01f);
+
+        ImGui::TextUnformatted("The step is per copy, not the total span.");
+    }
+    else if (m_fields.arrayKind == 2)
+    {
+        ImGui::TextUnformatted("Steps are per copy, not the total span.");
+    }
+    else
+    {
+        ImGui::Combo("Axis", &m_fields.arrayAxis, axisNames);
+        ImGui::Combo("Through", &m_fields.arrayOrigin, polarOriginNames);
+
+        ImGui::DragFloat("Total angle", &m_fields.arrayTotalAngle, 0.5f, -360.0f, 360.0f, "%.1f deg");
+
+        ImGui::Checkbox("Full circle", &m_fields.arrayFullCircle);
+
+        if (m_fields.arrayFullCircle)
+            ImGui::TextUnformatted("Step is angle / instances - the last copy stops short.");
+        else
+            ImGui::TextUnformatted("Step is angle / (instances - 1) - ends of the arc.");
+
+        ImGui::Checkbox("Rotate copies", &m_fields.arrayRotateCopies);
+
+        if (!m_fields.arrayRotateCopies)
+            ImGui::TextUnformatted("Copies follow the arc but keep their orientation.");
+    }
+
+    ImGui::Separator();
+
+    ImGui::Checkbox("Copy loads and BCs", &m_fields.arrayCopyLoads);
+
+    // Say up front what a rotation cannot carry, rather than only reporting it
+    // on the console afterwards.
+
+    if (m_fields.arrayCopyLoads && (m_fields.arrayKind == 1) && m_fields.arrayRotateCopies)
+        ImGui::TextUnformatted("Node loads and directional supports are skipped -\na rotation does not preserve them.");
+
+    ImGui::DragFloat("Weld tolerance", &m_fields.weldTolerance, 0.0005f, 0.0f, 1.0f, "%.4f");
+    ImGui::TextUnformatted("0 leaves the copies unwelded.");
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Create array"))
+    {
+        if (m_fields.arrayKind == 0)
+            m_view->arraySelection(m_fields.arrayCount, m_fields.arrayOffset[0], m_fields.arrayOffset[1],
+                                   m_fields.arrayOffset[2], m_fields.arraySpanStep, m_fields.arrayCopyLoads,
+                                   m_fields.weldTolerance);
+        else if (m_fields.arrayKind == 2)
+            m_view->planeArraySelection(m_fields.arrayPlane, m_fields.arrayCount, m_fields.arrayStep1,
+                                        m_fields.arrayCount2, m_fields.arrayStep2, m_fields.arrayGridSpanStep,
+                                        m_fields.arrayCopyLoads, m_fields.weldTolerance);
+        else
+            m_view->polarArraySelection(m_fields.arrayCount, (m_fields.arrayAxis == 0) ? 1.0 : 0.0,
+                                        (m_fields.arrayAxis == 1) ? 1.0 : 0.0, (m_fields.arrayAxis == 2) ? 1.0 : 0.0,
+                                        m_fields.arrayTotalAngle, polarOriginValues[m_fields.arrayOrigin],
+                                        m_fields.arrayRotateCopies, m_fields.arrayFullCircle, m_fields.arrayCopyLoads,
+                                        m_fields.weldTolerance);
+    }
+}
+
 void TransformWindow::doDraw()
 {
     if (m_view == nullptr)
@@ -285,6 +413,12 @@ void TransformWindow::doDraw()
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Array"))
+        {
+            m_fields.mode = Array;
+            ImGui::EndTabItem();
+        }
+
         ImGui::EndTabBar();
     }
 
@@ -324,6 +458,12 @@ void TransformWindow::doDraw()
             m_view->mirrorSelection(m_fields.mirrorAxis, mirrorOriginValues[m_fields.mirrorOrigin],
                                     m_fields.weldTolerance);
 
+        return;
+    }
+
+    if (m_fields.mode == Array)
+    {
+        drawArrayTab();
         return;
     }
 

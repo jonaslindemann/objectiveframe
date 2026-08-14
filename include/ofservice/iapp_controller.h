@@ -51,6 +51,21 @@ public:
     virtual void   addBeamLoadAt(int i, double fx, double fy, double fz) = 0;
     virtual void   clearBeamLoadAt(int i) = 0;
 
+    // ── Geometry modification ─────────────────────────────────────────────────
+    // Origins are passed as an int: 0 world, 1 centroid, 2 bounding box centre,
+    // 3 cursor, 4 bounding box low face, 5 high face. A polar array wants 0 or
+    // 3 - an axis through the selection's own centroid spins the copies on top
+    // of it.
+    virtual void   arraySelection(int count, double dx, double dy, double dz, bool spanStep,
+                                  bool copyLoadsAndBCs, double weldTolerance) = 0;
+    virtual void   polarArraySelection(int count, double ax, double ay, double az, double totalAngleDeg,
+                                       int origin, bool rotateCopies, bool fullCircle,
+                                       bool copyLoadsAndBCs, double weldTolerance) = 0;
+    // plane: 0 xy, 1 xz, 2 yz. count1/step1 run along the first named axis of
+    // the plane, count2/step2 along the second.
+    virtual void   planeArraySelection(int plane, int count1, double step1, int count2, double step2,
+                                       bool spanStep, bool copyLoadsAndBCs, double weldTolerance) = 0;
+
     // ── Mesh generation ───────────────────────────────────────────────────────
     virtual void   meshSelectedNodes() = 0;
     virtual void   surfaceSelectedNodes() = 0;

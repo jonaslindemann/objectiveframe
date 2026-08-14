@@ -12,6 +12,7 @@ Typical prompts include:
 - Add fixed supports to the ground nodes of the current model.
 - Add a downward load to the highest node.
 - Modify the current model by adding cross bracing to each wall.
+- Repeat the current frame four times along X and three times along Z, 5 m apart.
 
 The prompt system distinguishes between two important modes:
 

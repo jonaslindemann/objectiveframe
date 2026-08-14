@@ -9,12 +9,55 @@
 #include <map>
 #include <set>
 
+using ofview_detail::applySelection;
 using ofview_detail::buildGraph;
 using ofview_detail::ModelGraph;
 
 namespace {
 
 constexpr double pi = 3.14159265358979323846;
+
+// An array with a mistyped count would otherwise lock the render thread up for
+// minutes building geometry nobody asked for.
+
+constexpr size_t maxArrayNodes = 50000;
+
+/**
+ * Whether a support looks the same from every direction.
+ *
+ * The prescribed degrees of freedom are global, so a rotated copy of a roller
+ * or of a prescribed displacement would restrain a different direction than the
+ * original does. A whole triple that is either free or fixed at zero is the one
+ * case where rotating changes nothing - which covers a full fixity and a pinned
+ * support, the two that actually turn up.
+ */
+bool bcIsRotationInvariant(ofem::NodeBC *bc)
+{
+    auto prescribed = bc->getPrescribedArr();
+    auto values = bc->getPrescribedValueArr();
+
+    for (int triple = 0; triple < 2; triple++)
+    {
+        const int base = triple * 3;
+        int count = 0;
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (!prescribed[base + i])
+                continue;
+
+            if (std::abs(values[base + i]) > 1e-12)
+                return false;
+
+            count++;
+        }
+
+        if ((count != 0) && (count != 3))
+            return false;
+    }
+
+    return true;
+}
 
 glm::dvec3 coordOf(ofem::Node *node)
 {
@@ -637,10 +680,235 @@ void FemViewGeometryHandler::cancelPreview(FemViewWindow &view)
     view.redraw();
 }
 
+void FemViewGeometryHandler::collectCopySet(const ModelGraph &graph, std::vector<ofem::Node *> &nodes,
+                                            std::vector<ofem::Beam *> &beams)
+{
+    nodes.clear();
+    beams.clear();
+
+    std::set<ofem::Node *> affected = graph.selectedNodes;
+
+    for (auto beam : graph.selectedBeams)
+    {
+        affected.insert(beam->getNode(0));
+        affected.insert(beam->getNode(1));
+    }
+
+    // Model order, so a copy is built in the same order as its original and the
+    // new indices run in the same direction as the old ones.
+
+    for (auto node : graph.nodes)
+        if (affected.count(node) > 0)
+            nodes.push_back(node);
+
+    for (auto beam : graph.beams)
+        if ((affected.count(beam->getNode(0)) > 0) && (affected.count(beam->getNode(1)) > 0))
+            beams.push_back(beam);
+}
+
+void FemViewGeometryHandler::copyBeamProps(ofem::Beam *from, ofem::Beam *to)
+{
+    if ((from == nullptr) || (to == nullptr))
+        return;
+
+    // The cross section rotation matters as much as the material - a copy that
+    // loses it draws a visibly different member.
+
+    to->setMaterial(from->getMaterial());
+    to->setBeamRotation(from->getBeamRotation());
+    to->setBeamType(from->beamType());
+    to->setEvaluationPoints(from->getEvaluationPoints());
+}
+
+void FemViewGeometryHandler::carryLoadsAndBCs(FemViewWindow &view, const std::map<ofem::Node *, ofem::Node *> &nodeCopy,
+                                              const std::map<ofem::Beam *, ofem::Beam *> &beamCopy,
+                                              const CopyOptions &opts, CopyReport &report)
+{
+    auto model = view.getModel();
+
+    if (model == nullptr)
+        return;
+
+    auto bcSet = model->getBCSet();
+
+    if (bcSet != nullptr)
+    {
+        for (long i = 0; i < long(bcSet->getSize()); i++)
+        {
+            auto bc = static_cast<ofem::NodeBC *>(bcSet->getBC(i));
+
+            if (bc == nullptr)
+                continue;
+
+            // Collected before anything is added, so the copies this command
+            // makes are not themselves picked up as sources.
+
+            std::vector<ofem::Node *> targets;
+
+            for (auto &entry : nodeCopy)
+                if (bc->contains(entry.first))
+                    targets.push_back(entry.second);
+
+            if (targets.empty())
+                continue;
+
+            if (!opts.directionsPreserved && !bcIsRotationInvariant(bc))
+            {
+                report.skippedBCs += targets.size();
+                continue;
+            }
+
+            for (auto node : targets)
+                bc->addNode(node);
+        }
+    }
+
+    auto loadSet = model->getNodeLoadSet();
+
+    if (loadSet != nullptr)
+    {
+        for (long i = 0; i < long(loadSet->getSize()); i++)
+        {
+            auto load = static_cast<ofem::NodeLoad *>(loadSet->getLoad(i));
+
+            if (load == nullptr)
+                continue;
+
+            std::vector<ofem::Node *> targets;
+
+            for (unsigned int k = 0; k < load->getNodeSize(); k++)
+            {
+                auto it = nodeCopy.find(load->getNode(k));
+
+                if (it != nodeCopy.end())
+                    targets.push_back(it->second);
+            }
+
+            if (targets.empty())
+                continue;
+
+            // A node load points somewhere in global coordinates. Rotating the
+            // copy without rotating the load would pull it in a direction
+            // nobody asked for, so leave it off and say so.
+
+            if (!opts.directionsPreserved)
+            {
+                report.skippedLoads += targets.size();
+                continue;
+            }
+
+            for (auto node : targets)
+                load->addNode(node);
+        }
+    }
+
+    auto elementLoadSet = model->getElementLoadSet();
+
+    if (elementLoadSet != nullptr)
+    {
+        for (long i = 0; i < long(elementLoadSet->getSize()); i++)
+        {
+            auto load = static_cast<ofem::ElementLoad *>(elementLoadSet->getLoad(i));
+
+            if (load == nullptr)
+                continue;
+
+            std::vector<ofem::Element *> targets;
+
+            for (unsigned int k = 0; k < load->getElementsSize(); k++)
+            {
+                auto it = beamCopy.find(static_cast<ofem::Beam *>(load->getElement(k)));
+
+                if (it != beamCopy.end())
+                    targets.push_back(it->second);
+            }
+
+            // A beam load is given in the member's own frame, so it follows the
+            // copy wherever it ends up - no direction check needed.
+
+            for (auto element : targets)
+                load->addElement(element);
+        }
+    }
+}
+
+void FemViewGeometryHandler::duplicateOnce(FemViewWindow &view, const std::vector<ofem::Node *> &nodes,
+                                           const std::vector<ofem::Beam *> &beams, const glm::dmat4 &m,
+                                           const CopyOptions &opts, bool checkExisting, CopyReport &report)
+{
+    auto nodeSet = view.getModel()->getNodeSet();
+
+    // addNode() offsets by the last picked position, which is what makes the
+    // create gesture land under the cursor. These coordinates are absolute, so
+    // zero it for the duration - the same thing the script runner does.
+
+    double savedPos[3] = {view.m_selectedPos[0], view.m_selectedPos[1], view.m_selectedPos[2]};
+
+    view.m_selectedPos[0] = 0.0;
+    view.m_selectedPos[1] = 0.0;
+    view.m_selectedPos[2] = 0.0;
+
+    std::map<ofem::Node *, int> copyIndex;
+    std::map<ofem::Node *, ofem::Node *> nodeCopy;
+
+    for (auto node : nodes)
+    {
+        auto p = ofmath::transformPoint(m, coordOf(node));
+
+        view.addNode(p.x, p.y, p.z);
+
+        int index = int(nodeSet->getSize()) - 1;
+        auto copy = nodeSet->getNode(index);
+
+        copyIndex[node] = index;
+        nodeCopy[node] = copy;
+
+        report.nodes.push_back(copy);
+    }
+
+    view.m_selectedPos[0] = savedPos[0];
+    view.m_selectedPos[1] = savedPos[1];
+    view.m_selectedPos[2] = savedPos[2];
+
+    std::map<ofem::Beam *, ofem::Beam *> beamCopy;
+
+    for (auto beam : beams)
+    {
+        auto it0 = copyIndex.find(beam->getNode(0));
+        auto it1 = copyIndex.find(beam->getNode(1));
+
+        if ((it0 == copyIndex.end()) || (it1 == copyIndex.end()))
+            continue;
+
+        auto visBeam =
+            checkExisting ? view.addBeam(it0->second, it1->second) : view.addBeamUnchecked(it0->second, it1->second);
+
+        // Null when that pair is already connected, which happens for a beam
+        // lying in the mirror plane.
+
+        if (visBeam == nullptr)
+            continue;
+
+        copyBeamProps(beam, visBeam->getBeam());
+
+        beamCopy[beam] = visBeam->getBeam();
+        report.beams.push_back(visBeam->getBeam());
+    }
+
+    if (opts.loadsAndBCs)
+        carryLoadsAndBCs(view, nodeCopy, beamCopy, opts, report);
+}
+
 void FemViewGeometryHandler::mirror(FemViewWindow &view, int axis, Origin origin, double weldTolerance)
 {
     if ((axis < 0) || (axis > 2))
         return;
+
+    // An un-applied preview is not part of the model yet, and it holds raw node
+    // pointers. Cancelling it first means the copy is made from the real
+    // geometry, and that a later cancel cannot write to a node the weld deleted.
+
+    cancelPreview(view);
 
     ModelGraph graph;
 
@@ -654,102 +922,311 @@ void FemViewGeometryHandler::mirror(FemViewWindow &view, int axis, Origin origin
         return;
     }
 
-    // Nodes to copy, in model order
-
-    std::set<ofem::Node *> affected = graph.selectedNodes;
-
-    for (auto beam : graph.selectedBeams)
-    {
-        affected.insert(beam->getNode(0));
-        affected.insert(beam->getNode(1));
-    }
-
     std::vector<ofem::Node *> nodes;
-    std::map<ofem::Node *, int> sourceIndex;
-
-    for (int i = 0; i < int(graph.nodes.size()); i++)
-    {
-        if (affected.count(graph.nodes[i]) == 0)
-            continue;
-
-        sourceIndex[graph.nodes[i]] = i;
-        nodes.push_back(graph.nodes[i]);
-    }
-
-    // Any beam with both ends in the copied set comes along. That covers both
-    // gestures - selecting the beams and selecting the nodes they span.
-
     std::vector<ofem::Beam *> beams;
 
-    for (auto beam : graph.beams)
-        if ((affected.count(beam->getNode(0)) > 0) && (affected.count(beam->getNode(1)) > 0))
-            beams.push_back(beam);
+    collectCopySet(graph, nodes, beams);
 
-    auto pts = coordsOf(nodes);
+    if (nodes.empty())
+        return;
 
     glm::dvec3 normal(0.0);
     normal[axis] = 1.0;
 
-    auto m = ofmath::mirrorMatrix(originFor(view, origin, pts), normal);
+    auto m = ofmath::mirrorMatrix(originFor(view, origin, coordsOf(nodes)), normal);
 
     begin(view);
 
-    // addNode() offsets by the last picked position, which is what makes the
-    // create gesture land under the cursor. These coordinates are absolute, so
-    // zero it for the duration - the same thing the script runner does.
+    // Geometry and materials only. A prescribed displacement or a load vector
+    // has a direction, and silently reflecting one would change the load case
+    // without saying so.
 
-    double savedPos[3] = {view.m_selectedPos[0], view.m_selectedPos[1], view.m_selectedPos[2]};
+    CopyOptions opts;
+    opts.loadsAndBCs = false;
 
-    view.m_selectedPos[0] = 0.0;
-    view.m_selectedPos[1] = 0.0;
-    view.m_selectedPos[2] = 0.0;
+    CopyReport report;
 
-    auto nodeSet = view.getModel()->getNodeSet();
-    std::map<int, int> mirroredIndex;
+    duplicateOnce(view, nodes, beams, m, opts, true, report);
 
-    for (size_t i = 0; i < nodes.size(); i++)
-    {
-        auto p = ofmath::transformPoint(m, pts[i]);
-
-        view.addNode(p.x, p.y, p.z);
-        mirroredIndex[sourceIndex[nodes[i]]] = int(nodeSet->getSize()) - 1;
-    }
-
-    view.m_selectedPos[0] = savedPos[0];
-    view.m_selectedPos[1] = savedPos[1];
-    view.m_selectedPos[2] = savedPos[2];
-
-    size_t addedBeams = 0;
-
-    for (auto beam : beams)
-    {
-        auto it0 = mirroredIndex.find(sourceIndex[beam->getNode(0)]);
-        auto it1 = mirroredIndex.find(sourceIndex[beam->getNode(1)]);
-
-        if ((it0 == mirroredIndex.end()) || (it1 == mirroredIndex.end()))
-            continue;
-
-        auto visBeam = view.addBeam(it0->second, it1->second);
-
-        // addBeam() returns nullptr when that pair is already connected, which
-        // happens for a beam lying in the mirror plane.
-
-        if (visBeam == nullptr)
-            continue;
-
-        visBeam->getBeam()->setMaterial(beam->getMaterial());
-        addedBeams++;
-    }
+    // The no-snapshot weld, so a mirror with a weld is still one undo entry.
 
     if (weldTolerance > 0.0)
-        view.connectNearNodes(weldTolerance);
+        view.weldNearNodes(weldTolerance);
 
     view.refreshBeamModelVisuals();
     view.set_changed();
+    view.m_solver.needRecalc = true;
     view.redraw();
 
-    view.console("Mirror: " + std::to_string(nodes.size()) + " node(s) and " + std::to_string(addedBeams) +
+    view.console("Mirror: " + std::to_string(report.nodes.size()) + " node(s) and " +
+                 std::to_string(report.beams.size()) +
                  " beam(s) copied. Boundary conditions and loads were not copied.");
-    view.notify("Mirrored " + std::to_string(nodes.size()) + " nodes. BCs and loads not copied.",
+    view.notify("Mirrored " + std::to_string(report.nodes.size()) + " nodes. BCs and loads not copied.",
                 ofui::NotificationLevel::Info);
+}
+
+void FemViewGeometryHandler::array(FemViewWindow &view, const ArrayParams &params)
+{
+    const std::string what = (params.kind == ArrayKind::Linear)
+                                 ? "Array"
+                                 : ((params.kind == ArrayKind::Polar) ? "Polar array" : "Grid array");
+
+    // The counts include the original, so a grid is only empty when both
+    // directions repeat once - a 1 x 4 grid is a perfectly good request.
+
+    const bool isGrid = (params.kind == ArrayKind::Grid);
+    const int count2 = isGrid ? params.count2 : 1;
+
+    if ((params.count < 1) || (count2 < 1))
+    {
+        view.console(what + ": a repeat count below one is meaningless.");
+        view.notify("Array needs at least two instances.", ofui::NotificationLevel::Warning);
+        return;
+    }
+
+    const int instances = params.count * count2;
+
+    if (instances < 2)
+    {
+        view.console(what + ": " + std::to_string(instances) + " instance(s) adds nothing.");
+        view.notify("Array needs at least two instances.", ofui::NotificationLevel::Warning);
+        return;
+    }
+
+    // See mirror() - an un-applied preview holds raw node pointers that the
+    // weld below could delete.
+
+    cancelPreview(view);
+
+    ModelGraph graph;
+
+    if (!buildGraph(view, graph))
+        return;
+
+    if (!graph.hasSelection())
+    {
+        view.console(what + ": nothing is selected.");
+        view.notify("Nothing is selected.", ofui::NotificationLevel::Warning);
+        return;
+    }
+
+    std::vector<ofem::Node *> nodes;
+    std::vector<ofem::Beam *> beams;
+
+    collectCopySet(graph, nodes, beams);
+
+    if (nodes.empty())
+        return;
+
+    const size_t newNodes = nodes.size() * size_t(instances - 1);
+
+    if (newNodes > maxArrayNodes)
+    {
+        view.console(what + ": " + std::to_string(newNodes) + " new nodes exceeds the limit of " +
+                     std::to_string(maxArrayNodes) + ".");
+        view.notify("Too many copies - reduce the count or the selection.", ofui::NotificationLevel::Warning);
+        return;
+    }
+
+    // Each copy is built from the original by a single transform rather than
+    // from the copy before it, so the last instance is as exact as the first.
+    //
+    // Everything is validated before begin(), so a refused array leaves no undo
+    // entry behind - the same rule runOnce() follows.
+
+    std::vector<glm::dmat4> steps;
+
+    if (params.kind != ArrayKind::Polar)
+    {
+        // A grid is the linear case with a second direction, so both go through
+        // the same code - one command, one snapshot, one weld, rather than the
+        // two undo entries that chaining two linear arrays would cost.
+
+        glm::dvec3 extent(1.0);
+
+        if (params.spanStep)
+        {
+            // Measured over the copy set, so a step of one puts each copy
+            // exactly one selection length on. A selection that is flat along
+            // a step direction gives a zero offset and is refused below, which
+            // is the honest answer - there is no length to repeat.
+
+            glm::dvec3 lo(0.0), hi(0.0);
+            ofmath::boundingBox(coordsOf(nodes), lo, hi);
+
+            extent = hi - lo;
+        }
+
+        glm::dvec3 offset1 = glm::dvec3(params.offset[0], params.offset[1], params.offset[2]) * extent;
+        glm::dvec3 offset2 =
+            isGrid ? glm::dvec3(params.offset2[0], params.offset2[1], params.offset2[2]) * extent : glm::dvec3(0.0);
+
+        // Only a direction that actually repeats has to go anywhere - a 1 x 4
+        // grid is allowed to leave the unused step at zero.
+
+        if ((params.count > 1) && (glm::length(offset1) < 1e-12))
+        {
+            view.console(what + ": the step is zero, every copy would land on the original.");
+            view.notify("Array step is zero.", ofui::NotificationLevel::Warning);
+            return;
+        }
+
+        if (isGrid && (params.count2 > 1) && (glm::length(offset2) < 1e-12))
+        {
+            view.console(what + ": the second step is zero, every copy would land on the original.");
+            view.notify("Array step is zero.", ofui::NotificationLevel::Warning);
+            return;
+        }
+
+        // Parallel directions collapse the grid onto a line, where the copies
+        // of one row land on top of another's.
+
+        if (isGrid && (params.count > 1) && (params.count2 > 1) &&
+            (glm::length(glm::cross(offset1, offset2)) < 1e-12 * glm::length(offset1) * glm::length(offset2)))
+        {
+            view.console(what + ": the two directions are parallel, the rows would land on each other.");
+            view.notify("Grid directions are parallel.", ofui::NotificationLevel::Warning);
+            return;
+        }
+
+        for (int i = 0; i < params.count; i++)
+            for (int j = 0; j < count2; j++)
+            {
+                if ((i == 0) && (j == 0))
+                    continue;
+
+                steps.push_back(ofmath::translationMatrix(offset1 * double(i) + offset2 * double(j)));
+            }
+    }
+    else
+    {
+        glm::dvec3 axis(params.axis[0], params.axis[1], params.axis[2]);
+
+        if (glm::length(axis) < 1e-12)
+        {
+            view.console(what + ": the axis has zero length.");
+            view.notify("Array axis is zero.", ofui::NotificationLevel::Warning);
+            return;
+        }
+
+        // A full circle divides by the count, so the last copy stops one step
+        // short of the original instead of on top of it. A partial sweep
+        // divides by the gaps, so the first and last instance sit on the ends
+        // of the arc.
+
+        const double stepDeg = params.fullCircle ? params.totalAngleDeg / double(params.count)
+                                                 : params.totalAngleDeg / double(params.count - 1);
+
+        if (std::abs(std::fmod(stepDeg, 360.0)) < 1e-9)
+        {
+            view.console(what + ": a step of " + std::to_string(stepDeg) + " degrees puts every copy on the original.");
+            view.notify("Array angle gives a zero step.", ofui::NotificationLevel::Warning);
+            return;
+        }
+
+        auto pts = coordsOf(nodes);
+        auto centre = originFor(view, params.origin, pts);
+        auto anchor = ofmath::centroid(pts);
+
+        for (int k = 1; k < params.count; k++)
+        {
+            auto r = ofmath::rotationMatrix(axis, double(k) * stepDeg * pi / 180.0, centre);
+
+            if (params.rotateCopies)
+            {
+                steps.push_back(r);
+                continue;
+            }
+
+            // The insertion point follows the arc while the copy keeps its
+            // orientation. With the selection centred on the axis that leaves
+            // every copy on top of the original, which is worth refusing rather
+            // than silently producing coincident geometry.
+
+            auto delta = ofmath::transformPoint(r, anchor) - anchor;
+
+            if ((k == 1) && (glm::length(delta) < 1e-12))
+            {
+                view.console(what + ": unrotated copies of a selection centred on the axis land on the original.");
+                view.notify("Nothing to array - the selection sits on the axis.", ofui::NotificationLevel::Warning);
+                return;
+            }
+
+            steps.push_back(ofmath::translationMatrix(delta));
+        }
+    }
+
+    begin(view);
+
+    CopyOptions opts;
+
+    opts.loadsAndBCs = params.copyLoadsAndBCs;
+    // Only a rotation disturbs a global direction. Linear and grid arrays are
+    // pure translations, and so is a polar array that does not turn its copies.
+
+    opts.directionsPreserved = (params.kind != ArrayKind::Polar) || !params.rotateCopies;
+
+    CopyReport report;
+
+    // The duplicate check in addBeam() is skipped: within a copy the node pairs
+    // are fresh, and the cases where a copy could land on the original were
+    // refused above.
+
+    for (const auto &m : steps)
+        duplicateOnce(view, nodes, beams, m, opts, false, report);
+
+    if (params.weldTolerance > 0.0)
+        view.weldNearNodes(params.weldTolerance);
+
+    view.refreshBeamModelVisuals();
+    view.set_changed();
+    view.m_solver.needRecalc = true;
+    view.redraw();
+
+    std::string message = what + ": " + std::to_string(instances - 1) + " copies, " +
+                          std::to_string(report.nodes.size()) + " node(s) and " + std::to_string(report.beams.size()) +
+                          " beam(s) added.";
+
+    if (report.skippedBCs > 0)
+        message += " " + std::to_string(report.skippedBCs) +
+                   " boundary condition(s) not copied - a rotation does not preserve them.";
+
+    if (report.skippedLoads > 0)
+        message += " " + std::to_string(report.skippedLoads) + " node load(s) not copied - their direction is global.";
+
+    // Leave the original and every copy selected, so a second array in another
+    // direction turns one bay into a grid.
+    //
+    // Welding deletes nodes, so the survivors are read back out of the model
+    // rather than trusted from the list built before the weld. The wanted sets
+    // may hold addresses of deleted nodes, which are only ever looked up, never
+    // followed - nothing is allocated in between, so no new object can alias
+    // one of them.
+
+    std::set<ofem::Node *> wantedNodes(nodes.begin(), nodes.end());
+    std::set<ofem::Beam *> wantedBeams(beams.begin(), beams.end());
+
+    wantedNodes.insert(report.nodes.begin(), report.nodes.end());
+    wantedBeams.insert(report.beams.begin(), report.beams.end());
+
+    ModelGraph after;
+
+    if (buildGraph(view, after))
+    {
+        std::set<ofem::Node *> selectedNodes;
+        std::set<ofem::Beam *> selectedBeams;
+
+        for (auto node : after.nodes)
+            if (wantedNodes.count(node) > 0)
+                selectedNodes.insert(node);
+
+        for (auto beam : after.beams)
+            if (wantedBeams.count(beam) > 0)
+                selectedBeams.insert(beam);
+
+        applySelection(view, after, selectedNodes, selectedBeams);
+    }
+
+    view.console(message);
+    view.notify(what + ": " + std::to_string(report.nodes.size()) + " nodes added.", ofui::NotificationLevel::Info);
 }

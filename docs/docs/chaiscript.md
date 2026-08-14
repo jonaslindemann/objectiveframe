@@ -82,6 +82,61 @@ nodePosAt(0, x, y, z);
 | `clearSelection()` | Clear the current selection. |
 | `isNodeSelectedAt(i)` | Return whether node `i` is selected. |
 
+## Geometry commands
+
+These commands act on the **current selection**, so select something first - with nothing selected they do nothing and say so on the console. The affected set is the selected nodes together with the end nodes of any selected beam.
+
+Each command is a single undoable step and takes its own snapshot, so do not call `snapShot()` before one. Prefer them over hand-written coordinate loops: node and beam indices survive, materials and cross section rotation are kept, and degenerate arguments are refused instead of quietly destroying geometry.
+
+| Function | Description |
+| --- | --- |
+| `translateSelection(dx, dy, dz)` | Move the selection. |
+| `scaleSelection(sx, sy, sz, origin)` | Scale about `origin`. |
+| `rotateSelection(ax, ay, az, angleDeg, origin)` | Rotate about the axis `(ax, ay, az)` through `origin`. |
+| `taperSelection(axis, s0, s1, origin)` | Scale perpendicular to `axis` by a factor running from `s0` at the low end to `s1` at the high end. |
+| `smoothSelection(iterations, lambda, mu, lengthWeighted, pinBC, pinLoaded)` | Taubin smoothing of the selected nodes. |
+| `mirrorSelection(axis, origin, weldTolerance)` | Reflect in a principal plane and keep both halves. |
+| `arraySelection(count, dx, dy, dz, spanStep, copyLoadsAndBCs, weldTolerance)` | Repeat along a direction. |
+| `planeArraySelection(plane, count1, step1, count2, step2, spanStep, copyLoadsAndBCs, weldTolerance)` | Repeat across a principal plane. |
+| `polarArraySelection(count, ax, ay, az, totalAngleDeg, origin, rotateCopies, fullCircle, copyLoadsAndBCs, weldTolerance)` | Repeat around an axis. |
+
+`axis` is `0` for x, `1` for y and `2` for z. `origin` selects what the transform is measured from:
+
+| Value | Origin |
+| --- | --- |
+| `0` | World origin |
+| `1` | Centroid of the affected nodes |
+| `2` | Centre of their bounding box |
+| `3` | Last picked position |
+| `4` | Low face of their bounding box |
+| `5` | High face |
+
+Mirror needs `0`, `4` or `5`: a plane through the middle of the selection reflects it onto itself, and the weld then removes the copy. A polar array wants `0` or `3` for the same reason - an axis through the selection's own centroid spins the copies on top of it.
+
+### Arrays
+
+Counts include the original, so `arraySelection(2, ...)` gives one copy and a 4 x 3 grid is 12 instances. Steps are per copy rather than the total span. With `spanStep` set, a step is measured in bounding box lengths of the selection, so `1.0` puts each copy exactly one selection length further on. `weldTolerance` fuses coincident nodes at the end of the command; pass `0` to leave the copies detached.
+
+```chaiscript
+// Extend one bay into a four bay truss, joined at the seams
+selectAll();
+arraySelection(4, 1.0, 0.0, 0.0, true, true, 0.001);
+
+// A 4 x 3 grid of frames in the XZ plane, 5 m apart along x and 6 m along z
+selectAll();
+planeArraySelection(1, 4, 5.0, 3, 6.0, false, true, 0.001);
+
+// Six ribs evenly around the y axis through the world origin
+selectAll();
+polarArraySelection(6, 0.0, 1.0, 0.0, 360.0, 0, true, true, true, 0.001);
+```
+
+For `planeArraySelection`, `plane` is `0` for xy, `1` for xz and `2` for yz. `count1` and `step1` run along the first named axis of the plane and `count2` and `step2` along the second, so an xz grid is x repeat, x step, z repeat, z step. Prefer it over two chained `arraySelection` calls: it produces the same geometry in one undo step and welds once.
+
+For `polarArraySelection`, `fullCircle` divides the sweep by the count so the last copy stops one step short of the original; setting it to `false` divides by `count - 1` instead, placing the first and last instance on the ends of the arc. `rotateCopies` set to `false` slides the copies along the arc without turning them.
+
+Linear and grid arrays carry loads and boundary conditions onto the copies, because a translation preserves every direction. A rotating polar array carries distributed beam loads, which are defined in the member's own directions, but skips nodal loads and partial supports, which are defined globally, and reports how many were left off.
+
 ## Boundary conditions and loads
 
 | Function | Description |

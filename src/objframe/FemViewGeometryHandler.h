@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -7,6 +8,11 @@
 
 namespace ofem {
 class Node;
+class Beam;
+} // namespace ofem
+
+namespace ofview_detail {
+struct ModelGraph;
 }
 
 class FemViewWindow;
@@ -16,8 +22,8 @@ class FemViewWindow;
  *
  * These move the nodes of the current selection rather than rebuilding them,
  * so node and beam indices survive every operation. Scripts holding indices
- * and result arrays indexed by node stay valid - only mirror() adds anything,
- * and it appends.
+ * and result arrays indexed by node stay valid - only the duplicating commands,
+ * mirror() and array(), add anything, and they append.
  *
  * Every command takes a snapshot first, so all of them are undoable. A command
  * drops the view back to the geometry representation only when a displacement
@@ -44,6 +50,13 @@ public:
         Cursor,            //!< The last picked position
         BoundingBoxLow,    //!< Low corner of the affected nodes' bounding box
         BoundingBoxHigh    //!< High corner of the affected nodes' bounding box
+    };
+
+    /** How an array command lays its copies out. */
+    enum class ArrayKind {
+        Linear, //!< Repeated translation by a fixed step
+        Polar,  //!< Repeated rotation about an axis
+        Grid    //!< Repeated translation in two directions at once
     };
 
     /** The operations that move nodes in place, and so can be previewed. */
@@ -93,6 +106,65 @@ public:
         double mu{-0.53};           //!< Smooth, inflate factor, 0 for plain Laplacian
         bool lengthWeighted{false}; //!< Smooth
     };
+
+    /**
+     * A complete description of an array copy.
+     *
+     * `count` is the number of instances *including* the original, which is the
+     * convention every CAD array command uses - a count of 1 is a no-op and a
+     * count of 3 adds two copies.
+     *
+     * Loads and boundary conditions come along by default, which is the
+     * opposite of mirror(). A linear array is a pure translation, so a load
+     * vector and a prescribed direction mean exactly the same thing on the copy
+     * as on the original. A polar array rotates, and array() then carries over
+     * only what a rotation leaves alone - see carryLoadsAndBCs().
+     */
+    struct ArrayParams {
+        ArrayKind kind{ArrayKind::Linear};
+        int count{2};
+
+        double offset[3]{1.0, 0.0, 0.0}; //!< Linear, the step per copy rather than the total span
+
+        /**
+         * Linear and Grid, measure the offsets in bounding box extents of the
+         * selection.
+         *
+         * An offset of (1, 0, 0) then puts each copy exactly one selection
+         * length further along x, which is what "repeat this bay" means and
+         * what welding then joins into a continuous structure.
+         */
+        bool spanStep{false};
+
+        // Grid, the second direction. The first one reuses count and offset
+        // above, so a grid is a linear array that also repeats sideways - and
+        // one command rather than two, which keeps it to a single snapshot and
+        // a single weld.
+
+        int count2{1};
+        double offset2[3]{0.0, 0.0, 1.0};
+
+        double axis[3]{0.0, 1.0, 0.0};   //!< Polar
+        double totalAngleDeg{360.0};     //!< Polar, swept by the array as a whole
+        bool fullCircle{true};           //!< Polar, step is total/count so the last copy meets the original
+        Origin origin{Origin::Centroid}; //!< Polar, a point on the axis
+        bool rotateCopies{true};         //!< Polar, false slides the copies along the arc unrotated
+
+        bool copyLoadsAndBCs{true};
+        double weldTolerance{0.0}; //!< 0 leaves the copies unwelded
+    };
+
+    /**
+     * Repeats the selection, keeping the original.
+     *
+     * Adds geometry rather than moving it, so like mirror() it is not part of
+     * the preview session. Welding happens once at the end rather than per
+     * copy, and the whole command is a single undo entry.
+     *
+     * The original and every copy are left selected, so a second array in
+     * another direction turns one bay into a grid.
+     */
+    static void array(FemViewWindow &view, const ArrayParams &params);
 
     /**
      * Everything an operation needs about the model, captured once.
@@ -191,6 +263,74 @@ public:
     static bool previewActive(FemViewWindow &view);
 
 private:
+    // Duplicating commands - mirror() and array()
+    //
+    // Both collect the same set, copy it under a matrix and weld afterwards, so
+    // the copy semantics live in one place rather than being reimplemented per
+    // command.
+
+    /** What a duplicating command carries across to the copy. */
+    struct CopyOptions {
+        bool loadsAndBCs{false};
+
+        /**
+         * Whether the transform leaves global directions alone.
+         *
+         * True for a translation. False for anything that rotates or reflects,
+         * which makes a global load vector or a partial support mean something
+         * different on the copy than it did on the original.
+         */
+        bool directionsPreserved{true};
+    };
+
+    /** What a duplicating command produced, accumulated over all its copies. */
+    struct CopyReport {
+        std::vector<ofem::Node *> nodes;
+        std::vector<ofem::Beam *> beams;
+
+        size_t skippedBCs{0};
+        size_t skippedLoads{0};
+    };
+
+    /**
+     * The nodes and beams a duplicating command copies.
+     *
+     * Selected nodes together with the ends of any selected beam, and every
+     * beam with both ends in that set - which covers both gestures, selecting
+     * the beams and selecting the nodes they span.
+     */
+    static void collectCopySet(const ofview_detail::ModelGraph &graph, std::vector<ofem::Node *> &nodes,
+                               std::vector<ofem::Beam *> &beams);
+
+    /**
+     * Adds one copy of the collected set, transformed by m.
+     *
+     * \param checkExisting look for an existing beam on each new pair. Mirror
+     *                      needs it, because a beam lying in the mirror plane
+     *                      comes back onto itself; an array validates the
+     *                      degenerate cases up front and can skip the scan,
+     *                      which is what keeps a large array from going
+     *                      quadratic.
+     */
+    static void duplicateOnce(FemViewWindow &view, const std::vector<ofem::Node *> &nodes,
+                              const std::vector<ofem::Beam *> &beams, const glm::dmat4 &m, const CopyOptions &opts,
+                              bool checkExisting, CopyReport &report);
+
+    /** Material, cross section rotation, beam type and evaluation points. */
+    static void copyBeamProps(ofem::Beam *from, ofem::Beam *to);
+
+    /**
+     * Adds the copies to the boundary conditions and loads of their sources.
+     *
+     * A BC or a load owns the list of objects it acts on, so a copy joins the
+     * existing object rather than getting one of its own - nothing new appears
+     * in the property panels, and the value stays shared, which is what "the
+     * same load on every copy" means.
+     */
+    static void carryLoadsAndBCs(FemViewWindow &view, const std::map<ofem::Node *, ofem::Node *> &nodeCopy,
+                                 const std::map<ofem::Beam *, ofem::Beam *> &beamCopy, const CopyOptions &opts,
+                                 CopyReport &report);
+
     /**
      * Applies params to the captured baseline, writing into pts.
      *

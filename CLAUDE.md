@@ -102,7 +102,7 @@ Selection lives in `IvfViewWindow` (gestures, screen-space maths) with FEM-speci
 
 `FemViewGeometryHandler` holds the commands that change model geometry. Pure maths lives in `ofmath` (`include/ofmath/geom_ops.h`) and knows nothing about FEM or scene types. Four invariants apply to every geometry command — follow them when adding more:
 
-**Move nodes, never rebuild them.** Node and beam indices must survive, or scripts holding indices and result arrays indexed by node silently misalign. Only `mirror()` adds anything, and it appends.
+**Move nodes, never rebuild them.** Node and beam indices must survive, or scripts holding indices and result arrays indexed by node silently misalign. Only the duplicating commands — `mirror()` and `array()` — add anything, and they append.
 
 **Write to the model, refresh once.** Commands call `ofem::Node::setCoord` and then `refreshBeamModelVisuals()` exactly once. Do not use `updateNodePosAt` in a loop — it goes through `vfem::Node::setPosition`, which updates the node's own shape but leaves the attached beams stale.
 
@@ -110,9 +110,17 @@ Selection lives in `IvfViewWindow` (gestures, screen-space maths) with FEM-speci
 
 **The affected set is selected nodes ∪ endpoints of selected beams**, so selecting a beam and scaling behaves as it looks. `PinPolicy` then excludes nodes with BCs or loads: transforms default to pinning neither (an explicit transform should do exactly what was asked), while smoothing and projection default to pinning both, because silently relaxing a support or load point changes what the model means.
 
-`mirror()` copies geometry and materials only — BCs and loads have direction, and reflecting them would change the load case without saying so. It also welds via `connectNearNodes()`, which takes its own snapshot, so a welded mirror currently costs two undo steps.
+**The duplicating commands share one path.** `mirror()` and `array()` both `collectCopySet()` → `duplicateOnce()` per instance → weld once at the end, so copy semantics live in one place. `duplicateOnce()` zeroes `m_selectedPos` around its `addNode()` calls (`addNode` offsets by the last picked position), carries material, cross-section rotation, beam type and evaluation points via `copyBeamProps()`, and takes a `checkExisting` flag: mirror needs `addBeam`'s duplicate scan for beams lying in the mirror plane, while `array()` validates the degenerate cases up front and uses `addBeamUnchecked()` — the scan is O(beams) per call and would otherwise make a large array quadratic.
 
-The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`, `rotateSelection`, `taperSelection`, `smoothSelection`, `mirrorSelection`) take the origin as an `int` (0 world, 1 centroid, 2 bounding box centre, 3 cursor, 4 bounding box low face, 5 high face) so they bind directly into ChaiScript. Mirror must use 0, 4 or 5 — a plane through the middle of the selection reflects it onto itself and the weld then removes the copy.
+Welding uses `weldNearNodes()`, which does not snapshot; `connectNearNodes()` is that plus a snapshot. Duplicating commands already took one in `begin()`, so a welded mirror or array is a single undo entry. A weld moves whatever was attached to a merged node onto the survivor — necessary, not cosmetic: `NodeBC` holds `NodePtr`, so a leftover reference keeps the refcount up and `NodeSet::removeNode` fails silently, while `NodeLoad` and `ElementLoad` hold raw pointers that would be left dangling for the next visual refresh to follow.
+
+**What a copy carries depends on what the transform does to directions.** `mirror()` copies geometry and materials only — a reflection changes the sign of a direction, so reflecting a load vector or a prescribed displacement would alter the load case without saying so. `array()` copies loads and BCs by default, because a linear array is a pure translation and a `CopyOptions::directionsPreserved` copy can share the *same* `NodeBC`/`NodeLoad`/`BeamLoad` object (they own a node/element list, so the copy just joins it — nothing new appears in the property panels). A rotating polar array sets `directionsPreserved = false`: `BeamLoad` still comes along because `ElementLoad` holds a **local** direction, `NodeBC` only when it is rotation-invariant (a whole triple either free or fixed at zero, i.e. full fixity or a pinned support), and `NodeLoad` never, since its direction is global. Whatever is skipped is counted and reported on the console.
+
+**A grid is one command, not two arrays.** `ArrayKind::Grid` reuses `count`/`offset` for the first direction and adds `count2`/`offset2` for the second; `array()` emits the cross product of the two, skipping (0, 0). Chaining two linear arrays would give the same geometry but two snapshots and two welds. `planeArraySelection(plane, …)` is the forwarder both grid UIs call — it maps a principal plane (0 xy, 1 xz, 2 yz) onto the two axis directions, zeroing both offsets first because their defaults point along x and z. A grid refuses parallel directions: the rows would land on each other. `ofui::planeAxisLabel()` (`include/ofui/plane_axes.h`) is shared by the panel and the popup so they cannot disagree about which field means which axis.
+
+**Array counting conventions**, all off-by-one traps worth stating: `count` includes the original (1 is a no-op, and a grid needs `count * count2 >= 2`); the linear `offset` is the step *per copy*, or a multiple of the selection's bounding box extent when `spanStep` is set (which is what "repeat this bay" means, and what the `Modify ▸ Array` presets use); the polar step is `totalAngle / count` when `fullCircle` so the last copy stops short of the original, and `totalAngle / (count - 1)` otherwise so the first and last instance sit on the ends of the arc. Every copy is built from the original by a single transform rather than from the copy before it, so the last instance is as exact as the first. `array()` leaves the original and every copy selected, read back out of the model after the weld since welding deletes nodes — so a second array in another direction turns one bay into a grid.
+
+The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`, `rotateSelection`, `taperSelection`, `smoothSelection`, `mirrorSelection`, `arraySelection`, `polarArraySelection`) take the origin as an `int` (0 world, 1 centroid, 2 bounding box centre, 3 cursor, 4 bounding box low face, 5 high face) and otherwise only plain scalars, so they bind directly into ChaiScript. Mirror must use 0, 4 or 5 — a plane through the middle of the selection reflects it onto itself and the weld then removes the copy. A polar array wants 0 or 3 for the same reason: an axis through the selection's own centroid spins the copies on top of it.
 
 **One transform path** — `TransformParams` describes any node-moving operation (translate, scale, rotate, taper, smooth), and `applyTo()` is the only place that implements one. Both the one-shot commands (via `runOnce()`) and the live preview go through it, so they cannot drift apart. `applyTo()` returns false for degenerate parameters, and `runOnce()` validates *before* `begin()`, so a refused command leaves no undo entry.
 
@@ -122,7 +130,11 @@ The public forwarders on `FemViewWindow` (`translateSelection`, `scaleSelection`
 
 **Live preview** (`ofui::TransformWindow`) — `beginPreview()` captures the affected nodes and their coordinates into `GeometryState m_geometry`. Every parameter change re-applies the transform **from that baseline** rather than compounding, so the result depends only on the current values, never on how the slider was dragged; the origin is resolved from the baseline too, so it doesn't drift. `applyPreview()` restores the baseline, *then* snapshots, then applies — which puts the undo point at the start of the gesture and yields exactly one undo entry per gesture.
 
-A preview holds raw `ofem::Node *`, so it is cancelled from `onSelect()`/`onDeSelect()` and whenever the panel is found hidden in `onDrawImGui()`. Any new path that deletes nodes while a preview could be live must cancel it too.
+A preview holds raw `ofem::Node *`, so it is cancelled from `onSelect()`/`onDeSelect()` and whenever the panel is found hidden in `onDrawImGui()`. Any new path that deletes nodes while a preview could be live must cancel it too — which is why `mirror()` and `array()` call `cancelPreview()` before anything else: their weld deletes nodes, and a later cancel would write the baseline back onto freed ones.
+
+**Mirror and Array are button tabs, not previewed** — they add geometry, so there is no baseline to restore from and nothing to re-apply per frame. Both early-return from `doDraw()` before the origin combo and the Apply/Reset buttons; the Array tab lives in its own `drawArrayTab()` with Linear/Polar/Grid modes. They share the panel's weld tolerance field, so "coincident" means one thing on both.
+
+`ofui::ArrayGridPopup` (`Modify ▸ Array ▸ Grid in XZ plane…`) is a second, deliberately smaller front end onto the same grid command — the plane is chosen from the menu so the dialog only asks for two repeats and two steps. It holds no logic: `drawPopups()` reads its fields back and calls `planeArraySelection()`, exactly as the panel does, so the two surfaces cannot behave differently.
 
 `ofui` headers must not include `objframe` headers — `transform_window.h` keeps its widget values in a plain `Fields` struct and translates them to `TransformParams` in the `.cpp`, which is the only place that includes `FemView.h`.
 
@@ -171,11 +183,11 @@ All panels are ImGui-based and rendered inside `FemViewWindow::onDrawImGui()`. P
 
 **Decoupling via `IAppController`:**
 
-- `include/ofservice/iapp_controller.h` — pure abstract interface with 48 virtual methods covering model lifecycle, node/beam CRUD, selection, BCs, loads, and queries
+- `include/ofservice/iapp_controller.h` — pure abstract interface with 51 virtual methods covering model lifecycle, node/beam CRUD, selection, BCs, loads, geometry commands, and queries
 - `src/objframe/AppControllerAdapter` — `FemViewWindow`-side implementation that delegates each interface method to the corresponding `FemViewWindow` method
 - `ofservice::App` singleton holds an `IAppController*`; `ofservice` never sees `FemViewWindow` or any `objframe` header
 
-**Endpoint surface (48 endpoints, all POST to `/cmds/<name>`):**
+**Endpoint surface (51 endpoints, all POST to `/cmds/<name>`):**
 
 | Category | Endpoints |
 | -------- | --------- |
@@ -185,10 +197,13 @@ All panels are ImGui-based and rendered inside `FemViewWindow::onDrawImGui()`. P
 | Node/beam mutation | `delete_node_at`, `delete_beam_at`, `subdivide_beam_at`, `connect_near_nodes`, `update_node_pos_at`, `update_beam_at` |
 | Boundary conditions | `assign_node_fixed_bc_ground`, `assign_node_pos_bc_ground`, `assign_node_fixed_bc_at`, `assign_node_pos_bc_at`, `remove_node_bc_at` |
 | Loads | `clear_all_loads`, `clear_all_bcs`, `add_node_load_at`, `clear_node_load_at`, `add_beam_load_at`, `clear_beam_load_at` |
+| Geometry modification | `array_selection`, `polar_array_selection`, `plane_array_selection` |
 | Mesh generation | `mesh_selected_nodes`, `surface_selected_nodes` |
 | Queries | `node_count`, `beam_count`, `node_pos_at`, `beam_at`, `find_node_near`, `is_node_fixed_at`, `is_node_pos_bc_at`, `is_node_selected_at`, `has_node_load_at`, `has_beam_load_at`, `node_load_count`, `beam_load_count`, `material_count`, `model_bounds` |
 
 **Response format:** void handlers return `text/html 200 OK` with no body. Query handlers return `application/json` with a body: `{"value": n}` for scalars, `{"pos": [x,y,z]}` for positions, `{"i0": i0, "i1": i1}` for beam indices, `{"min": [...], "max": [...]}` for bounds.
+
+Most handlers read their arguments strictly (`j["key"].get<T>()`), so a missing field throws. The two array endpoints are the exception: only `count` is required and the rest fall back through `j.value(…)` to the same defaults the command itself uses, so `{"count": 4}` is a complete request.
 
 The Python REST client is in `python/rest_client/ofapi.py`.
 

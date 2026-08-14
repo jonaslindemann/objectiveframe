@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <imguifd/ImGuiFileDialog.h>
 #include <imguifd/ImGuiFileDialogConfig.h>
+#include <ofui/plane_axes.h>
 #include <ofutil/util_functions.h>
 
 #include <thread>
@@ -262,6 +263,80 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
                         this->mirrorSelection(axis, 4, weldTolerance);
                     if (ImGui::MenuItem("About high face", ""))
                         this->mirrorSelection(axis, 5, weldTolerance);
+
+                    ImGui::EndMenu();
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Array"))
+        {
+            // The linear presets step by the extent of the selection itself, so
+            // a bay repeats end to end and the weld joins the seams into one
+            // continuous structure. Loads and boundary conditions come along -
+            // a translated copy points the same way as its original.
+
+            const char *axisName[3] = {"X", "Y", "Z"};
+            const int counts[3] = {3, 4, 6};
+
+            for (int axis = 0; axis < 3; axis++)
+            {
+                if (ImGui::BeginMenu(("Repeat along " + std::string(axisName[axis])).c_str()))
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        double step[3] = {0.0, 0.0, 0.0};
+                        step[axis] = 1.0;
+
+                        if (ImGui::MenuItem((std::to_string(counts[i]) + " total").c_str(), ""))
+                            this->arraySelection(counts[i], step[0], step[1], step[2], true, true, weldTolerance);
+                    }
+
+                    ImGui::EndMenu();
+                }
+            }
+
+            ImGui::Separator();
+
+            // The grid dialog. The plane is picked here so the dialog itself
+            // only has to ask for the two repeats and the two steps.
+
+            for (int plane = 0; plane < 3; plane++)
+            {
+                const std::string label = std::string("Grid in ") + ofui::planeAxisLabel(plane, 0) +
+                                          ofui::planeAxisLabel(plane, 1) + " plane...";
+
+                if (ImGui::MenuItem(label.c_str(), ""))
+                {
+                    m_arrayGridPopup->plane(plane);
+                    m_arrayGridPopup->weldTolerance(float(weldTolerance));
+                    m_arrayGridPopup->show();
+                }
+            }
+
+            ImGui::Separator();
+
+            // Polar about the world origin rather than the centroid - an axis
+            // through the middle of the selection would spin the copies on top
+            // of it.
+
+            for (int axis = 0; axis < 3; axis++)
+            {
+                if (ImGui::BeginMenu(("Polar about " + std::string(axisName[axis])).c_str()))
+                {
+                    const int polarCounts[4] = {4, 6, 8, 12};
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        double dir[3] = {0.0, 0.0, 0.0};
+                        dir[axis] = 1.0;
+
+                        if (ImGui::MenuItem((std::to_string(polarCounts[i]) + " around").c_str(), ""))
+                            this->polarArraySelection(polarCounts[i], dir[0], dir[1], dir[2], 360.0, 0, true, true,
+                                                      true, weldTolerance);
+                    }
 
                     ImGui::EndMenu();
                 }
@@ -543,6 +618,18 @@ void FemViewWindow::drawPopups()
         {
             log("Cancel pressed");
         }
+    }
+
+    m_arrayGridPopup->draw();
+
+    if (m_arrayGridPopup->closed() && (m_arrayGridPopup->modalResult() == PopupResult::OK))
+    {
+        // The dialog holds no logic of its own - this is the same entry point
+        // the transform panel's Grid mode calls.
+
+        this->planeArraySelection(m_arrayGridPopup->plane(), m_arrayGridPopup->count1(), m_arrayGridPopup->step1(),
+                                  m_arrayGridPopup->count2(), m_arrayGridPopup->step2(), m_arrayGridPopup->spanStep(),
+                                  m_arrayGridPopup->copyLoads(), m_arrayGridPopup->weldTolerance());
     }
 
     m_notificationOverlay->draw(ImGui::GetIO().DeltaTime);

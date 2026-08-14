@@ -207,6 +207,23 @@ public:
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
+// ── Geometry modification ─────────────────────────────────────────────────────
+
+class ArraySelectionHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
+class PolarArraySelectionHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
+class PlaneArraySelectionHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
 // ── Mesh generation ───────────────────────────────────────────────────────────
 
 class MeshSelectedNodesHandler : public APIHandler {
@@ -340,6 +357,11 @@ private:
     ClearNodeLoadAtHandler       m_clearNodeLoadAtHandler;
     AddBeamLoadAtHandler         m_addBeamLoadAtHandler;
     ClearBeamLoadAtHandler       m_clearBeamLoadAtHandler;
+
+    // Geometry modification
+    ArraySelectionHandler        m_arraySelectionHandler;
+    PolarArraySelectionHandler   m_polarArraySelectionHandler;
+    PlaneArraySelectionHandler   m_planeArraySelectionHandler;
 
     // Mesh generation
     MeshSelectedNodesHandler     m_meshSelectedNodesHandler;

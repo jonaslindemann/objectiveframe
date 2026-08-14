@@ -49,6 +49,24 @@ void   AppControllerAdapter::addBeamLoadAt(int i, double fx, double fy, double f
                                                                          { m_view.addBeamLoadAt(i, fx, fy, fz); }
 void   AppControllerAdapter::clearBeamLoadAt(int i)                      { m_view.clearBeamLoadAt(i); }
 
+// Geometry modification
+void   AppControllerAdapter::arraySelection(int count, double dx, double dy, double dz, bool spanStep,
+                                            bool copyLoadsAndBCs, double weldTolerance)
+                                                                         { m_view.arraySelection(count, dx, dy, dz, spanStep,
+                                                                                                 copyLoadsAndBCs, weldTolerance); }
+void   AppControllerAdapter::polarArraySelection(int count, double ax, double ay, double az, double totalAngleDeg,
+                                                 int origin, bool rotateCopies, bool fullCircle,
+                                                 bool copyLoadsAndBCs, double weldTolerance)
+                                                                         { m_view.polarArraySelection(count, ax, ay, az, totalAngleDeg,
+                                                                                                      origin, rotateCopies, fullCircle,
+                                                                                                      copyLoadsAndBCs, weldTolerance); }
+
+void   AppControllerAdapter::planeArraySelection(int plane, int count1, double step1, int count2, double step2,
+                                                 bool spanStep, bool copyLoadsAndBCs, double weldTolerance)
+                                                                         { m_view.planeArraySelection(plane, count1, step1,
+                                                                                                      count2, step2, spanStep,
+                                                                                                      copyLoadsAndBCs, weldTolerance); }
+
 // Mesh generation
 void   AppControllerAdapter::meshSelectedNodes()                         { m_view.meshSelectedNodes(); }
 void   AppControllerAdapter::surfaceSelectedNodes()                      { m_view.surfaceSelectedNodes(); }

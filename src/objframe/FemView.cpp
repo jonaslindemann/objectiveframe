@@ -2809,6 +2809,17 @@ vfem::Beam *FemViewWindow::addBeam(int i0, int i1)
         return nullptr;
     }
 
+    return this->addBeamUnchecked(i0, i1);
+}
+
+vfem::Beam *FemViewWindow::addBeamUnchecked(int i0, int i1)
+{
+    auto nodeSet = m_beamModel->getNodeSet();
+    auto beamSet = m_beamModel->getElementSet();
+
+    auto n0 = nodeSet->getNode(i0);
+    auto n1 = nodeSet->getNode(i1);
+
     if ((n0 != nullptr) && (n1 != nullptr) && (n0 != n1))
     {
         ofem::Beam *beam = new ofem::Beam();
@@ -3236,6 +3247,13 @@ void FemViewWindow::connectNearNodes(double tolerance)
         return;
 
     this->snapShot();
+    this->weldNearNodes(tolerance);
+}
+
+void FemViewWindow::weldNearNodes(double tolerance)
+{
+    if (m_beamModel == nullptr)
+        return;
 
     auto nodeSet = m_beamModel->getNodeSet();
     auto beamSet = m_beamModel->getElementSet();
@@ -3298,11 +3316,106 @@ void FemViewWindow::connectNearNodes(double tolerance)
         }
     }
 
+    // Whatever was attached to a node that goes away has to move to the node
+    // that stays. A boundary condition holds its nodes as smart pointers, so
+    // leaving the reference in place would keep the merged node's reference
+    // count up and make the delete below fail silently, leaving a stray node at
+    // the seam. A node load holds raw pointers, so the reference would be left
+    // dangling instead - and the next visual refresh follows it. Moving them is
+    // also what a weld should mean: a support survives having its node fused
+    // with another.
+
+    auto loadHasNode = [](ofem::NodeLoad *load, ofem::Node *node) {
+        for (unsigned int k = 0; k < load->getNodeSize(); k++)
+            if (load->getNode(k) == node)
+                return true;
+
+        return false;
+    };
+
+    for (int i = 0; i < n; i++)
+    {
+        if (canonical[i] == i)
+            continue;
+
+        auto merged = nodeSet->getNode(i);
+        auto survivor = nodeSet->getNode(canonical[i]);
+
+        auto bcSet = m_beamModel->getBCSet();
+
+        if (bcSet != nullptr)
+        {
+            for (long b = 0; b < (long)bcSet->getSize(); b++)
+            {
+                auto bc = static_cast<ofem::NodeBC *>(bcSet->getBC(b));
+
+                if ((bc == nullptr) || !bc->contains(merged))
+                    continue;
+
+                bc->removeNode(merged);
+
+                if (!bc->contains(survivor))
+                    bc->addNode(survivor);
+            }
+        }
+
+        auto nodeLoadSet = m_beamModel->getNodeLoadSet();
+
+        if (nodeLoadSet != nullptr)
+        {
+            for (long l = 0; l < (long)nodeLoadSet->getSize(); l++)
+            {
+                auto load = static_cast<ofem::NodeLoad *>(nodeLoadSet->getLoad(l));
+
+                if ((load == nullptr) || !loadHasNode(load, merged))
+                    continue;
+
+                load->removeNode(merged);
+
+                if (!loadHasNode(load, survivor))
+                    load->addNode(survivor);
+            }
+        }
+    }
+
+    // The same problem one level up: an element load holds raw element
+    // pointers, so a beam about to be deleted has to be taken off its loads
+    // first. Where the weld leaves a twin the load moves onto it; a beam that
+    // collapsed to a point has nothing left to carry one.
+
+    auto moveBeamLoads = [this](ofem::Beam *beam, ofem::Beam *survivor) {
+        auto loadSet = m_beamModel->getElementLoadSet();
+
+        if (loadSet == nullptr)
+            return;
+
+        auto hasElement = [](ofem::ElementLoad *load, ofem::Element *element) {
+            for (unsigned int k = 0; k < load->getElementsSize(); k++)
+                if (load->getElement(k) == element)
+                    return true;
+
+            return false;
+        };
+
+        for (long l = 0; l < (long)loadSet->getSize(); l++)
+        {
+            auto load = static_cast<ofem::ElementLoad *>(loadSet->getLoad(l));
+
+            if ((load == nullptr) || !hasElement(load, beam))
+                continue;
+
+            load->removeElement(beam);
+
+            if ((survivor != nullptr) && !hasElement(load, survivor))
+                load->addElement(survivor);
+        }
+    };
+
     // Remove degenerate beams (same node on both ends) and duplicates
     bool wasRunning = m_scripting.running;
     m_scripting.running = true;
 
-    std::set<std::pair<ofem::Node *, ofem::Node *>> seen;
+    std::map<std::pair<ofem::Node *, ofem::Node *>, ofem::Beam *> seen;
     for (int b = (int)beamSet->getSize() - 1; b >= 0; b--)
     {
         auto femBeam = static_cast<ofem::Beam *>(beamSet->getElement(b));
@@ -3310,16 +3423,21 @@ void FemViewWindow::connectNearNodes(double tolerance)
         auto raw1 = static_cast<ofem::Node *>(femBeam->getNode(1));
         if (raw0 == raw1)
         {
+            moveBeamLoads(femBeam, nullptr);
             deleteBeamAt(b);
             continue;
         }
         ofem::Node *lo = raw0 < raw1 ? raw0 : raw1;
         ofem::Node *hi = raw0 < raw1 ? raw1 : raw0;
         auto key = std::make_pair(lo, hi);
-        if (seen.count(key))
+        auto it = seen.find(key);
+        if (it != seen.end())
+        {
+            moveBeamLoads(femBeam, it->second);
             deleteBeamAt(b);
+        }
         else
-            seen.insert(key);
+            seen[key] = femBeam;
     }
 
     // Delete merged-away nodes in reverse order (higher indices first keeps lower ones stable)
@@ -4313,6 +4431,7 @@ void FemViewWindow::onInit()
     m_windowList->add(m_resultToolbarWindow);
 
     m_newModelPopup = NewModelPopup::create("Workspace", true);
+    m_arrayGridPopup = ArrayGridPopup::create("Grid array", true);
     m_messagePopup = MessagePopup::create("Message", true);
     m_notificationOverlay = NotificationOverlay::create();
 
@@ -5156,6 +5275,79 @@ void FemViewWindow::rotateSelection(double ax, double ay, double az, double angl
 void FemViewWindow::mirrorSelection(int axis, int origin, double weldTolerance)
 {
     FemViewGeometryHandler::mirror(*this, axis, toOrigin(origin), weldTolerance);
+}
+
+void FemViewWindow::arraySelection(int count, double dx, double dy, double dz, bool spanStep, bool copyLoadsAndBCs,
+                                   double weldTolerance)
+{
+    FemViewGeometryHandler::ArrayParams params;
+
+    params.kind = FemViewGeometryHandler::ArrayKind::Linear;
+    params.count = count;
+    params.offset[0] = dx;
+    params.offset[1] = dy;
+    params.offset[2] = dz;
+    params.spanStep = spanStep;
+    params.copyLoadsAndBCs = copyLoadsAndBCs;
+    params.weldTolerance = weldTolerance;
+
+    FemViewGeometryHandler::array(*this, params);
+}
+
+void FemViewWindow::planeArraySelection(int plane, int count1, double step1, int count2, double step2, bool spanStep,
+                                        bool copyLoadsAndBCs, double weldTolerance)
+{
+    // The two axes each plane runs along, in the order they are named.
+
+    static const int planeAxes[3][2] = {{0, 1}, {0, 2}, {1, 2}};
+
+    if ((plane < 0) || (plane > 2))
+        return;
+
+    FemViewGeometryHandler::ArrayParams params;
+
+    params.kind = FemViewGeometryHandler::ArrayKind::Grid;
+
+    // Both directions are cleared first - the defaults point along x and z, and
+    // a plane that does not use those axes would otherwise keep a stray step.
+
+    for (int i = 0; i < 3; i++)
+    {
+        params.offset[i] = 0.0;
+        params.offset2[i] = 0.0;
+    }
+
+    params.count = count1;
+    params.offset[planeAxes[plane][0]] = step1;
+
+    params.count2 = count2;
+    params.offset2[planeAxes[plane][1]] = step2;
+
+    params.spanStep = spanStep;
+    params.copyLoadsAndBCs = copyLoadsAndBCs;
+    params.weldTolerance = weldTolerance;
+
+    FemViewGeometryHandler::array(*this, params);
+}
+
+void FemViewWindow::polarArraySelection(int count, double ax, double ay, double az, double totalAngleDeg, int origin,
+                                        bool rotateCopies, bool fullCircle, bool copyLoadsAndBCs, double weldTolerance)
+{
+    FemViewGeometryHandler::ArrayParams params;
+
+    params.kind = FemViewGeometryHandler::ArrayKind::Polar;
+    params.count = count;
+    params.axis[0] = ax;
+    params.axis[1] = ay;
+    params.axis[2] = az;
+    params.totalAngleDeg = totalAngleDeg;
+    params.origin = toOrigin(origin);
+    params.rotateCopies = rotateCopies;
+    params.fullCircle = fullCircle;
+    params.copyLoadsAndBCs = copyLoadsAndBCs;
+    params.weldTolerance = weldTolerance;
+
+    FemViewGeometryHandler::array(*this, params);
 }
 
 void FemViewWindow::taperSelection(int axis, double s0, double s1, int origin)

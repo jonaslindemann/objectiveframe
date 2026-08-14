@@ -115,6 +115,11 @@ ofservice::Service::Service(IAppController *controller)
     m_webServer->addHandler("/cmds/add_beam_load_at",             m_addBeamLoadAtHandler);
     m_webServer->addHandler("/cmds/clear_beam_load_at",           m_clearBeamLoadAtHandler);
 
+    // Geometry modification
+    m_webServer->addHandler("/cmds/array_selection",               m_arraySelectionHandler);
+    m_webServer->addHandler("/cmds/polar_array_selection",         m_polarArraySelectionHandler);
+    m_webServer->addHandler("/cmds/plane_array_selection",         m_planeArraySelectionHandler);
+
     // Mesh generation
     m_webServer->addHandler("/cmds/mesh_selected_nodes",          m_meshSelectedNodesHandler);
     m_webServer->addHandler("/cmds/surface_selected_nodes",       m_surfaceSelectedNodesHandler);
@@ -435,6 +440,47 @@ bool ofservice::ClearBeamLoadAtHandler::handlePost(CivetServer *, mg_connection 
     write_ok(conn);
     auto j = nljson::parse(this->read_response(conn));
     App::instance().controller()->clearBeamLoadAt(j["index"].get<int>());
+    return true;
+}
+
+// ── Geometry modification handlers ────────────────────────────────────────────
+
+// Only the count is required. Everything else falls back to the same defaults
+// the command itself uses, so {"count": 4} is a complete request: repeat the
+// selection along x by its own length, carrying loads and boundary conditions,
+// leaving the copies unwelded.
+
+bool ofservice::ArraySelectionHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    auto step = j.value("step", nljson::array({1.0, 0.0, 0.0}));
+    App::instance().controller()->arraySelection(
+        j["count"].get<int>(), step[0], step[1], step[2],
+        j.value("span_step", true), j.value("copy_loads", true), j.value("tolerance", 0.0));
+    return true;
+}
+
+bool ofservice::PolarArraySelectionHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    auto axis = j.value("axis", nljson::array({0.0, 1.0, 0.0}));
+    App::instance().controller()->polarArraySelection(
+        j["count"].get<int>(), axis[0], axis[1], axis[2],
+        j.value("angle", 360.0), j.value("origin", 0), j.value("rotate_copies", true),
+        j.value("full_circle", true), j.value("copy_loads", true), j.value("tolerance", 0.0));
+    return true;
+}
+
+bool ofservice::PlaneArraySelectionHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    App::instance().controller()->planeArraySelection(
+        j.value("plane", 1), j["count1"].get<int>(), j.value("step1", 1.0),
+        j["count2"].get<int>(), j.value("step2", 1.0),
+        j.value("span_step", false), j.value("copy_loads", true), j.value("tolerance", 0.0));
     return true;
 }
 

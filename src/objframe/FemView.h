@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto OBJFRAME_VERSION_STRING = "ObjectiveFrame 2";
-constexpr auto OBJFRAME_RELEASE = "Release version - 2.5.3";
+constexpr auto OBJFRAME_RELEASE = "Release version - 2.5.4";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2026\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
@@ -50,6 +50,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofsolve/tetgen_beam_mesher.h>
 
 #include <ofui/about_window.h>
+#include <ofui/array_grid_popup.h>
 #include <ofui/bc_prop_popup.h>
 #include <ofui/console_window.h>
 #include <ofui/color_scale_window.h>
@@ -328,6 +329,7 @@ private:
 
     ofui::CoordWindowPtr m_coordWindow;
     ofui::NewModelPopupPtr m_newModelPopup;
+    ofui::ArrayGridPopupPtr m_arrayGridPopup;
     ofui::MessagePopupPtr m_messagePopup;
     ofui::NotificationOverlayPtr m_notificationOverlay;
     ofui::NodeBCsWindowPtr m_nodeBCsWindow;
@@ -445,6 +447,25 @@ private:
     void resetSolverState(bool preserveScaleLock = true);
     void resetResultDisplay();
     void refreshBeamModelVisuals();
+
+    /**
+     * Fuses coincident nodes without taking a snapshot.
+     *
+     * connectNearNodes() is this plus a snapshot. Commands that already took
+     * one - the duplicating geometry commands - call this instead, so a single
+     * gesture still costs a single undo entry.
+     */
+    void weldNearNodes(double tolerance);
+
+    /**
+     * Adds a beam without first checking that the pair is already connected.
+     *
+     * The check in addBeam() scans every existing beam, which turns adding n
+     * beams into an O(n^2) job. Commands that know their node pairs are fresh
+     * skip it.
+     */
+    vfem::Beam *addBeamUnchecked(int i0, int i1);
+
     void updateNodeNumberVisibility(RepresentationMode repr);
     void initializeBeamColorTable();
     void applyBeamModelVisualDefaults();
@@ -589,6 +610,20 @@ public:
     void scaleSelection(double sx, double sy, double sz, int origin);
     void rotateSelection(double ax, double ay, double az, double angleDeg, int origin);
     void mirrorSelection(int axis, int origin, double weldTolerance);
+    void arraySelection(int count, double dx, double dy, double dz, bool spanStep, bool copyLoadsAndBCs,
+                        double weldTolerance);
+
+    /**
+     * Grid array in a principal plane.
+     *
+     * \param plane 0 xy, 1 xz, 2 yz. count1/step1 run along the first named
+     *              axis of the plane and count2/step2 along the second, so an
+     *              xz grid is x repeat, x step, z repeat, z step.
+     */
+    void planeArraySelection(int plane, int count1, double step1, int count2, double step2, bool spanStep,
+                             bool copyLoadsAndBCs, double weldTolerance);
+    void polarArraySelection(int count, double ax, double ay, double az, double totalAngleDeg, int origin,
+                             bool rotateCopies, bool fullCircle, bool copyLoadsAndBCs, double weldTolerance);
     void taperSelection(int axis, double s0, double s1, int origin);
     void smoothSelection(int iterations, double lambda, double mu, bool lengthWeighted, bool pinBC, bool pinLoaded);
 

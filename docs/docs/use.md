@@ -185,6 +185,59 @@ Copying the nodes will result in the following result:
 
     The selection will move to the copied nodes, so that you can continue the copy operation multiple times.
 
+### Repeating a selection with arrays
+
+The offset copy described above copies nodes. An **array** repeats the whole selection - nodes, the beams between them, their materials and cross section rotation - as many times as you ask for, and keeps the original. It is the quickest way to turn one bay into a truss, one frame into a building, or one rib into a rotationally symmetric roof.
+
+Arrays act on the current selection, so select something first. The affected set is the selected nodes together with the end nodes of any selected beam, and every beam with both ends in that set comes along - so selecting beams behaves the way it looks.
+
+There are three kinds:
+
+| Kind | Repeats | Typical use |
+| --- | --- | --- |
+| Linear | Along one direction | Extend a truss bay by bay |
+| Grid | Across a principal plane, two directions at once | A grid of frames |
+| Polar | Around an axis | Ribs of a dome, guys of a mast |
+
+#### Quick presets
+
+**Modify/Array** holds ready-made commands that need no dialog:
+
+- **Repeat along X/Y/Z** steps by the length of the selection itself and welds the seams, so the copies join into one continuous structure.
+- **Polar about X/Y/Z** places 4, 6, 8 or 12 instances evenly around the world origin.
+
+#### The grid dialog
+
+**Modify/Array/Grid in XY plane...**, **/Grid in XZ plane...** and **/Grid in YZ plane...** open a small dialog that asks only for the two repeats and the two steps, named after the axes of the plane you chose. An XZ grid therefore asks for X repeat, X step, Z repeat and Z step.
+
+#### The transform panel
+
+**Modify/Transform...** opens the transform panel, whose **Array** tab offers all three kinds with their full set of options, including the polar sweep angle and the choice of whether copies rotate. Unlike the dialog it stays open, so you can adjust the numbers and run the command again.
+
+#### Repeats include the original
+
+This is the one thing that is easy to get wrong. A count of 2 gives you the original plus **one** copy, and a 4 x 3 grid is 12 instances, that is 11 copies. The grid controls show the resulting instance and copy counts from the numbers currently in the fields.
+
+The step is likewise the distance **per copy**, not the total span. Tick the **step in selection lengths** option to give steps in bounding box lengths of the selection instead of model units: a step of 1.0 then puts each copy exactly one selection length further on, which is what joins bays end to end.
+
+!!! note
+
+    A flat selection has no length across its own plane. If you array a planar frame out of its plane with **Steps in selection lengths** ticked, that step comes out zero and the command refuses rather than piling every copy onto the original. Give the out-of-plane step in model units instead. This is why the grid controls leave the option off by default.
+
+#### Welding
+
+The **weld tolerance** fuses coincident nodes once the copies are in place, which is what joins the seam between two bays into a shared node instead of leaving two nodes on top of each other. Set it to 0 to leave the copies detached. A weld also moves supports and loads from a node that disappears onto the node that remains.
+
+#### Loads and boundary conditions
+
+A linear or grid array is a pure translation, so a load vector and a support mean exactly the same thing on the copy as on the original. Both are carried across by default, and the copies join the *same* load or boundary condition object, so nothing new appears in the load and boundary condition lists.
+
+A polar array that rotates its copies is different. Distributed beam loads are given in the member's own directions and follow the copy wherever it ends up, so they always come along. A nodal load points somewhere in global coordinates and a partial support restrains a global direction, so neither survives being rotated: they are left off, and the console reports how many were skipped.
+
+!!! note
+
+    A whole array is a single undo step, welding included. The original and every copy are left selected afterwards, so a second array in another direction turns a row into a grid.
+
 ### Creating elements
 
 Elements are created by using the element tool:

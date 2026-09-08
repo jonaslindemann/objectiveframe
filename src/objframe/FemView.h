@@ -627,6 +627,27 @@ public:
     void taperSelection(int axis, double s0, double s1, int origin);
     void smoothSelection(int iterations, double lambda, double mu, bool lengthWeighted, bool pinBC, bool pinLoaded);
 
+    /**
+     * Assigns world coordinates to the selection, one axis at a time.
+     *
+     * An axis whose flag is false keeps whatever each node already has, so
+     * setSelectionCoord(false, 0, true, 0, false, 0) flattens the selection
+     * onto y = 0 and leaves x and z spread as they were.
+     */
+    void setSelectionCoord(bool setX, double x, bool setY, double y, bool setZ, double z);
+
+    /** setSelectionCoord for one axis - 0 for x, 1 for y, 2 for z. */
+    void setSelectionCoordAxis(int axis, double value);
+
+    /**
+     * What the selection currently measures on each axis.
+     *
+     * A query for the property panel, which seeds its fields from the same set
+     * of nodes an assignment would write to. Returns false when nothing that
+     * would move is selected, and reports nothing either way.
+     */
+    bool selectionCoordSummary(FemViewGeometryHandler::CoordSummary &summary);
+
     // Live transform preview, driven by ofui::TransformWindow
 
     bool beginTransformPreview();

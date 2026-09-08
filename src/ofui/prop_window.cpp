@@ -13,7 +13,9 @@ const double PI = 2 * acos(0.0);
 PropWindow::PropWindow(const std::string name)
     : UiWindow(name), m_beam{nullptr}, m_beamRotation{0.0f}, m_oldBeamRotation{0.0f}, m_view{nullptr}, m_beamType{0},
       m_selectedShapes{nullptr}, m_node{nullptr}, m_nodePos{0.0, 0.0, 0.0}, m_nodeDispl{0.0, 0.0, 0.0},
-      m_nodeMove{0.0, 0.0, 0.0}, m_nodeReactionForces{0.0, 0.0, 0.0}, m_nodeReactionMoments{0.0, 0.0, 0.0}
+      m_nodeMove{0.0, 0.0, 0.0}, m_nodeReactionForces{0.0, 0.0, 0.0}, m_nodeReactionMoments{0.0, 0.0, 0.0},
+      m_setCoordAxis{false, false, false}, m_setCoordValue{0.0f, 0.0f, 0.0f}, m_setCoordUniform{true, true, true},
+      m_setCoordLo{0.0f, 0.0f, 0.0f}, m_setCoordHi{0.0f, 0.0f, 0.0f}, m_setCoordCount{0}, m_setCoordDirty{true}
 {}
 
 PropWindow::~PropWindow()
@@ -42,6 +44,11 @@ void PropWindow::setNode(vfem::Node *node)
 void ofui::PropWindow::setSelectedShapes(ivf::Composite *selected)
 {
     m_selectedShapes = selected;
+
+    // The fields describe a particular set of nodes, so they have to follow the
+    // selection. Typed values survive until the selection actually changes.
+
+    m_setCoordDirty = true;
 }
 
 void ofui::PropWindow::setView(FemViewWindow *view)
@@ -49,9 +56,111 @@ void ofui::PropWindow::setView(FemViewWindow *view)
     m_view = view;
 }
 
+void ofui::PropWindow::markCoordSummaryDirty()
+{
+    m_setCoordDirty = true;
+}
+
 std::shared_ptr<PropWindow> PropWindow::create(const std::string name)
 {
     return std::make_shared<PropWindow>(name);
+}
+
+void PropWindow::updateCoordSummary()
+{
+    m_setCoordDirty = false;
+    m_setCoordCount = 0;
+
+    if (m_view == nullptr)
+        return;
+
+    FemViewGeometryHandler::CoordSummary summary;
+
+    if (!m_view->selectionCoordSummary(summary))
+        return;
+
+    m_setCoordCount = summary.count;
+
+    for (int a = 0; a < 3; a++)
+    {
+        m_setCoordUniform[a] = summary.uniform[a];
+        m_setCoordLo[a] = float(summary.lo[a]);
+        m_setCoordHi[a] = float(summary.hi[a]);
+
+        // A shared coordinate seeds the field with itself, so ticking an axis
+        // and pressing Apply is a no-op rather than a surprise. A spread one
+        // seeds with the mean, which is the value that moves the nodes least.
+
+        m_setCoordValue[a] = summary.uniform[a] ? float(summary.lo[a]) : float(summary.mean[a]);
+    }
+}
+
+void PropWindow::drawSetCoord()
+{
+    if (m_setCoordDirty)
+        updateCoordSummary();
+
+    if (m_setCoordCount == 0)
+        return;
+
+    ImGui::Text("Set position");
+
+    static const char *axisLabel[3] = {"X", "Y", "Z"};
+
+    bool anyAxis = false;
+
+    for (int a = 0; a < 3; a++)
+    {
+        ImGui::PushID(a);
+
+        ImGui::Checkbox("##setaxis", &m_setCoordAxis[a]);
+
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Assign this coordinate. Unchecked axes keep their current values.");
+
+        ImGui::SameLine();
+
+        // Greying the field out is what makes "this axis is left alone" visible
+        // rather than something the reader has to infer from the checkbox.
+
+        ImGui::BeginDisabled(!m_setCoordAxis[a]);
+        ImGui::SetNextItemWidth(140.0f);
+        ImGui::InputFloat(axisLabel[a], &m_setCoordValue[a], 0.0f, 0.0f, "%.4g");
+        ImGui::EndDisabled();
+
+        if (!m_setCoordUniform[a])
+        {
+            ImGui::SameLine();
+            ImGui::TextDisabled("mixed  %.4g ... %.4g", m_setCoordLo[a], m_setCoordHi[a]);
+        }
+
+        ImGui::PopID();
+
+        anyAxis = anyAxis || m_setCoordAxis[a];
+    }
+
+    ImGui::BeginDisabled(!anyAxis);
+
+    if (ImGui::Button("Assign", ImVec2(120, 0)))
+    {
+        m_view->setSelectionCoord(m_setCoordAxis[0], double(m_setCoordValue[0]), m_setCoordAxis[1],
+                                  double(m_setCoordValue[1]), m_setCoordAxis[2], double(m_setCoordValue[2]));
+
+        // The assigned axes are uniform now, so re-read rather than leaving the
+        // panel describing the geometry as it was before the command.
+
+        m_setCoordDirty = true;
+    }
+
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("From selection", ImVec2(120, 0)))
+        m_setCoordDirty = true;
+
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Re-read the fields from the current selection.");
 }
 
 void PropWindow::doDraw()
@@ -238,6 +347,10 @@ void PropWindow::doDraw()
                 m_nodeMove[1] = 0.0;
                 m_nodeMove[2] = 0.0;
             }
+
+            ImGui::Separator();
+
+            this->drawSetCoord();
 
             ImGui::Separator();
         }

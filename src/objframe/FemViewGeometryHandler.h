@@ -65,7 +65,8 @@ public:
         Scale,
         Rotate,
         Taper,
-        Smooth
+        Smooth,
+        SetCoord
     };
 
     /**
@@ -105,6 +106,31 @@ public:
         double lambda{0.5};         //!< Smooth, shrink factor
         double mu{-0.53};           //!< Smooth, inflate factor, 0 for plain Laplacian
         bool lengthWeighted{false}; //!< Smooth
+
+        // SetCoord. The value is absolute and in world coordinates, so origin
+        // means nothing here - an axis is either assigned or left alone.
+
+        bool setCoord[3]{false, false, false}; //!< SetCoord, which axes are assigned
+        double coord[3]{0.0, 0.0, 0.0};        //!< SetCoord, the value per assigned axis
+    };
+
+    /**
+     * What the affected nodes currently measure on each axis.
+     *
+     * Read over the same set a command would move - the selected nodes plus
+     * the ends of any selected beam - so a panel seeded from this shows
+     * numbers for exactly the nodes that an assignment will write to.
+     *
+     * `uniform` says whether every affected node already shares one value on
+     * that axis, which is what separates "this is the coordinate" from "these
+     * are spread between lo and hi".
+     */
+    struct CoordSummary {
+        int count{0};
+        double lo[3]{0.0, 0.0, 0.0};
+        double hi[3]{0.0, 0.0, 0.0};
+        double mean[3]{0.0, 0.0, 0.0};
+        bool uniform[3]{true, true, true};
     };
 
     /**
@@ -222,6 +248,24 @@ public:
      */
     static void smooth(FemViewWindow &view, int iterations, double lambda, double mu, bool lengthWeighted,
                        PinPolicy pins);
+
+    /**
+     * Assigns world coordinates to the affected nodes, one axis at a time.
+     *
+     * An axis with setAxis false keeps whatever each node already has, so
+     * flattening a selection onto a plane leaves the other two coordinates
+     * spread as they were. Refused when no axis is selected, before a snapshot
+     * is taken.
+     */
+    static void setCoord(FemViewWindow &view, const bool setAxis[3], const double value[3]);
+
+    /**
+     * Measures the nodes a command would act on, without touching them.
+     *
+     * Silent - a panel calls this whenever the selection changes, so an empty
+     * selection returns a zero count rather than reporting on the console.
+     */
+    static bool coordSummary(FemViewWindow &view, CoordSummary &summary);
 
     /**
      * Mirrors the selection in a principal plane and keeps both halves.

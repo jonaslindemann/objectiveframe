@@ -6,9 +6,9 @@ using namespace ofui;
 
 UiWindow::UiWindow(const std::string name)
     : m_name{name}, m_visible{true}, m_windowFlags{ImGuiWindowFlags_AlwaysAutoResize}, m_updatePos{false},
-      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false},
-      m_firstDraw{true}, m_width{-1}, m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false},
-      m_autoPlacement{true}, m_newBottomPos{false}, m_isFocused{false}, m_ignoreFocusCheck{false}
+      m_centerBottom{false}, m_corner{-1}, m_setPos{false}, m_center{false}, m_firstDraw{true}, m_width{-1},
+      m_height{-1}, m_canClose{true}, m_x{-1}, m_y{-1}, m_newPos{false}, m_autoPlacement{true}, m_newBottomPos{false},
+      m_isFocused{false}, m_ignoreFocusCheck{false}
 {}
 
 UiWindow::~UiWindow()
@@ -238,6 +238,7 @@ void ofui::UiWindow::setPosition(int x, int y)
     m_x = x;
     m_y = y;
     m_newPos = true;
+    m_hasBeenPlaced = true;
 }
 
 void ofui::UiWindow::setPositionFromBottom(int x, int y)
@@ -245,6 +246,12 @@ void ofui::UiWindow::setPositionFromBottom(int x, int y)
     m_x = x;
     m_y = y;
     m_newBottomPos = true;
+    m_hasBeenPlaced = true;
+}
+
+bool ofui::UiWindow::hasBeenPlaced()
+{
+    return m_hasBeenPlaced;
 }
 
 void ofui::UiWindow::enableMenuBar()

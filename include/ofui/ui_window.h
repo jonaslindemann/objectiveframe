@@ -32,6 +32,10 @@ private:
 
     bool m_ignoreFocusCheck;
 
+    // Set the first time the window is given an explicit position, so callers
+    // can place a window once and then leave the user's own position alone.
+    bool m_hasBeenPlaced{false};
+
 public:
     UiWindow(const std::string name);
     virtual ~UiWindow();
@@ -67,6 +71,8 @@ public:
     void setPosition(int x, int y);
 
     void setPositionFromBottom(int x, int y);
+
+    bool hasBeenPlaced();
 
     void enableMenuBar();
 

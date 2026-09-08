@@ -127,6 +127,14 @@ void IvfViewWindow::onGlfwKey(int key, int scancode, int action, int mods)
 
 void IvfViewWindow::onGlfwMousePosition(double x, double y)
 {
+    // Motion has to be gated the same way the button events are, or dragging a
+    // panel also drags the scene behind it. ImGui tracks click ownership, so a
+    // drag that started over the view keeps WantCaptureMouse false even while
+    // the cursor passes over a panel -- only motion that belongs to the UI is
+    // suppressed here.
+    if (isOverWindow())
+        return;
+
     if (isAnyMouseButtonDown())
     {
         doMotion(mouseX(), mouseY());

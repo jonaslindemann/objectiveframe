@@ -32,6 +32,7 @@ public:
 
     void findNextPosition(int &x, int &y);
     void placeWindow(UiWindowPtr window);
+    void placeWindowOnce(UiWindowPtr window);
 
     void add(UiWindowPtr window);
     void clear();

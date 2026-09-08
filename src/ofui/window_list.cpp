@@ -60,10 +60,10 @@ void ofui::WindowList::placeWindow(UiWindowPtr window)
     // All coordinates below are work-area-relative (origin = WorkPos).
     const float START_X = 80.0f;
     const float START_Y = 60.0f;
-    const float END_X   = vpW - 8.0f;
-    const float END_Y   = vpH - 20.0f;
-    const float PAD     = 8.0f;
-    const float STEP    = 24.0f;
+    const float END_X = vpW - 8.0f;
+    const float END_Y = vpH - 20.0f;
+    const float PAD = 8.0f;
+    const float STEP = 24.0f;
 
     // Build occupied rects using UiWindow's own tracked position/size.
     // After the first draw, w->x() / w->y() return absolute screen coordinates
@@ -76,7 +76,7 @@ void ofui::WindowList::placeWindow(UiWindowPtr window)
             continue;
         int wx = w->x(), wy = w->y(), ww = w->width(), wh = w->height();
         if (wx < 0 || wy < 0 || ww <= 0 || wh <= 0)
-            continue;   // window has never been drawn — no position yet
+            continue; // window has never been drawn — no position yet
 
         float relX = float(wx) - vpX;
         float relY = float(wy) - vpY;
@@ -119,8 +119,8 @@ void ofui::WindowList::placeWindow(UiWindowPtr window)
         for (float cx = START_X; cx + newW <= END_X && !placed; cx += STEP)
         {
             ImRect candidate(cx, cy, cx + newW, cy + newH);
-            bool overlaps = std::any_of(occupied.begin(), occupied.end(),
-                                        [&](const ImRect &r) { return candidate.Overlaps(r); });
+            bool overlaps =
+                std::any_of(occupied.begin(), occupied.end(), [&](const ImRect &r) { return candidate.Overlaps(r); });
             if (!overlaps)
             {
                 px = cx;
@@ -135,6 +135,17 @@ void ofui::WindowList::placeWindow(UiWindowPtr window)
     m_lastY = py;
     m_lastH = newH;
     window->setPosition(int(px), int(py));
+}
+
+// Place a window only if it has never been given a position. Windows that are
+// shown and hidden repeatedly (the load mixer when entering feedback mode, for
+// instance) keep wherever the user dragged them to.
+void ofui::WindowList::placeWindowOnce(UiWindowPtr window)
+{
+    if (window->hasBeenPlaced())
+        return;
+
+    placeWindow(window);
 }
 
 void ofui::WindowList::add(UiWindowPtr window)

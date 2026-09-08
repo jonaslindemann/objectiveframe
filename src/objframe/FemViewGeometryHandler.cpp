@@ -399,6 +399,28 @@ bool FemViewGeometryHandler::applyTo(const TransformContext &ctx, const Transfor
         return true;
     }
 
+    // Assignment is affine but singular - expressing it as a matrix would mean
+    // a zero on the diagonal, which the Scale guard below rightly refuses as a
+    // collapse. It reads as what it is in its own branch.
+
+    if (params.kind == TransformKind::SetCoord)
+    {
+        if (!params.setCoord[0] && !params.setCoord[1] && !params.setCoord[2])
+            return false;
+
+        for (size_t i = 0; i < pts.size(); i++)
+        {
+            if (!movable[i])
+                continue;
+
+            for (int a = 0; a < 3; a++)
+                if (params.setCoord[a])
+                    pts[i][a] = params.coord[a];
+        }
+
+        return true;
+    }
+
     glm::dmat4 m(1.0);
 
     switch (params.kind)
@@ -557,6 +579,93 @@ void FemViewGeometryHandler::smooth(FemViewWindow &view, int iterations, double 
     params.lengthWeighted = lengthWeighted;
 
     runOnce(view, "Smooth", params);
+}
+
+void FemViewGeometryHandler::setCoord(FemViewWindow &view, const bool setAxis[3], const double value[3])
+{
+    TransformParams params;
+
+    params.kind = TransformKind::SetCoord;
+
+    for (int i = 0; i < 3; i++)
+    {
+        params.setCoord[i] = setAxis[i];
+        params.coord[i] = value[i];
+    }
+
+    runOnce(view, "Set coordinate", params);
+}
+
+bool FemViewGeometryHandler::coordSummary(FemViewWindow &view, CoordSummary &summary)
+{
+    summary = CoordSummary();
+
+    ModelGraph graph;
+
+    if (!buildGraph(view, graph))
+        return false;
+
+    // The same set every command acts on: the selected nodes together with the
+    // ends of any selected beam. Reading only the selected shapes would show
+    // numbers for a different set of nodes than an assignment writes to.
+
+    std::set<ofem::Node *> affected = graph.selectedNodes;
+
+    for (auto beam : graph.selectedBeams)
+    {
+        affected.insert(beam->getNode(0));
+        affected.insert(beam->getNode(1));
+    }
+
+    if (affected.empty())
+        return false;
+
+    double sum[3]{0.0, 0.0, 0.0};
+
+    for (auto node : affected)
+    {
+        double c[3];
+        ofview_detail::nodeCoord(node, c);
+
+        for (int a = 0; a < 3; a++)
+        {
+            if (summary.count == 0)
+            {
+                summary.lo[a] = c[a];
+                summary.hi[a] = c[a];
+            }
+            else
+            {
+                if (c[a] < summary.lo[a])
+                    summary.lo[a] = c[a];
+                if (c[a] > summary.hi[a])
+                    summary.hi[a] = c[a];
+            }
+
+            sum[a] += c[a];
+        }
+
+        summary.count++;
+    }
+
+    for (int a = 0; a < 3; a++)
+    {
+        summary.mean[a] = sum[a] / double(summary.count);
+
+        // Relative to the spread the model is drawn at, so a large structure
+        // does not read as "mixed" purely because of accumulated rounding.
+
+        double scale = 1.0;
+
+        if (std::abs(summary.lo[a]) > scale)
+            scale = std::abs(summary.lo[a]);
+        if (std::abs(summary.hi[a]) > scale)
+            scale = std::abs(summary.hi[a]);
+
+        summary.uniform[a] = (summary.hi[a] - summary.lo[a]) <= 1e-9 * scale;
+    }
+
+    return true;
 }
 
 bool FemViewGeometryHandler::previewActive(FemViewWindow &view)

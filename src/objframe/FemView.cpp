@@ -714,7 +714,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         m_mainToolbarWindow->selectButton("Feedback", 1);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
-        m_windowList->placeWindow(m_loadMixerWindow);
+        m_windowList->placeWindowOnce(m_loadMixerWindow);
     }
     else
         m_loadMixerWindow->hide();
@@ -845,7 +845,7 @@ void FemViewWindow::setCustomMode(CustomMode mode)
         this->setEditMode(WidgetMode::Select);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
-        m_windowList->placeWindow(m_loadMixerWindow);
+        m_windowList->placeWindowOnce(m_loadMixerWindow);
     }
     else
         m_loadMixerWindow->hide();
@@ -1132,6 +1132,13 @@ void FemViewWindow::refreshBeamModelVisuals()
         if (visBC != nullptr)
             visBC->refresh();
     }
+
+    // Every geometry command ends here, so this is the one place that knows the
+    // coordinates moved. The property panel re-reads them on its next draw
+    // rather than rebuilding the model graph once per frame.
+
+    if (m_propWindow != nullptr)
+        m_propWindow->markCoordSummaryDirty();
 }
 
 void FemViewWindow::initializeBeamColorTable()
@@ -5197,7 +5204,6 @@ void FemViewWindow::onMotion(int x, int y)
         doFeedback();
 
         this->redraw(); // Refresh
-        this->draw();
     }
 }
 
@@ -5364,6 +5370,36 @@ void FemViewWindow::smoothSelection(int iterations, double lambda, double mu, bo
     pins.loadedNodes = pinLoaded;
 
     FemViewGeometryHandler::smooth(*this, iterations, lambda, mu, lengthWeighted, pins);
+}
+
+void FemViewWindow::setSelectionCoord(bool setX, double x, bool setY, double y, bool setZ, double z)
+{
+    const bool setAxis[3] = {setX, setY, setZ};
+    const double value[3] = {x, y, z};
+
+    FemViewGeometryHandler::setCoord(*this, setAxis, value);
+}
+
+void FemViewWindow::setSelectionCoordAxis(int axis, double value)
+{
+    if ((axis < 0) || (axis > 2))
+    {
+        this->console("Set coordinate: axis must be 0 (x), 1 (y) or 2 (z).");
+        return;
+    }
+
+    bool setAxis[3] = {false, false, false};
+    double v[3] = {0.0, 0.0, 0.0};
+
+    setAxis[axis] = true;
+    v[axis] = value;
+
+    FemViewGeometryHandler::setCoord(*this, setAxis, v);
+}
+
+bool FemViewWindow::selectionCoordSummary(FemViewGeometryHandler::CoordSummary &summary)
+{
+    return FemViewGeometryHandler::coordSummary(*this, summary);
 }
 
 bool FemViewWindow::beginTransformPreview()

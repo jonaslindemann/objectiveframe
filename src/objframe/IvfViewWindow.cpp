@@ -1398,8 +1398,12 @@ void IvfViewWindow::doDrawImGui()
     // attribute locations produces nothing at all. The platform windows the
     // multi-viewport path renders a few lines below kept working throughout,
     // since each has its own context with no program bound.
+    //
+    // rcEndFrame() also drops the vertex array and buffer bindings, which is the
+    // other half of it: a bound GL_ARRAY_BUFFER turns the backend's client array
+    // pointers into offsets into that buffer.
 
-    ivf::rcUnuseShader();
+    ivf::rcEndFrame();
 
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 

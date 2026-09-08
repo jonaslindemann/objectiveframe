@@ -4197,9 +4197,11 @@ void FemViewWindow::hideAllDialogs()
 
 void FemViewWindow::onInit()
 {
+    rcUseBlinnPhong();
     // Cache the GLU tessellator used for extrusion end caps.
 
     gleInitTessCache();
+
 
     // Setup web service
 

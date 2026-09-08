@@ -1391,6 +1391,16 @@ void IvfViewWindow::doDrawImGui()
 
     onDrawImGui();
 
+    // The scene traversal leaves the Blinn-Phong program bound, and the ImGui
+    // GL2 backend is pure fixed function -- glVertexPointer and friends, with no
+    // glUseProgram(0) of its own, because it predates shaders. Drawing the UI
+    // through a shader that has no matrices for it and expects different
+    // attribute locations produces nothing at all. The platform windows the
+    // multi-viewport path renders a few lines below kept working throughout,
+    // since each has its own context with no program bound.
+
+    ivf::rcUnuseShader();
+
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

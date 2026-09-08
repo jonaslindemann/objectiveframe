@@ -39,6 +39,7 @@ extra_css = ["stylesheets/extra.css"]
 # ----------------------------------------------------------------------------
 [project.theme]
 language = "en"
+custom_dir = "overrides"
 features = [
   "content.code.annotate",
   "content.code.copy",

@@ -156,6 +156,11 @@ void BeamLoad::setBeamLoad(ofem::BeamLoad *load)
     }
 }
 
+bool BeamLoad::hasModernPath()
+{
+    return true;
+}
+
 void BeamLoad::doCreateGeometry()
 {
     if ((m_beamModel != nullptr) && !m_beamModel->showLoads())

@@ -43,5 +43,13 @@ public:
 protected:
     virtual void doCreateSelect() override;
     virtual void doCreateGeometry() override;
+
+    /**
+     * This class draws no geometry of its own -- doCreateGeometry() only renders
+     * child shapes, and those have modern paths. Without saying so it inherits
+     * ivf::Shape's answer of "no modern path", and RenderProfile::Core then skips
+     * doCreateGeometry() entirely and takes the children with it.
+     */
+    virtual bool hasModernPath() override;
 };
 } // namespace vfem

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <glm/glm.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -444,6 +445,22 @@ protected:
 
     void doInitImGui();
     void doDrawImGui();
+
+    /**
+     * Switches to a 2D pixel coordinate system for the overlay and underlay.
+     *
+     * The origin is the top left corner and the units are pixels, matching the
+     * glOrtho() call this replaces. Both pipelines are set up: the fixed
+     * function matrix stacks through the lg* shim, and RenderContext for the
+     * shader, so overlay content can be drawn with rcDrawUnlit() on either.
+     */
+    void begin2D();
+
+    /** Restores the 3D projection and view that begin2D() replaced. */
+    void end2D();
+
+    glm::mat4 m_saved2DProjection{1.0f};
+    glm::mat4 m_saved2DView{1.0f};
 
 public:
     /**

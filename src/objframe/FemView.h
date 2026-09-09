@@ -10,6 +10,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 
 #ifdef WIN32
 #include <shobjidl.h>
+#include <ivf/RenderContext.h>
 #endif
 
 #include <chaiscript/chaiscript.hpp>
@@ -265,8 +266,20 @@ private:
     int m_width;
     int m_height;
 
-    int m_argc;
-    char **m_argv;
+    int m_argc{0};
+    char **m_argv{nullptr};
+
+    // Driver debug output, requested on the command line. Set explicitly rather
+    // than re-read from m_argv in onInit(), which runs on its own schedule.
+
+    bool m_glDebug{false};
+
+    // Which pipeline the library should render with. Core on a compatibility
+    // context is the useful intermediate during the port: the library stops
+    // emitting fixed-function calls, but the context still tolerates them, so
+    // anything still drawing wrongly is this application's own code.
+
+    ivf::RenderProfile m_renderProfile{ivf::RenderProfile::Mixed};
 
     double m_tactileForceValue;
 
@@ -496,6 +509,12 @@ public:
     void setScalefactor(double scalefactor);
     double getScalefactor();
     void setArguments(int argc, char **argv);
+
+    /** Enables driver debug output. Must be set before onInit() runs. */
+    void setGLDebug(bool flag);
+
+    /** Selects the render profile. Must be set before onInit() runs. */
+    void setRenderProfile(ivf::RenderProfile profile);
     void setCurrentNodeBC(ofem::BeamNodeBC *bc);
     void setRotationSelected(double rotation);
     void setCurrentNodeLoad(ofem::BeamNodeLoad *nodeLoad);

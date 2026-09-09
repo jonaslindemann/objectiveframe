@@ -23,6 +23,11 @@ NodeLoad::NodeLoad() : Shape()
 NodeLoad::~NodeLoad()
 {}
 
+bool NodeLoad::hasModernPath()
+{
+    return true;
+}
+
 void NodeLoad::doCreateGeometry()
 {
     if ((m_beamModel != nullptr) && !m_beamModel->showLoads())

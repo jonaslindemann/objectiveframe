@@ -1,4 +1,7 @@
 #include <ofui/view_window.h>
+#include <of_imgui_backend.h>
+#include <ivf/rc.h>
+#include <ivf/LegacyGL.h>
 
 #include <algorithm>
 
@@ -188,17 +191,44 @@ void ViewWindow::doDraw()
     // viewport, blend func, lighting, texture bindings/env, color material, etc.
     // Result-mode rendering leaves GL_TEXTURE_1D enabled, sets the GL_TEXTURE matrix
     // via Texture::apply(), and may change other state — save everything at once.
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    // This whole block exists because the ImGui OpenGL2 backend leaves fixed
+    // function state behind it. The OpenGL3 backend saves and restores its own
+    // state, so none of it is needed there -- and none of it exists in a core
+    // profile anyway. Kept, behind the switch, only so the GL2 backend still
+    // works while the two are being compared.
+
+#ifndef OF_IMGUI_BACKEND_GL3
+
+    ivf::lgPushAttrib(GL_ALL_ATTRIB_BITS);
 
     // Save matrix stacks (glPushAttrib does not save actual matrix values)
-    GLint prevMatrixMode;
-    glGetIntegerv(GL_MATRIX_MODE, &prevMatrixMode);
-    glMatrixMode(GL_TEXTURE);
-    glPushMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+    GLint prevMatrixMode = GL_MODELVIEW;
+
+    if (ivf::rcLegacyAllowed())
+        glGetIntegerv(GL_MATRIX_MODE, &prevMatrixMode);
+
+    ivf::lgMatrixMode(GL_TEXTURE);
+    ivf::lgPushMatrix();
+    ivf::lgMatrixMode(GL_PROJECTION);
+    ivf::lgPushMatrix();
+    ivf::lgMatrixMode(GL_MODELVIEW);
+    ivf::lgPushMatrix();
+
+#endif
+
+    // The shader path keeps its matrices in RenderContext, so they need saving
+    // by hand. onRenderScene() below installs this window's own camera.
+
+    const glm::mat4 savedProjection = ivf::rcProjection();
+    const glm::mat4 savedView = ivf::rcView();
+
+    // A second render of the same scene in the same frame is a second frame as
+    // far as RenderContext is concerned. Without this the lights are added to
+    // the array again on top of the ones the main view already put there, and
+    // this window renders at double the illumination -- which reads as an
+    // exposure problem rather than as a light count problem.
+
+    ivf::rcBeginFrame();
 
     // Swap scene camera to ours, render into FBO, restore
     ivf::View* prevView = m_scene->getView();
@@ -226,15 +256,22 @@ void ViewWindow::doDraw()
     // Restore framebuffer first, then matrices, then attributes (glPopAttrib restores viewport)
     glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
 
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_TEXTURE);
-    glPopMatrix();
-    glMatrixMode(prevMatrixMode);
+#ifndef OF_IMGUI_BACKEND_GL3
 
-    glPopAttrib();
+    ivf::lgMatrixMode(GL_MODELVIEW);
+    ivf::lgPopMatrix();
+    ivf::lgMatrixMode(GL_PROJECTION);
+    ivf::lgPopMatrix();
+    ivf::lgMatrixMode(GL_TEXTURE);
+    ivf::lgPopMatrix();
+    ivf::lgMatrixMode(prevMatrixMode);
+
+    ivf::lgPopAttrib();
+
+#endif
+
+    ivf::rcSetProjection(savedProjection);
+    ivf::rcSetView(savedView);
 
     m_scene->setView(prevView);
 

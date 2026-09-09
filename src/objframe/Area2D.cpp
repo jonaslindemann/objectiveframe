@@ -1,4 +1,6 @@
 #include "Area2D.h"
+#include <ivf/rc.h>
+#include <vector>
 
 Area2D::Area2D()
 {
@@ -76,15 +78,60 @@ int Area2D::getSize()
 
 void Area2D::render()
 {
-    if (m_visible) {
-        int i;
-        glBegin(GL_QUADS);
-        for (i = 0; i < m_xCoords.size(); i++) {
-            glColor3f(m_red[i], m_green[i], m_blue[i]);
-            glVertex2i(m_xCoords[i], m_yCoords[i]);
-        }
-        glEnd();
+    if (!m_visible)
+        return;
+
+    const int count = (int)m_xCoords.size();
+
+    if (count < 4)
+        return;
+
+    // Quads in window pixel coordinates. A core profile has no GL_QUADS, so each
+    // group of four corners is emitted as two triangles; the colours follow the
+    // corners they belonged to.
+
+    std::vector<float> positions;
+    std::vector<float> colors;
+
+    const int quads = count / 4;
+
+    positions.reserve((size_t)quads * 6 * 3);
+    colors.reserve((size_t)quads * 6 * 4);
+
+    auto emit = [&](int idx) {
+        positions.push_back((float)m_xCoords[idx]);
+        positions.push_back((float)m_yCoords[idx]);
+        positions.push_back(0.0f);
+
+        colors.push_back(m_red[idx]);
+        colors.push_back(m_green[idx]);
+        colors.push_back(m_blue[idx]);
+        colors.push_back(1.0f);
+    };
+
+    for (int q = 0; q < quads; q++)
+    {
+        const int base = q * 4;
+
+        emit(base + 0);
+        emit(base + 1);
+        emit(base + 2);
+
+        emit(base + 0);
+        emit(base + 2);
+        emit(base + 3);
     }
+
+    if (ivf::rcDrawUnlit(GL_TRIANGLES, positions.data(), colors.data(),
+                         (int)(positions.size() / 3)))
+        return;
+
+    glBegin(GL_QUADS);
+    for (int i = 0; i < count; i++) {
+        glColor3f(m_red[i], m_green[i], m_blue[i]);
+        glVertex2i(m_xCoords[i], m_yCoords[i]);
+    }
+    glEnd();
 }
 
 void Area2D::setVisible(bool flag)

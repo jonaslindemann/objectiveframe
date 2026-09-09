@@ -1,4 +1,5 @@
 #include <vfem/beam.h>
+#include <ivf/LegacyGL.h>
 
 #include <ivf/GlobalState.h>
 #include <ivfmath/Vec3d.h>
@@ -435,10 +436,15 @@ void Beam::doCreateGeometry()
         if (renderResultColors) {
             useBlending = m_beamModel->getUseBlending();
 
-            glDisable(GL_TEXTURE_2D);
-            glDisable(GL_TEXTURE_1D);
-            glEnable(GL_COLOR_MATERIAL);
-            glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+            // Fixed function only, and none of it exists in a core profile.
+            // The shader path needs none of it either: SweptSolidLine's own
+            // setUseColor() flag becomes uUseVertexColor, which is what
+            // GL_COLOR_MATERIAL was emulating here.
+
+            lgDisableLegacy(GL_TEXTURE_2D);
+            lgDisableLegacy(GL_TEXTURE_1D);
+            lgEnableLegacy(GL_COLOR_MATERIAL);
+            lgColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
             // glColorMaterial() changes material state without going through
             // ivf::Material, so its redundancy cache can no longer be trusted.
@@ -469,7 +475,7 @@ void Beam::doCreateGeometry()
                 glEnable(GL_DEPTH_TEST);
             }
 
-            glDisable(GL_COLOR_MATERIAL);
+            lgDisableLegacy(GL_COLOR_MATERIAL);
 
             ivf::Material::invalidateStateCache();
         }

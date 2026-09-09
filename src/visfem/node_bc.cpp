@@ -62,6 +62,11 @@ void NodeBC::setNodeBC(ofem::BeamNodeBC *bc)
     refresh();
 }
 
+bool NodeBC::hasModernPath()
+{
+    return true;
+}
+
 void NodeBC::doCreateGeometry()
 {
     if (m_beamModel != nullptr)

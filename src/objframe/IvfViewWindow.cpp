@@ -1,3 +1,9 @@
+// ivf/LegacyGL.h reaches Windows.h, whose min/max macros break std::min and
+// std::max further down this file. NOMINMAX has to be set before any of it.
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #include "IvfViewWindow.h"
 
 #include <algorithm>
@@ -9,9 +15,12 @@
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl2.h>
+#include <of_imgui_backend.h>
 
 #include <ivf/rc.h>
+#include <ivf/LegacyGL.h>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 using namespace ivf;
@@ -210,9 +219,9 @@ void IvfViewWindow::onGlfwDraw()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glPushMatrix();
+    // No glPushMatrix here: none of the camera calls below touch a matrix
+    // stack, they only change camera state that takes effect at initialize().
 
-    // m_camera->rotateAbsolute(m_angleX / 100.0, m_ang)
     m_camera->rotatePositionY(m_angleX / 100.0);
     m_camera->rotatePositionX(m_angleY / 100.0);
 
@@ -226,33 +235,17 @@ void IvfViewWindow::onGlfwDraw()
     m_moveY = 0.0;
     m_zoomY = 0.0;
 
-    glPopMatrix();
-
-    glPushMatrix();
-
     if (m_doUnderlay)
     {
-        glPushAttrib(GL_ENABLE_BIT);
-
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_FOG);
-        glDisable(GL_LIGHTING);
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0.0, (double)this->width(), (double)this->height(), 0.0, 0.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        this->begin2D();
 
         onUnderlay();
 
-        glPopAttrib();
+        this->end2D();
 
         m_camera->setViewPort(this->width(), this->height());
         m_camera->initialize();
     }
-
-    glPopMatrix();
 
     bool shouldRender;
     {
@@ -264,31 +257,17 @@ void IvfViewWindow::onGlfwDraw()
     if (shouldRender)
         m_scene->render();
 
-    glPushMatrix();
-
     if (m_doOverlay)
     {
-        glPushAttrib(GL_ENABLE_BIT);
-
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_FOG);
-        glDisable(GL_LIGHTING);
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0.0, (double)width(), (double)height(), 0.0, 0.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        this->begin2D();
 
         onOverlay();
 
-        glPopAttrib();
+        this->end2D();
 
         m_camera->setViewPort(width(), height());
         m_camera->initialize();
     }
-
-    glPopMatrix();
 
     this->doDrawImGui();
 
@@ -1285,9 +1264,64 @@ void IvfViewWindow::doInitImGui()
     io.DisplaySize = ImVec2((float)width(), (float)height());
 
     ImGui_ImplGlfw_InitForOpenGL(this->ref(), true);
-    ImGui_ImplOpenGL2_Init();
+    ofui::imguiBackendInit();
 
     m_initialised = true;
+}
+
+void IvfViewWindow::begin2D()
+{
+    const double w = (double)this->width();
+    const double h = (double)this->height();
+
+    // Legal in core, and wanted on both paths.
+
+    glDisable(GL_DEPTH_TEST);
+
+    // Fixed function pipeline: unchanged from what this replaced, but routed
+    // through the shim so it simply does not run in a core profile.
+
+    lgPushAttrib(GL_ENABLE_BIT);
+    lgDisableLegacy(GL_FOG);
+    lgDisableLegacy(GL_LIGHTING);
+
+    lgMatrixMode(GL_PROJECTION);
+    lgPushMatrix();
+    lgLoadIdentity();
+    lgOrtho(0.0, w, h, 0.0, 0.0, 1.0);
+    lgMatrixMode(GL_MODELVIEW);
+    lgPushMatrix();
+    lgLoadIdentity();
+
+    // Shader pipeline: the same 2D frame, expressed as matrices the shader can
+    // read. Saved first, because the 3D projection has to come back afterwards.
+
+    m_saved2DProjection = ivf::rcProjection();
+    m_saved2DView = ivf::rcView();
+
+    ivf::rcSetProjection(glm::ortho(0.0f, (float)w, (float)h, 0.0f, 0.0f, 1.0f));
+    ivf::rcSetView(glm::mat4(1.0f));
+
+    ivf::rcPushMatrix();
+    ivf::rcLoadMatrix(glm::mat4(1.0f));
+}
+
+void IvfViewWindow::end2D()
+{
+    lgMatrixMode(GL_MODELVIEW);
+    lgPopMatrix();
+    lgMatrixMode(GL_PROJECTION);
+    lgPopMatrix();
+    lgMatrixMode(GL_MODELVIEW);
+
+    ivf::rcPopMatrix();
+
+    ivf::rcSetProjection(m_saved2DProjection);
+    ivf::rcSetView(m_saved2DView);
+
+    lgPopAttrib();
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void IvfViewWindow::doDrawImGui()
@@ -1299,14 +1333,14 @@ void IvfViewWindow::doDrawImGui()
     if (m_firstDraw)
     {
         m_firstDraw = false;
-        ImGui_ImplOpenGL2_NewFrame();
+        ofui::imguiBackendNewFrame();
         ImGui_ImplGlfw_NewFrame();
         onDrawImGui();
-        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+        ofui::imguiBackendRenderDrawData(ImGui::GetDrawData());
     }
     */
 
-    ImGui_ImplOpenGL2_NewFrame();
+    ofui::imguiBackendNewFrame();
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
@@ -1405,7 +1439,7 @@ void IvfViewWindow::doDrawImGui()
 
     ivf::rcEndFrame();
 
-    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+    ofui::imguiBackendRenderDrawData(ImGui::GetDrawData());
 
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
@@ -1420,7 +1454,13 @@ void IvfViewWindow::onInit()
 {}
 
 void IvfViewWindow::onDestroy()
-{}
+{
+    // The renderer backend owns GL objects -- a shader program and buffers on
+    // the GL3 path, a font texture on either -- and nothing was releasing them.
+
+    if (m_initialised)
+        ofui::imguiBackendShutdown();
+}
 
 void IvfViewWindow::onShortcut(ModifierKey modifier, int key)
 {}

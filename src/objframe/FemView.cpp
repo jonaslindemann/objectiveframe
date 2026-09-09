@@ -21,6 +21,7 @@
 #include <ivf/Texture.h>
 #include <ivfimage/SgiImage.h>
 #include <ivf/rc.h>
+#include <ivf/GLDebug.h>
 
 #include <ofem/beam.h>
 #include <ofem/beam_load.h>
@@ -788,6 +789,16 @@ void FemViewWindow::setBeamsDynamic(bool flag)
         if (shape->isClass("vfem::Beam"))
             static_cast<vfem::Beam *>(shape)->setDynamicGeometry(flag);
     }
+}
+
+void FemViewWindow::setGLDebug(bool flag)
+{
+    m_glDebug = flag;
+}
+
+void FemViewWindow::setRenderProfile(ivf::RenderProfile profile)
+{
+    m_renderProfile = profile;
 }
 
 void FemViewWindow::setArguments(int argc, char **argv)
@@ -4197,7 +4208,26 @@ void FemViewWindow::hideAllDialogs()
 
 void FemViewWindow::onInit()
 {
+    // Driver debug output, if --gldebug was given. Installed before anything
+    // draws, and routed into the log window so the messages sit alongside the
+    // rest of the application's output instead of on a console nobody sees.
+
+    if (m_glDebug)
+    {
+        ivf::setDebugMessageHandler(
+            [this](const std::string &message, ivf::DebugSeverity severity, unsigned int id) {
+                this->log(std::string("GL [") + ivf::debugSeverityString(severity) + "] " +
+                          std::to_string(id) + ": " + message);
+            });
+
+        if (ivf::enableDebugOutput())
+            this->log("GL debug output enabled.");
+        else
+            this->log("GL debug output unavailable -- no debug context, or no KHR_debug.");
+    }
+
     rcUseBlinnPhong();
+    rcSetProfile(m_renderProfile);
     // Cache the GLU tessellator used for extrusion end caps.
 
     gleInitTessCache();
@@ -4665,12 +4695,28 @@ void FemViewWindow::onInit()
     this->setupPlugins();
     this->setupAi();
 
-    if (m_argc > 1)
+    // The first argument that is not an option is the model to open. Taking
+    // argv[1] unconditionally meant that running with --gldebug or --core tried
+    // to open the flag itself as a file.
+
+    std::string modelToOpen;
+
+    for (int i = 1; i < m_argc; i++)
     {
-        // We have command line arguments
-        log("Loading from command line:" + to_string(m_argv[1]));
+        const std::string arg = m_argv[i];
+
+        if (arg.rfind("--", 0) == 0)
+            continue;
+
+        modelToOpen = arg;
+        break;
+    }
+
+    if (!modelToOpen.empty())
+    {
+        log("Loading from command line:" + modelToOpen);
         m_startPopup->setVisible(false);
-        this->open(to_string(m_argv[1]));
+        this->open(modelToOpen);
     }
     else
     {
@@ -4982,19 +5028,52 @@ void FemViewWindow::onMoveCompleted()
 
 void FemViewWindow::onUnderlay()
 {
-    if (!m_view.useBlending)
-    {
-        glBegin(GL_QUADS);
-        glColor4f(0.7f, 0.7f, 0.7f, 1.0f);
-        glVertex2i(0, 0);
-        glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
-        glVertex2f(0.0f, float(height()));
-        glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
-        glVertex2f(float(width()), float(height()));
-        glColor4f(0.7f, 0.7f, 0.7f, 1.0f);
-        glVertex2f(float(width()), 0.0f);
-        glEnd();
-    }
+    if (m_view.useBlending)
+        return;
+
+    // The background gradient, in the window's pixel coordinates -- begin2D()
+    // has already put both pipelines into that frame. Two triangles rather than
+    // a quad, because a core profile has no GL_QUADS.
+
+    const float w = float(width());
+    const float h = float(height());
+
+    const float positions[18] = {
+        0.0f, 0.0f, 0.0f,
+        0.0f, h,    0.0f,
+        w,    h,    0.0f,
+
+        0.0f, 0.0f, 0.0f,
+        w,    h,    0.0f,
+        w,    0.0f, 0.0f,
+    };
+
+    const float light[4] = {0.7f, 0.7f, 0.7f, 1.0f};
+    const float dark[4] = {0.2f, 0.2f, 0.2f, 1.0f};
+
+    const float colors[24] = {
+        light[0], light[1], light[2], light[3],
+        dark[0],  dark[1],  dark[2],  dark[3],
+        dark[0],  dark[1],  dark[2],  dark[3],
+
+        light[0], light[1], light[2], light[3],
+        dark[0],  dark[1],  dark[2],  dark[3],
+        light[0], light[1], light[2], light[3],
+    };
+
+    if (ivf::rcDrawUnlit(GL_TRIANGLES, positions, colors, 6))
+        return;
+
+    glBegin(GL_QUADS);
+    glColor4fv(light);
+    glVertex2i(0, 0);
+    glColor4fv(dark);
+    glVertex2f(0.0f, h);
+    glColor4fv(dark);
+    glVertex2f(w, h);
+    glColor4fv(light);
+    glVertex2f(w, 0.0f);
+    glEnd();
 }
 
 void FemViewWindow::onOverlay()

@@ -73,6 +73,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/transform_window.h>
 #include <ofui/result_toolbar_window.h>
 #include <ofui/settings_window.h>
+#include <ofui/shadow_window.h>
 #include <ofui/notification_overlay.h>
 #include <ofui/start_popup.h>
 #include <ofui/toolbar_window.h>
@@ -188,6 +189,17 @@ private:
         float uiScale{1.0f};
         bool useSphereCursor{false};
         bool useBlending{false};
+        bool useShadows{true};
+
+        // Where the shadow-casting light sits, as a compass bearing and a height
+        // above the horizon rather than a vector -- a direction is far easier to
+        // dial in that form. The defaults reproduce the direction ivf++ starts
+        // with, so turning the dialog on changes nothing until it is touched.
+
+        double shadowAzimuth{52.0};
+        double shadowElevation{60.0};
+        double shadowStrength{0.45};
+        int shadowMapSize{2048};
         bool useImGuiFileDialogs{true};
         bool saveScreenShot{false};
 
@@ -355,6 +367,7 @@ private:
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
     ofui::ScaleWindowPtr m_scaleWindow;
+    ofui::ShadowWindowPtr m_shadowWindow;
     ofui::TransformWindowPtr m_transformWindow;
     ofui::ColorScaleWindowPtr m_colorScaleWindow;
     ofui::AboutWindowPtr m_aboutWindow;
@@ -462,6 +475,17 @@ private:
     void refreshBeamModelVisuals();
 
     /**
+     * Push the shadow setting to the scene.
+     *
+     * The shadow is a second, flattened pass over the model, so it is only
+     * meaningful against the opaque background. X-ray mode draws the model
+     * translucent over black, where a solid grey footprint under it reads as
+     * dirt rather than as a shadow - so both the user's setting and the
+     * blending mode have a say, and this is the one place that combines them.
+     */
+    void applyShadowState();
+
+    /**
      * Fuses coincident nodes without taking a snapshot.
      *
      * connectNearNodes() is this plus a snapshot. Commands that already took
@@ -549,6 +573,28 @@ public:
 
     void setUseBlending(bool flag);
     bool getUseBlending();
+
+    void setUseShadows(bool flag);
+    bool getUseShadows();
+
+    /** Compass bearing of the shadow-casting light, in degrees. */
+    void setShadowAzimuth(double degrees);
+    double getShadowAzimuth();
+
+    /** Height of the shadow-casting light above the horizon, in degrees. */
+    void setShadowElevation(double degrees);
+    double getShadowElevation();
+
+    /** How dark a fully shadowed surface goes, 0 to 1. */
+    void setShadowStrength(double strength);
+    double getShadowStrength();
+
+    /** Edge length of the shadow map in texels. */
+    void setShadowMapSize(int size);
+    int getShadowMapSize();
+
+    /** Put every shadow setting back to its default. */
+    void resetShadowDefaults();
 
     void setShowLoads(bool flag);
     bool getShowLoads();

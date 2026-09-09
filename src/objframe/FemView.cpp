@@ -8,6 +8,8 @@
 #include "FemViewSelectionHandler.h"
 #include "FemViewGeometryHandler.h"
 
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <functional>
 #include <set>
@@ -509,6 +511,10 @@ void FemViewWindow::setWorkspace(double size, bool resetCamera)
         m_tactileForce->setOffset(-loadSize * 0.7);
     }
     updateAxisLabels();
+
+    // The shadow bounds are derived from the workspace extent.
+
+    this->applyShadowState();
 }
 
 void FemViewWindow::setCurrentMaterial(ofem::BeamMaterial *material)
@@ -809,6 +815,13 @@ void FemViewWindow::setArguments(int argc, char **argv)
 
 void FemViewWindow::setScalefactor(double scalefactor)
 {
+    // SettingsWindow re-applies its slider value on every frame the panel is
+    // open, so an unconditional set_changed() here would report a model change
+    // sixty times a second and defeat any caching keyed off it.
+
+    if (m_beamModel->getScaleFactor() == scalefactor)
+        return;
+
     m_beamModel->setScaleFactor(scalefactor);
     this->set_changed();
     this->redraw();
@@ -1098,6 +1111,13 @@ void FemViewWindow::refreshBeamModelVisuals()
 {
     if (m_beamModel == nullptr)
         return;
+
+    // Every node and beam shape is about to be rebuilt from the model, which is
+    // exactly what the shadow map is a picture of. Not all callers of this also
+    // call set_changed().
+
+    if (this->getScene() != nullptr)
+        this->getScene()->invalidateShadowMap();
 
     auto nodeSet = m_beamModel->getNodeSet();
     for (int i = 0; i < nodeSet->getSize(); i++)
@@ -1463,7 +1483,15 @@ void FemViewWindow::paste()
 }
 
 void FemViewWindow::set_changed()
-{}
+{
+    // The one notification every model mutation in this class already sends. The
+    // shadow map depends on the geometry and on nothing the camera does, so this
+    // is the whole of what it needs to know: orbit and zoom leave it alone, an
+    // edit rebuilds it on the next frame.
+
+    if (this->getScene() != nullptr)
+        this->getScene()->invalidateShadowMap();
+}
 
 void FemViewWindow::showProperties()
 {
@@ -1793,6 +1821,7 @@ void FemViewWindow::deleteBeamLoad(ofem::BeamLoad *elementLoad)
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     m_beamModel->getElementLoadSet()->removeLoad(elementLoad);
+    this->set_changed();
 }
 
 void FemViewWindow::deleteSelected()
@@ -2211,6 +2240,7 @@ void FemViewWindow::deleteNodeLoad(ofem::BeamNodeLoad *nodeLoad)
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
     m_beamModel->getNodeLoadSet()->removeLoad(nodeLoad);
+    this->set_changed();
 }
 
 void FemViewWindow::deleteNodeBC(ofem::BeamNodeBC *bc)
@@ -2233,6 +2263,7 @@ void FemViewWindow::deleteNodeBC(ofem::BeamNodeBC *bc)
         clearEigenmodes();
     m_beamModel->getNodeBCSet()->removeBC(bc);
     setCurrentNodeBC(nullptr);
+    this->set_changed();
 }
 
 void FemViewWindow::setRotationSelected(double rotation)
@@ -3902,19 +3933,148 @@ void FemViewWindow::setUseBlending(bool flag)
     {
         m_beamModel->setUseBlending(true);
         this->getScene()->getCurrentPlane()->setState(ivf::Shape::OS_OFF);
-        this->getScene()->setRenderFlatShadow(false);
     }
     else
     {
         m_beamModel->setUseBlending(false);
         this->getScene()->getCurrentPlane()->setState(ivf::Shape::OS_ON);
-        this->getScene()->setRenderFlatShadow(true);
     }
+
+    this->applyShadowState();
 }
 
 bool FemViewWindow::getUseBlending()
 {
     return m_view.useBlending;
+}
+
+void FemViewWindow::setUseShadows(bool flag)
+{
+    m_view.useShadows = flag;
+    this->applyShadowState();
+    this->redraw();
+}
+
+bool FemViewWindow::getUseShadows()
+{
+    return m_view.useShadows;
+}
+
+void FemViewWindow::setShadowAzimuth(double degrees)
+{
+    // Wrapped rather than clamped: a bearing is circular, and a slider dragged
+    // off one end should come back on the other rather than stick.
+
+    degrees = std::fmod(degrees, 360.0);
+
+    if (degrees < 0.0)
+        degrees += 360.0;
+
+    m_view.shadowAzimuth = degrees;
+    this->applyShadowState();
+    this->redraw();
+}
+
+double FemViewWindow::getShadowAzimuth()
+{
+    return m_view.shadowAzimuth;
+}
+
+void FemViewWindow::setShadowElevation(double degrees)
+{
+    // A light on the horizon casts shadows of unbounded length, and one exactly
+    // overhead makes the up vector in the light's view matrix degenerate. Both
+    // ends are kept away from.
+
+    m_view.shadowElevation = std::clamp(degrees, 5.0, 89.0);
+    this->applyShadowState();
+    this->redraw();
+}
+
+double FemViewWindow::getShadowElevation()
+{
+    return m_view.shadowElevation;
+}
+
+void FemViewWindow::setShadowStrength(double strength)
+{
+    m_view.shadowStrength = std::clamp(strength, 0.0, 1.0);
+    this->applyShadowState();
+    this->redraw();
+}
+
+double FemViewWindow::getShadowStrength()
+{
+    return m_view.shadowStrength;
+}
+
+void FemViewWindow::setShadowMapSize(int size)
+{
+    if (size < 256)
+        size = 256;
+
+    m_view.shadowMapSize = size;
+    this->applyShadowState();
+    this->redraw();
+}
+
+int FemViewWindow::getShadowMapSize()
+{
+    return m_view.shadowMapSize;
+}
+
+void FemViewWindow::resetShadowDefaults()
+{
+    ViewSettings defaults;
+
+    m_view.shadowAzimuth = defaults.shadowAzimuth;
+    m_view.shadowElevation = defaults.shadowElevation;
+    m_view.shadowStrength = defaults.shadowStrength;
+    m_view.shadowMapSize = defaults.shadowMapSize;
+
+    this->applyShadowState();
+    this->redraw();
+}
+
+void FemViewWindow::applyShadowState()
+{
+    if (this->getScene() == nullptr)
+        return;
+
+    const bool wanted = m_view.useShadows && !m_view.useBlending;
+
+    // A shadow map is sampled by the shader, so the legacy profile cannot have
+    // one. There the old projected shadow is still the only shadow available, so
+    // the toggle keeps driving that instead.
+
+    const bool legacy = (m_renderProfile == ivf::RenderProfile::Legacy);
+
+    // The light frustum is fitted to a sphere, and every unit of it that holds
+    // no geometry is resolution spent on nothing. The construction plane is the
+    // region the model is built on, so size it to contain that square plus the
+    // same distance upwards: radius = size * sqrt(0.25 + 0.25 + 0.0625) about a
+    // centre a quarter of the way up.
+
+    const double size = this->getWorkspace();
+
+    this->getScene()->setShadowBounds(0.0, size * 0.25, 0.0, size * 0.75);
+    this->getScene()->setShadowStrength(m_view.shadowStrength);
+    this->getScene()->setShadowMapSize(m_view.shadowMapSize);
+
+    // Azimuth and elevation describe where the light sits; the scene wants the
+    // direction the light travels, which is the opposite of the way to it.
+
+    const double az = m_view.shadowAzimuth * M_PI / 180.0;
+    const double el = m_view.shadowElevation * M_PI / 180.0;
+
+    const double toLightX = std::cos(el) * std::sin(az);
+    const double toLightY = std::sin(el);
+    const double toLightZ = std::cos(el) * std::cos(az);
+
+    this->getScene()->setShadowLightDirection(-toLightX, -toLightY, -toLightZ);
+
+    this->getScene()->setUseShadowMap(wanted && !legacy);
+    this->getScene()->setRenderFlatShadow(wanted && legacy);
 }
 
 void FemViewWindow::setShowLoads(bool flag)
@@ -4199,6 +4359,7 @@ void FemViewWindow::hideAllDialogs()
     m_materialsWindow->hide();
     m_loadMixerWindow->hide();
     m_scaleWindow->hide();
+    m_shadowWindow->hide();
     m_settingsWindow->hide();
     m_aboutWindow->hide();
     m_eigenmodeWindow->hide();
@@ -4283,15 +4444,28 @@ void FemViewWindow::onInit()
     this->getScene()->getCurrentPlane()->getCursor()->setThickness(0.02);
     this->getScene()->getCurrentPlane()->getGrid()->setUseAxis(true);
     this->getScene()->getCurrentPlane()->getGrid()->setUseCorners(true);
-    this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(false);
+    this->getScene()->getCurrentPlane()->getGrid()->setUseSurface(true);
     this->getScene()->getCurrentPlane()->getGrid()->setUseOutline(true);
     this->getScene()->getCurrentPlane()->getGrid()->setMajorColor(0.2f, 0.2f, 0.2f, 1.0f);
     this->getScene()->getCurrentPlane()->getGrid()->setMinorColor(0.3f, 0.3f, 0.3f, 1.0f);
     this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2f, 0.2f, 0.2f, 1.0f);
     this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.2f, 1.0f);
-    this->getScene()->setRenderFlatShadow(true);
+
+    // The construction plane doubles as the floor the shadow falls on, so it has
+    // to be opaque and a little lighter than the background for the shadow to
+    // read against it. No specular: a highlight sliding across a quad this large
+    // as the camera turns looks like a rendering fault rather than a surface.
+
+    auto planeSurface = ivf::Material::create();
+    planeSurface->setDiffuseColor(0.62f, 0.62f, 0.62f, 1.0f);
+    planeSurface->setAmbientColor(0.35f, 0.35f, 0.35f, 1.0f);
+    planeSurface->setSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    this->getScene()->getCurrentPlane()->getGrid()->setSurfaceMaterial(planeSurface);
+
     this->getScene()->setShadowColor(0.2f, 0.2f, 0.2f);
     this->getScene()->setShadowPrePost(false, false);
+    this->applyShadowState();
 
     // Label rendering setup
 
@@ -4517,6 +4691,12 @@ void FemViewWindow::onInit()
     m_scaleWindow->setVisible(false);
 
     m_windowList->add(m_scaleWindow);
+
+    m_shadowWindow = ShadowWindow::create("Shadow settings");
+    m_shadowWindow->setView(this);
+    m_shadowWindow->setVisible(false);
+
+    m_windowList->add(m_shadowWindow);
 
     m_colorScaleWindow = ColorScaleWindow::create("Color scale");
     m_colorScaleWindow->setView(this);
@@ -5010,6 +5190,12 @@ void FemViewWindow::onDeleteShape(Shape *shape, bool &doit)
 
     if (doit && m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
+
+    // The caller removes the shape through the composite rather than through the
+    // scene, so nothing below reports the change on its own.
+
+    if (doit)
+        this->set_changed();
 
     m_solver.needRecalc = doit;
 }
@@ -5919,6 +6105,9 @@ void FemViewWindow::onShortcut(ModifierKey modifier, int key)
 
     if ((modifier == ModifierKey::mkAlt) && (key == '3'))
         this->setShowNodeNumbers(!this->getShowNodeNumbers());
+
+    if ((modifier == ModifierKey::mkAlt) && (key == '4'))
+        this->setUseShadows(!this->getUseShadows());
 }
 
 void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)

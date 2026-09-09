@@ -19,6 +19,7 @@ private:
     bool m_showNodeNumbers;
     bool m_offscreenRendering;
     bool m_sphereNodes;
+    bool m_useShadows;
     bool m_useImGuiFileDialogs;
     bool m_saveScreenShot;
     int m_lineSides;

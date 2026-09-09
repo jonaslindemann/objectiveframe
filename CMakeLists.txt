@@ -9,7 +9,7 @@ if(DEFINED CMAKE_TOOLCHAIN_FILE)
         set(_VS_VCPKG_DETECTED TRUE)
         message(STATUS "Visual Studio bundled vcpkg detected, checking for local installations...")
     endif()
-endif()  
+endif()
  
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE OR _VS_VCPKG_DETECTED)
     # Check for VCPKG_ROOT environment variable first

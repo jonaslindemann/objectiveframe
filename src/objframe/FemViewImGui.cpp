@@ -401,6 +401,18 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         if (ImGui::MenuItem("Show node numbers", "Alt+3", this->getShowNodeNumbers()))
             this->setShowNodeNumbers(!this->getShowNodeNumbers());
 
+        // Disabled in X-ray mode: the shadow is only drawn against the opaque
+        // background, so the item would show a check that had no effect.
+
+        if (ImGui::MenuItem("Show shadows", "Alt+4", this->getUseShadows(), !this->getUseBlending()))
+            this->setUseShadows(!this->getUseShadows());
+
+        if (ImGui::MenuItem("Shadow settings...", ""))
+        {
+            m_shadowWindow->show();
+            m_shadowWindow->setPosition(100, 20);
+        }
+
         ImGui::Separator();
 
         if (ImGui::MenuItem("Node loads...", ""))

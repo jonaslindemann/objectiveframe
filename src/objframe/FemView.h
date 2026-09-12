@@ -28,7 +28,6 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ivf/ExtrArrow.h>
 #include <ivf/Material.h>
 #include <ivf/QuadPlane.h>
-#include <ivf/SelectOrtho.h>
 #include <ivf/Shape.h>
 #include <ivf/SolidLine.h>
 #include <ivf/Sphere.h>
@@ -76,6 +75,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/shadow_window.h>
 #include <ofui/notification_overlay.h>
 #include <ofui/start_popup.h>
+#include <ofui/texture.h>
 #include <ofui/toolbar_window.h>
 #include <ofui/window_list.h>
 #include <ofui/script_window.h>
@@ -334,19 +334,20 @@ private:
 
     ivf::BillBoardPtr m_background;
 
-    // Overlay stuff
+    // Overlay stuff -- the in-scene toolbars are only built and hit-tested
+    // when USE_OVERLAY_BUTTONS is defined, which nothing in the build does.
 
     std::vector<Area2DPtr> m_areas;
     std::vector<PlaneButtonPtr> m_buttons;
-    ivf::SelectOrthoPtr m_overlayScene;
     ButtonGroupPtr m_editButtons;
     ButtonGroupPtr m_objectButtons;
     Area2DPtr m_editArea;
     Area2DPtr m_objectArea;
-
-    PlaneButton *m_logoButton;
-
     PlaneButton *m_prevButton;
+
+    // Corner logo, drawn by the ImGui pass (drawLogo()).
+
+    ofui::TexturePtr m_logoTexture;
 
     bool m_hintFinished;
 
@@ -470,6 +471,7 @@ private:
     void drawMainMenuBar(bool &executeCalc, bool &quitApplication);
     void drawPopups();
     void drawFileDialogs();
+    void drawLogo();
     void resetSolverState(bool preserveScaleLock = true);
     void resetResultDisplay();
     void refreshBeamModelVisuals();
@@ -844,7 +846,6 @@ public:
 
     virtual void onInit() override;
     virtual void onInitContext() override;
-    virtual void onOverlay() override;
     virtual void onUnderlay();
     virtual void onPostRender() override;
     virtual void onGlfwResize(int width, int height) override;

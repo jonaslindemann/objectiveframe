@@ -833,3 +833,24 @@ void FemViewWindow::drawFileDialogs()
         m_dlg.newScript = false;
     }
 }
+
+void FemViewWindow::drawLogo()
+{
+    if ((m_logoTexture == nullptr) || !m_logoTexture->loaded())
+        return;
+
+    // The logo used to be a PlaneButton in an ivf ortho overlay scene, drawn
+    // after the 3D pass. The background draw list puts it in the same place --
+    // over the scene, under every ImGui window -- without a second projection
+    // to keep in sync with the window size.
+
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
+
+    const float size = 120.0f * m_view.uiScale;
+    const float margin = 20.0f * m_view.uiScale;
+
+    const ImVec2 br(viewport->Pos.x + viewport->Size.x - margin, viewport->Pos.y + viewport->Size.y - margin);
+    const ImVec2 tl(br.x - size, br.y - size);
+
+    ImGui::GetBackgroundDrawList(viewport)->AddImage((ImTextureID)(intptr_t)m_logoTexture->id(), tl, br);
+}

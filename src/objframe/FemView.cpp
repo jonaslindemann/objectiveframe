@@ -638,7 +638,6 @@ void FemViewWindow::setEditMode(WidgetMode mode)
 
     this->getScene()->disableCursor();
     this->getScene()->disableCursorShape();
-    this->setUseOverlay(true);
     m_pluginWindow->hide();
 
     this->hideAllDialogs();
@@ -2362,8 +2361,6 @@ void FemViewWindow::setupOverlay()
     button->setHint("Excecute calculation");
     m_editButtons->addChild(button);
 
-    // m_overlayScene->addChild(m_editButtons);
-
     //
     // Create object toolbar
     //
@@ -2405,12 +2402,6 @@ void FemViewWindow::setupOverlay()
     button->setPosition(330.0, 30.0, 0.0);
     button->setHint("Show beam properties");
     m_objectButtons->addChild(button);
-
-    m_logoButton = new PlaneButton(1234, (m_paths.image / fs::path("logo.png")).string());
-    m_logoButton->setSize(120.0, 120.0);
-
-    m_overlayScene->addChild(m_logoButton);
-    // m_overlayScene->addChild(m_objectButtons);
 }
 
 void FemViewWindow::setupScript(chaiscript::ChaiScript &script)
@@ -4431,7 +4422,6 @@ void FemViewWindow::onInit()
 
     log("Initializing FemWidget.");
 
-    this->setUseOverlay(true);
     this->setUseUnderlay(true);
 
     // Intialize transparent workspace plane
@@ -4565,11 +4555,15 @@ void FemViewWindow::onInit()
 
     m_overlaySelected = false;
 
-    m_overlayScene = SelectOrtho::create();
-    m_overlayScene->setViewport(m_width, m_height);
-    m_overlayScene->setUseCustomTransform(false);
-    this->setUseOverlay(true);
     this->setupOverlay();
+
+    // The corner logo is an ImGui image now -- see drawLogo(). onInit() runs
+    // inside the draw callback, so the GL context is current and the texture
+    // can be uploaded here, where m_paths is already resolved.
+
+    log("Loading logo texture.");
+    m_logoTexture = ofui::Texture::create((m_paths.image / fs::path("logo.png")).string());
+    m_logoTexture->load();
 
     m_coordText = "";
 
@@ -5260,39 +5254,6 @@ void FemViewWindow::onUnderlay()
     glColor4fv(light);
     glVertex2f(w, 0.0f);
     glEnd();
-}
-
-void FemViewWindow::onOverlay()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-    glDisable(GL_DEPTH_TEST);
-
-    // Render areas
-
-#ifdef USE_OVERLAY_BUTTONS
-    m_objectArea->setCoord(0, 0, height() - 80);
-    m_objectArea->setCoord(1, width() / 2, height() - 80);
-    m_objectArea->setCoord(2, width() / 2, height());
-    m_objectArea->setCoord(3, 0, height());
-
-    m_objectArea->render();
-    m_editArea->render();
-
-    // Update button positions
-
-    m_objectButtons->setPosition(0.0, height() - 70, 0.0);
-#endif
-
-    m_logoButton->setPosition(width() - 80, height() - 80, 0.0);
-
-    // Render overlay "scene"
-
-    m_overlayScene->render();
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glLineWidth(1.0);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void FemViewWindow::onInitContext()
@@ -6404,6 +6365,7 @@ void FemViewWindow::onDrawImGui()
     this->updateSelectionCount();
 
     drainScriptQueue();
+    drawLogo();
     drawMainMenuBar(executeCalc, quitApplication);
     drawPopups();
     drawFileDialogs();

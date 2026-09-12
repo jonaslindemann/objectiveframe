@@ -61,7 +61,9 @@ endif()
 # This puts vcpkg_installed/ in the project root instead of each build directory
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed" CACHE PATH "vcpkg installed directory")
 
-project(objframe2) 
+# Version is the single source for the package version used by install/msix.
+# Keep it in sync with MyAppVersion in install/objectiveframe_v2.iss.
+project(objframe2 VERSION 2.5.4)
 
 enable_language(CXX)
 enable_language(C)
@@ -133,7 +135,14 @@ if(DEFINED ENV{IVF_ROOT})
 elseif(NOT DEFINED IVF_ROOT)
     set(IVF_ROOT "${PROJECT_SOURCE_DIR}/../ivfplusplus" CACHE PATH "IVF++ root directory")
 endif()
-set(IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc ${IVF_ROOT}/include)
+# ivf++ used to keep MSVC-specific headers in include/vc. Trees that have been
+# cleaned up no longer have it, and a non-existent directory in an imported
+# target's INTERFACE_INCLUDE_DIRECTORIES fails the generate step outright, so
+# only add it when it is actually present.
+set(IVF_INCLUDE_DIR ${IVF_ROOT}/include)
+if(EXISTS ${IVF_ROOT}/include/vc)
+    list(PREPEND IVF_INCLUDE_DIR ${IVF_ROOT}/include/vc)
+endif()
 
 # Create imported targets for IVF++ libraries with proper debug postfix handling
 # This works with both single-config and multi-config generators
@@ -211,6 +220,9 @@ endif()
 
 
 add_subdirectory(src)
+
+# Packaging targets (Windows MSIX). Not part of the default build.
+add_subdirectory(install/msix)
 
 # Create unified objframe interface library target
 # This bundles all objframe libraries and dependencies for easier linking

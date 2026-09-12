@@ -4014,6 +4014,32 @@ int FemViewWindow::getShadowMapSize()
     return m_view.shadowMapSize;
 }
 
+void FemViewWindow::setGridSurfaceOpacity(double opacity)
+{
+    m_view.gridSurfaceOpacity = std::clamp(opacity, 0.0, 1.0);
+    this->applyGridSurfaceOpacity();
+    this->redraw();
+}
+
+double FemViewWindow::getGridSurfaceOpacity()
+{
+    return m_view.gridSurfaceOpacity;
+}
+
+void FemViewWindow::applyGridSurfaceOpacity()
+{
+    if (m_planeSurfaceMaterial == nullptr)
+        return;
+
+    // The grid holds the material by pointer and only reassigns it when the
+    // grid is rebuilt, so changing the alpha in place is what takes effect
+    // immediately. The plane is drawn after the model -- Workspace renders
+    // the construction planes once SceneBase has traversed the scene -- so
+    // whatever sits below it is already in the framebuffer to blend against.
+
+    m_planeSurfaceMaterial->setAlphaValue(float(m_view.gridSurfaceOpacity));
+}
+
 void FemViewWindow::resetShadowDefaults()
 {
     ViewSettings defaults;
@@ -4441,17 +4467,21 @@ void FemViewWindow::onInit()
     this->getScene()->getCurrentPlane()->getGrid()->setOutlineColor(0.2f, 0.2f, 0.2f, 1.0f);
     this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    // The construction plane doubles as the floor the shadow falls on, so it has
-    // to be opaque and a little lighter than the background for the shadow to
-    // read against it. No specular: a highlight sliding across a quad this large
-    // as the camera turns looks like a rendering fault rather than a surface.
+    // The construction plane doubles as the floor the shadow falls on, so it
+    // defaults to opaque and a little lighter than the background for the
+    // shadow to read against it. No specular: a highlight sliding across a quad
+    // this large as the camera turns looks like a rendering fault rather than a
+    // surface. The alpha is the one part the user can change -- see
+    // setGridSurfaceOpacity(), which trades shadow contrast for being able to
+    // see reaction arrows below the plane.
 
-    auto planeSurface = ivf::Material::create();
-    planeSurface->setDiffuseColor(0.62f, 0.62f, 0.62f, 1.0f);
-    planeSurface->setAmbientColor(0.35f, 0.35f, 0.35f, 1.0f);
-    planeSurface->setSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
+    m_planeSurfaceMaterial = ivf::Material::create();
+    m_planeSurfaceMaterial->setDiffuseColor(0.62f, 0.62f, 0.62f, 1.0f);
+    m_planeSurfaceMaterial->setAmbientColor(0.35f, 0.35f, 0.35f, 1.0f);
+    m_planeSurfaceMaterial->setSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    this->getScene()->getCurrentPlane()->getGrid()->setSurfaceMaterial(planeSurface);
+    this->getScene()->getCurrentPlane()->getGrid()->setSurfaceMaterial(m_planeSurfaceMaterial);
+    this->applyGridSurfaceOpacity();
 
     this->getScene()->setShadowColor(0.2f, 0.2f, 0.2f);
     this->getScene()->setShadowPrePost(false, false);

@@ -200,6 +200,12 @@ private:
         double shadowElevation{60.0};
         double shadowStrength{0.45};
         int shadowMapSize{2048};
+
+        // Opacity of the construction plane's filled surface. 1.0 is the
+        // opaque floor the shadow is designed to fall on; lowering it lets
+        // reaction arrows and anything else below the plane show through.
+
+        double gridSurfaceOpacity{1.0};
         bool useImGuiFileDialogs{true};
         bool saveScreenShot{false};
 
@@ -333,6 +339,11 @@ private:
     ivf::BitmapFontPtr m_greenFont;
 
     ivf::BillBoardPtr m_background;
+
+    // Held on to because ivf::Grid exposes no getter for it -- the opacity
+    // setting mutates this material in place.
+
+    ivf::MaterialPtr m_planeSurfaceMaterial;
 
     // Overlay stuff -- the in-scene toolbars are only built and hit-tested
     // when USE_OVERLAY_BUTTONS is defined, which nothing in the build does.
@@ -486,6 +497,7 @@ private:
      * blending mode have a say, and this is the one place that combines them.
      */
     void applyShadowState();
+    void applyGridSurfaceOpacity();
 
     /**
      * Fuses coincident nodes without taking a snapshot.
@@ -590,6 +602,10 @@ public:
     /** How dark a fully shadowed surface goes, 0 to 1. */
     void setShadowStrength(double strength);
     double getShadowStrength();
+
+    /** Opacity of the construction plane surface, 0 to 1. */
+    void setGridSurfaceOpacity(double opacity);
+    double getGridSurfaceOpacity();
 
     /** Edge length of the shadow map in texels. */
     void setShadowMapSize(int size);

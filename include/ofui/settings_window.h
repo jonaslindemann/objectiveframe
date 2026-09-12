@@ -20,6 +20,7 @@ private:
     bool m_offscreenRendering;
     bool m_sphereNodes;
     bool m_useShadows;
+    float m_gridSurfaceOpacity;
     bool m_useImGuiFileDialogs;
     bool m_saveScreenShot;
     int m_lineSides;

@@ -136,6 +136,38 @@ After building, the binaries will be in:
 - `bin/` - Executables
 - `lib/` - Libraries (debug builds have 'd' suffix)
 
+## Packaging (Windows)
+
+Both packaging routes take their version from `project(objframe2 VERSION x.y.z)`
+in the top-level `CMakeLists.txt`.
+
+### Inno Setup installer - the released artifact
+
+`install/objectiveframe_v2.iss` builds the `setup.exe` that the Microsoft Store
+listing distributes and that users download directly. It is driven from the Inno
+Setup IDE or `ISCC`, not from CMake, and signing needs the eToken:
+
+```powershell
+& "C:\Program Files\Inno Setup 7\ISCC.exe" /DMyAppVersion=2.5.4 install\objectiveframe_v2.iss
+```
+
+The Store listing is an **EXE/MSI app**, meaning the Store links to a versioned
+installer URL we host rather than hosting or re-signing anything. See
+[install/STORE_SUBMISSION.md](install/STORE_SUBMISSION.md) for the release and
+submission procedure.
+
+### MSIX - winget and sideloading
+
+`cmake --build build --target msix --config Release` stages the application and
+its data files and packs them with the Windows SDK's `makeappx`, writing
+`packages/windows/ObjectiveFrame-<version>-x64.msix`. The target appears only
+when `makeappx.exe` is found, and is never built as part of `ALL_BUILD`.
+
+This package is not what the Store listing takes - an EXE/MSI product cannot
+accept an MSIX. Windows refuses to install an unsigned MSIX, so signing is
+needed for anything handed to another machine. See
+[install/msix/README.md](install/msix/README.md).
+
 ## Using ObjectiveFrame as a Dependency
 
 If you want to link against ObjectiveFrame in another CMake project:

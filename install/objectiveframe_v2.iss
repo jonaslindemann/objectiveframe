@@ -2,7 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ObjectiveFrame"
-#define MyAppVersion "2.5.4"
+; Overridable from the command line so a build script can pass the version that
+; the rest of the project is built with:  ISCC /DMyAppVersion=2.5.4 ...
+#ifndef MyAppVersion
+  #define MyAppVersion "2.6.0"
+#endif
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
 #define MyAppExeName "objframe.exe"
@@ -27,7 +31,10 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputDir=..\packages\windows
-OutputBaseFilename=objectiveframe_setup
+; Versioned, because the Microsoft Store requires the binary behind a submitted
+; package URL never to change. Each release is therefore its own artifact and
+; its own URL, and rebuilding cannot overwrite something already certified.
+OutputBaseFilename=objectiveframe_setup_{#MyAppVersion}
 SetupIconFile=..\images\logo.ico
 Compression=lzma
 SolidCompression=yes

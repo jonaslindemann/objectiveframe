@@ -15,6 +15,11 @@ enum class OfToolbarButtonType {
     Spacer
 };
 
+enum class ToolbarOrientation {
+    Horizontal,
+    Vertical
+};
+
 class OfToolbarButton {
 private:
     std::string m_name;
@@ -68,9 +73,14 @@ private:
 
     std::vector<std::shared_ptr<ToolbarWindow>> m_toolbarGroup;
 
+    ToolbarOrientation m_orientation{ToolbarOrientation::Horizontal};
+
 public:
     ToolbarWindow(const std::string name);
     virtual ~ToolbarWindow();
+
+    void setOrientation(ToolbarOrientation orientation);
+    ToolbarOrientation orientation();
 
     void addButton(const std::string name, OfToolbarButtonType type = OfToolbarButtonType::Button,
                    std::string filename = "", int group = -1);

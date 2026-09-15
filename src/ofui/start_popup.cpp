@@ -12,8 +12,8 @@ using namespace ofui;
 StartPopup::StartPopup(const std::string name, bool modal)
     : PopupWindow(name, modal), m_view(nullptr), m_startButtonClickedFunc(nullptr), m_exampleClickedFunc(nullptr)
 {
-    this->setWindowFlags(ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
-    // this->setSize(1000, -1);
+    this->setWindowFlags(ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
+                         ImGuiWindowFlags_AlwaysAutoResize);
 }
 
 StartPopup::~StartPopup()
@@ -61,6 +61,8 @@ void ofui::StartPopup::setRelease(const std::string &release)
 
 void StartPopup::doPopup()
 {
+    const float scale = ImGui::GetIO().FontGlobalScale;
+
     // ImGui::Dummy(ImVec2(800.0, 800.0));
     ImGui::Text("Welcome to ObjectiveFrame!");
     ImGui::NewLine();
@@ -70,15 +72,15 @@ void StartPopup::doPopup()
         "Select one of the examples below or use the buttons to the right to create new models or open "
         "existing models.");
     ImGui::PopTextWrapPos();
-    ImGui::Dummy(ImVec2(0.0, 20.0));
+    ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
     auto imageIdx = 0;
 
     if (ImGui::BeginTable("table2", 2))
         ;
     {
-        ImGui::TableSetupColumn("Example", ImGuiTableColumnFlags_WidthFixed, 800);
-        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 200);
+        ImGui::TableSetupColumn("Example", ImGuiTableColumnFlags_WidthFixed, 800.0f * scale);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 200.0f * scale);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::BeginTable("table3", 4, ImGuiTableFlags_SizingFixedFit))
@@ -94,7 +96,7 @@ void StartPopup::doPopup()
                         m_exampleImage[imageIdx]->bind();
                         auto id = "##" + ofutil::to_string(i) + ofutil::to_string(j);
                         if (ImGui::ImageButton(id.c_str(), (ImTextureID)m_exampleImage[imageIdx]->id(),
-                                               ImVec2(180, 180)))
+                                               ImVec2(180.0f * scale, 180.0f * scale)))
                         {
                             if (m_exampleClickedFunc)
                                 m_exampleClickedFunc(m_exampleFilename[imageIdx]);
@@ -113,7 +115,7 @@ void StartPopup::doPopup()
             ImGui::EndTable();
         }
         ImGui::TableNextColumn();
-        if (ImGui::Button("New Project...", ImVec2(180, 0)))
+        if (ImGui::Button("New Project...", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -123,7 +125,7 @@ void StartPopup::doPopup()
                 m_startButtonClickedFunc(button);
             }
         }
-        if (ImGui::Button("Open Model...", ImVec2(180, 0)))
+        if (ImGui::Button("Open Model...", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -134,7 +136,7 @@ void StartPopup::doPopup()
             }
         }
 
-        if (ImGui::Button("Open AI prompt...", ImVec2(180, 0)))
+        if (ImGui::Button("Open AI prompt...", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -145,7 +147,7 @@ void StartPopup::doPopup()
             }
         }
 
-        if (ImGui::Button("Open Python model...", ImVec2(180, 0)))
+        if (ImGui::Button("Open Python model...", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -156,9 +158,9 @@ void StartPopup::doPopup()
             }
         }
 
-        ImGui::Dummy(ImVec2(0.0, 20.0));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
-        if (ImGui::Button("Documentation", ImVec2(180, 0)))
+        if (ImGui::Button("Documentation", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -169,9 +171,9 @@ void StartPopup::doPopup()
             }
         }
 
-        ImGui::Dummy(ImVec2(0.0, 20.0));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
-        if (ImGui::Button("Start automation API", ImVec2(180, 0)))
+        if (ImGui::Button("Start automation API", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -182,15 +184,15 @@ void StartPopup::doPopup()
             }
         }
 
-        ImGui::Dummy(ImVec2(0.0, 20.0));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
-        if (ImGui::Button("Close", ImVec2(180, 0)))
+        if (ImGui::Button("Close", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
         }
 
-        ImGui::Dummy(ImVec2(0.0, 430.0));
+        ImGui::Dummy(ImVec2(0.0, 430.0f * scale));
 
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
         ImGui::TextUnformatted(m_versionString.c_str());

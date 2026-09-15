@@ -563,13 +563,13 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
         if (ImGui::MenuItem("Scaling settings...", ""))
         {
             m_scaleWindow->show();
-            m_scaleWindow->setPosition(100, 20);
+            this->dockNextToEditToolbar(m_scaleWindow);
         }
 
         if (ImGui::MenuItem("Color scale settings...", ""))
         {
             m_colorScaleWindow->show();
-            m_colorScaleWindow->setPosition(100, 20);
+            this->dockNextToEditToolbar(m_colorScaleWindow);
         }
 
         ImGui::EndMenu();

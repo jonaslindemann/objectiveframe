@@ -497,6 +497,10 @@ private:
 
     void refreshUiStyle();
 
+    // Positions a window to the right of the edit toolbar, so it doesn't open underneath it.
+    // If stackBelow is visible and already placed, docks below it instead of at the toolbar's top.
+    void dockNextToEditToolbar(ofui::UiWindowPtr window, ofui::UiWindowPtr stackBelow = nullptr);
+
     // ImGui drawing helpers (implementations in FemViewImGui.cpp)
 
     void drainScriptQueue();

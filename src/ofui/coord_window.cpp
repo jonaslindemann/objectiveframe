@@ -62,7 +62,7 @@ std::shared_ptr<CoordWindow> CoordWindow::create(const std::string name)
 void CoordWindow::doPreDraw()
 {
     const int corner = 1;
-    const float PAD = 10.0f;
+    const float PAD = 10.0f * ImGui::GetIO().FontGlobalScale;
     const ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
     ImVec2 work_size = viewport->WorkSize;
@@ -86,7 +86,7 @@ void CoordWindow::drawCoord(const char *label, double value)
 
     float labelWidth = ImGui::CalcTextSize(label).x;
     float valueWidth = ImGui::CalcTextSize(buffer).x;
-    float offset = m_contentWidth - valueWidth;
+    float offset = m_contentWidth * ImGui::GetIO().FontGlobalScale - valueWidth;
 
     ImGui::SameLine(std::max(offset, labelWidth + ImGui::GetStyle().ItemSpacing.x));
     ImGui::TextUnformatted(buffer);
@@ -98,7 +98,7 @@ void CoordWindow::drawValue(const char *label, const std::string &value)
 
     float labelWidth = ImGui::CalcTextSize(label).x;
     float valueWidth = ImGui::CalcTextSize(value.c_str()).x;
-    float offset = m_contentWidth - valueWidth;
+    float offset = m_contentWidth * ImGui::GetIO().FontGlobalScale - valueWidth;
 
     ImGui::SameLine(std::max(offset, labelWidth + ImGui::GetStyle().ItemSpacing.x));
     ImGui::TextUnformatted(value.c_str());
@@ -106,7 +106,7 @@ void CoordWindow::drawValue(const char *label, const std::string &value)
 
 void CoordWindow::doDraw()
 {
-    ImGui::Dummy(ImVec2(m_contentWidth, 0.0f));
+    ImGui::Dummy(ImVec2(m_contentWidth * ImGui::GetIO().FontGlobalScale, 0.0f));
     this->drawCoord("X", m_coord[0]);
     this->drawCoord("Y", m_coord[1]);
     this->drawCoord("Z", m_coord[2]);

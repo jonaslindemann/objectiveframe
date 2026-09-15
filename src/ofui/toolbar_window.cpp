@@ -7,7 +7,7 @@ using namespace ofui;
 ToolbarWindow::ToolbarWindow(const std::string name)
     : UiWindow(name), m_selectedButton{-1}, m_selectedColor{0.0, 0.0, 1.0, 1.0}, m_color{0.0, 0.0, 0.0, 1.0}
 {
-    setWindowFlags(ImGuiWindowFlags_NoCollapse);
+    setWindowFlags(ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
     setCanClose(false);
     setAutoPlacement(false);
 
@@ -19,6 +19,16 @@ ToolbarWindow::ToolbarWindow(const std::string name)
 
 ToolbarWindow::~ToolbarWindow()
 {}
+
+void ofui::ToolbarWindow::setOrientation(ToolbarOrientation orientation)
+{
+    m_orientation = orientation;
+}
+
+ToolbarOrientation ofui::ToolbarWindow::orientation()
+{
+    return m_orientation;
+}
 
 void ofui::ToolbarWindow::addButton(const std::string name, OfToolbarButtonType type, std::string filename, int group)
 {
@@ -113,11 +123,8 @@ void ToolbarWindow::doDraw()
 
     this->update();
 
-    ImVec2 button_sz(40, 40);
-
-    ImGuiStyle &style = ImGui::GetStyle();
-    int buttons_count = 20;
-    float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+    const float scale = ImGui::GetIO().FontGlobalScale;
+    ImVec2 button_sz(40.0f * scale, 40.0f * scale);
 
     int id = 0;
 
@@ -127,7 +134,7 @@ void ToolbarWindow::doDraw()
     {
         ImGui::PushID(id++);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4.0f * scale, 4.0f * scale});
 
         if (button.texture() != nullptr)
             button.texture()->bind();
@@ -203,17 +210,14 @@ void ToolbarWindow::doDraw()
         }
         else if (button.type() == OfToolbarButtonType::Spacer)
         {
-            ImGui::Dummy(ImVec2(10, 10));
+            ImGui::Dummy(ImVec2(10.0f * scale, 10.0f * scale));
         }
 
         if (button.texture() != nullptr)
             button.texture()->unbind();
 
         ImGui::PopStyleVar(1);
-        float last_button_x2 = ImGui::GetItemRectMax().x;
-        float next_button_x2 =
-            last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
-        if (id < buttons_count && next_button_x2 < window_visible_x2)
+        if (m_orientation == ToolbarOrientation::Horizontal && id < int(m_buttons.size()))
             ImGui::SameLine();
         ImGui::PopID();
     }

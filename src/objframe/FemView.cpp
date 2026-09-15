@@ -721,7 +721,8 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         m_mainToolbarWindow->selectButton("Feedback", 1);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
-        m_windowList->placeWindowOnce(m_loadMixerWindow);
+        if (!m_loadMixerWindow->hasBeenPlaced())
+            this->dockNextToEditToolbar(m_loadMixerWindow, m_scaleWindow);
     }
     else
         m_loadMixerWindow->hide();
@@ -869,7 +870,8 @@ void FemViewWindow::setCustomMode(CustomMode mode)
         this->setEditMode(WidgetMode::Select);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
-        m_windowList->placeWindowOnce(m_loadMixerWindow);
+        if (!m_loadMixerWindow->hasBeenPlaced())
+            this->dockNextToEditToolbar(m_loadMixerWindow, m_scaleWindow);
     }
     else
         m_loadMixerWindow->hide();
@@ -2676,6 +2678,30 @@ void FemViewWindow::refreshUiStyle()
     style = newStyle;
 }
 
+void FemViewWindow::dockNextToEditToolbar(ofui::UiWindowPtr window, ofui::UiWindowPtr stackBelow)
+{
+    const int margin = int(20.0f * m_view.uiScale);
+
+    int x = margin;
+    int y = margin;
+
+    if (m_mainToolbarWindow != nullptr && m_mainToolbarWindow->x() >= 0 && m_mainToolbarWindow->width() > 0)
+    {
+        x = m_mainToolbarWindow->x() + m_mainToolbarWindow->width() + margin;
+        y = m_mainToolbarWindow->y();
+    }
+
+    if (stackBelow != nullptr && stackBelow->visible() && stackBelow->y() >= 0)
+    {
+        // stackBelow reports a real height only after its first draw; before that,
+        // fall back to an estimate rather than overlapping it at the same y.
+        int stackHeight = (stackBelow->height() > 0) ? stackBelow->height() : int(200.0f * m_view.uiScale);
+        y = stackBelow->y() + stackHeight + margin;
+    }
+
+    window->setPosition(x, y);
+}
+
 void FemViewWindow::assignNodeBCSelected()
 {
     // Assign a node load to selected nodes
@@ -4338,6 +4364,7 @@ void FemViewWindow::setUiScale(float scale)
     m_view.uiScale = scale;
 
     this->refreshUiStyle();
+    this->onGlfwResize(this->width(), this->height());
 }
 
 void FemViewWindow::setSaveScreenShot(bool flag)
@@ -4601,6 +4628,25 @@ void FemViewWindow::onInit()
     using std::placeholders::_1;
     LoggerMessageFunc f = std::bind(&FemViewWindow::onMessage, this, _1);
     Logger::instance()->assignOnMessageShort(f);
+
+    // Auto-detect a sensible starting UI scale on high-DPI displays. onInitImGui()
+    // (which loads the fonts and does the first refreshUiStyle() pass) already ran
+    // by this point -- via doInitImGui(), called before onInit() -- so this needs
+    // its own refreshUiStyle() call rather than relying on that first pass to pick
+    // it up. The user can still change it afterward via Settings.
+
+    float contentScaleX = 1.0f, contentScaleY = 1.0f;
+    if (this->ref() != nullptr)
+        glfwGetWindowContentScale(this->ref(), &contentScaleX, &contentScaleY);
+
+    float detectedScale = std::max(contentScaleX, contentScaleY);
+    if (detectedScale > 1.05f)
+    {
+        m_view.uiScale = std::clamp(std::round(detectedScale * 4.0f) / 4.0f, 1.0f, 3.0f);
+        this->refreshUiStyle();
+        log("High-DPI display detected (content scale " + std::to_string(detectedScale) + ") - UI scale set to " +
+            std::to_string(m_view.uiScale));
+    }
 
     // Display version information.
 
@@ -4969,6 +5015,7 @@ void FemViewWindow::onInit()
     m_mainToolbarWindow = ToolbarWindow::create("Edit");
 
     m_mainToolbarWindow->setVisible(true);
+    m_mainToolbarWindow->setOrientation(ofui::ToolbarOrientation::Vertical);
 
     m_mainToolbarWindow->addButton("Select", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlselect.png")).string(), 1);
@@ -5007,7 +5054,6 @@ void FemViewWindow::onInit()
     m_windowList->add(m_mainToolbarWindow);
 
     m_editToolbarWindow = ToolbarWindow::create("Model");
-    m_editToolbarWindow->setSize(450, 0);
 
     m_editToolbarWindow->setVisible(true);
 
@@ -5044,6 +5090,8 @@ void FemViewWindow::onInit()
 
     m_mainToolbarWindow->addToolbarGroup(m_editToolbarWindow);
     m_editToolbarWindow->addToolbarGroup(m_mainToolbarWindow);
+
+    m_consoleWindow->setAnchorWindow(m_editToolbarWindow);
 
     this->setupExamples();
 
@@ -6747,12 +6795,18 @@ void FemViewWindow::clearEigenmodeAnimation()
 
 void FemViewWindow::onGlfwResize(int width, int height)
 {
+    const float scale = m_view.uiScale;
+
     if (m_mainToolbarWindow != nullptr)
-        m_mainToolbarWindow->setPosition(20, 20);
+        m_mainToolbarWindow->setPosition(int(20 * scale), int(20 * scale));
 
     if (m_editToolbarWindow != nullptr)
-        m_editToolbarWindow->setPosition(20, this->height() - 140);
+        m_editToolbarWindow->setPosition(int(20 * scale), this->height() - int(140 * scale));
 
     if (m_consoleWindow != nullptr)
-        m_consoleWindow->setPosition(this->width() / 2.0 - m_consoleWindow->width() / 2.0, this->height() - 120);
+        // Fallback only -- ConsoleWindow::doPreDraw() bottom-aligns it with its
+        // anchor window (the modeling toolbar) every frame, which takes over as
+        // soon as that toolbar has been drawn once.
+        m_consoleWindow->setPosition(this->width() / 2.0 - m_consoleWindow->width() / 2.0,
+                                     this->height() - int(80 * scale));
 }

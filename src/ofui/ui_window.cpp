@@ -23,12 +23,14 @@ void UiWindow::draw()
 {
     if (m_visible)
     {
+        const float scale = ImGui::GetIO().FontGlobalScale;
+
         if ((m_width != -1) && (m_height != -1))
             ImGui::SetNextWindowSize(ImVec2(float(m_width), float(m_height)), ImGuiCond_FirstUseEver);
 
         if (m_setPos)
         {
-            const float PAD = 80.0f;
+            const float PAD = 80.0f * scale;
             const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
@@ -59,8 +61,8 @@ void UiWindow::draw()
         }
         if (m_updatePos)
         {
-            const float PAD_X = 100.0f;
-            const float PAD_Y = 150.0f;
+            const float PAD_X = 100.0f * scale;
+            const float PAD_Y = 150.0f * scale;
             const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
@@ -74,7 +76,7 @@ void UiWindow::draw()
         }
         if (m_centerBottom)
         {
-            const float PAD = 50.0f;
+            const float PAD = 50.0f * scale;
             const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;

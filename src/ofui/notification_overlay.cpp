@@ -41,13 +41,14 @@ void NotificationOverlay::draw(float deltaTime)
     if (m_notifications.empty())
         return;
 
-    const float PAD = 16.0f;
+    const float scale = ImGui::GetIO().FontGlobalScale;
+    const float PAD = 16.0f * scale;
     const ImGuiViewport *vp = ImGui::GetMainViewport();
     ImVec2 pos = ImVec2(vp->WorkPos.x + vp->WorkSize.x - PAD,
                         vp->WorkPos.y + vp->WorkSize.y - PAD);
 
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.0f, 1.0f));
-    ImGui::SetNextWindowSizeConstraints(ImVec2(280, 0), ImVec2(400, vp->WorkSize.y * 0.6f));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(280.0f * scale, 0), ImVec2(400.0f * scale, vp->WorkSize.y * 0.6f));
     ImGui::SetNextWindowBgAlpha(0.0f);
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking |

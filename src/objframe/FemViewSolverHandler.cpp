@@ -98,12 +98,12 @@ void FemViewSolverHandler::executeCalc(FemViewWindow &view)
 
     view.m_settingsWindow->update();
     view.m_scaleWindow->show();
-    view.m_scaleWindow->setPosition(100, 20);
+    view.dockNextToEditToolbar(view.m_scaleWindow);
 
     view.m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)view.m_beamModel->getNodeLoadSet());
     view.m_loadMixerWindow->show();
     if (!view.m_loadMixerWindow->hasBeenPlaced())
-        view.m_loadMixerWindow->setPosition(100, 240);
+        view.dockNextToEditToolbar(view.m_loadMixerWindow, view.m_scaleWindow);
 
     // A finished calculation shows the deformed structure and nothing else.
     // Result colouring is opt-in from there, via setResultType().

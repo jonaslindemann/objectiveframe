@@ -52,7 +52,7 @@ float ResultToolbarWindow::contentWidth() const
 
 void ResultToolbarWindow::doPreDraw()
 {
-    const float PAD = 10.0f;
+    const float PAD = 10.0f * ImGui::GetIO().FontGlobalScale;
     const ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
     ImVec2 work_size = viewport->WorkSize;
@@ -92,7 +92,7 @@ void ResultToolbarWindow::doDraw()
     if (m_view == nullptr)
         return;
 
-    const float buttonWidth = m_contentWidth;
+    const float buttonWidth = m_contentWidth * ImGui::GetIO().FontGlobalScale;
 
     this->resultButton("Normal", IVF_BEAM_N, buttonWidth);
     this->resultButton("Torsion", IVF_BEAM_T, buttonWidth);

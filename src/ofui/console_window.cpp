@@ -17,6 +17,11 @@ std::shared_ptr<ConsoleWindow> ofui::ConsoleWindow::create(const std::string nam
     return std::make_shared<ConsoleWindow>(name);
 }
 
+void ofui::ConsoleWindow::setAnchorWindow(std::shared_ptr<UiWindow> window)
+{
+    m_anchorWindow = window;
+}
+
 void ofui::ConsoleWindow::clear()
 {
     m_buffer.clear();
@@ -77,6 +82,24 @@ void ofui::ConsoleWindow::doDraw()
 
 void ofui::ConsoleWindow::doPreDraw()
 {
-    this->setSize(700, 40);
-    ImGui::SetNextWindowSize(ImVec2(700, 40), 0); // ImGuiCond_FirstUseEver);
+    const float scale = ImGui::GetIO().FontGlobalScale;
+    const float width = 700.0f * scale;
+    const float height = 40.0f * scale;
+
+    this->setSize(int(width), int(height));
+    ImGui::SetNextWindowSize(ImVec2(width, height), 0); // ImGuiCond_FirstUseEver);
+
+    // Bottom-align with the anchor window every frame -- a one-shot setPosition()
+    // (e.g. from an onGlfwResize handler) can be computed before AlwaysAutoResize
+    // windows have settled on their final height, and never gets corrected once
+    // that height changes.
+
+    auto anchor = m_anchorWindow.lock();
+    if (anchor != nullptr && anchor->visible() && anchor->y() >= 0 && anchor->height() > 0)
+    {
+        const ImGuiViewport *viewport = ImGui::GetMainViewport();
+        float x = viewport->WorkPos.x + viewport->WorkSize.x / 2.0f - width / 2.0f;
+        float y = float(anchor->y() + anchor->height()) - height;
+        ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Always);
+    }
 }

@@ -54,16 +54,18 @@ void ofui::WindowList::placeWindow(UiWindowPtr window)
     float vpW = vp->WorkSize.x;
     float vpH = vp->WorkSize.y;
 
-    float newW = (window->width() > 0) ? float(window->width()) : 320.0f;
-    float newH = (window->height() > 0) ? float(window->height()) : 220.0f;
+    const float scale = ImGui::GetIO().FontGlobalScale;
+
+    float newW = (window->width() > 0) ? float(window->width()) : 320.0f * scale;
+    float newH = (window->height() > 0) ? float(window->height()) : 220.0f * scale;
 
     // All coordinates below are work-area-relative (origin = WorkPos).
-    const float START_X = 80.0f;
-    const float START_Y = 60.0f;
-    const float END_X = vpW - 8.0f;
-    const float END_Y = vpH - 20.0f;
-    const float PAD = 8.0f;
-    const float STEP = 24.0f;
+    const float START_X = 80.0f * scale;
+    const float START_Y = 60.0f * scale;
+    const float END_X = vpW - 8.0f * scale;
+    const float END_Y = vpH - 20.0f * scale;
+    const float PAD = 8.0f * scale;
+    const float STEP = 24.0f * scale;
 
     // Build occupied rects using UiWindow's own tracked position/size.
     // After the first draw, w->x() / w->y() return absolute screen coordinates

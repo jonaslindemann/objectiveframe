@@ -21,6 +21,8 @@ void PopupWindow::draw()
 {
     if (m_visible)
     {
+        const float scale = ImGui::GetIO().FontGlobalScale;
+
         if (m_newSize)
         {
             ImGui::SetNextWindowSize(m_size, ImGuiCond_Always);
@@ -29,7 +31,7 @@ void PopupWindow::draw()
 
         if (m_updatePos)
         {
-            const float PAD = 10.0f;
+            const float PAD = 10.0f * scale;
             const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;

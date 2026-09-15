@@ -6,6 +6,7 @@
 #include <ofem/node.h>
 
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -18,8 +19,27 @@ SmartPointer(ModelClipBoard);
 
 class ModelClipBoard : public ofem::Base {
 private:
-    std::vector<ofem::Node *> m_nodes;
-    std::vector<ofem::Element *> m_elements;
+    // Copied geometry is captured by value at addNode()/addElement() time, not
+    // kept as pointers into the live model. The clipboard has to survive things
+    // that invalidate every ofem::Node/Element the model owns - an undo/redo,
+    // or a cancelled paste reverting to a snapshot - without going stale.
+
+    struct ClipNode {
+        double x, y, z;
+    };
+
+    struct ClipElement {
+        int i0, i1; // indices into m_nodes
+    };
+
+    std::vector<ClipNode> m_nodes;
+    std::vector<ClipElement> m_elements;
+
+    // Valid only while addNode()/addElement() are being called to build up a
+    // copy (i.e. between clear() and the next clear()). Lets addElement()
+    // resolve a live node pointer to its clipboard index immediately, while
+    // the pointer is still good.
+    std::map<ofem::Node *, int> m_nodeIndex;
 
     double m_center[3];
     double m_offset[3];
@@ -34,6 +54,12 @@ public:
 
     void clear();
 
+    bool isEmpty() const
+    {
+        return m_nodes.empty();
+    }
+
+    /** Caller must addNode() both endpoints of a beam before addElement()'ing it. */
     void addNode(ofem::Node *node);
     void addElement(ofem::Element *element);
 

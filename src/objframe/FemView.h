@@ -15,11 +15,13 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 
 #include <chaiscript/chaiscript.hpp>
 
+#include <array>
 #include <filesystem>
 #include <mutex>
 #include <queue>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <ivf/Base.h>
 #include <ivf/Billboard.h>
@@ -316,6 +318,18 @@ private:
         ofem::ModelClipBoardPtr clipBoard;
     };
     EditState m_edit;
+
+    // The batch of real nodes/beams for the paste currently being dragged into
+    // place (empty when no paste is in progress). They are created up front and
+    // just moved as the cursor moves -- see startPasteGhost()/movePasteGhost().
+    struct PasteState {
+        bool capturing{false};
+        std::vector<vfem::Node *> nodes;
+        std::vector<vfem::Beam *> beams;
+        std::vector<std::array<double, 3>> nodeOffset;
+        double anchor[3]{0.0, 0.0, 0.0};
+    };
+    PasteState m_paste;
 
     vfem::NodePtr m_interactionNode;
 #ifdef USE_LEAP
@@ -782,6 +796,15 @@ public:
 
     void set_changed();
 
+private:
+    void startPasteGhost();
+    void commitPasteGhost();
+    void cancelPasteGhost();
+    void movePasteGhost(double x, double y, double z);
+    void highlightPasteGhost();
+
+public:
+
     // Specific scripting interface methods
 
     vfem::Node *addNode(double x, double y, double z);
@@ -890,6 +913,7 @@ public:
     virtual void onPassiveMotion(int x, int y) override;
     virtual void onSelectFilter(ivf::Shape *shape, bool &select) override;
     virtual void onSelectPosition(double x, double y, double z);
+    virtual void onEditModeChanged(WidgetMode previousMode, WidgetMode newMode) override;
     virtual void onMoveStart();
     virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit) override;
     virtual void onMoveCompleted() override;

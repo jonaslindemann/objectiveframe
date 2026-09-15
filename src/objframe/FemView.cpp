@@ -7,6 +7,7 @@
 #include "FemViewAiHandler.h"
 #include "FemViewSelectionHandler.h"
 #include "FemViewGeometryHandler.h"
+#include "FemViewModelGraph.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1456,6 +1457,13 @@ void FemViewWindow::copy()
 
     m_edit.clipBoard->clear();
 
+    // The clipboard can only reconstruct a beam if both of its endpoint nodes
+    // are on the clipboard too, so the copied set is selected nodes union
+    // endpoints of selected beams -- the same affected-set convention the
+    // geometry handler uses for transforms.
+
+    std::set<ofem::Node *> addedNodes;
+
     for (int i = 0; i < selectedShapes->getSize(); i++)
     {
         auto shape = selectedShapes->getChild(i);
@@ -1464,13 +1472,32 @@ void FemViewWindow::copy()
         {
             auto vnode = static_cast<vfem::Node *>(shape);
             auto node = vnode->getFemNode();
-            m_edit.clipBoard->addNode(node);
+
+            if (addedNodes.insert(node).second)
+                m_edit.clipBoard->addNode(node);
         }
+    }
+
+    for (int i = 0; i < selectedShapes->getSize(); i++)
+    {
+        auto shape = selectedShapes->getChild(i);
 
         if (shape->isClass("vfem::Beam"))
         {
             auto vbeam = static_cast<vfem::Beam *>(shape);
             auto beam = vbeam->getBeam();
+
+            // Endpoints must be on the clipboard before the beam that
+            // references them -- addElement() resolves them immediately.
+
+            for (unsigned int e = 0; e < 2; e++)
+            {
+                auto endNode = beam->getNode(e);
+
+                if (addedNodes.insert(endNode).second)
+                    m_edit.clipBoard->addNode(endNode);
+            }
+
             m_edit.clipBoard->addElement(beam);
         }
     }
@@ -1478,7 +1505,134 @@ void FemViewWindow::copy()
 
 void FemViewWindow::paste()
 {
+    if (m_edit.clipBoard->isEmpty())
+    {
+        this->notify("Clipboard is empty - copy something first.", NotificationLevel::Warning);
+        return;
+    }
+
+    // A second Ctrl+V while one paste is still being dragged just stamps the
+    // one in progress where it currently sits and starts the next one, rather
+    // than leaving an untracked, un-followable batch behind.
+
+    if (!m_paste.nodes.empty())
+        this->commitPasteGhost();
+
     this->setCustomMode(CustomMode::Paste);
+    this->startPasteGhost();
+
+    this->notify("Click to place - click again for another copy, Esc to cancel.", NotificationLevel::Info);
+}
+
+void FemViewWindow::startPasteGhost()
+{
+    m_paste.nodes.clear();
+    m_paste.beams.clear();
+    m_paste.nodeOffset.clear();
+
+    auto cursorPos = this->getScene()->getCurrentPlane()->getCursorPosition();
+    cursorPos.getComponents(m_paste.anchor[0], m_paste.anchor[1], m_paste.anchor[2]);
+
+    this->snapShot();
+
+    m_edit.clipBoard->setOffset(m_paste.anchor[0], m_paste.anchor[1], m_paste.anchor[2]);
+
+    // duplicateOnce() zeroes m_selectedPos around its addNode() calls for the
+    // same reason: addNode() offsets every new node by it, and the clipboard
+    // has already placed the pasted geometry exactly where it should go.
+
+    double savedPos[3] = {m_selectedPos[0], m_selectedPos[1], m_selectedPos[2]};
+    m_selectedPos[0] = 0.0;
+    m_selectedPos[1] = 0.0;
+    m_selectedPos[2] = 0.0;
+
+    m_paste.capturing = true;
+    m_edit.clipBoard->paste(m_beamModel.get());
+    m_paste.capturing = false;
+
+    m_selectedPos[0] = savedPos[0];
+    m_selectedPos[1] = savedPos[1];
+    m_selectedPos[2] = savedPos[2];
+
+    for (auto vnode : m_paste.nodes)
+    {
+        double x, y, z;
+        vnode->getPosition(x, y, z);
+        m_paste.nodeOffset.push_back(
+            {x - m_paste.anchor[0], y - m_paste.anchor[1], z - m_paste.anchor[2]});
+    }
+
+    this->highlightPasteGhost();
+
+    this->refreshBeamModelVisuals();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::movePasteGhost(double x, double y, double z)
+{
+    if (m_paste.nodes.empty())
+        return;
+
+    for (size_t i = 0; i < m_paste.nodes.size(); i++)
+    {
+        auto femNode = m_paste.nodes[i]->getFemNode();
+        femNode->setCoord(x + m_paste.nodeOffset[i][0], y + m_paste.nodeOffset[i][1],
+                          z + m_paste.nodeOffset[i][2]);
+    }
+
+    this->refreshBeamModelVisuals();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::highlightPasteGhost()
+{
+    ofview_detail::ModelGraph graph;
+
+    if (!ofview_detail::buildGraph(*this, graph))
+        return;
+
+    std::set<ofem::Node *> nodes;
+    std::set<ofem::Beam *> beams;
+
+    for (auto vnode : m_paste.nodes)
+        nodes.insert(vnode->getFemNode());
+
+    for (auto vbeam : m_paste.beams)
+        beams.insert(vbeam->getBeam());
+
+    ofview_detail::applySelection(*this, graph, nodes, beams);
+}
+
+void FemViewWindow::commitPasteGhost()
+{
+    // The batch is already sitting at its final, cursor-tracked position -
+    // nothing left to do but stop dragging it. It stays selected, like the
+    // result of mirror()/array().
+
+    m_paste.nodes.clear();
+    m_paste.beams.clear();
+    m_paste.nodeOffset.clear();
+}
+
+void FemViewWindow::cancelPasteGhost()
+{
+    if (m_paste.nodes.empty())
+    {
+        m_paste.beams.clear();
+        m_paste.nodeOffset.clear();
+        return;
+    }
+
+    // The batch was created under its own snapShot() in startPasteGhost(), so
+    // undoing it removes exactly this paste and nothing placed before it.
+
+    this->restoreLastSnapShot();
+
+    m_paste.nodes.clear();
+    m_paste.beams.clear();
+    m_paste.nodeOffset.clear();
 }
 
 void FemViewWindow::set_changed()
@@ -5195,6 +5349,9 @@ void FemViewWindow::onCoordinate(double x, double y, double z)
     m_zCoord = float2str(z);
 
     m_coordWindow->setCoord(x, y, z);
+
+    if (m_customMode == CustomMode::Paste)
+        this->movePasteGhost(x, y, z);
 }
 
 void FemViewWindow::onDeleteShape(Shape *shape, bool &doit)
@@ -5827,8 +5984,22 @@ void FemViewWindow::onSelectPosition(double x, double y, double z)
 
     if (m_customMode == CustomMode::Paste)
     {
-        m_edit.clipBoard->setOffset(x, y, z);
-        m_edit.clipBoard->paste(m_beamModel.get());
+        // The ghost has been following the cursor via onCoordinate(), so it is
+        // already sitting at (x, y, z) - just stop dragging it, then start the
+        // next copy so repeated clicks stamp out copies quickly.
+
+        this->movePasteGhost(x, y, z);
+        this->commitPasteGhost();
+        this->startPasteGhost();
+    }
+}
+
+void FemViewWindow::onEditModeChanged(WidgetMode previousMode, WidgetMode newMode)
+{
+    if ((previousMode == WidgetMode::SelectPosition) && (m_customMode == CustomMode::Paste))
+    {
+        this->cancelPasteGhost();
+        m_customMode = CustomMode::Normal;
     }
 }
 
@@ -6138,6 +6309,18 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
 {
     log("onButtonClicked: " + button.name());
 
+    // Any toolbar command - not just an edit-mode button, which already goes
+    // through setEditMode()/onEditModeChanged() - reads as "I'm done placing
+    // this copy". Property dialogs (Materials, Node BC, ...) don't change edit
+    // mode at all, so without this an in-progress paste would sit forgotten
+    // behind them and keep stamping a copy on the next click into the view.
+
+    if (m_customMode == CustomMode::Paste)
+    {
+        this->cancelPasteGhost();
+        m_customMode = CustomMode::Normal;
+    }
+
     hideAllDialogs();
 
     if (button.name() == "Select")
@@ -6374,6 +6557,16 @@ void FemViewWindow::onKeyboard(int key)
     {
         if (key == 256)
         {
+            // Explicit, not just left to the onEditModeChanged() hook below -
+            // Esc cancelling an in-progress paste needs to be airtight, since
+            // it is the documented way out of paste mode.
+
+            if (m_customMode == CustomMode::Paste)
+            {
+                this->cancelPasteGhost();
+                m_customMode = CustomMode::Normal;
+            }
+
             m_editButtons->clearChecked();
             m_objectButtons->clearChecked();
             m_editButtons->check(0);
@@ -6407,14 +6600,20 @@ void FemViewWindow::onClipboardCreateNode(double x, double y, double z)
 {
     log("CB: Create node x = " + to_string(x) + ", " + to_string(y) + ", " + to_string(z));
 
-    this->addNode(x, y, z);
+    auto node = this->addNode(x, y, z);
+
+    if (m_paste.capturing && (node != nullptr))
+        m_paste.nodes.push_back(node);
 }
 
 void FemViewWindow::onClipboardCreateElement(int i0, int i1)
 {
     log("CB: Create element i0 = " + to_string(i0) + ", " + to_string(i1));
 
-    this->addBeam(i0, i1);
+    auto beam = this->addBeam(i0, i1);
+
+    if (m_paste.capturing && (beam != nullptr))
+        m_paste.beams.push_back(beam);
 }
 
 void FemViewWindow::onDrawImGui()

@@ -601,6 +601,15 @@ public:
     virtual void onSelectPosition(double x, double y, double z);
 
     /**
+     * onEditModeChanged event
+     *
+     * Called from setEditMode() right after the mode has switched, so derived
+     * classes can clean up state tied to the mode being left (previousMode).
+     * Not called when the "new" mode is the same as the one already active.
+     */
+    virtual void onEditModeChanged(WidgetMode previousMode, WidgetMode newMode);
+
+    /**
      * onDeSelect event
      *
      * This method is called when objects have be deselected.

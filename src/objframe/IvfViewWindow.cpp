@@ -953,6 +953,8 @@ bool IvfViewWindow::isSceneRenderingLocked()
 
 void IvfViewWindow::setEditMode(WidgetMode mode)
 {
+    WidgetMode previousMode = m_editMode;
+
     m_editMode = mode;
 
     // A box selection with only its first corner placed belongs to the mode we
@@ -1042,6 +1044,9 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
     {
         m_scene->disableCursor();
     }
+
+    if (previousMode != mode)
+        onEditModeChanged(previousMode, mode);
 
     redraw();
 }
@@ -1725,6 +1730,9 @@ void IvfViewWindow::onUnderlay()
 void IvfViewWindow::onHighlightShape(ivf::Shape *shape)
 {}
 
+void IvfViewWindow::onEditModeChanged(WidgetMode previousMode, WidgetMode newMode)
+{}
+
 void IvfViewWindow::doMouseUp(int x, int y)
 {
     // Call onMouseUp event method
@@ -1863,6 +1871,14 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
         if (needInvalidate)
             redraw();
+    }
+
+    if (getEditMode() == WidgetMode::SelectPosition)
+    {
+        double wx, wy, wz;
+        Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(wx, wy, wz);
+        onCoordinate(wx, wy, wz);
     }
 
     if (getEditMode() == WidgetMode::SelectVolume)

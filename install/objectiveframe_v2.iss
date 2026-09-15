@@ -5,7 +5,7 @@
 ; Overridable from the command line so a build script can pass the version that
 ; the rest of the project is built with:  ISCC /DMyAppVersion=2.5.4 ...
 #ifndef MyAppVersion
-  #define MyAppVersion "2.6.0"
+  #define MyAppVersion "2.6.0-b1"
 #endif
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"
@@ -39,8 +39,8 @@ SetupIconFile=..\images\logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-SignTool=signtool_lu
-SignedUninstaller=yes
+;SignTool=signtool_lu
+;SignedUninstaller=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Components]

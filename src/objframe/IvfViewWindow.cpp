@@ -66,7 +66,7 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
       m_selectEnabled{true}, m_lastShape{nullptr}, m_initDone{false}, m_mouseUpdate{false}, m_workspaceSize{10.0f},
       m_viewAzimuth{0.0}, m_viewElevation{7.125}, m_viewDistance{-1.0}, m_quit{false}, m_customPick{false},
       m_lockSceneRendering{false}, m_volumeElevated{false}, m_rubberBandActive{false}, m_rubberBandCrossing{false},
-      m_rubberBandStart{0, 0}, m_rubberBandEnd{0, 0}
+      m_rubberBandStart{0, 0}, m_rubberBandEnd{0, 0}, m_activeShiftPlane{ShiftPlane::XZ}
 {
     // Create default camera
 
@@ -94,6 +94,51 @@ IvfViewWindow::IvfViewWindow(int width, int height, const std::string title, GLF
 
     m_xyPlane.setPlaneNormal(0.0, 0.0, 1.0);
     m_yzPlane.setPlaneNormal(1.0, 0.0, 0.0);
+
+    // Translucent plane shown whenever cursor placement is constrained to
+    // m_xyPlane or m_yzPlane ([Shift] held), in every edit mode. Orientation
+    // and position are updated live in showShiftPlaneIndicator(); it starts
+    // hidden and sized to the workspace. The flat patch spans local X/Z at
+    // y=0 -- showShiftPlaneIndicator() rotates it onto the XY or YZ plane
+    // as needed.
+
+    m_shiftPlane = Mesh::create();
+    m_shiftPlane->setMeshType(Mesh::MT_ORDER_2);
+    m_shiftPlane->setMeshResolution(1, 1);
+    m_shiftPlane->createMesh(m_workspaceSize, m_workspaceSize);
+    m_shiftPlane->setState(Shape::OS_OFF);
+
+    // Kept dim enough that scene lighting cannot sum it to white -- a washed-
+    // out plane reads as an opaque, undifferentiated wall rather than a
+    // tinted, see-through guide.
+
+    MaterialPtr shiftPlaneMaterial = Material::create();
+    shiftPlaneMaterial->setDiffuseColor(0.6f, 0.6f, 0.6f, 1.0f);
+    shiftPlaneMaterial->setAmbientColor(0.3f, 0.3f, 0.3f, 1.0f);
+    shiftPlaneMaterial->setSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
+    shiftPlaneMaterial->setAlphaValue(0.3f);
+    m_shiftPlane->setMaterial(shiftPlaneMaterial);
+    m_shiftPlane->setCastShadow(false);
+
+    // Grid lines over the surface, matching the ground grid's own spacing and
+    // major/minor colouring (see buildShiftPlaneGrid() and FemView.cpp's
+    // onInit(), which sets those same values on the ground grid -- there is
+    // no getter to read them back from, so they are mirrored as constants).
+    // GL_LINES primitives are always drawn unlit (see GLPrimitive.cpp), so
+    // this reads as flat, consistent colour regardless of scene lighting.
+    // Rebuilt in world space every time showShiftPlaneIndicator() shows it
+    // (see there), so it needs no rotation/position transform of its own.
+
+    m_shiftPlaneGrid = LineSet::create();
+    m_shiftPlaneGrid->setState(Shape::OS_OFF);
+    m_shiftPlaneGrid->setCastShadow(false);
+
+    // Deliberately not m_scene->addChild(): Workspace::doCreateGeometry()
+    // renders the composite first and the ground grid afterwards (see
+    // onGlfwDraw() below, where this is drawn manually right after
+    // m_scene->render()), so a composite child is always covered by the
+    // ground. Depth-testing is left enabled -- drawn last, it still needs to
+    // be correctly occluded by nearer model geometry.
 
     this->setEditMode(WidgetMode::CreateNode);
 }
@@ -255,7 +300,27 @@ void IvfViewWindow::onGlfwDraw()
     }
 
     if (shouldRender)
+    {
         m_scene->render();
+
+        // Drawn manually, after the scene: Workspace renders its ground grid
+        // after the composite, so a composite child would always be covered
+        // by it. This way the indicator draws over the ground and the model,
+        // correctly depth-tested against whichever is actually nearer.
+
+        // The shadow map still being bound would otherwise darken the plane
+        // wherever it crosses the model's own shadow, which reads as a stray
+        // patch on a shape that is not part of the shadow-casting scene to
+        // begin with. There is no per-shape "receive shadow" flag, so this
+        // unbinds the map for these two draws; the next frame's shadow pass
+        // rebinds it before the real scene renders, so nothing else needs it
+        // restored.
+
+        rcSetShadowMap(0, 4);
+
+        m_shiftPlane->render();
+        m_shiftPlaneGrid->render();
+    }
 
     if (m_doOverlay)
     {
@@ -897,6 +962,13 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
     this->cancelVolumeSelection();
     this->cancelRubberBand();
 
+    // The shift-plane indicator tracks live [Shift] state through
+    // updateCursor(), called from whichever mode is active -- an edit mode
+    // switch can happen without another mouse move to refresh it, so drop it
+    // here rather than risk it staying stuck on from the mode just left.
+
+    this->showShiftPlaneIndicator(false);
+
     m_angleX = 0.0f;
     m_angleY = 0.0f;
     m_moveX = 0.0f;
@@ -1113,7 +1185,9 @@ void IvfViewWindow::updateCursor(int x, int y)
     ivf::Vec3d v = m_scene->getCamera()->pickVector(x, y);
     ivf::Vec3d o = m_scene->getCamera()->getPosition();
 
-    if (isShiftDown())
+    bool shiftHeld = isShiftDown();
+
+    if (shiftHeld)
     {
         double xx, yy, zz;
         v.getComponents(xx, yy, zz);
@@ -1131,12 +1205,14 @@ void IvfViewWindow::updateCursor(int x, int y)
             m_xyPlane.setPlaneOrigin(pos.getComponents());
             m_xyPlane.setOrigin(o.getComponents());
             ip = m_xyPlane.intersect(v.getComponents());
+            m_activeShiftPlane = ShiftPlane::XY;
         }
         else
         {
             m_yzPlane.setPlaneOrigin(pos.getComponents());
             m_yzPlane.setOrigin(o.getComponents());
             ip = m_yzPlane.intersect(v.getComponents());
+            m_activeShiftPlane = ShiftPlane::YZ;
         }
 
         m_scene->updateCursor(ip.x, ip.y, ip.z);
@@ -1145,9 +1221,146 @@ void IvfViewWindow::updateCursor(int x, int y)
     {
         m_xzPlane.setOrigin(o.getComponents());
         glm::vec3 ip = m_xzPlane.intersect(v.getComponents());
+        m_activeShiftPlane = ShiftPlane::XZ;
 
         m_scene->updateCursor(ip.x, ip.y, ip.z);
     }
+
+    // Mode-agnostic: every mode that places the 3D cursor goes through this
+    // function, so gating the indicator here (rather than in a specific
+    // mode's motion handler) is what makes it "active in all modes using
+    // [Shift]" rather than just the one it was first wired into. But this
+    // function itself runs regardless of mode -- setEditMode() disables the
+    // cursor for modes that do not use it (Select, BoxSelection, ...), so
+    // m_scene->getUseCursor() is what actually excludes those; without it
+    // the indicator would show in any mode just because [Shift] happened to
+    // be held.
+
+    this->showShiftPlaneIndicator(shiftHeld && onUseShiftPlane() && m_scene->getUseCursor());
+}
+
+void IvfViewWindow::showShiftPlaneIndicator(bool show)
+{
+    if (!show)
+    {
+        m_shiftPlane->setState(Shape::OS_OFF);
+        m_shiftPlaneGrid->setState(Shape::OS_OFF);
+        return;
+    }
+
+    // Anchored to the ground rather than following the cursor's height --
+    // otherwise the whole plane visibly drags up and down with whatever is
+    // being moved. Capped at half the workspace extent and never dips below
+    // the ground (y=0): only the coordinate the plane actually fixes (the
+    // one m_xyPlane/m_yzPlane hold constant) tracks the cursor.
+
+    double planeHeight = m_workspaceSize / 2.0;
+
+    Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+    double cx, cy, cz;
+    pos.getComponents(cx, cy, cz);
+
+    // The patch is built flat in local X/Z (y=0); rotate it onto the active
+    // vertical plane. +90 deg about X maps local (x,0,z) -> world (x,-z,0),
+    // the XY plane, so local X (the mesh's "width" argument) becomes world X
+    // and local Z ("height") becomes world Y. +90 deg about Z maps local
+    // (x,0,z) -> world (0,x,z), the YZ plane, so local X becomes world Y and
+    // local Z becomes world Z instead -- width/height are swapped in the
+    // createMesh() call below so "height" always ends up as the vertical
+    // (world Y) extent regardless of which rotation is in effect.
+
+    double fixedCoord;
+
+    if (m_activeShiftPlane == ShiftPlane::XY)
+    {
+        m_shiftPlane->setRotationQuat(1.0, 0.0, 0.0, 90.0);
+        m_shiftPlane->createMesh(m_workspaceSize, planeHeight);
+        m_shiftPlane->setPosition(0.0, planeHeight / 2.0, cz);
+        fixedCoord = cz;
+    }
+    else
+    {
+        m_shiftPlane->setRotationQuat(0.0, 0.0, 1.0, 90.0);
+        m_shiftPlane->createMesh(planeHeight, m_workspaceSize);
+        m_shiftPlane->setPosition(cx, planeHeight / 2.0, 0.0);
+        fixedCoord = cx;
+    }
+
+    this->buildShiftPlaneGrid(planeHeight, fixedCoord);
+
+    m_shiftPlane->setState(Shape::OS_ON);
+    m_shiftPlaneGrid->setState(Shape::OS_ON);
+}
+
+void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord)
+{
+    m_shiftPlaneGrid->clear();
+
+    // Spacing and major/minor colours mirror the ground grid's own hardcoded
+    // setup (ConstructionPlane's default gridSpacing, and the colours
+    // FemView.cpp's onInit() sets on it) -- see the constructor comment.
+    // Grid.cpp colours every 5th line major the same way; alpha is added on
+    // top since -- unlike the ground grid -- this is meant to read as a
+    // translucent guide, not an opaque surface.
+
+    const double halfWidth = m_workspaceSize / 2.0;
+    const double spacing = 0.2;
+    const double epsilon = spacing * 1e-6;
+    const int majorEvery = 5;
+
+    m_shiftPlaneGrid->addColor(0.2f, 0.2f, 0.2f, 0.8f);
+    m_shiftPlaneGrid->addColor(0.3f, 0.3f, 0.3f, 0.8f);
+
+    Index *coordIdx = new Index();
+    Index *colorIdx = new Index();
+    int next = 0;
+    int j = 0;
+
+    // Lines of constant horizontal position, running the full height.
+
+    for (double h = -halfWidth; h <= halfWidth + epsilon; h += spacing, j++)
+    {
+        if (m_activeShiftPlane == ShiftPlane::XY)
+        {
+            m_shiftPlaneGrid->addCoord(h, 0.0, fixedCoord);
+            m_shiftPlaneGrid->addCoord(h, planeHeight, fixedCoord);
+        }
+        else
+        {
+            m_shiftPlaneGrid->addCoord(fixedCoord, 0.0, h);
+            m_shiftPlaneGrid->addCoord(fixedCoord, planeHeight, h);
+        }
+
+        coordIdx->add(next, next + 1);
+        colorIdx->add((j % majorEvery == 0) ? 0 : 1, (j % majorEvery == 0) ? 0 : 1);
+        next += 2;
+    }
+
+    j = 0;
+
+    // Lines of constant height, running the full horizontal extent.
+
+    for (double y = 0.0; y <= planeHeight + epsilon; y += spacing, j++)
+    {
+        if (m_activeShiftPlane == ShiftPlane::XY)
+        {
+            m_shiftPlaneGrid->addCoord(-halfWidth, y, fixedCoord);
+            m_shiftPlaneGrid->addCoord(halfWidth, y, fixedCoord);
+        }
+        else
+        {
+            m_shiftPlaneGrid->addCoord(fixedCoord, y, -halfWidth);
+            m_shiftPlaneGrid->addCoord(fixedCoord, y, halfWidth);
+        }
+
+        coordIdx->add(next, next + 1);
+        colorIdx->add((j % majorEvery == 0) ? 0 : 1, (j % majorEvery == 0) ? 0 : 1);
+        next += 2;
+    }
+
+    m_shiftPlaneGrid->addCoordIndex(coordIdx);
+    m_shiftPlaneGrid->addColorIndex(colorIdx);
+    m_shiftPlaneGrid->setUseColor(true);
 }
 
 void IvfViewWindow::setWorkspace(double size, bool resetCamera)
@@ -1159,6 +1372,10 @@ void IvfViewWindow::setWorkspace(double size, bool resetCamera)
     m_viewDistance = -1.0;
 
     m_scene->setSize(size);
+
+    // m_shiftPlane's own geometry is rebuilt to the current m_workspaceSize
+    // every time it is shown (showShiftPlaneIndicator()), so it does not
+    // need resizing here.
 
     if (resetCamera)
         m_camera->setPosition(0.0, m_workspaceSize / 8.0, -m_workspaceSize / 2.0);
@@ -1965,7 +2182,16 @@ void IvfViewWindow::doMouse(int x, int y)
 void IvfViewWindow::doKeyboard(int key)
 {
     if (isShiftDown())
+    {
         m_scene->lockCursor();
+
+        // Otherwise the indicator only appears once the mouse next moves,
+        // since it is only re-evaluated from updateCursor() -- pressing
+        // [Shift] while the mouse sits still would show nothing.
+
+        if (!isOverWindow())
+            this->updateCursor(mouseX(), mouseY());
+    }
     else
         m_scene->unlockCursor();
 
@@ -1977,7 +2203,15 @@ void IvfViewWindow::doKeyboardReleased(int key)
     if (isShiftDown())
         m_scene->lockCursor();
     else
+    {
         m_scene->unlockCursor();
+
+        // Releasing [Shift] without moving the mouse afterward would
+        // otherwise leave the indicator on until the next motion event,
+        // since it is only re-evaluated from updateCursor().
+
+        this->showShiftPlaneIndicator(false);
+    }
 }
 
 void IvfViewWindow::doShortcut(ModifierKey modifier, int key)
@@ -1990,6 +2224,11 @@ void IvfViewWindow::onMove(ivf::Composite *selectedShapes, double &dx, double &d
 
 void IvfViewWindow::onMoveCompleted()
 {}
+
+bool IvfViewWindow::onUseShiftPlane()
+{
+    return true;
+}
 
 void IvfViewWindow::onSelectFilter(ivf::Shape *shape, bool &select)
 {}

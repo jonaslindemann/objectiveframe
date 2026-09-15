@@ -3951,6 +3951,16 @@ bool FemViewWindow::getUseShadows()
     return m_view.useShadows;
 }
 
+void FemViewWindow::setShowShiftPlane(bool flag)
+{
+    m_view.showShiftPlane = flag;
+}
+
+bool FemViewWindow::getShowShiftPlane()
+{
+    return m_view.showShiftPlane;
+}
+
 void FemViewWindow::setShadowAzimuth(double degrees)
 {
     // Wrapped rather than clamped: a bearing is circular, and a slider dragged
@@ -3973,11 +3983,13 @@ double FemViewWindow::getShadowAzimuth()
 
 void FemViewWindow::setShadowElevation(double degrees)
 {
-    // A light on the horizon casts shadows of unbounded length, and one exactly
-    // overhead makes the up vector in the light's view matrix degenerate. Both
-    // ends are kept away from.
+    // A light on the horizon casts shadows of unbounded length, so the low end
+    // is kept away from. The high end used to be capped at 89 to avoid a
+    // degenerate up vector in the light's view matrix at exactly overhead, but
+    // SceneBase::calcLightSpaceMatrix() already swaps to a different up vector
+    // whenever the light direction is nearly vertical, so 90 is safe too.
 
-    m_view.shadowElevation = std::clamp(degrees, 5.0, 89.0);
+    m_view.shadowElevation = std::clamp(degrees, 5.0, 90.0);
     this->applyShadowState();
     this->redraw();
 }
@@ -4092,6 +4104,15 @@ void FemViewWindow::applyShadowState()
 
     this->getScene()->setUseShadowMap(wanted && !legacy);
     this->getScene()->setRenderFlatShadow(wanted && legacy);
+
+    // Straight overhead, the model tends to self-shadow one part directly
+    // above another barely offset from it, which reads as acne inside the
+    // model rather than useful shading. The ground plane still wants it --
+    // that is the whole point of a 90 degree light as a design tool -- and
+    // still gets it: self-shadowing is what SceneBase::defaultSceneRender()
+    // suppresses, not the model casting into the map.
+
+    this->getScene()->setSelfShadowEnabled(m_view.shadowElevation < 89.5);
 }
 
 void FemViewWindow::setShowLoads(bool flag)
@@ -5228,12 +5249,24 @@ void FemViewWindow::onMove(Composite *selectedShapes, double &dx, double &dy, do
 {
     doit = true;
     m_solver.needRecalc = true;
+
+    // The shadow map is cached and only recomputed when told the geometry
+    // changed (see SceneBase::invalidateShadowMap()) -- a Move drag moves
+    // node shapes directly rather than going through refreshBeamModelVisuals(),
+    // so without this the shadow stays at wherever the node started the drag.
+
+    this->getScene()->invalidateShadowMap();
 }
 
 void FemViewWindow::onMoveCompleted()
 {
     if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
         clearEigenmodes();
+}
+
+bool FemViewWindow::onUseShiftPlane()
+{
+    return m_view.showShiftPlane;
 }
 
 void FemViewWindow::onUnderlay()

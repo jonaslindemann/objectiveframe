@@ -48,6 +48,9 @@ enum class ButtonState {
 #include <ivf/Composite.h>
 #include <ivf/CulledScene.h>
 #include <ivf/Extrusion.h>
+#include <ivf/LineSet.h>
+#include <ivf/Material.h>
+#include <ivf/Mesh.h>
 #include <ivf/Node.h>
 #include <ivf/Shape.h>
 #include <ivf/SolidLine.h>
@@ -71,6 +74,18 @@ enum class SelectOp {
     Replace,
     Add,
     Remove
+};
+
+// Which of the three axis-aligned planes cursor placement is currently
+// constrained to. XZ is the default ground plane; XY/YZ are the vertical
+// planes picked when [Shift] is held (see IvfViewWindow::updateCursor()).
+// Applies uniformly to every mode that places the 3D cursor (CreateNode,
+// Move, ...), not just one of them.
+
+enum class ShiftPlane {
+    XZ,
+    XY,
+    YZ
 };
 
 class IvfViewWindow : public GLFWWindow {
@@ -170,6 +185,25 @@ private:
     ofmath::GridPlane m_xzPlane;
     ofmath::GridPlane m_xyPlane;
     ofmath::GridPlane m_yzPlane;
+    ShiftPlane m_activeShiftPlane;
+
+    // Translucent indicator shown whenever cursor placement is constrained
+    // to a vertical plane by [Shift] -- in every mode that places the 3D
+    // cursor, not just one of them; see updateCursor(). ivf::Mesh (flat
+    // MT_ORDER_2 patch) is used rather than ivf::QuadPlane or ivf::Grid's own
+    // filled surface -- both of those are built on ivf::QuadSet, which does
+    // not implement hasModernPath() and therefore draws nothing (Core
+    // profile) or falls back to a legacy immediate-mode path with its own
+    // matrix stack, desynced from this shape's transform, that was applied
+    // through the modern path (Compatibility profile). ivf::Mesh evaluates
+    // its patch on the CPU and submits real geometry on the modern path, so
+    // it renders correctly either way.
+    ivf::MeshPtr m_shiftPlane;
+
+    // Grid lines over m_shiftPlane, echoing the ground grid's look. Rebuilt
+    // directly in world space each time it is shown (showShiftPlaneIndicator()),
+    // so unlike m_shiftPlane it carries no rotation of its own.
+    ivf::LineSetPtr m_shiftPlaneGrid;
 
 public:
     IvfViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
@@ -196,6 +230,23 @@ public:
     ivf::Camera *getCamera();
 
     void updateCursor(int x, int y);
+
+    /**
+     * Shows or hides the translucent shift-plane indicator, orienting and
+     * positioning it to match the plane cursor placement is currently
+     * constrained to (m_activeShiftPlane) when shown. Called from
+     * updateCursor() on every call, in every mode, so it tracks [Shift]
+     * live rather than being tied to one particular edit mode.
+     */
+    void showShiftPlaneIndicator(bool show);
+
+    /**
+     * Rebuilds m_shiftPlaneGrid in world space for the current
+     * m_activeShiftPlane, spanning the full workspace width and the given
+     * planeHeight, at the given fixed coordinate (world Z for XY, world X
+     * for YZ -- the coordinate m_shiftPlane itself is positioned at).
+     */
+    void buildShiftPlaneGrid(double planeHeight, double fixedCoord);
 
     /**
      * Add a shape to the scene.
@@ -614,6 +665,16 @@ public:
     virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit);
 
     virtual void onMoveCompleted();
+
+    /**
+     * onUseShiftPlane event
+     *
+     * Queried from updateCursor() every time cursor placement is
+     * plane-constrained ([Shift] held), in every edit mode. Return false to
+     * suppress the translucent plane indicator, e.g. when the user has
+     * turned it off in preferences. Defaults to true.
+     */
+    virtual bool onUseShiftPlane();
 
     virtual void onSelectFilter(ivf::Shape *shape, bool &select);
     virtual void onHighlightFilter(ivf::Shape *, bool &highlight);

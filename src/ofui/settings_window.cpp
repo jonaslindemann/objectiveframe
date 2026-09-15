@@ -14,8 +14,8 @@ using namespace ofui;
 SettingsWindow::SettingsWindow(const std::string name)
     : UiWindow(name), m_size{20.0f}, m_prevSize{20.0f}, m_nodeSize{0.55f}, m_lineRadius{0.23f}, m_loadSize{4.5f},
       m_view{nullptr}, m_scaleFactor{1.0f}, m_lockScaleFactor{false}, m_showNodeNumbers{true}, m_uiScale{1.0f},
-      m_lineSides{6}, m_sphereNodes{true}, m_useShadows{true}, m_useImGuiFileDialogs{true}, m_saveScreenShot{false},
-      m_gridSurfaceOpacity{1.0f}, m_aiApiKey{""}
+      m_lineSides{6}, m_sphereNodes{true}, m_useShadows{true}, m_showShiftPlane{true}, m_useImGuiFileDialogs{true},
+      m_saveScreenShot{false}, m_gridSurfaceOpacity{1.0f}, m_aiApiKey{""}
 {
     strncpy(m_aiApiKeyBuf, "", sizeof(m_aiApiKeyBuf) - 1);
     m_aiApiKeyBuf[sizeof(m_aiApiKeyBuf) - 1] = '\0';
@@ -44,6 +44,7 @@ void ofui::SettingsWindow::setFemView(FemViewWindow *view)
     m_useImGuiFileDialogs = m_view->getUseImGuiFileDialogs();
     m_saveScreenShot = m_view->getSaveScreenShot();
     m_useShadows = m_view->getUseShadows();
+    m_showShiftPlane = m_view->getShowShiftPlane();
     m_gridSurfaceOpacity = float(m_view->getGridSurfaceOpacity());
 
     m_aiApiKey = m_view->getAiApiKey();
@@ -76,6 +77,7 @@ void SettingsWindow::update()
 
     m_view->setUseImGuiFileDialogs(m_useImGuiFileDialogs);
     m_view->setSaveScreenShot(m_saveScreenShot);
+    m_view->setShowShiftPlane(m_showShiftPlane);
 
     // setUseShadows() redraws, so only call it on a real change -- update() runs
     // every frame the panel is open.
@@ -121,6 +123,7 @@ void SettingsWindow::doDraw()
 
     ImGui::Checkbox("Sphere nodes", &m_sphereNodes);
     ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
+    ImGui::Checkbox("Show shift-plane indicator", &m_showShiftPlane);
 
     // The shadow is only drawn against the opaque background, so in X-ray mode
     // the setting is kept but shown as unavailable rather than silently ignored.

@@ -103,7 +103,7 @@ void ShadowWindow::doDraw()
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Compass bearing the light comes from.");
 
-    if (ImGui::SliderFloat("Elevation", &m_elevation, 5.0f, 89.0f, "%.0f deg"))
+    if (ImGui::SliderFloat("Elevation", &m_elevation, 5.0f, 90.0f, "%.0f deg"))
         m_view->setShadowElevation(m_elevation);
 
     if (ImGui::IsItemHovered())

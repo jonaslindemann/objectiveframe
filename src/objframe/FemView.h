@@ -191,13 +191,20 @@ private:
         bool useBlending{false};
         bool useShadows{true};
 
+        // Translucent guide plane shown whenever [Shift] constrains cursor
+        // placement to a vertical plane, in any edit mode, indicating which
+        // plane is currently in effect.
+
+        bool showShiftPlane{true};
+
         // Where the shadow-casting light sits, as a compass bearing and a height
         // above the horizon rather than a vector -- a direction is far easier to
-        // dial in that form. The defaults reproduce the direction ivf++ starts
-        // with, so turning the dialog on changes nothing until it is touched.
+        // dial in that form. Elevation defaults to straight overhead (90) so the
+        // shadow reads as a plan-view outline under the model, useful as a design
+        // tool for spotting overlaps/alignment without having to tilt the light.
 
         double shadowAzimuth{52.0};
-        double shadowElevation{60.0};
+        double shadowElevation{90.0};
         double shadowStrength{0.45};
         int shadowMapSize{2048};
 
@@ -591,6 +598,9 @@ public:
     void setUseShadows(bool flag);
     bool getUseShadows();
 
+    void setShowShiftPlane(bool flag);
+    bool getShowShiftPlane();
+
     /** Compass bearing of the shadow-casting light, in degrees. */
     void setShadowAzimuth(double degrees);
     double getShadowAzimuth();
@@ -883,6 +893,7 @@ public:
     virtual void onMoveStart();
     virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit) override;
     virtual void onMoveCompleted() override;
+    virtual bool onUseShiftPlane() override;
     virtual void onMotion(int x, int y) override;
     virtual void onDeSelect() override;
     virtual void onKeyboard(int key) override;

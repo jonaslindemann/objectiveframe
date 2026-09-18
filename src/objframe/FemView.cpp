@@ -6056,6 +6056,11 @@ void FemViewWindow::onMoveStart()
     this->snapShot();
 }
 
+void FemViewWindow::onMoveCanceled()
+{
+    this->restoreLastSnapShot();
+}
+
 void FemViewWindow::updateButtonState()
 {
     m_editButtons->clearChecked();

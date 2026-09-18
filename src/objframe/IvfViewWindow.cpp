@@ -50,6 +50,13 @@ int normalizeShortcutKey(int key, int scancode)
     return key;
 }
 
+// Screen-space distance (in pixels) a press has to travel before a plain
+// click on a node in WidgetMode::Select turns into a live drag. Windows'
+// own drag-start distance defaults to 4px (SM_CXDRAG); 5 keeps an ordinary
+// click forgiving of small hand tremor without making a deliberate drag feel
+// laggy to start. See IvfViewWindow::doMouse()/doMotion()/doMouseUp().
+constexpr int kSelectDragThresholdPx = 5;
+
 } // namespace
 
 std::shared_ptr<IvfViewWindow> IvfViewWindow::create(int width, int height, const std::string title,
@@ -819,6 +826,58 @@ void IvfViewWindow::selectSingleAt(int x, int y, SelectOp op)
     redraw();
 }
 
+Shape *IvfViewWindow::pickShapeAt(int x, int y)
+{
+    if (m_customPick)
+        return onPick(x, y);
+
+    m_scene->pick(x, y);
+    return m_scene->getSelectedShape();
+}
+
+void IvfViewWindow::applyLiveDrag(double &dx, double &dy, double &dz)
+{
+    bool doit = true;
+    onMove(m_selectedShapes, dx, dy, dz, doit);
+
+    if (!doit)
+        return;
+
+    double x, y, z;
+    for (int i = 0; i < m_selectedShapes->getSize(); i++)
+    {
+        auto shape = m_selectedShapes->getChild(i);
+        if (shape->isClass("vfem::Node"))
+        {
+            shape->getPosition(x, y, z);
+            shape->setPosition(x + dx, y + dy, z + dz);
+        }
+    }
+    m_scene->getComposite()->refresh();
+    redraw();
+    draw();
+}
+
+void IvfViewWindow::cancelSelectDrag()
+{
+    this->onMoveCanceled();
+
+    m_selectDragArmed = false;
+    m_selectDragActive = false;
+    m_selectDragShape = nullptr;
+
+    m_scene->disableCursor();
+    redraw();
+}
+
+bool IvfViewWindow::isDraggingNodes()
+{
+    if (m_selectDragActive)
+        return true;
+
+    return (getEditMode() == WidgetMode::Move) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT);
+}
+
 void IvfViewWindow::selectAllRubberBand(SelectOp op)
 {
     if (op == SelectOp::Replace)
@@ -1246,24 +1305,84 @@ void IvfViewWindow::updateCursor(int x, int y)
 
 void IvfViewWindow::showShiftPlaneIndicator(bool show)
 {
+    double planeHeight = m_workspaceSize / 2.0;
+
     if (!show)
     {
         m_shiftPlane->setState(Shape::OS_OFF);
         m_shiftPlaneGrid->setState(Shape::OS_OFF);
+        m_shiftPlaneAnchored = false;
         return;
     }
 
-    // Anchored to the ground rather than following the cursor's height --
-    // otherwise the whole plane visibly drags up and down with whatever is
-    // being moved. Capped at half the workspace extent and never dips below
-    // the ground (y=0): only the coordinate the plane actually fixes (the
-    // one m_xyPlane/m_yzPlane hold constant) tracks the cursor.
+    // A placement guide has to stay put once shown, not follow whatever is
+    // being worked against it -- so the anchor is computed once, the moment
+    // this indicator turns on, and reused untouched for as long as it stays
+    // on. m_shiftPlaneAnchored is reset in the !show branch above, so the
+    // next time [Shift] goes down (a fresh gesture, or the same one again
+    // after releasing and re-pressing [Shift]) re-anchors from scratch
+    // rather than reusing a stale position.
 
-    double planeHeight = m_workspaceSize / 2.0;
+    if (!m_shiftPlaneAnchored)
+    {
+        // Default: anchored to the ground rather than the cursor's height --
+        // otherwise the whole plane visibly drags up and down with whatever
+        // is being moved. Capped at half the workspace extent and never
+        // dips below the ground (y=0): only the coordinate the plane
+        // actually fixes (the one m_xyPlane/m_yzPlane hold constant) tracks
+        // the cursor.
 
-    Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
-    double cx, cy, cz;
-    pos.getComponents(cx, cy, cz);
+        Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+        pos.getComponents(m_shiftPlaneAnchor[0], m_shiftPlaneAnchor[1], m_shiftPlaneAnchor[2]);
+        m_shiftPlaneAnchor[1] = planeHeight / 2.0;
+
+        // While a node drag is live, anchor to the dragged node(s) instead.
+        // Two things break there otherwise: the ground-anchored band would
+        // not even reach a node far from it, and -- less obviously -- the
+        // cursor's own tracked position is a *ground-plane* projection of
+        // the mouse ray, not the node's actual position, so it generally
+        // does not share the node's X/Z either (perspective means a ray
+        // through a point above the ground meets y=0 somewhere else
+        // entirely). Every axis of the anchor comes from the dragged
+        // node(s) themselves in that case, captured once just like the
+        // default case above -- not re-read every frame, or the guide would
+        // follow the very thing it is meant to be a fixed reference for.
+
+        if (this->isDraggingNodes())
+        {
+            double sumX = 0.0, sumY = 0.0, sumZ = 0.0;
+            int nodeCount = 0;
+
+            for (int i = 0; i < m_selectedShapes->getSize(); i++)
+            {
+                auto shape = m_selectedShapes->getChild(i);
+                if (shape->isClass("vfem::Node"))
+                {
+                    double nx, ny, nz;
+                    shape->getPosition(nx, ny, nz);
+                    sumX += nx;
+                    sumY += ny;
+                    sumZ += nz;
+                    nodeCount++;
+                }
+            }
+
+            if (nodeCount > 0)
+            {
+                m_shiftPlaneAnchor[0] = sumX / nodeCount;
+                m_shiftPlaneAnchor[1] = sumY / nodeCount;
+                m_shiftPlaneAnchor[2] = sumZ / nodeCount;
+            }
+        }
+
+        m_shiftPlaneAnchored = true;
+    }
+
+    double cx = m_shiftPlaneAnchor[0];
+    double centerY = m_shiftPlaneAnchor[1];
+    double cz = m_shiftPlaneAnchor[2];
+
+    double baseY = centerY - planeHeight / 2.0;
 
     // The patch is built flat in local X/Z (y=0); rotate it onto the active
     // vertical plane. +90 deg about X maps local (x,0,z) -> world (x,-z,0),
@@ -1280,24 +1399,24 @@ void IvfViewWindow::showShiftPlaneIndicator(bool show)
     {
         m_shiftPlane->setRotationQuat(1.0, 0.0, 0.0, 90.0);
         m_shiftPlane->createMesh(m_workspaceSize, planeHeight);
-        m_shiftPlane->setPosition(0.0, planeHeight / 2.0, cz);
+        m_shiftPlane->setPosition(0.0, centerY, cz);
         fixedCoord = cz;
     }
     else
     {
         m_shiftPlane->setRotationQuat(0.0, 0.0, 1.0, 90.0);
         m_shiftPlane->createMesh(planeHeight, m_workspaceSize);
-        m_shiftPlane->setPosition(cx, planeHeight / 2.0, 0.0);
+        m_shiftPlane->setPosition(cx, centerY, 0.0);
         fixedCoord = cx;
     }
 
-    this->buildShiftPlaneGrid(planeHeight, fixedCoord);
+    this->buildShiftPlaneGrid(planeHeight, fixedCoord, baseY);
 
     m_shiftPlane->setState(Shape::OS_ON);
     m_shiftPlaneGrid->setState(Shape::OS_ON);
 }
 
-void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord)
+void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord, double baseY)
 {
     m_shiftPlaneGrid->clear();
 
@@ -1327,13 +1446,13 @@ void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord)
     {
         if (m_activeShiftPlane == ShiftPlane::XY)
         {
-            m_shiftPlaneGrid->addCoord(h, 0.0, fixedCoord);
-            m_shiftPlaneGrid->addCoord(h, planeHeight, fixedCoord);
+            m_shiftPlaneGrid->addCoord(h, baseY, fixedCoord);
+            m_shiftPlaneGrid->addCoord(h, baseY + planeHeight, fixedCoord);
         }
         else
         {
-            m_shiftPlaneGrid->addCoord(fixedCoord, 0.0, h);
-            m_shiftPlaneGrid->addCoord(fixedCoord, planeHeight, h);
+            m_shiftPlaneGrid->addCoord(fixedCoord, baseY, h);
+            m_shiftPlaneGrid->addCoord(fixedCoord, baseY + planeHeight, h);
         }
 
         coordIdx->add(next, next + 1);
@@ -1341,12 +1460,21 @@ void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord)
         next += 2;
     }
 
-    j = 0;
+    // Lines of constant height, running the full horizontal extent. Snapped
+    // to the same world lattice the ground grid uses (multiples of spacing
+    // from y=0), not to baseY itself -- baseY is 0 in the default
+    // ground-anchored case (so this is a no-op there), but an arbitrary node
+    // height while dragging, and starting the pattern exactly at that
+    // arbitrary value would shift it out of alignment with every other grid
+    // in the scene, by up to half a spacing step.
 
-    // Lines of constant height, running the full horizontal extent.
+    double startY = std::floor(baseY / spacing) * spacing;
 
-    for (double y = 0.0; y <= planeHeight + epsilon; y += spacing, j++)
+    for (double y = startY; y <= baseY + planeHeight + epsilon; y += spacing)
     {
+        long lineIndex = std::lround(y / spacing);
+        bool isMajor = (((lineIndex % majorEvery) + majorEvery) % majorEvery) == 0;
+
         if (m_activeShiftPlane == ShiftPlane::XY)
         {
             m_shiftPlaneGrid->addCoord(-halfWidth, y, fixedCoord);
@@ -1359,7 +1487,7 @@ void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord)
         }
 
         coordIdx->add(next, next + 1);
-        colorIdx->add((j % majorEvery == 0) ? 0 : 1, (j % majorEvery == 0) ? 0 : 1);
+        colorIdx->add(isMajor ? 0 : 1, isMajor ? 0 : 1);
         next += 2;
     }
 
@@ -1740,6 +1868,33 @@ void IvfViewWindow::doMouseUp(int x, int y)
     if (getEditMode() == WidgetMode::Move)
         onMoveCompleted();
 
+    // Resolve the WidgetMode::Select click-and-drag gesture armed in
+    // doMouse(). If the threshold was never crossed (doMotion() never set
+    // m_selectDragActive), this was an ordinary click that doMouse()
+    // deliberately deferred - commit it now via selectSingleAt(), the same
+    // call it would have made immediately were it not for the possibility of
+    // a drag. If the threshold was crossed, the drag already happened live,
+    // frame by frame - just close out the gesture the same way WidgetMode::Move
+    // does above, and leave the selection exactly as resolved when the drag
+    // started.
+
+    if ((getEditMode() == WidgetMode::Select) && m_selectDragArmed)
+    {
+        if (m_selectDragActive)
+        {
+            this->getScene()->disableCursor();
+            this->onMoveCompleted();
+        }
+        else
+        {
+            this->selectSingleAt(x, y, this->currentSelectOp());
+        }
+
+        m_selectDragArmed = false;
+        m_selectDragActive = false;
+        m_selectDragShape = nullptr;
+    }
+
     // Complete a rubber band drag.
 
     if ((getEditMode() == WidgetMode::BoxSelection) && (m_rubberBandActive) &&
@@ -1771,6 +1926,26 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
     if (m_rubberBandActive)
         this->finishRubberBand();
+
+    // Same reasoning as the rubber band above: a release over an ImGui panel
+    // never reaches doMouseUp(), so a WidgetMode::Select click-and-drag left
+    // armed/active would otherwise get stuck until the next click. Resolve it
+    // here, the first passive motion back over the 3D view. A click that
+    // never became a drag simply lapses rather than selecting - the pointer
+    // isn't over the 3D view to select anything from any more.
+
+    if (m_selectDragArmed)
+    {
+        if (m_selectDragActive)
+        {
+            this->getScene()->disableCursor();
+            this->onMoveCompleted();
+        }
+
+        m_selectDragArmed = false;
+        m_selectDragActive = false;
+        m_selectDragShape = nullptr;
+    }
 
     m_angleX = 0.0f;
     m_angleY = 0.0f;
@@ -1973,11 +2148,9 @@ void IvfViewWindow::doMotion(int x, int y)
 
     if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
-        // m_scene->updateCursor(x, y);
         this->updateCursor(x, y);
         double x, y, z;
         double dx, dy, dz;
-        bool doit = true;
         Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
         pos.getComponents(x, y, z);
 
@@ -1990,26 +2163,77 @@ void IvfViewWindow::doMotion(int x, int y)
 
         if (m_moveStart)
         {
-            // onMoveStart();
+            this->onMoveStart();
             m_moveStart = false;
         }
 
-        onMove(m_selectedShapes, dx, dy, dz, doit);
+        this->applyLiveDrag(dx, dy, dz);
+    }
 
-        if (doit)
+    // A plain click directly on a node in WidgetMode::Select, armed by
+    // doMouse(), turns into a live drag once the press has moved far enough
+    // from where it started. Below the threshold nothing happens yet - the
+    // gesture might still resolve as an ordinary click in doMouseUp(). At
+    // and above it, this reuses exactly the delta-tracking and node-move
+    // machinery the WidgetMode::Move block above already relies on.
+
+    if ((getEditMode() == WidgetMode::Select) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT) &&
+        (m_selectDragArmed || m_selectDragActive))
+    {
+        bool crossedThreshold = m_selectDragActive;
+
+        if (!crossedThreshold)
         {
-            for (int i = 0; i < m_selectedShapes->getSize(); i++)
+            int ddx = x - m_beginX;
+            int ddy = y - m_beginY;
+            crossedThreshold = (ddx * ddx + ddy * ddy) >= (kSelectDragThresholdPx * kSelectDragThresholdPx);
+        }
+
+        if (crossedThreshold)
+        {
+            if (!m_selectDragActive)
             {
-                auto shape = m_selectedShapes->getChild(i);
-                if (shape->isClass("vfem::Node"))
+                // Threshold just crossed this frame: resolve which node set
+                // moves (rule: a node already part of the selection drags
+                // the whole group; an unselected one collapses the
+                // selection to just itself first), take the one undo
+                // snapshot for the whole gesture, and switch the 3D cursor
+                // into Move-mode's tracking state.
+
+                if (!m_selectDragWasSelected)
                 {
-                    shape->getPosition(x, y, z);
-                    shape->setPosition(x + dx, y + dy, z + dz);
+                    m_selectedShapes->setSelectChildren(GLBase::SS_OFF);
+                    m_selectedShapes->clear();
+                    m_selectDragShape->setSelect(GLBase::SS_ON);
+                    m_selectedShapes->addChild(m_selectDragShape);
+                    onSelect(m_selectedShapes);
                 }
+
+                if (m_moveStart)
+                {
+                    this->onMoveStart();
+                    m_moveStart = false;
+                }
+
+                this->getScene()->enableCursor();
+                this->getScene()->disableCursorShape();
+
+                m_selectDragActive = true;
             }
-            m_scene->getComposite()->refresh();
-            redraw();
-            draw();
+
+            this->updateCursor(x, y);
+            double px, py, pz, dx, dy, dz;
+            Vec3d pos = m_scene->getCurrentPlane()->getCursorPosition();
+            pos.getComponents(px, py, pz);
+
+            dx = px - m_startPos[0];
+            dy = py - m_startPos[1];
+            dz = pz - m_startPos[2];
+            m_startPos[0] += dx;
+            m_startPos[1] += dy;
+            m_startPos[2] += dz;
+
+            this->applyLiveDrag(dx, dy, dz);
         }
     }
 
@@ -2026,7 +2250,35 @@ void IvfViewWindow::doMouse(int x, int y)
     pos.getComponents(m_startPos[0], m_startPos[1], m_startPos[2]);
 
     if ((m_editMode == WidgetMode::Select) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
-        this->selectSingleAt(x, y, this->currentSelectOp());
+    {
+        SelectOp op = this->currentSelectOp();
+        Shape *hit = this->pickShapeAt(x, y);
+
+        bool selectOk = (hit != nullptr);
+        if (hit != nullptr)
+            onSelectFilter(hit, selectOk);
+
+        if ((op != SelectOp::Replace) || !selectOk || !hit->isClass("vfem::Node"))
+        {
+            // Modifiers ([Shift]/[Ctrl]) are reserved for building the
+            // selection set, never for dragging; a beam/empty-space hit has
+            // no drag interpretation at all. Commit immediately, as before.
+
+            this->selectSingleAt(x, y, op);
+        }
+        else
+        {
+            // A plain click directly on a node: defer the commit. Whether
+            // this becomes a drag - and, if so, which node set moves - is
+            // resolved in doMotion() once the pixel threshold is crossed;
+            // if it never crosses, doMouseUp() commits it as an ordinary
+            // click instead.
+
+            m_selectDragArmed = true;
+            m_selectDragShape = hit;
+            m_selectDragWasSelected = (hit->getSelect() == GLBase::SS_ON);
+        }
+    }
 
     // Start of a paint stroke. Handled here as well as in doMotion() so that a
     // plain click still selects a single shape without moving the mouse.
@@ -2211,6 +2463,15 @@ void IvfViewWindow::doKeyboard(int key)
     else
         m_scene->unlockCursor();
 
+    // [Esc] mid-drag aborts the WidgetMode::Select click-and-drag gesture.
+    // Unlike ghost-paste's cancel, this can't be keyed off onEditModeChanged()
+    // - the gesture never leaves WidgetMode::Select, so that hook never
+    // fires. Checked here rather than in onKeyboard() because the gesture
+    // state is private to this class.
+
+    if ((key == GLFW_KEY_ESCAPE) && m_selectDragActive)
+        this->cancelSelectDrag();
+
     onKeyboard(key);
 }
 
@@ -2238,7 +2499,13 @@ void IvfViewWindow::doShortcut(ModifierKey modifier, int key)
 void IvfViewWindow::onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit)
 {}
 
+void IvfViewWindow::onMoveStart()
+{}
+
 void IvfViewWindow::onMoveCompleted()
+{}
+
+void IvfViewWindow::onMoveCanceled()
 {}
 
 bool IvfViewWindow::onUseShiftPlane()

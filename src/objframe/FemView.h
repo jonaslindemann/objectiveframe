@@ -918,9 +918,10 @@ public:
     virtual void onSelectFilter(ivf::Shape *shape, bool &select) override;
     virtual void onSelectPosition(double x, double y, double z);
     virtual void onEditModeChanged(WidgetMode previousMode, WidgetMode newMode) override;
-    virtual void onMoveStart();
+    virtual void onMoveStart() override;
     virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit) override;
     virtual void onMoveCompleted() override;
+    virtual void onMoveCanceled() override;
     virtual bool onUseShiftPlane() override;
     virtual void onMotion(int x, int y) override;
     virtual void onDeSelect() override;

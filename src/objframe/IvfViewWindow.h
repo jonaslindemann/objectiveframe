@@ -159,6 +159,19 @@ private:
     bool m_disableRedrawTimer;
     bool m_quit;
     bool m_moveStart;
+
+    // Deferred-commit "click becomes drag" gesture, WidgetMode::Select only.
+    // A plain left-button press directly on a node defers its selection
+    // commit until doMotion()/doMouseUp() know whether the press stayed a
+    // click or crossed the drag threshold. See doMouse()/doMotion()/
+    // doMouseUp()/doKeyboard() and CLAUDE.md's "Three gestures, three modes"
+    // selection convention -- modifiers still commit immediately, only a
+    // plain click on a node is deferred.
+    bool m_selectDragArmed{false};        // pressed on a node candidate, not yet resolved
+    bool m_selectDragActive{false};       // drag threshold crossed, currently live-dragging
+    bool m_selectDragWasSelected{false};  // was the pressed node already selected?
+    ivf::ShapePtr m_selectDragShape{nullptr};
+
     bool m_mouseUpdate;
     bool m_initialised;
     double m_controlSize;
@@ -205,6 +218,14 @@ private:
     // so unlike m_shiftPlane it carries no rotation of its own.
     ivf::LineSetPtr m_shiftPlaneGrid;
 
+    // The indicator is a placement guide, so it has to stay put once shown
+    // rather than follow whatever is being dragged -- these cache the anchor
+    // (cx, centerY, cz) computed the moment the indicator turns on, reused
+    // for as long as it stays on, and cleared when it turns off so the next
+    // time it appears it re-anchors fresh. See showShiftPlaneIndicator().
+    bool m_shiftPlaneAnchored{false};
+    double m_shiftPlaneAnchor[3]{0.0, 0.0, 0.0};
+
 public:
     IvfViewWindow(int width, int height, const std::string title, GLFWmonitor *monitor = nullptr,
                   GLFWwindow *shared = nullptr);
@@ -244,9 +265,20 @@ public:
      * Rebuilds m_shiftPlaneGrid in world space for the current
      * m_activeShiftPlane, spanning the full workspace width and the given
      * planeHeight, at the given fixed coordinate (world Z for XY, world X
-     * for YZ -- the coordinate m_shiftPlane itself is positioned at).
+     * for YZ -- the coordinate m_shiftPlane itself is positioned at), with
+     * its vertical extent starting at baseY (world Y of the band's bottom
+     * edge, matching how showShiftPlaneIndicator() positions m_shiftPlane
+     * itself).
      */
-    void buildShiftPlaneGrid(double planeHeight, double fixedCoord);
+    void buildShiftPlaneGrid(double planeHeight, double fixedCoord, double baseY);
+
+    /**
+     * True while a node drag (either the WidgetMode::Select
+     * click-and-drag gesture or legacy WidgetMode::Move) is actively
+     * moving nodes this frame. Used by showShiftPlaneIndicator() to center
+     * the indicator on the dragged node's height instead of the ground.
+     */
+    bool isDraggingNodes();
 
     /**
      * Add a shape to the scene.
@@ -475,6 +507,28 @@ public:
     /** Removes a single shape from the current selection. */
     void removeSelection(ivf::Shape *shape);
 
+    /** Picks the shape under (x, y) without mutating the selection. */
+    ivf::Shape *pickShapeAt(int x, int y);
+
+    /**
+     * Applies one frame of a live node drag (WidgetMode::Move and the
+     * WidgetMode::Select click-and-drag gesture both funnel through this).
+     *
+     * Calls onMove() to let it veto/adjust the delta, then moves every
+     * vfem::Node in selectedShapes by (dx, dy, dz) and refreshes the scene
+     * once so attached beams follow. See doMotion().
+     */
+    void applyLiveDrag(double &dx, double &dy, double &dz);
+
+    /**
+     * Aborts a WidgetMode::Select click-and-drag gesture in progress.
+     *
+     * Calls onMoveCanceled() (restores the pre-drag snapshot in
+     * FemViewWindow) and resets the gesture state. Wired to [Esc] in
+     * doKeyboard() while m_selectDragActive is true.
+     */
+    void cancelSelectDrag();
+
     void setUseCustomPick(bool flag);
     bool useCustomPick();
 
@@ -673,7 +727,25 @@ public:
      */
     virtual void onMove(ivf::Composite *selectedShapes, double &dx, double &dy, double &dz, bool &doit);
 
+    /**
+     * onMoveStart event
+     *
+     * Called once, the moment a drag is confirmed (the first frame past the
+     * drag threshold for the Select-mode gesture; the first motion frame for
+     * WidgetMode::Move) -- the natural place to take a single undo snapshot
+     * for the whole gesture.
+     */
+    virtual void onMoveStart();
+
     virtual void onMoveCompleted();
+
+    /**
+     * onMoveCanceled event
+     *
+     * Called when a live drag is aborted ([Esc] while dragging). Default is
+     * a no-op; override to restore whatever onMoveStart() snapshotted.
+     */
+    virtual void onMoveCanceled();
 
     /**
      * onUseShiftPlane event

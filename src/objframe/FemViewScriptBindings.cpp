@@ -94,4 +94,6 @@ void FemViewScriptBindings::bind(chaiscript::ChaiScript &script, FemViewWindow &
     script.add(chaiscript::fun(&FemViewWindow::gravityScale, &view), "gravityScale");
     script.add(chaiscript::fun(&FemViewWindow::setTotalWeight, &view), "setTotalWeight");
     script.add(chaiscript::fun(&FemViewWindow::totalWeight, &view), "totalWeight");
+    script.add(chaiscript::fun(&FemViewWindow::setMassPerLength, &view), "setMassPerLength");
+    script.add(chaiscript::fun(&FemViewWindow::massPerLength, &view), "massPerLength");
 }

@@ -63,6 +63,8 @@ public:
     double gravityScale() override;
     void   setTotalWeight(double totalWeight) override;
     double totalWeight() override;
+    void   setMassPerLength(double massPerLength) override;
+    double massPerLength() override;
 
     // Geometry modification
     void   arraySelection(int count, double dx, double dy, double dz, bool spanStep,

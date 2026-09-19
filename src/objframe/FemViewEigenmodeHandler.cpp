@@ -26,8 +26,6 @@ void FemViewEigenmodeHandler::compute(FemViewWindow &view, int numModes)
     {
         view.log("Successfully computed " + std::to_string(view.m_solver.current->getNumEigenModes()) + " eigenmodes.");
 
-        view.m_eigenmode.savedShowNodeNumbers = view.m_beamModel->showNodeNumbers();
-        view.m_beamModel->setShowNodeNumbers(false);
         view.m_eigenmode.showing = true;
 
         view.m_eigenmodeWindow->setHasEigenmodes(true);
@@ -113,7 +111,6 @@ void FemViewEigenmodeHandler::clear(FemViewWindow &view)
 
     view.m_beamModel->clearNodeValues();
     view.m_eigenmode.showing = false;
-    view.m_beamModel->setShowNodeNumbers(view.m_eigenmode.savedShowNodeNumbers);
     view.set_changed();
     view.redraw();
 }

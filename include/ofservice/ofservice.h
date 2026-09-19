@@ -229,6 +229,11 @@ public:
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
+class SetMassPerLengthHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
 // ── Geometry modification ─────────────────────────────────────────────────────
 
 class ArraySelectionHandler : public APIHandler {
@@ -385,6 +390,7 @@ private:
     SetSelfWeightModeHandler     m_setSelfWeightModeHandler;
     SetGravityHandler            m_setGravityHandler;
     SetTotalWeightHandler        m_setTotalWeightHandler;
+    SetMassPerLengthHandler      m_setMassPerLengthHandler;
 
     // Geometry modification
     ArraySelectionHandler        m_arraySelectionHandler;

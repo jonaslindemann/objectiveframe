@@ -215,15 +215,10 @@ private:
         // opaque floor the shadow is designed to fall on; lowering it lets
         // reaction arrows and anything else below the plane show through.
 
-        double gridSurfaceOpacity{1.0};
+        double gridSurfaceOpacity{0.5};
         bool useImGuiFileDialogs{true};
         bool saveScreenShot{false};
 
-        // Node numbers are hidden while results are displayed. The user's own
-        // setting is remembered here so it can be put back afterwards.
-
-        bool showNodeNumbersSuppressed{false};
-        bool savedShowNodeNumbers{true};
     };
     ViewSettings m_view;
 
@@ -420,7 +415,6 @@ private:
     struct EigenmodeState {
         bool inSecondaryView{false};
         bool showing{false};
-        bool savedShowNodeNumbers{true};
 
         // Tracks whether the beams are currently marked dynamic, so the display
         // list suspension is toggled only on animation start/stop.
@@ -544,7 +538,6 @@ private:
      */
     vfem::Beam *addBeamUnchecked(int i0, int i1);
 
-    void updateNodeNumberVisibility(RepresentationMode repr);
     void initializeBeamColorTable();
     void applyBeamModelVisualDefaults();
 
@@ -607,6 +600,8 @@ public:
     void setGravityScale(double scale);
     double totalWeight();
     void setTotalWeight(double totalWeight);
+    double massPerLength();
+    void setMassPerLength(double massPerLength);
     void setHighlightFilter(HighlightMode filter);
     void setDeleteFilter(DeleteMode filter);
     void setRepresentation(RepresentationMode repr);

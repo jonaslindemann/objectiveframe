@@ -9,7 +9,7 @@ BeamModel::BeamModel()
     : Model(), m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300}, m_minM{1e300},
       m_maxV{-1e300}, m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_maxScale{1.0}, m_minScale{1.0},
       m_selfWeightEnabled{false}, m_selfWeightMode{SelfWeightMode::Density}, m_gravity{9.81}, m_gravityScale{1.0},
-      m_totalWeight{0.0}
+      m_totalWeight{0.0}, m_massPerLength{0.0}
 {
 }
 
@@ -233,6 +233,16 @@ void BeamModel::setTotalWeight(double totalWeight)
     m_totalWeight = totalWeight;
 }
 
+double BeamModel::massPerLength()
+{
+    return m_massPerLength;
+}
+
+void BeamModel::setMassPerLength(double massPerLength)
+{
+    m_massPerLength = massPerLength;
+}
+
 void BeamModel::saveToStream(std::ostream &out)
 {
     Model::saveToStream(out);
@@ -243,7 +253,8 @@ void BeamModel::saveToStream(std::ostream &out)
         out << static_cast<int>(m_selfWeightMode) << " ";
         out << m_gravity << " ";
         out << m_gravityScale << " ";
-        out << m_totalWeight << endl;
+        out << m_totalWeight << " ";
+        out << m_massPerLength << endl;
     }
 }
 
@@ -259,6 +270,16 @@ void BeamModel::readFromStream(std::istream &in)
         in >> m_gravity;
         in >> m_gravityScale;
         in >> m_totalWeight;
+
+        // m_massPerLength was appended to the version 3 block after version 3
+        // had already been written out, so a file from before that simply ends
+        // here -- read it only if it is actually there.
+        double massPerLength;
+        if (in >> massPerLength)
+            m_massPerLength = massPerLength;
+        else
+            in.clear();
+
         m_selfWeightEnabled = (enabled != 0);
         m_selfWeightMode = static_cast<SelfWeightMode>(mode);
     }

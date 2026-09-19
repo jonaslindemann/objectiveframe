@@ -59,6 +59,8 @@ void   AppControllerAdapter::setGravityScale(double scale)               { m_vie
 double AppControllerAdapter::gravityScale()                              { return m_view.gravityScale(); }
 void   AppControllerAdapter::setTotalWeight(double totalWeight)          { m_view.setTotalWeight(totalWeight); }
 double AppControllerAdapter::totalWeight()                               { return m_view.totalWeight(); }
+void   AppControllerAdapter::setMassPerLength(double massPerLength)      { m_view.setMassPerLength(massPerLength); }
+double AppControllerAdapter::massPerLength()                             { return m_view.massPerLength(); }
 
 // Geometry modification
 void   AppControllerAdapter::arraySelection(int count, double dx, double dy, double dz, bool spanStep,

@@ -62,6 +62,8 @@ public:
     virtual double gravityScale() = 0;
     virtual void   setTotalWeight(double totalWeight) = 0;
     virtual double totalWeight() = 0;
+    virtual void   setMassPerLength(double massPerLength) = 0;
+    virtual double massPerLength() = 0;
 
     // ── Geometry modification ─────────────────────────────────────────────────
     // Origins are passed as an int: 0 world, 1 centroid, 2 bounding box centre,

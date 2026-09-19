@@ -119,6 +119,7 @@ ofservice::Service::Service(IAppController *controller)
     m_webServer->addHandler("/cmds/set_self_weight_mode",         m_setSelfWeightModeHandler);
     m_webServer->addHandler("/cmds/set_gravity",                  m_setGravityHandler);
     m_webServer->addHandler("/cmds/set_total_weight",             m_setTotalWeightHandler);
+    m_webServer->addHandler("/cmds/set_mass_per_length",          m_setMassPerLengthHandler);
 
     // Geometry modification
     m_webServer->addHandler("/cmds/array_selection",               m_arraySelectionHandler);
@@ -481,6 +482,14 @@ bool ofservice::SetTotalWeightHandler::handlePost(CivetServer *, mg_connection *
     write_ok(conn);
     auto j = nljson::parse(this->read_response(conn));
     App::instance().controller()->setTotalWeight(j["value"].get<double>());
+    return true;
+}
+
+bool ofservice::SetMassPerLengthHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    App::instance().controller()->setMassPerLength(j["value"].get<double>());
     return true;
 }
 

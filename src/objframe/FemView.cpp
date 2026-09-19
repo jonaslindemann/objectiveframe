@@ -544,12 +544,7 @@ void FemViewWindow::setRepresentation(RepresentationMode repr)
     // Change model representation
 
     if (m_eigenmode.showing && repr != RepresentationMode::Results)
-    {
         m_eigenmode.showing = false;
-        m_beamModel->setShowNodeNumbers(m_eigenmode.savedShowNodeNumbers);
-    }
-
-    this->updateNodeNumberVisibility(repr);
 
     m_view.representation = repr;
 
@@ -1014,6 +1009,18 @@ void FemViewWindow::setTotalWeight(double totalWeight)
     this->setNeedRecalc(true);
 }
 
+double FemViewWindow::massPerLength()
+{
+    return m_beamModel->massPerLength();
+}
+
+void FemViewWindow::setMassPerLength(double massPerLength)
+{
+    this->snapShot();
+    m_beamModel->setMassPerLength(massPerLength);
+    this->setNeedRecalc(true);
+}
+
 void FemViewWindow::setRelNodeSize(double size)
 {
     m_view.relNodeSize = size;
@@ -1133,40 +1140,12 @@ void FemViewWindow::resetResultDisplay()
     if (m_beamModel == nullptr)
         return;
 
-    this->updateNodeNumberVisibility(RepresentationMode::Fem);
-
     m_view.representation = RepresentationMode::Fem;
     m_beamModel->setBeamType(IVF_BEAM_SOLID);
     m_beamModel->setNodeType(IVF_NODE_GEOMETRY);
     m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
     m_beamModel->setMaxScale(1.0);
     m_beamModel->setMinScale(1.0);
-}
-
-void FemViewWindow::updateNodeNumberVisibility(RepresentationMode repr)
-{
-    // Node numbers clutter the coloured result diagrams and sit at the
-    // undeformed positions in the deformed shape, so they are turned off for as
-    // long as results or displacements are shown. The setting the user had
-    // before is put back when leaving those representations.
-
-    if (m_beamModel == nullptr)
-        return;
-
-    if ((repr == RepresentationMode::Results) || (repr == RepresentationMode::Displacements))
-    {
-        if (!m_view.showNodeNumbersSuppressed)
-        {
-            m_view.savedShowNodeNumbers = m_beamModel->showNodeNumbers();
-            m_view.showNodeNumbersSuppressed = true;
-            m_beamModel->setShowNodeNumbers(false);
-        }
-    }
-    else if (m_view.showNodeNumbersSuppressed)
-    {
-        m_view.showNodeNumbersSuppressed = false;
-        m_beamModel->setShowNodeNumbers(m_view.savedShowNodeNumbers);
-    }
 }
 
 void FemViewWindow::refreshBeamModelVisuals()
@@ -4388,12 +4367,6 @@ void FemViewWindow::setShowNodeNumbers(bool flag)
     if (m_beamModel == nullptr)
         return;
 
-    // An explicit toggle overrides the setting remembered when the results
-    // representation hid the node numbers.
-
-    if (m_view.showNodeNumbersSuppressed)
-        m_view.savedShowNodeNumbers = flag;
-
     m_beamModel->setShowNodeNumbers(flag);
     this->refreshBeamModelVisuals();
     this->redraw();
@@ -4750,12 +4723,12 @@ void FemViewWindow::onInit()
     this->getScene()->getCurrentPlane()->getGrid()->setCornerColor(0.2f, 0.2f, 0.2f, 1.0f);
 
     // The construction plane doubles as the floor the shadow falls on, so it
-    // defaults to opaque and a little lighter than the background for the
-    // shadow to read against it. No specular: a highlight sliding across a quad
-    // this large as the camera turns looks like a rendering fault rather than a
-    // surface. The alpha is the one part the user can change -- see
-    // setGridSurfaceOpacity(), which trades shadow contrast for being able to
-    // see reaction arrows below the plane.
+    // is a little lighter than the background for the shadow to read against
+    // it. No specular: a highlight sliding across a quad this large as the
+    // camera turns looks like a rendering fault rather than a surface. The
+    // alpha is the one part the user can change -- see setGridSurfaceOpacity(),
+    // which trades shadow contrast for being able to see reaction arrows below
+    // the plane, and defaults to half way along that trade.
 
     m_planeSurfaceMaterial = ivf::Material::create();
     m_planeSurfaceMaterial->setDiffuseColor(0.62f, 0.62f, 0.62f, 1.0f);

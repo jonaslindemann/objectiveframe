@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 
+#include <imgui.h>
+
 #include <ofui/ui_window.h>
 
 class FemViewWindow;
@@ -18,6 +20,12 @@ private:
     double m_gravity;
     double m_gravityScale;
     double m_totalWeight;
+    double m_massPerLength;
+    bool m_syncTab;
+
+    ImGuiTabItemFlags tabFlags(int mode);
+    void selectMode(int mode);
+    void drawGravityField();
 
 public:
     SelfWeightWindow(const std::string name);

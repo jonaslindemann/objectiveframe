@@ -11,9 +11,13 @@ namespace ofem {
 
 SmartPointer(BeamModel);
 
+// The numeric values are written to the model file and used by the REST API,
+// so they must stay stable -- MassPerLength was added last and gets the next
+// free value rather than a place in presentation order.
 enum class SelfWeightMode {
     Density = 0,
-    TotalLoad = 1
+    TotalLoad = 1,
+    MassPerLength = 2
 };
 
 class BeamModel : public Model {
@@ -36,6 +40,7 @@ private:
     double m_gravity;
     double m_gravityScale;
     double m_totalWeight;
+    double m_massPerLength;
 
 protected:
     virtual NodeBCSet *createBCSet() override;
@@ -97,6 +102,8 @@ public:
     void setGravityScale(double scale);
     double totalWeight();
     void setTotalWeight(double totalWeight);
+    double massPerLength();
+    void setMassPerLength(double massPerLength);
 
     // IO Methods
 

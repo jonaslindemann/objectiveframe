@@ -123,18 +123,30 @@ void addSelfWeightToEq(BeamModel *beamModel, Matrix &Eq)
             Eq(row, 2) += qz;
         }
     }
-    else // SelfWeightMode::TotalLoad -- same intensity on every beam, spread by length
+    else // Every other mode ends up as one intensity applied to every beam
     {
-        double totalLength = 0.0;
-        for (int i = 1; i <= nElements; i++)
-        {
-            Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
-            totalLength += beam->getLength();
-        }
-        if (totalLength <= 0.0)
-            return;
+        double w = 0.0;
 
-        double w = (beamModel->totalWeight() * scale) / totalLength;
+        if (beamModel->selfWeightMode() == SelfWeightMode::MassPerLength)
+        {
+            // Mass per unit length becomes a load per unit length through g --
+            // the same gravity the density mode uses.
+            w = beamModel->massPerLength() * beamModel->gravity() * scale;
+        }
+        else // SelfWeightMode::TotalLoad -- spread by length over the structure
+        {
+            double totalLength = 0.0;
+            for (int i = 1; i <= nElements; i++)
+            {
+                Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
+                totalLength += beam->getLength();
+            }
+            if (totalLength <= 0.0)
+                return;
+
+            w = (beamModel->totalWeight() * scale) / totalLength;
+        }
+
         if (w == 0.0)
             return;
 

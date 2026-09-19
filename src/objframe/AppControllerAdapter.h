@@ -53,6 +53,17 @@ public:
     void   addBeamLoadAt(int i, double fx, double fy, double fz) override;
     void   clearBeamLoadAt(int i) override;
 
+    void   setSelfWeightEnabled(bool enabled) override;
+    bool   selfWeightEnabled() override;
+    void   setSelfWeightMode(int mode) override;
+    int    selfWeightMode() override;
+    void   setGravity(double gravity) override;
+    double gravity() override;
+    void   setGravityScale(double scale) override;
+    double gravityScale() override;
+    void   setTotalWeight(double totalWeight) override;
+    double totalWeight() override;
+
     // Geometry modification
     void   arraySelection(int count, double dx, double dy, double dz, bool spanStep,
                           bool copyLoadsAndBCs, double weldTolerance) override;

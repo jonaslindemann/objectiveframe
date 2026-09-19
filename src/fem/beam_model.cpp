@@ -1,11 +1,15 @@
 #include <ofem/beam_model.h>
 #include <ofem/beam_set.h>
+#include <ofem/model_state_info.h>
 
 using namespace ofem;
+using namespace std;
 
 BeamModel::BeamModel()
     : Model(), m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300}, m_minM{1e300},
-      m_maxV{-1e300}, m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_maxScale{1.0}, m_minScale{1.0}
+      m_maxV{-1e300}, m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_maxScale{1.0}, m_minScale{1.0},
+      m_selfWeightEnabled{false}, m_selfWeightMode{SelfWeightMode::Density}, m_gravity{9.81}, m_gravityScale{1.0},
+      m_totalWeight{0.0}
 {
 }
 
@@ -177,4 +181,85 @@ double BeamModel::maxScale()
 double BeamModel::minScale()
 {
     return m_minScale;
+}
+
+bool BeamModel::selfWeightEnabled()
+{
+    return m_selfWeightEnabled;
+}
+
+void BeamModel::setSelfWeightEnabled(bool enabled)
+{
+    m_selfWeightEnabled = enabled;
+}
+
+SelfWeightMode BeamModel::selfWeightMode()
+{
+    return m_selfWeightMode;
+}
+
+void BeamModel::setSelfWeightMode(SelfWeightMode mode)
+{
+    m_selfWeightMode = mode;
+}
+
+double BeamModel::gravity()
+{
+    return m_gravity;
+}
+
+void BeamModel::setGravity(double gravity)
+{
+    m_gravity = gravity;
+}
+
+double BeamModel::gravityScale()
+{
+    return m_gravityScale;
+}
+
+void BeamModel::setGravityScale(double scale)
+{
+    m_gravityScale = scale;
+}
+
+double BeamModel::totalWeight()
+{
+    return m_totalWeight;
+}
+
+void BeamModel::setTotalWeight(double totalWeight)
+{
+    m_totalWeight = totalWeight;
+}
+
+void BeamModel::saveToStream(std::ostream &out)
+{
+    Model::saveToStream(out);
+
+    if (ModelStateInfo::getInstance().writeVersion() == "3") {
+        out << endl << endl;
+        out << (m_selfWeightEnabled ? 1 : 0) << " ";
+        out << static_cast<int>(m_selfWeightMode) << " ";
+        out << m_gravity << " ";
+        out << m_gravityScale << " ";
+        out << m_totalWeight << endl;
+    }
+}
+
+void BeamModel::readFromStream(std::istream &in)
+{
+    Model::readFromStream(in);
+
+    if (ModelStateInfo::getInstance().readVersion() == "3") {
+        int enabled;
+        int mode;
+        in >> enabled;
+        in >> mode;
+        in >> m_gravity;
+        in >> m_gravityScale;
+        in >> m_totalWeight;
+        m_selfWeightEnabled = (enabled != 0);
+        m_selfWeightMode = static_cast<SelfWeightMode>(mode);
+    }
 }

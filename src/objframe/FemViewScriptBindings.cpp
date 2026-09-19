@@ -83,4 +83,15 @@ void FemViewScriptBindings::bind(chaiscript::ChaiScript &script, FemViewWindow &
     script.add(chaiscript::fun(&FemViewWindow::clearBeamLoadAt, &view), "clearBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::hasBeamLoadAt, &view), "hasBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::beamLoadCount, &view), "beamLoadCount");
+
+    script.add(chaiscript::fun(&FemViewWindow::setSelfWeightEnabled, &view), "setSelfWeightEnabled");
+    script.add(chaiscript::fun(&FemViewWindow::selfWeightEnabled, &view), "selfWeightEnabled");
+    script.add(chaiscript::fun(&FemViewWindow::setSelfWeightMode, &view), "setSelfWeightMode");
+    script.add(chaiscript::fun(&FemViewWindow::selfWeightMode, &view), "selfWeightMode");
+    script.add(chaiscript::fun(&FemViewWindow::setGravity, &view), "setGravity");
+    script.add(chaiscript::fun(&FemViewWindow::gravity, &view), "gravity");
+    script.add(chaiscript::fun(&FemViewWindow::setGravityScale, &view), "setGravityScale");
+    script.add(chaiscript::fun(&FemViewWindow::gravityScale, &view), "gravityScale");
+    script.add(chaiscript::fun(&FemViewWindow::setTotalWeight, &view), "setTotalWeight");
+    script.add(chaiscript::fun(&FemViewWindow::totalWeight, &view), "totalWeight");
 }

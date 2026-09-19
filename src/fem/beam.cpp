@@ -154,6 +154,19 @@ void Beam::getOrientationZ(double &ex, double &ey, double &ez)
     ez = v[2];
 }
 
+double Beam::getLength()
+{
+    double x1, y1, z1, x2, y2, z2;
+
+    auto n1 = this->getNode(0);
+    auto n2 = this->getNode(1);
+
+    n1->getCoord(x1, y1, z1);
+    n2->getCoord(x2, y2, z2);
+
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2));
+}
+
 void Beam::getOrientationY(double &ex, double &ey, double &ez)
 {
     double x1, y1, z1, x2, y2, z2;

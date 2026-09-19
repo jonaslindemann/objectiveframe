@@ -62,6 +62,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/load_mixer_window.h>
 #include <ofui/log_window.h>
 #include <ofui/materials_window.h>
+#include <ofui/self_weight_window.h>
 #include <ofui/message_popup.h>
 #include <ofui/new_model_popup.h>
 #include <ofui/node_bcs_window.h>
@@ -396,6 +397,7 @@ private:
     ofui::SettingsWindowPtr m_settingsWindow;
     ofui::ElementLoadsWindowPtr m_elementLoadsWindow;
     ofui::MaterialsWindowPtr m_materialsWindow;
+    ofui::SelfWeightWindowPtr m_selfWeightWindow;
     ofui::LogWindowPtr m_logWindow;
     ofui::ConsoleWindowPtr m_consoleWindow;
     ofui::PluginPropWindowPtr m_pluginWindow;
@@ -595,6 +597,16 @@ public:
     void setRelNodeSize(double size);
     double getRelNodeSize();
     void setNeedRecalc(bool flag);
+    bool selfWeightEnabled();
+    void setSelfWeightEnabled(bool enabled);
+    int selfWeightMode();
+    void setSelfWeightMode(int mode);
+    double gravity();
+    void setGravity(double gravity);
+    double gravityScale();
+    void setGravityScale(double scale);
+    double totalWeight();
+    void setTotalWeight(double totalWeight);
     void setHighlightFilter(HighlightMode filter);
     void setDeleteFilter(DeleteMode filter);
     void setRepresentation(RepresentationMode repr);

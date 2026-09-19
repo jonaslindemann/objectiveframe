@@ -11,6 +11,11 @@ namespace ofem {
 
 SmartPointer(BeamModel);
 
+enum class SelfWeightMode {
+    Density = 0,
+    TotalLoad = 1
+};
+
 class BeamModel : public Model {
 private:
     double m_maxN;
@@ -25,6 +30,12 @@ private:
     double m_minNavier;
     double m_maxScale;
     double m_minScale;
+
+    bool m_selfWeightEnabled;
+    SelfWeightMode m_selfWeightMode;
+    double m_gravity;
+    double m_gravityScale;
+    double m_totalWeight;
 
 protected:
     virtual NodeBCSet *createBCSet() override;
@@ -75,5 +86,21 @@ public:
 
     double maxScale();
     double minScale();
+
+    bool selfWeightEnabled();
+    void setSelfWeightEnabled(bool enabled);
+    SelfWeightMode selfWeightMode();
+    void setSelfWeightMode(SelfWeightMode mode);
+    double gravity();
+    void setGravity(double gravity);
+    double gravityScale();
+    void setGravityScale(double scale);
+    double totalWeight();
+    void setTotalWeight(double totalWeight);
+
+    // IO Methods
+
+    virtual void saveToStream(std::ostream &out) override;
+    virtual void readFromStream(std::istream &in) override;
 };
 } // namespace ofem

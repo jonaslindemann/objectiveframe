@@ -25,6 +25,7 @@ private:
     double m_Iy;
     double m_Iz;
     double m_Kv;
+    double m_density;
     int m_section;
     int m_oldSection;
 

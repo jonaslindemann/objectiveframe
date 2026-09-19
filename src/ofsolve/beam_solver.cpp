@@ -48,6 +48,111 @@ void addElementLoadsToEq(ElementLoadSet *elementLoadSet, Matrix &Eq)
     }
 }
 
+// Projects global gravity direction (0,-1,0) into the beam's own local triad and
+// returns local qx,qy,qz for a given load-per-length magnitude w (N/m). The triad
+// construction mirrors calfem::beam3e exactly (n1 = beam axis, n3 = normalized
+// getOrientationZ(), n2 = n3 x n1) so gravity is projected correctly regardless of
+// beam orientation -- unlike ofem::FemViewWindow::addBeamLoadAt, which stores a
+// caller-supplied global vector directly as a local direction.
+void projectGravityToLocal(Beam *beam, double w, double &qx, double &qy, double &qz)
+{
+    double x1, y1, z1, x2, y2, z2;
+    beam->getNode(0)->getCoord(x1, y1, z1);
+    beam->getNode(1)->getCoord(x2, y2, z2);
+    double L = beam->getLength();
+
+    double n1x = (x2 - x1) / L;
+    double n1y = (y2 - y1) / L;
+    double n1z = (z2 - z1) / L;
+
+    double ozx, ozy, ozz;
+    beam->getOrientationZ(ozx, ozy, ozz);
+    double ol = sqrt(ozx * ozx + ozy * ozy + ozz * ozz);
+    double n3x = ozx / ol;
+    double n3y = ozy / ol;
+    double n3z = ozz / ol;
+
+    // n2 = n3 x n1; only the y-component is needed below.
+    double n2y = n3z * n1x - n3x * n1z;
+
+    // Global gravity direction (0,-1,0), Y-up convention established throughout the app.
+    qx = -n1y * w;
+    qy = -n2y * w;
+    qz = -n3y * w;
+}
+
+void addSelfWeightToEq(BeamModel *beamModel, Matrix &Eq)
+{
+    if (beamModel == nullptr || !beamModel->selfWeightEnabled())
+        return;
+
+    const double scale = beamModel->gravityScale();
+    if (scale == 0.0)
+        return;
+
+    BeamSet *elementSet = beamModel->getElementSet();
+    int nElements = static_cast<int>(elementSet->getSize());
+
+    if (beamModel->selfWeightMode() == SelfWeightMode::Density)
+    {
+        const double g = beamModel->gravity() * scale;
+        if (g == 0.0)
+            return;
+
+        for (int i = 1; i <= nElements; i++)
+        {
+            Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
+            BeamMaterial *material = beam->getMaterial();
+            if (material == nullptr)
+                continue;
+
+            double density = material->density();
+            if (density <= 0.0)
+                continue;
+
+            double E, G, A, Iy, Iz, Kv;
+            material->getProperties(E, G, A, Iy, Iz, Kv);
+            double w = density * A * g;
+
+            double qx, qy, qz;
+            projectGravityToLocal(beam, w, qx, qy, qz);
+
+            int row = i - 1;
+            Eq(row, 0) += qx;
+            Eq(row, 1) += qy;
+            Eq(row, 2) += qz;
+        }
+    }
+    else // SelfWeightMode::TotalLoad -- same intensity on every beam, spread by length
+    {
+        double totalLength = 0.0;
+        for (int i = 1; i <= nElements; i++)
+        {
+            Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
+            totalLength += beam->getLength();
+        }
+        if (totalLength <= 0.0)
+            return;
+
+        double w = (beamModel->totalWeight() * scale) / totalLength;
+        if (w == 0.0)
+            return;
+
+        for (int i = 1; i <= nElements; i++)
+        {
+            Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
+
+            double qx, qy, qz;
+            projectGravityToLocal(beam, w, qx, qy, qz);
+
+            int row = i - 1;
+            Eq(row, 0) += qx;
+            Eq(row, 1) += qy;
+            Eq(row, 2) += qz;
+        }
+    }
+}
+
 } // namespace
 
 BeamSolver::BeamSolver()
@@ -170,6 +275,7 @@ void BeamSolver::execute()
 
     Logger::instance()->log(LogLevel::Info, "Setting up element loads.");
     addElementLoadsToEq(elementLoadSet, Eq);
+    addSelfWeightToEq(femModel, Eq);
 
     //
     // Calculate bandwidth
@@ -244,7 +350,9 @@ void BeamSolver::execute()
                 for (j = 0; j < 3; j++)
                     DofTopo_b(j + 3) = beam->getNode(1)->getDof(j)->getNumber();
 
-                double eq = 0.0;
+                // Bars (3-DOF truss) have no transverse-distributed-load DOF, so only
+                // the axial (local-x) component of self-weight/element loads applies.
+                double eq = Eq(i - 1, 0);
 
                 bar3e(Ex, Ey, Ez, Ep, eq, Ke_b, fe_b);
                 spassem(DofTopo_b, Ktriplets, Ke_b, m_f, fe_b);
@@ -563,7 +671,9 @@ void BeamSolver::execute()
                 Ed_b(j + 3) = m_globalA(DofTopo_b(j + 3) - 1);
             }
 
-            double eq = 0.0;
+            // Bars (3-DOF truss) have no transverse-distributed-load DOF, so only
+            // the axial (local-x) component of self-weight/element loads applies.
+            double eq = Eq(i - 1, 0);
 
             ColVec Es_b(n);
             ColVec Edi_b(n);
@@ -847,6 +957,7 @@ void BeamSolver::update()
     Matrix Eq(static_cast<int>(elementSet->getSize()), 4);
     Eq.setZero();
     addElementLoadsToEq(elementLoadSet, Eq);
+    addSelfWeightToEq(femModel, Eq);
     RowVec Eo(3);
     RowVec Ep(6);
     Ep.setZero();
@@ -941,7 +1052,9 @@ void BeamSolver::update()
                 Ed_b(j + 3) = m_globalA(DofTopo_b(j + 3) - 1);
             }
 
-            double eq = 0.0;
+            // Bars (3-DOF truss) have no transverse-distributed-load DOF, so only
+            // the axial (local-x) component of self-weight/element loads applies.
+            double eq = Eq(i - 1, 0);
 
             ColVec Es_b(n);
             ColVec Edi_b(n);

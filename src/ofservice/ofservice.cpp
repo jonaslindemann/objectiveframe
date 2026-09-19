@@ -115,6 +115,11 @@ ofservice::Service::Service(IAppController *controller)
     m_webServer->addHandler("/cmds/add_beam_load_at",             m_addBeamLoadAtHandler);
     m_webServer->addHandler("/cmds/clear_beam_load_at",           m_clearBeamLoadAtHandler);
 
+    m_webServer->addHandler("/cmds/set_self_weight_enabled",      m_setSelfWeightEnabledHandler);
+    m_webServer->addHandler("/cmds/set_self_weight_mode",         m_setSelfWeightModeHandler);
+    m_webServer->addHandler("/cmds/set_gravity",                  m_setGravityHandler);
+    m_webServer->addHandler("/cmds/set_total_weight",             m_setTotalWeightHandler);
+
     // Geometry modification
     m_webServer->addHandler("/cmds/array_selection",               m_arraySelectionHandler);
     m_webServer->addHandler("/cmds/polar_array_selection",         m_polarArraySelectionHandler);
@@ -440,6 +445,42 @@ bool ofservice::ClearBeamLoadAtHandler::handlePost(CivetServer *, mg_connection 
     write_ok(conn);
     auto j = nljson::parse(this->read_response(conn));
     App::instance().controller()->clearBeamLoadAt(j["index"].get<int>());
+    return true;
+}
+
+// ── Self-weight handlers ──────────────────────────────────────────────────────
+
+bool ofservice::SetSelfWeightEnabledHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    App::instance().controller()->setSelfWeightEnabled(j["enabled"].get<bool>());
+    return true;
+}
+
+bool ofservice::SetSelfWeightModeHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    App::instance().controller()->setSelfWeightMode(j["mode"].get<int>());
+    return true;
+}
+
+bool ofservice::SetGravityHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    App::instance().controller()->setGravity(j["value"].get<double>());
+    if (j.contains("scale"))
+        App::instance().controller()->setGravityScale(j["scale"].get<double>());
+    return true;
+}
+
+bool ofservice::SetTotalWeightHandler::handlePost(CivetServer *, mg_connection *conn)
+{
+    write_ok(conn);
+    auto j = nljson::parse(this->read_response(conn));
+    App::instance().controller()->setTotalWeight(j["value"].get<double>());
     return true;
 }
 

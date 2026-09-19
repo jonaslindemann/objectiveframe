@@ -5,6 +5,7 @@
 #include <ofem/T_section.h>
 #include <ofem/U_section.h>
 #include <ofem/beam_material.h>
+#include <ofem/model_state_info.h>
 #include <ofem/pipe_section.h>
 #include <ofem/rect_section.h>
 #include <ofem/rhs_section.h>
@@ -23,6 +24,8 @@ BeamMaterial::BeamMaterial() : Material()
     m_Iy = 1.0;
     m_Iz = 1.0;
     m_Kv = 1.0;
+    m_density = 7850.0; // kg/m^3, mild steel -- a reasonable default so enabling
+                        // self-weight produces a nonzero load without extra setup
     m_name = "Unnamed";
     m_color = 3;
     m_representation = -1;
@@ -52,6 +55,16 @@ void BeamMaterial::getProperties(double &E, double &G, double &A, double &Iy, do
     Kv = m_Kv;
 }
 
+double BeamMaterial::density()
+{
+    return m_density;
+}
+
+void BeamMaterial::setDensity(double density)
+{
+    m_density = density;
+}
+
 void BeamMaterial::print(ostream &out)
 {
     out << "Material : " << this->getName() << endl;
@@ -61,6 +74,7 @@ void BeamMaterial::print(ostream &out)
     out << "   Iy = " << m_Iy << endl;
     out << "   Iz = " << m_Iz << endl;
     out << "   Kv = " << m_Kv << endl;
+    out << "   density = " << m_density << endl;
 }
 
 void BeamMaterial::saveToStream(std::ostream &out)
@@ -77,6 +91,9 @@ void BeamMaterial::saveToStream(std::ostream &out)
     out << m_Iy << " ";
     out << m_Iz << " ";
     out << m_Kv << " " << endl;
+
+    if (ModelStateInfo::getInstance().writeVersion() == "3")
+        out << m_density << endl;
 
     if (m_section != nullptr) {
         out << m_section->getSectionType() << endl;
@@ -108,6 +125,10 @@ void BeamMaterial::readFromStream(std::istream &in)
     in >> m_Iy;
     in >> m_Iz;
     in >> m_Kv;
+
+    if (ModelStateInfo::getInstance().readVersion() == "3")
+        in >> m_density;
+
     in >> sectionType;
 
     if (sectionType > -1) {

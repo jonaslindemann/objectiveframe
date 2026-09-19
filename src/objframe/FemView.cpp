@@ -954,6 +954,66 @@ void FemViewWindow::setNeedRecalc(bool flag)
     m_solver.needRecalc = flag;
 }
 
+bool FemViewWindow::selfWeightEnabled()
+{
+    return m_beamModel->selfWeightEnabled();
+}
+
+void FemViewWindow::setSelfWeightEnabled(bool enabled)
+{
+    this->snapShot();
+    m_beamModel->setSelfWeightEnabled(enabled);
+    this->setNeedRecalc(true);
+}
+
+int FemViewWindow::selfWeightMode()
+{
+    return static_cast<int>(m_beamModel->selfWeightMode());
+}
+
+void FemViewWindow::setSelfWeightMode(int mode)
+{
+    this->snapShot();
+    m_beamModel->setSelfWeightMode(static_cast<ofem::SelfWeightMode>(mode));
+    this->setNeedRecalc(true);
+}
+
+double FemViewWindow::gravity()
+{
+    return m_beamModel->gravity();
+}
+
+void FemViewWindow::setGravity(double gravity)
+{
+    this->snapShot();
+    m_beamModel->setGravity(gravity);
+    this->setNeedRecalc(true);
+}
+
+double FemViewWindow::gravityScale()
+{
+    return m_beamModel->gravityScale();
+}
+
+void FemViewWindow::setGravityScale(double scale)
+{
+    this->snapShot();
+    m_beamModel->setGravityScale(scale);
+    this->setNeedRecalc(true);
+}
+
+double FemViewWindow::totalWeight()
+{
+    return m_beamModel->totalWeight();
+}
+
+void FemViewWindow::setTotalWeight(double totalWeight)
+{
+    this->snapShot();
+    m_beamModel->setTotalWeight(totalWeight);
+    this->setNeedRecalc(true);
+}
+
 void FemViewWindow::setRelNodeSize(double size)
 {
     m_view.relNodeSize = size;
@@ -4576,6 +4636,7 @@ void FemViewWindow::hideAllDialogs()
     m_nodeBCsWindow->hide();
     m_elementLoadsWindow->hide();
     m_materialsWindow->hide();
+    m_selfWeightWindow->hide();
     m_loadMixerWindow->hide();
     m_scaleWindow->hide();
     m_shadowWindow->hide();
@@ -4924,6 +4985,12 @@ void FemViewWindow::onInit()
     m_materialsWindow->setVisible(false);
 
     m_windowList->add(m_materialsWindow);
+
+    m_selfWeightWindow = SelfWeightWindow::create("Self-weight");
+    m_selfWeightWindow->setFemView(this);
+    m_selfWeightWindow->setVisible(false);
+
+    m_windowList->add(m_selfWeightWindow);
 
     m_pluginWindow = PluginPropWindow::create("Plugin properties");
     m_pluginWindow->setView(this);

@@ -14,8 +14,9 @@ using namespace ofui;
 
 MaterialPropPopup::MaterialPropPopup(const std::string name, bool modal)
     : PopupWindow(name, modal), m_view{nullptr}, m_color{0}, m_nameArr{}, m_E{0.0}, m_G{0.0}, m_A{0.0}, m_Iy{0.0},
-      m_Iz{0.0}, m_Kv{0.0}, m_section{0}, m_height{0.0}, m_width{0.0}, m_ufw{0.0}, m_lfw{0.0}, m_wt{0.0}, m_uft{0.0},
-      m_lft{0.0}, m_ulfw{0.0}, m_llfw{0.0}, m_outerRadius{0.0}, m_innerRadius{0.0}, m_oldSection{0}
+      m_Iz{0.0}, m_Kv{0.0}, m_density{0.0}, m_section{0}, m_height{0.0}, m_width{0.0}, m_ufw{0.0}, m_lfw{0.0},
+      m_wt{0.0}, m_uft{0.0}, m_lft{0.0}, m_ulfw{0.0}, m_llfw{0.0}, m_outerRadius{0.0}, m_innerRadius{0.0},
+      m_oldSection{0}
 {
 }
 
@@ -80,6 +81,7 @@ void MaterialPropPopup::update()
         updateMaterial();
 
         material->getProperties(m_E, m_G, m_A, m_Iy, m_Iz, m_Kv);
+        m_density = material->density();
     }
 }
 
@@ -149,6 +151,10 @@ void MaterialPropPopup::doPopup()
                     ImGui::InputDouble("Moment of inertia (y)", &m_Iy, 0.0, 0.0, "%.6g");
                     ImGui::InputDouble("Moment of inertia (z)", &m_Iz, 0.0, 0.0, "%.6g");
                     ImGui::InputDouble("Saint-Venant const", &m_Kv, 0.0, 0.0, "%.6g");
+
+                    ImGui::Separator();
+
+                    ImGui::InputDouble("Density (kg/m^3)", &m_density, 0.0, 0.0, "%.6g");
 
                     ImGui::EndTabItem();
                 }
@@ -234,7 +240,9 @@ void MaterialPropPopup::doPopup()
                 material->setName(m_nameArr.data());
                 material->setColor(m_color);
                 material->assignPropFromSection();
+                material->setDensity(m_density);
 
+                m_view->setNeedRecalc(true);
                 m_view->set_changed();
                 m_view->redraw();
             }

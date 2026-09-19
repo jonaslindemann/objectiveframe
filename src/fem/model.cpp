@@ -8,7 +8,7 @@
 using namespace ofem;
 using namespace std;
 
-Model::Model() : Base(), m_version{"2"}, m_readVersion{""}, m_writeVersion{""}
+Model::Model() : Base(), m_version{"3"}, m_readVersion{""}, m_writeVersion{""}
 {
     ModelStateInfo::getInstance().setVersion(m_version);
 }

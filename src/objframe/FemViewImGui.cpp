@@ -436,6 +436,12 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
             this->setNeedRecalc(true);
         }
 
+        if (ImGui::MenuItem("Self-weight...", ""))
+        {
+            m_selfWeightWindow->update();
+            m_selfWeightWindow->setVisible(true);
+        }
+
         ImGui::Separator();
 
         if (ImGui::MenuItem("Script editor...", ""))

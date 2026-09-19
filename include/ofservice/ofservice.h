@@ -207,6 +207,28 @@ public:
     bool handlePost(CivetServer *server, struct mg_connection *conn);
 };
 
+// ── Self-weight ────────────────────────────────────────────────────────────────
+
+class SetSelfWeightEnabledHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
+class SetSelfWeightModeHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
+class SetGravityHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
+class SetTotalWeightHandler : public APIHandler {
+public:
+    bool handlePost(CivetServer *server, struct mg_connection *conn);
+};
+
 // ── Geometry modification ─────────────────────────────────────────────────────
 
 class ArraySelectionHandler : public APIHandler {
@@ -357,6 +379,12 @@ private:
     ClearNodeLoadAtHandler       m_clearNodeLoadAtHandler;
     AddBeamLoadAtHandler         m_addBeamLoadAtHandler;
     ClearBeamLoadAtHandler       m_clearBeamLoadAtHandler;
+
+    // Self-weight
+    SetSelfWeightEnabledHandler  m_setSelfWeightEnabledHandler;
+    SetSelfWeightModeHandler     m_setSelfWeightModeHandler;
+    SetGravityHandler            m_setGravityHandler;
+    SetTotalWeightHandler        m_setTotalWeightHandler;
 
     // Geometry modification
     ArraySelectionHandler        m_arraySelectionHandler;

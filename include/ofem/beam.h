@@ -40,6 +40,7 @@ public:
 
     void getOrientationZ(double &ex, double &ey, double &ez);
     void getOrientationY(double &ex, double &ey, double &ez);
+    double getLength();
     BeamMaterial *getMaterial();
     void setMaterial(BeamMaterial *material);
     long getMaterialIndex();

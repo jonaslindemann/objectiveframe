@@ -49,6 +49,17 @@ void   AppControllerAdapter::addBeamLoadAt(int i, double fx, double fy, double f
                                                                          { m_view.addBeamLoadAt(i, fx, fy, fz); }
 void   AppControllerAdapter::clearBeamLoadAt(int i)                      { m_view.clearBeamLoadAt(i); }
 
+void   AppControllerAdapter::setSelfWeightEnabled(bool enabled)          { m_view.setSelfWeightEnabled(enabled); }
+bool   AppControllerAdapter::selfWeightEnabled()                         { return m_view.selfWeightEnabled(); }
+void   AppControllerAdapter::setSelfWeightMode(int mode)                 { m_view.setSelfWeightMode(mode); }
+int    AppControllerAdapter::selfWeightMode()                            { return m_view.selfWeightMode(); }
+void   AppControllerAdapter::setGravity(double gravity)                  { m_view.setGravity(gravity); }
+double AppControllerAdapter::gravity()                                   { return m_view.gravity(); }
+void   AppControllerAdapter::setGravityScale(double scale)               { m_view.setGravityScale(scale); }
+double AppControllerAdapter::gravityScale()                              { return m_view.gravityScale(); }
+void   AppControllerAdapter::setTotalWeight(double totalWeight)          { m_view.setTotalWeight(totalWeight); }
+double AppControllerAdapter::totalWeight()                               { return m_view.totalWeight(); }
+
 // Geometry modification
 void   AppControllerAdapter::arraySelection(int count, double dx, double dy, double dz, bool spanStep,
                                             bool copyLoadsAndBCs, double weldTolerance)

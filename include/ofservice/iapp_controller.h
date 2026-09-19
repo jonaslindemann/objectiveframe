@@ -51,6 +51,18 @@ public:
     virtual void   addBeamLoadAt(int i, double fx, double fy, double fz) = 0;
     virtual void   clearBeamLoadAt(int i) = 0;
 
+    // ── Self-weight ───────────────────────────────────────────────────────────
+    virtual void   setSelfWeightEnabled(bool enabled) = 0;
+    virtual bool   selfWeightEnabled() = 0;
+    virtual void   setSelfWeightMode(int mode) = 0;
+    virtual int    selfWeightMode() = 0;
+    virtual void   setGravity(double gravity) = 0;
+    virtual double gravity() = 0;
+    virtual void   setGravityScale(double scale) = 0;
+    virtual double gravityScale() = 0;
+    virtual void   setTotalWeight(double totalWeight) = 0;
+    virtual double totalWeight() = 0;
+
     // ── Geometry modification ─────────────────────────────────────────────────
     // Origins are passed as an int: 0 world, 1 centroid, 2 bounding box centre,
     // 3 cursor, 4 bounding box low face, 5 high face. A polar array wants 0 or

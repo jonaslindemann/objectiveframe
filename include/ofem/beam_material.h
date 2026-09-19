@@ -25,6 +25,7 @@ private:
     double m_Iy;
     double m_Iz;
     double m_Kv;
+    double m_density;
     SectionPtr m_section;
     std::string m_name;
     int m_color;
@@ -43,6 +44,8 @@ public:
 
     void getProperties(double &E, double &G, double &A, double &Iy, double &Iz, double &Kv);
     void setProperties(double E, double G, double A, double Iy, double Iz, double Kv);
+    double density();
+    void setDensity(double density);
     int getColor();
     void setColor(int color);
     const std::string getName();

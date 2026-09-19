@@ -314,6 +314,13 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     this->setUseCustomPick(true);
 
     m_ai.apiKey = ofutil::get_config_value("ai_api_key", "");
+
+    // The interface profile, restored before anything is created. Nothing reads
+    // it until the first frame draws, so this only has to happen before then -
+    // it is set here to keep it next to the other stored settings.
+
+    ofui::UiProfile::instance()->setMode(
+        ofui::UiProfile::modeFromName(ofutil::get_config_value("ui_mode", "advanced")));
 }
 
 std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, const std::string title,
@@ -982,6 +989,70 @@ void FemViewWindow::setUserSelectFilter(SelectMode filter)
 SelectMode FemViewWindow::userSelectFilter() const
 {
     return m_userSelectFilter;
+}
+
+void FemViewWindow::setUiMode(ofui::UiMode mode)
+{
+    ofui::UiProfile::instance()->setMode(mode);
+    ofutil::set_config_value("ui_mode", ofui::UiProfile::modeName(mode));
+
+    log("UI mode: " + ofui::UiProfile::modeName(mode));
+
+    // The interface itself is brought into line by applyUiMode() on the next
+    // frame, so every route into the profile - here, the start window, a menu -
+    // ends up in the same place without each having to remember to call it.
+}
+
+ofui::UiMode FemViewWindow::uiMode() const
+{
+    return ofui::UiProfile::instance()->mode();
+}
+
+void FemViewWindow::applyUiMode()
+{
+    auto *profile = ofui::UiProfile::instance();
+
+    if (m_uiMode.appliedRevision == profile->revision())
+        return;
+
+    m_uiMode.appliedRevision = profile->revision();
+
+    // Panels behind a switched-off feature. hideAllDialogs() would be shorter
+    // but wrong: it also closes the panels the profile still allows, so
+    // changing mode would shut the scale or shadow window for no reason.
+
+    if (!profile->has(UiFeature::LoadDialogs))
+    {
+        m_nodeLoadsWindow->hide();
+        m_elementLoadsWindow->hide();
+    }
+
+    if (!profile->has(UiFeature::BcDialogs))
+        m_nodeBCsWindow->hide();
+
+    if (!profile->has(UiFeature::Materials))
+        m_materialsWindow->hide();
+
+    // State the user can no longer reach. A filter or a beam type carried over
+    // from the other profile would keep acting with nothing on screen saying so
+    // and no button left to change it back - selection silently ignoring beams
+    // is a hard thing to diagnose when the filter buttons are gone.
+
+    if (!profile->has(UiFeature::SelectionFilters) && (m_userSelectFilter != SelectMode::All))
+        this->setUserSelectFilter(SelectMode::All);
+
+    if (!profile->has(UiFeature::BeamTypes) && (m_beamType != BeamType::Beam))
+    {
+        m_beamType = BeamType::Beam;
+
+        // Create bar has just gone from the toolbar while it was the lit
+        // button, which leaves the toolbar showing no active tool at all.
+        // setEditMode() picks the button from m_beamType, so re-entering the
+        // mode lights Create beam instead.
+
+        if (this->getEditMode() == WidgetMode::CreateLine)
+            this->setEditMode(WidgetMode::CreateLine);
+    }
 }
 
 std::string FemViewWindow::selectFilterName(SelectMode filter)
@@ -1664,8 +1735,7 @@ void FemViewWindow::startPasteGhost()
     {
         double x, y, z;
         vnode->getPosition(x, y, z);
-        m_paste.nodeOffset.push_back(
-            {x - m_paste.anchor[0], y - m_paste.anchor[1], z - m_paste.anchor[2]});
+        m_paste.nodeOffset.push_back({x - m_paste.anchor[0], y - m_paste.anchor[1], z - m_paste.anchor[2]});
     }
 
     this->highlightPasteGhost();
@@ -1683,8 +1753,7 @@ void FemViewWindow::movePasteGhost(double x, double y, double z)
     for (size_t i = 0; i < m_paste.nodes.size(); i++)
     {
         auto femNode = m_paste.nodes[i]->getFemNode();
-        femNode->setCoord(x + m_paste.nodeOffset[i][0], y + m_paste.nodeOffset[i][1],
-                          z + m_paste.nodeOffset[i][2]);
+        femNode->setCoord(x + m_paste.nodeOffset[i][0], y + m_paste.nodeOffset[i][1], z + m_paste.nodeOffset[i][2]);
     }
 
     this->refreshBeamModelVisuals();
@@ -4758,17 +4827,55 @@ void FemViewWindow::hideAllDialogs()
 
 void FemViewWindow::onInit()
 {
+    // The interface profile, if --ui-mode=<name> was given. The constructor has
+    // already restored the stored choice, so this overrides it - for this run
+    // only, deliberately: the flag says how to start, not what to remember, so
+    // a shortcut that carries it cannot quietly rewrite the setting the user
+    // made from the start window. Changing the mode in the UI still persists.
+    //
+    // Parsed here rather than in main.cpp, where --gldebug and --core are read,
+    // because those have to be known before the GL context is created and this
+    // does not. The "--" prefix keeps it out of the model-filename scan at the
+    // end of this function.
+
+    for (int i = 1; i < m_argc; i++)
+    {
+        const std::string arg = m_argv[i];
+        const std::string prefix = "--ui-mode=";
+
+        if (arg.rfind(prefix, 0) != 0)
+            continue;
+
+        const std::string name = arg.substr(prefix.size());
+
+        // modeFromName() falls back to the mode given rather than reporting a
+        // bad name, so ask it twice: a name it cannot read gives two different
+        // answers, and is worth saying out loud instead of silently starting in
+        // a mode nobody asked for.
+
+        const auto asSimple = ofui::UiProfile::modeFromName(name, ofui::UiMode::Simple);
+        const auto asAdvanced = ofui::UiProfile::modeFromName(name, ofui::UiMode::Advanced);
+
+        if (asSimple != asAdvanced)
+        {
+            log("Unknown --ui-mode value '" + name + "' - expected simple or advanced. Ignoring.");
+            continue;
+        }
+
+        ofui::UiProfile::instance()->setMode(asAdvanced);
+        log("UI mode from command line: " + ofui::UiProfile::modeName(asAdvanced));
+    }
+
     // Driver debug output, if --gldebug was given. Installed before anything
     // draws, and routed into the log window so the messages sit alongside the
     // rest of the application's output instead of on a console nobody sees.
 
     if (m_glDebug)
     {
-        ivf::setDebugMessageHandler(
-            [this](const std::string &message, ivf::DebugSeverity severity, unsigned int id) {
-                this->log(std::string("GL [") + ivf::debugSeverityString(severity) + "] " +
-                          std::to_string(id) + ": " + message);
-            });
+        ivf::setDebugMessageHandler([this](const std::string &message, ivf::DebugSeverity severity, unsigned int id) {
+            this->log(std::string("GL [") + ivf::debugSeverityString(severity) + "] " + std::to_string(id) + ": " +
+                      message);
+        });
 
         if (ivf::enableDebugOutput())
             this->log("GL debug output enabled.");
@@ -4781,7 +4888,6 @@ void FemViewWindow::onInit()
     // Cache the GLU tessellator used for extrusion end caps.
 
     gleInitTessCache();
-
 
     // Setup web service
 
@@ -5169,7 +5275,11 @@ void FemViewWindow::onInit()
 
     m_windowList->add(m_promptWindow);
 
-    m_eigenmodeWindow = EigenmodeWindow::create("Eigenmode Analysis");
+    // The "###" part is the ImGui identity, kept out of the label so the panel
+    // can retitle itself when the interface profile changes without losing the
+    // position and size it was given. eigenmode_window.cpp holds both labels.
+
+    m_eigenmodeWindow = EigenmodeWindow::create("Eigenmode Analysis###eigenmodeWindow");
     m_eigenmodeWindow->setFemView(this);
     m_eigenmodeWindow->setVisible(false);
 
@@ -5223,19 +5333,26 @@ void FemViewWindow::onInit()
                                    (m_paths.image / fs::path("tlselectbox.png")).string(), 1);
     m_mainToolbarWindow->addButton("Paint select", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlselectpaint.png")).string(), 1);
+    m_mainToolbarWindow->addSpacer();
     m_mainToolbarWindow->addButton("Move", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlmove.png")).string(), 1);
     m_mainToolbarWindow->addSpacer();
 
     // What the selection modes are allowed to pick. Own radio group, so it is
     // independent of the edit mode above and survives switching between modes.
+    //
+    // Tagged as one feature: a profile that offers only some of the filters
+    // would leave the user in a filter they cannot get out of.
 
     m_mainToolbarWindow->addButton("Filter all", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlfilterall.png")).string(), 2);
+                                   (m_paths.image / fs::path("tlfilterall.png")).string(), 2,
+                                   UiFeature::SelectionFilters);
     m_mainToolbarWindow->addButton("Filter nodes", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlfilternodes.png")).string(), 2);
+                                   (m_paths.image / fs::path("tlfilternodes.png")).string(), 2,
+                                   UiFeature::SelectionFilters);
     m_mainToolbarWindow->addButton("Filter beams", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlfilterbeams.png")).string(), 2);
+                                   (m_paths.image / fs::path("tlfilterbeams.png")).string(), 2,
+                                   UiFeature::SelectionFilters);
     m_mainToolbarWindow->addSpacer();
     m_mainToolbarWindow->addButton("Inspect", OfToolbarButtonType::Button,
                                    (m_paths.image / fs::path("tlinspect.png")).string());
@@ -5261,7 +5378,7 @@ void FemViewWindow::onInit()
                                    (m_paths.image / fs::path("tlnode.png")).string(), 1);
 
     m_editToolbarWindow->addButton("Create beam", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlsolidline.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlsolidline.png")).string(), 1, UiFeature::BeamTypes);
 
     m_editToolbarWindow->addButton("Create bar", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlbarline.png")).string(), 1);
@@ -5299,17 +5416,20 @@ void FemViewWindow::onInit()
 
     m_editToolbarWindow->addSpacer();
 
+    // The property dialogs. The quick tools above cover the same ground for the
+    // common cases, which is what a simple profile is left with.
+
     m_editToolbarWindow->addButton("Node loads", OfToolbarButtonType::Button,
-                                   (m_paths.image / fs::path("tlnodeloads.png")).string(), 0);
+                                   (m_paths.image / fs::path("tlnodeloads.png")).string(), 0, UiFeature::LoadDialogs);
 
     m_editToolbarWindow->addButton("Beam loads", OfToolbarButtonType::Button,
-                                   (m_paths.image / fs::path("tldload.png")).string(), 0);
+                                   (m_paths.image / fs::path("tldload.png")).string(), 0, UiFeature::LoadDialogs);
 
     m_editToolbarWindow->addButton("Node BC", OfToolbarButtonType::Button,
-                                   (m_paths.image / fs::path("tlbc.png")).string(), 0);
+                                   (m_paths.image / fs::path("tlbc.png")).string(), 0, UiFeature::BcDialogs);
 
     m_editToolbarWindow->addButton("Materials", OfToolbarButtonType::Button,
-                                   (m_paths.image / fs::path("tlmaterials.png")).string(), 0);
+                                   (m_paths.image / fs::path("tlmaterials.png")).string(), 0, UiFeature::Materials);
 
     m_editToolbarWindow->assignOnButtonClicked(
         ButtonClickedFunc(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1)));
@@ -5332,6 +5452,7 @@ void FemViewWindow::onInit()
     m_startPopup->assignStartButtonClickedFunc(
         std::bind(&FemViewWindow::onStartButtonClicked, this, std::placeholders::_1));
     m_startPopup->assignExampleClickedFunc(std::bind(&FemViewWindow::onExampleClicked, this, std::placeholders::_1));
+    m_startPopup->assignUiModeChangedFunc(std::bind(&FemViewWindow::setUiMode, this, std::placeholders::_1));
 
     // Tetgen
 
@@ -5718,26 +5839,20 @@ void FemViewWindow::onUnderlay()
     const float h = float(height());
 
     const float positions[18] = {
-        0.0f, 0.0f, 0.0f,
-        0.0f, h,    0.0f,
-        w,    h,    0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, h, 0.0f, w, h,    0.0f,
 
-        0.0f, 0.0f, 0.0f,
-        w,    h,    0.0f,
-        w,    0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, w,    h, 0.0f, w, 0.0f, 0.0f,
     };
 
     const float light[4] = {0.7f, 0.7f, 0.7f, 1.0f};
     const float dark[4] = {0.2f, 0.2f, 0.2f, 1.0f};
 
     const float colors[24] = {
-        light[0], light[1], light[2], light[3],
-        dark[0],  dark[1],  dark[2],  dark[3],
-        dark[0],  dark[1],  dark[2],  dark[3],
+        light[0], light[1], light[2], light[3], dark[0],  dark[1],
+        dark[2],  dark[3],  dark[0],  dark[1],  dark[2],  dark[3],
 
-        light[0], light[1], light[2], light[3],
-        dark[0],  dark[1],  dark[2],  dark[3],
-        light[0], light[1], light[2], light[3],
+        light[0], light[1], light[2], light[3], dark[0],  dark[1],
+        dark[2],  dark[3],  light[0], light[1], light[2], light[3],
     };
 
     if (ivf::rcDrawUnlit(GL_TRIANGLES, positions, colors, 6))
@@ -6164,9 +6279,8 @@ void FemViewWindow::updateSelectionCount()
     // The plane can change on any mouse move ([Shift]) or from the menu, so it
     // is read back rather than pushed on each of those paths.
 
-    const char *axis = (this->activeWorkPlane() == ShiftPlane::XY)
-                           ? "z"
-                           : ((this->activeWorkPlane() == ShiftPlane::YZ) ? "x" : "y");
+    const char *axis =
+        (this->activeWorkPlane() == ShiftPlane::XY) ? "z" : ((this->activeWorkPlane() == ShiftPlane::YZ) ? "x" : "y");
 
     ofui::WorkPlaneInfo planeInfo;
 
@@ -6376,9 +6490,8 @@ std::string FemViewWindow::workPlaneDescription()
     if (!this->isWorkPlaneLocked())
         return name;
 
-    const char *axis = (this->activeWorkPlane() == ShiftPlane::XY)
-                           ? "z"
-                           : ((this->activeWorkPlane() == ShiftPlane::YZ) ? "x" : "y");
+    const char *axis =
+        (this->activeWorkPlane() == ShiftPlane::XY) ? "z" : ((this->activeWorkPlane() == ShiftPlane::YZ) ? "x" : "y");
 
     char buffer[64];
     snprintf(buffer, sizeof(buffer), "%s @ %s=%.2f", name, axis, this->workPlaneOffset());
@@ -6437,6 +6550,18 @@ void FemViewWindow::onEditModeChanged(WidgetMode previousMode, WidgetMode newMod
     if ((previousMode == WidgetMode::SelectPosition) && (newMode != WidgetMode::SelectPosition) &&
         (m_customMode == CustomMode::LockPlane))
         m_customMode = CustomMode::Normal;
+
+    // A quick panel describes the tool that stamps with it, so it belongs to
+    // its mode and leaves with it. setEditMode() covers the half where a stamp
+    // mode is entered - it opens that tool's panel and closes the other one.
+    // This is the other half: neither tool is active any more, so neither panel
+    // should be on screen offering to apply something that nothing will read.
+
+    if (!isStampMode(newMode))
+    {
+        m_quickForceWindow->hide();
+        m_quickSupportWindow->hide();
+    }
 }
 
 void FemViewWindow::onMoveStart()
@@ -7119,6 +7244,12 @@ void FemViewWindow::onDrawImGui()
 
     if (m_editToolbarWindow != nullptr)
         m_editToolbarWindow->setButtonSelected("Self weight", this->selfWeightEnabled());
+
+    // Cheap when nothing has changed - it compares one revision counter and
+    // returns. Done before the windows are drawn so a panel the new profile
+    // hides does not get one more frame on screen.
+
+    this->applyUiMode();
 
     m_windowList->draw();
 

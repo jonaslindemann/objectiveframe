@@ -33,6 +33,14 @@ public:
     static std::shared_ptr<EigenmodeWindow> create(const std::string& title);
     
     virtual void doDraw() override;
+
+    /**
+     * Sets the title from the interface profile, before UiWindow::draw() opens
+     * the window with it. A simple profile reduces this panel to "is the
+     * structure stable, and if not how does it fold", which is not what
+     * "Eigenmode Analysis" says to someone who has not met the word.
+     */
+    virtual void doPreDraw() override;
     
     void setFemView(::FemViewWindow* view);
     void setHasEigenmodes(bool hasEigenmodes);

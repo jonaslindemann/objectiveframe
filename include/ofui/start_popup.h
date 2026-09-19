@@ -7,6 +7,7 @@
 
 #include <ofui/popup_window.h>
 #include <ofui/texture.h>
+#include <ofui/ui_profile.h>
 
 class FemViewWindow;
 
@@ -23,6 +24,7 @@ enum class OfStartButton {
 
 typedef std::function<void(OfStartButton &button)> StartButtonClickedFunc;
 typedef std::function<void(std::string &filename)> ExampleClickedFunc;
+typedef std::function<void(UiMode mode)> UiModeChangedFunc;
 
 class StartPopup : public PopupWindow {
 private:
@@ -35,6 +37,7 @@ private:
 
     StartButtonClickedFunc m_startButtonClickedFunc;
     ExampleClickedFunc m_exampleClickedFunc;
+    UiModeChangedFunc m_uiModeChangedFunc;
 
 public:
     StartPopup(const std::string name, bool modal = true);
@@ -47,6 +50,7 @@ public:
     void addExample(const std::string &filename, const std::string &imageFilename);
     void assignStartButtonClickedFunc(StartButtonClickedFunc func);
     void assignExampleClickedFunc(ExampleClickedFunc func);
+    void assignUiModeChangedFunc(UiModeChangedFunc func);
 
     void setVersionString(const std::string &versionString);
     void setRelease(const std::string &release);

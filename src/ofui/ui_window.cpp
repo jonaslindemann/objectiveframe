@@ -201,6 +201,11 @@ std::string ofui::UiWindow::name()
     return m_name;
 }
 
+void ofui::UiWindow::setName(const std::string &name)
+{
+    m_name = name;
+}
+
 bool ofui::UiWindow::isFocused()
 {
     if (m_ignoreFocusCheck)

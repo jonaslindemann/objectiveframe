@@ -2,6 +2,25 @@
 
 ObjectiveFrame is a C++ application built upon several libraries. To build the application, required libraries have to be built. The main library used is Ivf++, an object-oriented 3D scene graph library encapsulating the OpenGL library. The second library is GLFW for creating OpenGL windows and providing a source of window events.
 
+## Project structure
+
+ObjectiveFrame is built as a set of static libraries with the application on top:
+
+| Library | Namespace | Role |
+| --- | --- | --- |
+| `fem` | `ofem` | The FEM data model - nodes, beams, materials, loads, boundary conditions, sections, file I/O |
+| `visfem` | `vfem` | Ivf++ based visual representations of the FEM objects |
+| `ofui` | `ofui` | All Dear ImGui panels, popups and toolbars |
+| `ofsolve` | `ofsolver` | Solver interface, and the TetGen based mesher |
+| `ofmath` | — | Geometry maths: grid planes, ray intersection, transforms, smoothing |
+| `ofservice` | `ofservice` | The CivetWeb HTTP service behind the [Automation API](rest-api.md) |
+| `ofai` | `ofai` | Claude API integration for the [AI workflow](llm-integration.md) |
+| `util` | `ofutil` | Colour maps, result info, logging, application settings |
+
+The application layers three windows: `GLFWWindow` owns the window and the OpenGL context, `IvfViewWindow` adds the Ivf++ scene graph, the camera and the editing modes, and `FemViewWindow` holds the FEM model, the user interface, the scripting engine and the AI integration.
+
+`ofui` never includes application headers, and `ofservice` reaches the application only through the `ofservice::IAppController` interface, so neither library depends on `FemViewWindow`.
+
 ## Prerequisites
 
 Before building ObjectiveFrame, ensure you have the following prerequisites installed:
@@ -138,7 +157,9 @@ You can customize the build with these CMake options:
 
 - `CMAKE_BUILD_TYPE`: Set to `Release`, `Debug`, or `RelWithDebInfo`
 - `CMAKE_INSTALL_PREFIX`: Installation directory
-- `BUILD_TESTING`: Enable/disable tests (default: ON)
+- `IVF_ROOT`: Location of the Ivf++ tree (default: `../ivfplusplus`, next to this repository)
+- `OF_SWEPT_EXTRUSION`: Build beam geometry on the gle-free swept extrusion classes (default: ON)
+- `USE_LEAP`: Build with LeapMotion support (default: OFF)
 
 Example:
 ```bash
@@ -166,6 +187,16 @@ After building, you can run ObjectiveFrame from the installation directory:
     # From Debug build
     ./build-debug/objframe
     ```
+
+### Command Line Options
+
+The application itself takes a few options, which are useful while developing:
+
+- `--ui-mode=simple` / `--ui-mode=advanced`: start in that interface profile for this run only, without changing the stored setting.
+- `--gldebug`: create a debug OpenGL context and route driver messages into the log window.
+- `--core`, `--legacy`, `--mixed`: choose the render profile. Core is the default.
+
+A model filename can also be passed, and is opened at startup.
 
 ## Troubleshooting
 
@@ -228,22 +259,24 @@ cmake --install . --prefix ../install
 
 ### Integration with ObjectiveFrame
 
-Set the `IVFPLUSPLUS_DIR` environment variable to point to the Ivf++ installation:
+ObjectiveFrame looks for Ivf++ in `../ivfplusplus`, next to this repository, which is why the clone above is made there. If it lives somewhere else, point `IVF_ROOT` at it:
 
 === "Windows"
     ```powershell
-    $env:IVFPLUSPLUS_DIR = "..\ivfplusplus\install"
+    $env:IVF_ROOT = "c:\src\ivfplusplus"
     ```
 
 === "Linux"
     ```bash
-    export IVFPLUSPLUS_DIR=../ivfplusplus/install
+    export IVF_ROOT=$HOME/src/ivfplusplus
     ```
 
 Or pass it to CMake:
 ```bash
-cmake -S . -B build -DIVFPLUSPLUS_DIR=../ivfplusplus/install
+cmake -S . -B build -DIVF_ROOT=../ivfplusplus
 ```
+
+The build reads the headers from `$IVF_ROOT/include` and the libraries from `$IVF_ROOT/lib`, so Ivf++ has to be built but does not have to be installed.
 
 ## Building GLFW
 

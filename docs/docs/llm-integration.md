@@ -26,7 +26,7 @@ When you want to preserve the current model, say so explicitly in the prompt.
 You can open the AI prompt window from:
 
 - the start popup, using **Open AI prompt...**
-- the main menu, using **Tools/Create using AI**
+- the main menu, using **Create/Create using AI**
 
 The prompt window has two tabs:
 
@@ -35,7 +35,7 @@ The prompt window has two tabs:
 
 ## API key setup
 
-The LLM service requires an API key. Open **View/Settings...** and enter the key in **AI API key**. The key can also be pasted from the clipboard using the button in the settings window.
+The LLM service requires an API key. Open **File/Preferences...** and enter the key in **AI API key**. The key can also be pasted from the clipboard using the button in the preferences window.
 
 ObjectiveFrame stores the key in the local application configuration so it can be reused in later sessions.
 

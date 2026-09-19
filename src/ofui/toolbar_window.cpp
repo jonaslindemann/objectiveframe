@@ -30,15 +30,19 @@ ToolbarOrientation ofui::ToolbarWindow::orientation()
     return m_orientation;
 }
 
-void ofui::ToolbarWindow::addButton(const std::string name, OfToolbarButtonType type, std::string filename, int group)
+void ofui::ToolbarWindow::addButton(const std::string name, OfToolbarButtonType type, std::string filename, int group,
+                                    UiFeature feature)
 {
     auto texture = Texture::create(filename);
     texture->load();
-    m_buttons.emplace_back(name, type, texture, group, texture->id());
+    m_buttons.emplace_back(name, type, texture, group, texture->id(), feature);
 }
 void ofui::ToolbarWindow::addSpacer()
 {
-    m_buttons.emplace_back("", OfToolbarButtonType::Spacer, nullptr, -1, -1);
+    // Spacers carry no feature of their own - doDraw() collapses the ones left
+    // dividing nothing once the group around them is hidden.
+
+    m_buttons.emplace_back("", OfToolbarButtonType::Spacer, nullptr, -1, -1, UiFeature::None);
 }
 void ofui::ToolbarWindow::addToolbarGroup(std::shared_ptr<ToolbarWindow> toolbar)
 {
@@ -133,13 +137,48 @@ void ToolbarWindow::doDraw()
     const float scale = ImGui::GetIO().FontGlobalScale;
     ImVec2 button_sz(40.0f * scale, 40.0f * scale);
 
-    int id = 0;
+    auto *profile = UiProfile::instance();
 
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4{1, 0, 0, 1});
 
-    for (auto &button : m_buttons)
+    // Hiding a button leaves a hole in two places. The ImGui id has to stay
+    // tied to the button's index in m_buttons, because that is what a radio
+    // click selects by - deriving it from a counter that only advances for
+    // drawn buttons would make every click past the first hidden one land on
+    // its neighbour. And a spacer whose group has gone is a divider with
+    // nothing on one side of it, so spacers are held back until a button
+    // actually follows, and a run of them collapses to one gap.
+
+    bool anyDrawn = false;
+    bool spacerPending = false;
+
+    for (size_t i = 0; i < m_buttons.size(); i++)
     {
-        ImGui::PushID(id++);
+        auto &button = m_buttons[i];
+
+        if (!profile->has(button.feature()))
+            continue;
+
+        if (button.type() == OfToolbarButtonType::Spacer)
+        {
+            spacerPending = anyDrawn;
+            continue;
+        }
+
+        if (anyDrawn && m_orientation == ToolbarOrientation::Horizontal)
+            ImGui::SameLine();
+
+        if (spacerPending)
+        {
+            ImGui::Dummy(ImVec2(10.0f * scale, 10.0f * scale));
+
+            if (m_orientation == ToolbarOrientation::Horizontal)
+                ImGui::SameLine();
+
+            spacerPending = false;
+        }
+
+        ImGui::PushID(int(i));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4.0f * scale, 4.0f * scale});
 
@@ -208,7 +247,7 @@ void ToolbarWindow::doDraw()
             if (ImGui::ImageButton("", (ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), m_color,
                                    m_selectedColor))
             {
-                this->selectButton(id - 1, button.group());
+                this->selectButton(int(i), button.group());
                 if (m_onButtonClicked)
                 {
                     m_onButtonClicked(button);
@@ -221,25 +260,22 @@ void ToolbarWindow::doDraw()
             }
             ImGui::PopStyleColor(1);
         }
-        else if (button.type() == OfToolbarButtonType::Spacer)
-        {
-            ImGui::Dummy(ImVec2(10.0f * scale, 10.0f * scale));
-        }
 
         if (button.texture() != nullptr)
             button.texture()->unbind();
 
+        anyDrawn = true;
+
         ImGui::PopStyleVar(1);
-        if (m_orientation == ToolbarOrientation::Horizontal && id < int(m_buttons.size()))
-            ImGui::SameLine();
         ImGui::PopID();
     }
     ImGui::PopStyleColor(1);
 }
 
 OfToolbarButton::OfToolbarButton(const std::string name, OfToolbarButtonType type, ofui::TexturePtr texture, int group,
-                                 int id)
-    : m_name{name}, m_selected{false}, m_enabled{true}, m_group{group}, m_id{id}, m_type{type}, m_texture{texture}
+                                 int id, UiFeature feature)
+    : m_name{name}, m_selected{false}, m_enabled{true}, m_group{group}, m_id{id}, m_type{type}, m_texture{texture},
+      m_feature{feature}
 {}
 
 void ofui::OfToolbarButton::setSelected(bool flag)
@@ -295,6 +331,11 @@ int ofui::OfToolbarButton::group()
 int ofui::OfToolbarButton::id()
 {
     return m_id;
+}
+
+UiFeature ofui::OfToolbarButton::feature()
+{
+    return m_feature;
 }
 
 ofui::TexturePtr ofui::OfToolbarButton::texture()

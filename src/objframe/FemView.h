@@ -82,6 +82,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/start_popup.h>
 #include <ofui/texture.h>
 #include <ofui/toolbar_window.h>
+#include <ofui/ui_profile.h>
 #include <ofui/window_list.h>
 #include <ofui/script_window.h>
 #include <ofui/prompt_window.h>
@@ -229,7 +230,6 @@ private:
         double gridSurfaceOpacity{0.5};
         bool useImGuiFileDialogs{true};
         bool saveScreenShot{false};
-
     };
     ViewSettings m_view;
 
@@ -248,6 +248,16 @@ private:
     AppPaths m_paths;
 
     bool m_overlaySelected;
+
+    // The interface profile lives in ofui::UiProfile, which the start window and
+    // the toolbars all reach directly. This is only what the view needs to
+    // notice a change someone else made: the revision it last acted on.
+
+    struct UiModeState {
+        int appliedRevision{-1};
+    };
+    UiModeState m_uiMode;
+
     struct SolverState {
         ofsolver::BeamSolverPtr beam;
         ofsolver::SolverInterface *current{nullptr};
@@ -323,7 +333,10 @@ private:
 
     struct QuickToolState {
         FemViewQuickToolHandler::ForceSpec force;
-        ofem::BeamNodeBC::DefaultKind constraint{ofem::BeamNodeBC::DefaultKind::Fixed};
+        // Pinned is the default - see ofui::QuickSupportWindow::Fields, which
+        // holds the same default for the panel and pushes it here when the
+        // panel is wired up.
+        ofem::BeamNodeBC::DefaultKind constraint{ofem::BeamNodeBC::DefaultKind::Pinned};
 
         // Armed when a stamping stroke starts, cleared by the first change in
         // it - see FemViewQuickToolHandler's undo note.
@@ -593,6 +606,13 @@ public:
     const std::string getFileName();
     void setSelectFilter(SelectMode filter);
     void setUserSelectFilter(SelectMode filter);
+
+    // Interface profile. setUiMode() stores the choice and takes effect on the
+    // next frame - nothing is created or destroyed, so there is no restart.
+
+    void setUiMode(ofui::UiMode mode);
+    ofui::UiMode uiMode() const;
+
     SelectMode userSelectFilter() const;
     static std::string selectFilterName(SelectMode filter);
     void setBeamRefreshMode(ivf::LineRefreshMode mode);
@@ -710,6 +730,16 @@ public:
     // Methods
 
     void hideAllDialogs();
+
+    /**
+     * Brings the interface into line with the current ofui::UiProfile.
+     *
+     * Idempotent, and cheap enough to be called every frame - onDrawImGui()
+     * gates it on the profile's revision so it only does work when the profile
+     * has actually changed.
+     */
+    void applyUiMode();
+
     void removeBeamLoadsFromSelected();
     void removeNodeBCsFromSelected();
     void removeNodeLoadsFromSelected();
@@ -910,7 +940,6 @@ private:
     void highlightPasteGhost();
 
 public:
-
     // Specific scripting interface methods
 
     vfem::Node *addNode(double x, double y, double z);

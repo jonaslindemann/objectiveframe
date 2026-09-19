@@ -21,6 +21,7 @@ nav = [
     { "AI / LLM Integration" = "llm-integration.md" },
     { "Eigenmode Solver" = "eigenmode-solver.md" },
     { "ChaiScript Scripting" = "chaiscript.md" },
+    { "Automation API" = "rest-api.md" },
   ] },
   { "Project" = [
     { "Roadmap" = "roadmap.md" },

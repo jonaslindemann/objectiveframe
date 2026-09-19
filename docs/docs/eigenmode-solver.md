@@ -22,6 +22,10 @@ Use the **Eigenmode Analysis** window to compute and inspect modes. The window c
 - **Scale Factor**: increase or decrease the displayed deformation.
 - **Mode stability**: list computed modes and show whether a mode is unstable.
 
+!!! note "In the Simple interface"
+
+    The panel is titled **Stability analysis** and keeps only the three controls that answer "how does this thing move": **Animate**, **Speed** and **Scale Factor**. There is nothing to run by hand, because modes are computed for you whenever a solve finds the structure unstable or unloaded.
+
 ## Interpreting results
 
 The eigenmode shape is a diagnostic visualization. It shows a deformation pattern associated with the model stiffness matrix.

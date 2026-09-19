@@ -11,8 +11,11 @@ Scripts use the `.chai` extension. You can work with them from the main menu:
 - **File/New script...** opens a new script in the script editor.
 - **File/Open script...** opens an existing script.
 - **File/Run script...** runs a script file directly.
+- **View/Script editor...** opens the script editor on whatever is currently loaded.
 
 Scripts and plugins are evaluated inside ObjectiveFrame. A snapshot is taken before execution so normal undo workflows can be used after many script operations.
+
+The same commands are also available over HTTP, for driving ObjectiveFrame from Python or another program. See [Automation API](rest-api.md).
 
 ## Minimal example
 
@@ -61,6 +64,22 @@ Prefer the `WithIdx` functions for generated scripts because they make node and 
 | `materialCount()` | Return the number of materials. |
 | `deleteNodeAt(i)` | Delete a node and connected beams. |
 | `deleteBeamAt(i)` | Delete a beam. |
+| `subdivideBeamAt(i)` | Split beam `i` in two, adding a node at its midpoint. |
+| `beamsAtNode(i)` | Return the indices of the beams meeting at node `i`. |
+| `connectNearNodes(tolerance)` | Weld nodes closer together than `tolerance` into one. |
+| `clearAllLoads()` | Remove every load from the model. |
+| `clearAllBCs()` | Remove every boundary condition from the model. |
+| `snapShot()` | Place an undo point. |
+
+A few functions take the visual node object that `addNode()` returns rather than an index. They are convenient when a script already holds the node it just created:
+
+| Function | Description |
+| --- | --- |
+| `nodeAt(i)` | Return the node object for index `i`. |
+| `nodeCoord(node, x, y, z)` | Fill `x`, `y`, and `z` with the position of `node`. |
+| `updateNodePos(node, x, y, z)` | Move `node`. |
+| `isNodeSelected(node)` | Return whether `node` is selected. |
+| `addLastNodeToSelection()` | Add the most recently created node to the selection. |
 
 Out-parameters must be declared before calling functions such as `nodePosAt`, `beamAt`, and `modelBounds`:
 
@@ -99,6 +118,10 @@ Each command is a single undoable step and takes its own snapshot, so do not cal
 | `arraySelection(count, dx, dy, dz, spanStep, copyLoadsAndBCs, weldTolerance)` | Repeat along a direction. |
 | `planeArraySelection(plane, count1, step1, count2, step2, spanStep, copyLoadsAndBCs, weldTolerance)` | Repeat across a principal plane. |
 | `polarArraySelection(count, ax, ay, az, totalAngleDeg, origin, rotateCopies, fullCircle, copyLoadsAndBCs, weldTolerance)` | Repeat around an axis. |
+| `setSelectionCoord(setX, x, setY, y, setZ, z)` | Assign world coordinates to the selection, one axis at a time. |
+| `setSelectionCoordAxis(axis, value)` | The same for a single axis - `0` for x, `1` for y, `2` for z. |
+
+`setSelectionCoord` writes only the axes whose flag is true and leaves the others as they are, so `setSelectionCoord(false, 0.0, true, 0.0, false, 0.0)` flattens the selection onto `y = 0` while its x and z stay spread.
 
 `axis` is `0` for x, `1` for y and `2` for z. `origin` selects what the transform is measured from:
 
@@ -158,6 +181,62 @@ Linear and grid arrays carry loads and boundary conditions onto the copies, beca
 | `beamLoadCount()` | Return the number of beam load objects. |
 
 Load vectors encode both direction and magnitude. For example, `addNodeLoadAt(i, 0.0, -1000.0, 0.0)` applies a 1000 N downward load.
+
+## Quick forces and supports
+
+These are the scripting side of the quick tools. They act on the **current selection**, and share the grouping the tools use: supports are shared objects looked up by name, and forces join an existing load with the same direction and magnitude instead of creating one per node.
+
+| Function | Description |
+| --- | --- |
+| `quickForceSelection(fx, fy, fz)` | Apply a force to the selected nodes. |
+| `quickConstraintSelection(kind)` | Apply a standard support to the selected nodes. |
+| `clearQuickForceSelection()` | Remove quick forces from the selected nodes. |
+| `clearQuickConstraintSelection()` | Remove supports from the selected nodes. |
+| `setQuickForce(fx, fy, fz)` | Set what the quick force tool will apply next. |
+| `setQuickConstraint(kind)` | Set which support the quick support tool will apply next. |
+
+`kind` names one of the five standard supports:
+
+| Value | Support |
+| --- | --- |
+| `0` | Fixed - all translations and rotations |
+| `1` | Pinned - all translations, free to rotate |
+| `2` | Roller X - free along x |
+| `3` | Roller Y - free along y |
+| `4` | Roller Z - free along z |
+
+A node carries one support at a time, so applying one replaces whatever the node had.
+
+## Self-weight
+
+Self-weight is a property of the model, saved with it, and applied when the model is solved.
+
+| Function | Description |
+| --- | --- |
+| `setSelfWeightEnabled(flag)` / `selfWeightEnabled()` | Turn self-weight on or off. |
+| `setSelfWeightMode(mode)` / `selfWeightMode()` | `0` material density, `1` total load, `2` mass per length. |
+| `setGravity(g)` / `gravity()` | Gravitational acceleration, default 9.81. |
+| `setGravityScale(s)` / `gravityScale()` | Load factor applied to the result. |
+| `setTotalWeight(w)` / `totalWeight()` | Total load, spread over the structure by element length. |
+| `setMassPerLength(m)` / `massPerLength()` | Mass per unit length on every element. |
+
+```chaiscript
+setSelfWeightEnabled(true);
+setSelfWeightMode(0);   // from each material's density
+setGravityScale(1.35);  // a factored self-weight case
+```
+
+## Work plane
+
+A script that places nodes at known coordinates has no use for the cursor, but a script that sets up a modelling session for someone else does.
+
+| Function | Description |
+| --- | --- |
+| `lockWorkPlaneAt(plane, x, y, z)` | Pin cursor placement to `plane` through the given point. |
+| `releaseWorkPlaneLock()` | Return to `[Shift]` driven plane selection. |
+| `isWorkPlaneLocked()` | Return whether a lock is in force. |
+
+`plane` is `0` for xz (the horizontal ground plane), `1` for xy and `2` for yz.
 
 ## Utilities
 

@@ -6,31 +6,85 @@ To give a short overview of what ObjectiveFrame can offer please view the follow
 
 ## User guide map
 
-This page covers the core modelling workflow: navigation, nodes, beams, loads, boundary conditions, materials, and ordinary result visualization.
+This page covers the core modelling workflow: navigation, nodes, beams, loads, boundary conditions, materials, geometry modification, and result visualization.
 
 More specialized workflows are documented separately:
 
 - [AI / LLM integration](llm-integration.md) describes prompt-based structure generation and how generated scripts are reviewed and run.
 - [Eigenmode solver](eigenmode-solver.md) explains instability diagnostics, mode shapes, animation, and eigenvalue interpretation.
 - [ChaiScript scripting](chaiscript.md) documents the script interface used by plugins and AI-generated models.
+- [Automation API](rest-api.md) documents the local HTTP service used to drive ObjectiveFrame from Python.
+
+## Starting ObjectiveFrame
+
+### The start page
+
+ObjectiveFrame opens on a start page. It holds the commands you need before there is a model on screen, and a grid of example models that open on a click.
+
+| Button | Does |
+| --- | --- |
+| **New Project...** | Start an empty model |
+| **Open Model...** | Open an existing `.df3` model |
+| **Open AI prompt...** | Describe a structure in words and let the LLM integration generate it |
+| **Open Python model...** | Open a CALFEM for Python model |
+| **Documentation** | Open this documentation in a browser |
+| **Start automation API** | Start the local [HTTP service](rest-api.md) on port 8081 |
+
+The start page can be reopened at any time from **File / Start page**.
+
+### Simple and Advanced interface
+
+The start page also chooses which interface ObjectiveFrame presents.
+
+- **Simple** hides the parts of the interface that a first-time user does not need: the choice of element type, the node load, beam load, support and material property dialogs, the selection filter buttons, and the analytical half of the eigenmode panel.
+- **Advanced** shows everything. This is the default, and what the rest of this guide describes.
+
+The mode is a view of the same program, not a different file format: a model carries all of its data either way, and switching modes never changes the model. The choice is remembered between sessions, and can be changed at any time — the interface follows on the next frame, without a restart.
+
+Starting `objframe.exe --ui-mode=simple` (or `--ui-mode=advanced`) starts in that mode for one run without changing the stored setting, which is useful for a lab shortcut that should always come up simple.
 
 ## Main window and view
 
-When you start the application the main workspace is displayed. The workspace is your workbench where you create your structures. By default the workspace is 20 x 20 units large. The size can be changed from the **View/Settings...** dialog. 
+When you start the application the main workspace is displayed. The workspace is your workbench where you create your structures. By default the workspace is 20 x 20 units large. The size can be changed from the **File / Preferences...** dialog.
 
 ![ObjectiveFrame](images/navigation_001.png "ObjectiveFrame workspace")
 
-The view can be changed using the mouse. All view functions are handled by the right mouse button in combination with a modifier key. 
+The view can be changed using the mouse. All view functions are handled by the right mouse button in combination with a modifier key.
 
 * Holding down the right button and moving the mouse will rotate the view.
 * Holding down the right button with the [Shift]-key will pan the view.
 * Holding down the right button with the [Alt]-key will zoom in and out.
 
-On the screen is also a **Hints** windows displaying helpful hints for the different available tools.
+**View / Fit workspace to model** resizes the workspace around whatever is currently modelled, which is the quickest way to recover after a script or an array has built something larger than the grid.
+
+On the screen is also a **Hints** window displaying helpful hints for the different available tools.
 
 The top left toolbar contains the editing toolbar providing selection, move, copy, remove and property inspection functionality.
 
 The lower left toolbar contains functions for creating nodes, elements, loads, boundary conditions and section properties. These are described in the following sections.
+
+The top right of the window carries the coordinate display: the cursor position, the active work plane, the selection filter in force, and how many objects are selected. Below it is the result toolbar, which switches between normal force, torsion, shear, moment, Navier utilization and no result without going through the menu.
+
+## The work plane
+
+Everything you place with the mouse is placed on a plane, because a screen has two dimensions and the model has three. By default that plane is the horizontal XZ ground plane.
+
+Holding [Shift] while placing moves the cursor in a vertical plane instead. A translucent construction plane with grid lines appears while the cursor is off the ground, so you can see which plane you are working on, and a crosshair on the ground with a line up to the cursor shows where above the ground you are. This applies to every tool that places the 3D cursor: creating nodes, moving nodes, dragging, and placing a paste.
+
+### Locking a plane
+
+Holding a modifier down through a long piece of modelling is tiring, and it makes the plane depend on the keyboard rather than on what you decided. **View / Work plane** pins it instead:
+
+| Command | Does |
+| --- | --- |
+| **Lock horizontal (XZ)...** | Pick a height; the working plane sits at it |
+| **Lock vertical (XY)...** | Pick a point; the plane passes through it |
+| **Lock vertical (YZ)...** | Pick a point; the plane passes through it |
+| **Release lock** | Back to [Shift]-driven plane selection |
+
+Each locking command starts a point pick: the plane is known from the menu, but where it passes through is not, so click the point it should go through. [Esc] cancels the pick.
+
+While a lock is in force [Shift] is ignored, the construction plane stays visible instead of appearing only while a key is down, and every placement tool works against the locked plane. The menu and the coordinate display both show which plane is active, for example `XY @ z=2.50`. The plane can also be picked directly from the coordinate readout.
 
 ## Modeling
 
@@ -108,9 +162,9 @@ The filter stays in force when you switch between the three selection tools. The
 
 **Edit / Select all** ([Ctrl+A]) also honours the filter, so it selects everything, only the nodes, or only the elements depending on which filter button is active. **Edit / Select all nodes** and **Edit / Select all elements** ignore the filter and leave it untouched.
 
-!!! note "Screenshot placeholder"
+!!! note
 
-    Add a picture of the top left toolbar showing the three selection tools and the three filter buttons, and one of the coordinate display showing the filter and selection counts.
+    The filter buttons are not shown in the Simple interface, where selection always picks up both nodes and elements.
 
 #### Selecting from the current selection
 
@@ -133,9 +187,28 @@ The filter stays in force when you switch between the three selection tools. The
 
     These commands honour the selection filter as well. With the filter set to nodes, **Connected** gives you the nodes of the connected structure without its elements.
 
-### Moving/Copying nodes
+### Moving nodes
 
-As ObjectiveFrame uses node based geometry the only objects that can be moved are nodes. Moving a node can be done in several ways. A single node can be moved by selecting it using the select tool and then clicking the inspect-tool.
+As ObjectiveFrame uses node based geometry the only objects that can be moved are nodes. There are four ways to move them, and they suit different situations.
+
+#### Dragging with the select tool
+
+With the **Select** tool active, press the mouse button on a node and drag. The node follows the cursor on the current work plane; [Shift] moves it vertically as everywhere else, and [Esc] during the drag puts everything back where it was.
+
+A press that never moves far enough is an ordinary click, so selecting by clicking still works exactly as before — the gesture only becomes a drag once the pointer has travelled a few pixels.
+
+Which nodes move follows from what was already selected:
+
+* Dragging a node that is **part of the current selection** moves the whole selection with it.
+* Dragging a node that is **not selected** selects just that node first, then moves it alone.
+
+The whole drag is one undo step.
+
+The **Move** tool in the top left toolbar does the same thing as a separate mode, for when you would rather not have selection and movement share a gesture.
+
+#### Typing a coordinate
+
+Select a single node and click the inspect tool:
 
 <figure markdown>
 ![ObjectiveFrame](images/moving_nodes_001.png "Inspector tool"){width=100}
@@ -149,18 +222,26 @@ When a single node is selected the following dialog is shown:
 <figcaption>Single node property window</figcaption>
 </figure>
 
-Clicking in the position boxes you can directly change the coordinate of the nodes.
+Clicking in the position boxes you can directly change the coordinate of the node.
 
-When multiple nodes are selected brings up the move/copy window instead.
+#### Setting a coordinate on many nodes
+
+With several nodes selected, the property inspector shows a **Set position** group. It has one checkbox and one value per axis, and applying it writes only the axes you ticked — the rest keep whatever each node already has.
+
+This is how you flatten or align a group: tick only **Y**, give it `0`, and every selected node drops to ground level while its x and z stay spread as they were. The fields are seeded from the current selection, and show whether the selected nodes already share a value on an axis or are spread over a range.
+
+#### Offsetting and copying
+
+The multiple-selection inspector also carries the move/copy window.
 
 <figure markdown>
 ![ObjectiveFrame](images/moving_nodes_003.png "")
 <figcaption>Inspector window with multiple nodes selected.</figcaption>
 </figure>
 
-In the **Offset** input boxes an offset can be given, which can be used to move or copy nodes. When nodes have been moved or copy the selection is kept and can be used to repeat the operation. The shortcuts can be used to quickly set an offset for moving in a certain direction.
+In the **Offset** input boxes an offset can be given, which can be used to move or copy nodes. When nodes have been moved or copied the selection is kept and can be used to repeat the operation. The shortcuts can be used to quickly set an offset for moving in a certain direction.
 
-In the following figure 4 nodes have been selected. 
+In the following figure 4 nodes have been selected.
 
 <figure markdown>
 ![ObjectiveFrame](images/moving_nodes_004.png "4 nodes selected.")
@@ -184,6 +265,18 @@ Copying the nodes will result in the following result:
 !!! note
 
     The selection will move to the copied nodes, so that you can continue the copy operation multiple times.
+
+### Copying and pasting
+
+**Edit / Copy** ([Ctrl+C]) puts the current selection on the clipboard. What is copied is the selected nodes together with the end nodes of any selected element, and the elements between them — the same rule the geometry commands use, so a copied selection reconstructs as what it looked like.
+
+**Edit / Paste** ([Ctrl+V]) does not drop the copy at a fixed offset. It attaches it to the cursor as a ghost that follows the mouse across the current work plane:
+
+* **Click** to place the copy.
+* **Click again** to place another one — the ghost stays on the cursor, so a repeated part can be stamped out several times.
+* **[Esc]** cancels without placing anything.
+
+Picking any other tool also ends the paste, so a half-placed copy cannot be left behind a dialog waiting to appear on the next click in the view.
 
 ### Repeating a selection with arrays
 
@@ -238,6 +331,48 @@ A polar array that rotates its copies is different. Distributed beam loads are g
 
     A whole array is a single undo step, welding included. The original and every copy are left selected afterwards, so a second array in another direction turns a row into a grid.
 
+### Transforming geometry
+
+**Modify / Transform...** opens a panel that moves the nodes of the current selection rather than adding to them. It has a tab per operation:
+
+| Tab | Does |
+| --- | --- |
+| **Move** | Translate by a vector |
+| **Scale** | Scale, uniformly or per axis |
+| **Rotate** | Rotate about a principal axis by an angle |
+| **Taper** | Scale perpendicular to an axis by a factor running from one end of the selection to the other |
+| **Smooth** | Relax the selection towards its neighbours |
+| **Mirror** | Reflect in a principal plane and keep both halves |
+| **Array** | Repeat the selection, as described above |
+
+As with arrays, the affected set is the selected nodes together with the end nodes of any selected element. Node and element numbering survives every one of these commands, so scripts and result arrays that refer to a node by index still refer to the same node afterwards.
+
+#### Live preview
+
+Move, Scale, Rotate, Taper and Smooth preview as you type. Every change re-applies the transform from the geometry you started with rather than on top of the previous preview, so the result depends only on the numbers now in the fields, never on the order you dragged the sliders. **Apply** commits it as a single undo step and **Reset** puts the original geometry back.
+
+Mirror and Array add geometry rather than moving it, so they have no preview — they run from their own button.
+
+#### Origin
+
+Every transform is measured from an origin, chosen in the **About** combo: the world origin, the centroid of the affected nodes, the centre of their bounding box, the last picked cursor position, or the low or high face of the bounding box. Scaling about the low face grows a frame upwards from its base; scaling about the centroid grows it about its middle.
+
+Mirror is the exception that needs a plane outside the selection — use the world origin or the low or high face. A mirror plane through the middle of a selection reflects it onto itself, and the weld then removes the copy again. A polar array wants the world origin or the cursor for the same reason: an axis through the selection's own centre spins the copies on top of it.
+
+#### Holding supports and loads in place
+
+Smoothing has two checkboxes, **Hold fixed nodes** and **Hold loaded nodes**, and they are on by default: moving a support or a load point silently changes what the model means. The plain transforms leave them off, because an explicit "rotate this by 15 degrees" should do exactly that.
+
+#### Smoothing
+
+Smoothing is Taubin smoothing, which alternates a shrinking pass (**Lambda**) with an inflating pass (**Mu**, negative). Leaving Mu at 0 gives plain Laplacian smoothing, which pulls a free-standing frame towards its own centre and shortens the span rather than tidying it. **Weight by 1/length** makes short members pull harder than long ones.
+
+Smoothing looks at the neighbours just outside the selection too, so a node at the edge of what you selected is pulled towards the structure it is actually attached to rather than only towards the part you happened to select.
+
+#### Menu presets
+
+**Modify** also holds ready-made versions of the same commands for when the panel is more than the job needs: **Scale** (grow or shrink 10%, stretch 10% along one axis), **Rotate** (90 or 15 degrees about an axis), **Mirror** (about the world origin or either bounding box face), **Taper** (1.0 to 0.5 along an axis) and **Smooth** (light, medium, heavy, or a Laplacian pass).
+
 ### Creating elements
 
 Elements are created by using the element tool:
@@ -263,6 +398,8 @@ Elements are created by selecting 2 nodes. There is no need to click on the tool
 ![ObjectiveFrame](images/creating_elements_004.png "Creating an element stop 3")
 <figcaption>Creating an element stop 3</figcaption>
 </figure>
+
+There are two element tools. **Create beam** makes a beam element, which transfers moment through the joint; **Create bar** makes a bar element, which carries axial force only. The Simple interface offers a single element type, so the choice does not have to be made before it is understood.
 
 ### Subdividing a structure
 
@@ -300,7 +437,7 @@ Repeating the same procedure one more time we can get the following structure:
 
 In many cases it can be tedious to create elements between nodes. To aid in this process ObjectiveFrame can automatically generate elements between points using the TetGen mesh generator. To illustrate this process we will create a simple bridge from points, which we will connect using this method.
 
-First we will create a grid of nodes using the **Create/Grid** menu. This brings up the following window:
+First we will create a grid of nodes using the **Create/Grids/Node grid** menu. This brings up the following window:
 
 <figure markdown>
 ![ObjectiveFrame](images/mesh_001.png "Grid plugin window.")
@@ -344,11 +481,67 @@ We can now ask ObjectiveFrame to create elements between these nodes automatical
 
 A nice truss-like structure has now been created. ObjectiveFrame uses TetGen to generate a tetrahedral mesh from which it extracts the edges to create our structure.
 
-## Boundary conditions
+**Edit/Surface selected no ground** and **Edit/Surface selected with ground** do the same for a surface-like set of points, the second including the ground plane in what is meshed.
+
+### Structure generators
+
+The **Create** menu lists the scripted structure generators that ship with ObjectiveFrame, grouped by category: arches, bridges, frames, grids, roofs and domes, structures, towers and trusses. Each one asks for its own parameters — spans, bay counts, radii, numbers of segments — and builds the structure at the cursor.
+
+These are ordinary ChaiScript plugins read from the plugin folder, so you can copy one and edit it. See [ChaiScript scripting](chaiscript.md) for the parameter syntax and the available functions.
+
+## Loads and boundary conditions
+
+### Quick supports and quick forces
+
+The quick tools put a support or a load onto nodes without opening a dialog first. They are the fastest way to get a model standing up and loaded, and they are what the Simple interface leaves in place of the property dialogs.
+
+Both live on the lower toolbar and work the same way:
+
+1. Pick **Quick support** or **Quick force**. Its panel opens with the tool, and closes again when you leave it.
+2. Say what to apply — one of five standard supports, or one direction and one magnitude.
+3. Either **drag over nodes** to stamp it on as the cursor passes, or select nodes first and press **Apply to selection**.
+
+Holding [Ctrl] while dragging removes instead of applying, and **Remove from selection** does the same for a selection.
+
+The five standard supports are:
+
+| Support | Holds |
+| --- | --- |
+| **Fixed (all dofs)** | All three translations and all three rotations |
+| **Pinned (free to rotate)** | All three translations, free to rotate |
+| **Roller X** | Free to move along X, held in Y and Z, free to rotate |
+| **Roller Y** | Free to move along Y, held in X and Z, free to rotate |
+| **Roller Z** | Free to move along Z, held in X and Y, free to rotate |
+
+Pinned is the default, because it is the support a frame usually wants and it is the weaker of the two obvious choices: a model that should have been built in shows up as a structure that is too soft, while full fixity where a pin was meant quietly stiffens the frame and reads as correct.
+
+A node carries one support at a time, so applying a support replaces whatever the node had — the buttons behave like the radio buttons they look like. The five supports are shared objects rather than one per node, so supporting a hundred nodes still leaves one entry in the boundary condition list.
+
+Quick forces coalesce in the same spirit: a force joins the existing load with the same direction and magnitude, and only makes a new one when nothing matches. A hundred clicks of the same downward force therefore leave one load with a hundred nodes, one entry in the load list and one slider in the load mixer, while a force of a different size still gets its own entry. The panel names the load the next click will feed, so the two can be followed between.
+
+A whole stroke is a single undo step, and a stroke that changes nothing leaves no undo entry.
+
+### Self-weight
+
+**View / Self-weight...**, or the self-weight toggle on the lower toolbar, applies the structure's own weight as a distributed load on every element. It is a property of the model rather than a tool, so it stays on whatever else you are doing, and it is saved with the model.
+
+There are three ways to say how heavy the structure is:
+
+| Mode | Weight comes from |
+| --- | --- |
+| **Material density** | Each material's density times its cross-section area. Set the density in the material properties. |
+| **Mass per length** | One mass per unit length on every element, regardless of material or section |
+| **Total load** | One total load, spread over the structure by element length |
+
+The first two turn a mass into a force through **Gravity**, which defaults to 9.81 m/s². **Load factor** scales the result, so a factor of 1.5 gives a factored self-weight case without touching the material data.
+
+Self-weight acts downwards in global coordinates and is projected onto each element's own axes, so it is correct for inclined and vertical members. It is added when the model is solved and does not appear as an entry in the load lists. In density mode a material with no density set contributes nothing, which is worth checking if a model that should sag does not.
 
 ### Creating boundary conditions / forces
 
-Creating boundary conditions and loads is a two-step process. First, a general definition of the load or boundary condition is created, then nodes are assigned with a specific condition. A node assigned with a load or boundary condition will have an icon visualizing the condition assigned to it. 
+The quick tools cover the common cases. When you need a support that holds an unusual combination of degrees of freedom, a prescribed displacement, or a named load you can assign and reuse, use the property dialogs instead.
+
+Creating boundary conditions and loads is a two-step process. First, a general definition of the load or boundary condition is created, then nodes are assigned with a specific condition. A node assigned with a load or boundary condition will have an icon visualizing the condition assigned to it.
 
 A boundary condition is created by displaying the boundary condition window by clicking on:
 
@@ -371,7 +564,7 @@ ObjectiveFrame automatically creates default boundary conditions for common case
 <figcaption>Boundary condition property dialog.</figcaption>
 </figure>
 
-In this dialog, the specifics of the boundary condition can be edited. A descriptive name and color can also be given to the condition. 
+In this dialog, the specifics of the boundary condition can be edited. A descriptive name and color can also be given to the condition.
 
 To apply a boundary condition to nodes/element, select the boundary condition in the list and click on the **Assign**-button. The assigned nodes will now have icons attached to them illustrating that they have a load or boundary condition assigned to them (See the following figures).
 
@@ -387,9 +580,13 @@ To apply a boundary condition to nodes/element, select the boundary condition in
 
 Loads are created using the same procedure as boundary conditions.
 
+!!! note
+
+    These four dialogs — node loads, beam loads, node boundary conditions and materials — are not shown in the Simple interface. A model that uses them keeps all of its data; the dialogs come back when you switch to Advanced.
+
 ### Quickly adding boundary conditions to a structure
 
-It is possible to quickly add boundary conditions to a structure by using the menu function **Edit/Fix ground nodes** or **Edit/Fix position ground nodes** this will apply these boundary conditions to the nodes that are located with a y-coordinate of 0.0. 
+It is possible to quickly add boundary conditions to a structure by using the menu function **Edit/Fix ground nodes** or **Edit/Fix position ground nodes** this will apply these boundary conditions to the nodes that are located with a y-coordinate of 0.0.
 
 There are also menu functions for assigning default boundary conditions to a selected set of nodes using **Edit/Fix selected nodes** and **Edit/Fix position selected nodes**.
 
@@ -423,7 +620,9 @@ All new elements will be assigned the **default** section property. To assign el
 <figcaption>Material property window.</figcaption>
 </figure>
 
-In the first tab name, color and property values can be assigned. In the second tab **Section** values for several standardized sections can be computed. 
+In the first tab name, color and property values can be assigned. In the second tab **Section** values for several standardized sections can be computed.
+
+The material also carries a **density**, which is what self-weight uses in its density mode.
 
 ### Rotation of element
 
@@ -433,15 +632,14 @@ The element orientation can be changed by using the property inspector when a be
 
 ### Computing element forces
 
-ObjectiveFrame can compute deflections and element forces by selecting **Calc/Execute** in the menu or pressing [Ctrl+R]. A check will be made to see if boundary conditions and forces have been applied to the model. By default the deflections are computed and visualised. 
+ObjectiveFrame can compute deflections and element forces by selecting **Calc/Execute** in the menu or pressing [Ctrl+R]. A check will be made to see if boundary conditions and forces have been applied to the model. By default the deflections are computed and visualised.
 
 <figure markdown>
 ![ObjectiveFrame](images/results_001.png "Default results")
 <figcaption>Default results.</figcaption>
 </figure>
 
-
-Other visualisation modes can be selected using the **Result**-menu. The following figures shows normal forces and moments visualised.
+Other visualisation modes can be selected from the result toolbar under the coordinate display, or from the **Results** menu. The following figures show normal forces and moments visualised.
 
 <figure markdown>
 ![ObjectiveFrame](images/results_002.png "Normal forces")
@@ -453,10 +651,29 @@ Other visualisation modes can be selected using the **Result**-menu. The followi
 <figcaption>Moments</figcaption>
 </figure>
 
-!!! note
+The available result types are normal force, torsion, shear, moment, Navier utilization, and no result.
 
-    Only node deflections are visualised currently. This could change in upcoming versions.
+If the calculation cannot be solved because the structure is unstable or under-constrained, ObjectiveFrame computes eigenmodes instead and shows how the structure moves. See [Eigenmode solver](eigenmode-solver.md).
 
+### Reading the results
+
+Several commands change how results are drawn rather than what is computed:
+
+| Command | Shortcut | Does |
+| --- | --- | --- |
+| **Results / X-ray mode** | [Alt+X] | Draw the structure translucently so interior members and results are visible |
+| **Results / Scaling settings...** | | Set or lock the displacement scale factor, and animate the deformation |
+| **Results / Color scale settings...** | | Edit the colours used for each result type |
+| **View / Show loads** | [Alt+1] | Show or hide load arrows |
+| **View / Show reaction forces** | [Alt+2] | Show or hide reaction arrows at the supports |
+| **View / Show node numbers** | [Alt+3] | Label nodes with their index |
+| **View / Show shadows** | [Alt+4] | Cast a shadow onto the ground plane, which helps read depth |
+
+The displacement scale factor is chosen automatically from the size of the model and the size of the deformation. **Lock scale factor** keeps it fixed, which is what you want when comparing two load cases or two models — otherwise each solve rescales and two different responses can look the same.
+
+The colour scale dialog has separate colours for tension and compression in axial force, one ramp shared by torsion, shear and moment, and one for Navier utilization. Changes apply immediately.
+
+Shadows are drawn against the opaque background, so they are unavailable in X-ray mode; the menu item shows as disabled rather than quietly doing nothing.
 
 ### Evaluating the structure using the feedback mode
 
@@ -467,7 +684,7 @@ ObjectiveFrame has a special mode to evaluate how a force affects a structure in
 <figcaption>Feedback mode</figcaption>
 </figure>
 
-When selected a special feedback force can be placed on a now and moved by using the mouse. The structure will re-compute and results are updated in real-time. The following figures shows how the load is applied and updated:
+When selected a special feedback force can be placed on a node and moved by using the mouse. The structure will re-compute and results are updated in real-time. The following figures shows how the load is applied and updated:
 
 <figure markdown>
 ![ObjectiveFrame](images/feedback_002.png "Selecting node")
@@ -479,18 +696,79 @@ When selected a special feedback force can be placed on a now and moved by using
 <figcaption>Moving feedback force with mouse.</figcaption>
 </figure>
 
-Interact with a different node by clicking on it. Section forces can be visualised by using the **Result**-menu.
+Interact with a different node by clicking on it. Section forces can be visualised by using the **Results**-menu or the result toolbar.
 
 <figure markdown>
 ![ObjectiveFrame](images/feedback_004.png "Feedback mode with results.")
 <figcaption>Feedback mode with results.</figcaption>
 </figure>
 
+The **Load mixer** opens alongside feedback mode. It gives one slider per load in the model, so the existing load cases can be scaled up and down and the structure watched while the feedback force is moved.
+
+## Representation modes
+
+The **Mode** menu says what the view is drawing:
+
+| Mode | Shows |
+| --- | --- |
+| **Model** | The FEM model — elements as tubes, with loads and supports |
+| **Geometry** | The same structure drawn with its real cross sections |
+| **Results** | The deformed structure with the selected result on it |
+| **Feedback** | Feedback mode, described above |
+
+Running an analysis switches the view onto the deformed structure by itself, so **Mode** is mostly there for going back. A geometry command switches out of a deformed view for the opposite reason: a deformation drawn on top of geometry that has just moved would mix a new structure with an old response.
+
+## Preferences
+
+**File / Preferences...** holds the application-wide settings:
+
+- **Workspace**: workspace size, node size, line radius, load arrow size, and how many sides a beam is drawn with.
+- **Display**: sphere nodes, node numbers, the construction plane indicator, shadows, and the opacity of the ground surface. A partly transparent ground lets reaction arrows below the plane show through, and fades the shadow with it.
+- **Interface**: UI scale for high-DPI displays, whether to use the built-in file dialogs, and whether to save a screenshot next to the model when saving.
+- **Automation API**: start or stop the local HTTP service. See [Automation API](rest-api.md).
+- **AI API key**: the key used by the [AI integration](llm-integration.md), which can be pasted from the clipboard.
+
+## Keyboard shortcuts
+
+| Shortcut | Does |
+| --- | --- |
+| [Ctrl+N] | New model |
+| [Ctrl+O] | Open model |
+| [Ctrl+S] | Save model |
+| [Ctrl+Z] / [Ctrl+Y] | Undo / redo |
+| [Ctrl+C] / [Ctrl+V] | Copy / paste |
+| [Ctrl+A] | Select all, honouring the selection filter |
+| [Ctrl++] / [Ctrl+-] | Grow / shrink the selection |
+| [Ctrl+D] | Subdivide the selected elements |
+| [Ctrl+M] | Mesh the selected nodes |
+| [Ctrl+R] | Run the analysis |
+| [Alt+S] | Select tool |
+| [Alt+P] | Paint select tool |
+| [Alt+M] | Move tool |
+| [Alt+N] | Create node tool |
+| [Alt+L] | Create element tool |
+| [Alt+X] | X-ray mode |
+| [Alt+1] … [Alt+4] | Loads, reaction forces, node numbers, shadows |
+| [Esc] | Cancel a drag, a paste, or a work plane point pick |
+
+Shortcuts are ignored while a panel has keyboard focus, so typing a number into a field never triggers a command.
+
+!!! note
+
+    [Ctrl++] and [Ctrl+-] are matched by what the key prints on your keyboard layout rather than by where it sits, so they work on non-US layouts where `+` and `-` are in different places.
+
 ## Other functions
 
 ### Exporting to CALFEM for Python
 
-Currently it is possible to export nodes and elements to CALFEM for Python by using the **File/Save as CALFEM...** menu. Only node coordinates and topology is exported currently. This method will be updated in upcoming versions.
+Currently it is possible to export nodes and elements to CALFEM for Python by using the **File/Save as CALFEM...** menu. Only node coordinates and topology is exported currently. This method will be updated in upcoming versions. **File/Open from CALFEM...** reads such a model back.
 
+### Scripting and automation
 
+**File/New script...**, **File/Open script...** and **File/Run script...** work with ChaiScript files, and **View/Script editor...** opens the editor. See [ChaiScript scripting](chaiscript.md).
 
+ObjectiveFrame can also be driven from another program over a local HTTP service, which is how the Python client works. See [Automation API](rest-api.md).
+
+### Secondary view
+
+**View/Secondary view...** opens a second view of the same model. Eigenmode animation can be sent to it, so the model stays editable in the main window while the mode shape animates beside it.

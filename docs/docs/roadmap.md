@@ -2,13 +2,21 @@
 
 This roadmap is intentionally lightweight. It communicates where ObjectiveFrame is heading without turning the project into a promise list.
 
+## Recently Delivered
+
+- A Simple and an Advanced interface, chosen from the start page.
+- Quick support and quick force tools that paint supports and loads onto nodes.
+- Self-weight, from material density, mass per length, or a total load.
+- Geometry commands: move, scale, rotate, taper, smooth, mirror and arrays, with a live preview.
+- Direct node dragging, ghost paste, and a lockable construction plane.
+- A port to the OpenGL core profile, with improved shadows and high-DPI support.
+
 ## Near Term
 
-- Improve README and documentation onboarding.
 - Add animated GIFs or WebP demos for feedback mode, eigenmodes, and example editing.
-- Publish a consistent example gallery with thumbnails and downloadable `.df3` files.
 - Add short narrated videos for first use, feedback mode, and eigenmode exploration.
 - Add student-oriented FEM exercises and teaching material.
+- Extend the Python client to cover the whole automation API.
 
 ## Modelling and Analysis
 
@@ -37,12 +45,4 @@ This roadmap is intentionally lightweight. It communicates where ObjectiveFrame 
 - Enable GitHub Discussions for questions, teaching use, and feature ideas.
 - Use issue templates for bug reports and feature requests.
 - Encourage example contributions from students and educators.
-- Add more citation metadata for academic adoption.
-
-## Placeholder Items
-
-- Public demo GIFs.
-- Narrated 2-minute intro video.
-- Student worksheets.
-- More complete validation examples.
-- Roadmap issue labels or GitHub Projects board.
+- Add more citation metadata for academic adoption, including an archived release with a DOI.

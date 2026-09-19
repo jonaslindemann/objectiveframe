@@ -64,6 +64,7 @@ GLFWWindow          — raw GLFW window, OpenGL context, input dispatch
 | `FemViewGeometryHandler.cpp` | Geometry modification (translate, scale, rotate, taper, smooth, mirror) |
 | `FemViewModelGraph.cpp` | Shared `ofview_detail::ModelGraph` — model topology, model↔shape maps, selection readback |
 | `FemViewScriptRunner.cpp` | `runPlugin`, `runScript`, `runScriptFromText` |
+| `FemViewQuickToolHandler.cpp` | Quick force and quick support — selection commands, paint stamping, load coalescing, shared default BCs |
 
 **Static handler class pattern** — operation clusters are extracted into classes with only `static` methods that take `FemViewWindow &view`. Each handler is declared `friend class` in `FemView.h` so it can access private members directly. Follow this pattern when adding new operation groups.
 
@@ -171,6 +172,10 @@ The convenience target `objframe::libs` (alias `objframe_libs`) links all of the
 
 All panels are ImGui-based and rendered inside `FemViewWindow::onDrawImGui()`. Panel classes in `ofui` follow the pattern: inherit `ofui::UiWindow`, override `draw()`, expose a `create()` factory returning `std::shared_ptr<XxxWindow>`. `FemViewWindow` holds shared pointers to every panel and toggling boolean flags (`m_show*`) controls visibility.
 
+**Interface profiles** — `ofui::UiProfile` (`include/ofui/ui_profile.h`) is a singleton holding which `UiFeature`s are enabled; `UiMode` (Simple/Advanced) is only a name for a preset applied in `applyPreset()`. Nothing downstream asks which mode is in force, it asks `profile->has(feature)`, so a third profile is a row in `applyPreset()` rather than an edit at every call site. Toolbar buttons carry their feature as a constructor argument and `ToolbarWindow::doDraw()` skips the ones switched off (collapsing orphaned spacers, while keeping ImGui ids tied to the button index). `FemViewWindow::applyUiMode()` reconciles the rest — hiding panels behind a disabled feature and resetting state the user can no longer reach — and is gated on `UiProfile::revision()` so it is cheap to call every frame. The mode is persisted as the `ui_mode` config value and can be overridden for one run with `--ui-mode=<name>`.
+
+A window that retitles itself at runtime (the eigenmode panel does, per profile) must carry a `"###id"` suffix so ImGui keeps its position and size across the rename; `UiWindow::setName()` and `doPreDraw()` are the hooks.
+
 ### Scripting / Plugin system
 
 - **Inline scripts**: ChaiScript run from the console or via the UI.
@@ -183,11 +188,11 @@ All panels are ImGui-based and rendered inside `FemViewWindow::onDrawImGui()`. P
 
 **Decoupling via `IAppController`:**
 
-- `include/ofservice/iapp_controller.h` — pure abstract interface with 51 virtual methods covering model lifecycle, node/beam CRUD, selection, BCs, loads, geometry commands, and queries
+- `include/ofservice/iapp_controller.h` — pure abstract interface with 60 virtual methods covering model lifecycle, node/beam CRUD, selection, BCs, loads, self-weight, geometry commands, and queries
 - `src/objframe/AppControllerAdapter` — `FemViewWindow`-side implementation that delegates each interface method to the corresponding `FemViewWindow` method
 - `ofservice::App` singleton holds an `IAppController*`; `ofservice` never sees `FemViewWindow` or any `objframe` header
 
-**Endpoint surface (51 endpoints, all POST to `/cmds/<name>`):**
+**Endpoint surface (55 endpoints, all POST to `/cmds/<name>`):**
 
 | Category | Endpoints |
 | -------- | --------- |
@@ -197,6 +202,7 @@ All panels are ImGui-based and rendered inside `FemViewWindow::onDrawImGui()`. P
 | Node/beam mutation | `delete_node_at`, `delete_beam_at`, `subdivide_beam_at`, `connect_near_nodes`, `update_node_pos_at`, `update_beam_at` |
 | Boundary conditions | `assign_node_fixed_bc_ground`, `assign_node_pos_bc_ground`, `assign_node_fixed_bc_at`, `assign_node_pos_bc_at`, `remove_node_bc_at` |
 | Loads | `clear_all_loads`, `clear_all_bcs`, `add_node_load_at`, `clear_node_load_at`, `add_beam_load_at`, `clear_beam_load_at` |
+| Self-weight | `set_self_weight_enabled`, `set_self_weight_mode`, `set_gravity`, `set_total_weight`, `set_mass_per_length` |
 | Geometry modification | `array_selection`, `polar_array_selection`, `plane_array_selection` |
 | Mesh generation | `mesh_selected_nodes`, `surface_selected_nodes` |
 | Queries | `node_count`, `beam_count`, `node_pos_at`, `beam_at`, `find_node_near`, `is_node_fixed_at`, `is_node_pos_bc_at`, `is_node_selected_at`, `has_node_load_at`, `has_beam_load_at`, `node_load_count`, `beam_load_count`, `material_count`, `model_bounds` |

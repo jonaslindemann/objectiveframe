@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ofui/texture.h>
+#include <ofui/ui_profile.h>
 #include <ofui/ui_window.h>
 
 #include <functional>
@@ -29,10 +30,12 @@ private:
     int m_group;
     int m_id;
     ofui::TexturePtr m_texture;
+    UiFeature m_feature;
 
 public:
     OfToolbarButton(const std::string name = "Button", OfToolbarButtonType type = OfToolbarButtonType::Button,
-                    ofui::TexturePtr texture = nullptr, int group = -1, int id = -1);
+                    ofui::TexturePtr texture = nullptr, int group = -1, int id = -1,
+                    UiFeature feature = UiFeature::None);
     virtual ~OfToolbarButton() = default;
 
     void setSelected(bool flag);
@@ -48,6 +51,13 @@ public:
 
     int group();
     int id();
+
+    /**
+     * The interface feature this button belongs to.
+     *
+     * UiFeature::None for a button that is always shown, which is most of them.
+     */
+    UiFeature feature();
 
     ofui::TexturePtr texture();
 
@@ -83,7 +93,7 @@ public:
     ToolbarOrientation orientation();
 
     void addButton(const std::string name, OfToolbarButtonType type = OfToolbarButtonType::Button,
-                   std::string filename = "", int group = -1);
+                   std::string filename = "", int group = -1, UiFeature feature = UiFeature::None);
 
     void addSpacer();
 

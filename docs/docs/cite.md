@@ -16,44 +16,13 @@ Use the repository citation metadata in `CITATION.cff`, or cite the software man
 }
 ```
 
+The software has no DOI yet. Until an archived release is published, cite the repository and the release version you used.
+
 ## Related Publications
 
-```bibtex
-@techreport{lindemann_objective_frame,
-  author = {Lindemann, Jonas},
-  title = {Objective Frame - An educational tool for understanding the behavior of structures},
-  institution = {Structural Mechanics, Lund University},
-  year = {TODO},
-  url = {https://portal.research.lu.se/en/publications/objective-frame-an-educational-tool-for-understanding-the-behavio}
-}
-```
+The work ObjectiveFrame grew out of was published at Structural Mechanics, Lund University. Each record below carries the full bibliographic metadata, including the year and publication type, which should be taken from the record itself when citing formally.
 
-```bibtex
-@techreport{lindemann_distributed_visualisation,
-  author = {Lindemann, Jonas},
-  title = {Techniques for distributed access and visualisation computational mechanics},
-  institution = {Structural Mechanics, Lund University},
-  year = {TODO},
-  url = {https://www.lth.se/fileadmin/byggnadsmekanik/publications/tvsm1000/web1016.pdf}
-}
-```
-
-```bibtex
-@techreport{akesson_gesture_controls,
-  author = {Akesson, Daniel},
-  title = {Using 3D gesture controls for interacting with mechanical models},
-  institution = {Structural Mechanics, Lund University},
-  year = {TODO},
-  url = {https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models-2}
-}
-```
-
-!!! note "Citation placeholder"
-
-    Replace `TODO` years and publication types with the exact BibTeX metadata from the Lund University publication records before using these entries in formal academic work.
-
-## DOI Placeholder
-
-No DOI is currently listed for the software release.
-
-Suggested next step: publish an archived software release through Zenodo and add the DOI badge to the README and documentation.
+- Lindemann, J. [Objective Frame - An educational tool for understanding the behavior of structures](https://portal.research.lu.se/en/publications/objective-frame-an-educational-tool-for-understanding-the-behavio)
+- Lindemann, J. [Techniques for distributed access and visualisation computational mechanics](https://www.lth.se/fileadmin/byggnadsmekanik/publications/tvsm1000/web1016.pdf)
+- Lindemann, J. [CORBA in distributed finite element applications](https://portal.research.lu.se/en/publications/corba-in-distributed-finite-element-applications)
+- Akesson, D. [Using 3D gesture controls for interacting with mechanical models](https://portal.research.lu.se/en/publications/using-3d-gesture-controls-for-interacting-with-mechanical-models-2)

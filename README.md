@@ -8,23 +8,24 @@ ObjectiveFrame lets you build beam and frame structures, apply loads and boundar
 
 ![ObjectiveFrame real-time structural feedback](docs/docs/images/screenshot.png)
 
-> Placeholder: replace this still image with a 5-10 second GIF or WebP showing feedback mode, load movement, deformation updates, or eigenmode animation.
-
 ## Why ObjectiveFrame?
 
 - Real-time structural feedback while exploring loads and deformation.
 - Interactive beam and frame modelling for structural mechanics education.
+- Quick supports and forces painted onto the structure, and self-weight as a single switch.
+- Geometry commands — move, scale, rotate, taper, smooth, mirror and arrays — on a whole selection, with a live preview.
 - Eigenmode visualization for understanding unstable or under-constrained models.
+- A Simple interface for first-time users and an Advanced one that hides nothing.
 - Lightweight C++ and OpenGL desktop application.
 - Open-source codebase with a long research lineage.
-- Scriptable workflows using ChaiScript plugins.
+- Scriptable workflows using ChaiScript plugins, and a local HTTP API for driving it from Python.
 - CALFEM-oriented export path for teaching and Python-based analysis workflows.
 
 ## Quick Start
 
 1. Download the latest release from [GitHub Releases](https://github.com/jonaslindemann/objectiveframe/releases/latest).
-2. Open one of the included example models from `bin/examples`.
-3. Add or modify loads and boundary conditions.
+2. Pick the Simple or Advanced interface on the start page, and open one of the included example models from `bin/examples`.
+3. Add or modify loads and boundary conditions, or drag them on with the quick support and quick force tools.
 4. Run the analysis and inspect deformation, normal force, moment, or eigenmode behavior.
 5. Enable feedback mode to move a force and see the structure update interactively.
 

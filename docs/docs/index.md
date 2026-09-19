@@ -6,18 +6,17 @@ ObjectiveFrame is an open-source finite element analysis tool for beam and frame
 
 ![ObjectiveFrame real-time structural feedback](images/screenshot.png "ObjectiveFrame feedback mode")
 
-!!! note "Visual demo placeholder"
-
-    Replace this still image with a short animated GIF or WebP showing the feedback force being moved while deformation and internal forces update in real time.
-
 ## Why ObjectiveFrame?
 
 - Real-time feedback for loads, deformation, and section forces.
 - Interactive beam and frame modelling without a heavy CAD workflow.
+- Quick supports and forces painted straight onto the structure, and self-weight as a single switch.
+- Geometry commands that move, mirror, array and smooth a whole selection at once.
 - Eigenmode visualization for unstable and under-constrained structures.
+- A Simple interface for first-time users and an Advanced one that hides nothing.
 - Open-source C++ and OpenGL application.
 - Lightweight desktop workflow for classrooms and experiments.
-- ChaiScript plugins for scripted structure generation.
+- ChaiScript plugins for scripted structure generation, and a local HTTP API for driving it from Python.
 - CALFEM-oriented export path for Python-based teaching workflows.
 
 ## Start in 60 Seconds

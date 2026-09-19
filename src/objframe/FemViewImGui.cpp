@@ -152,27 +152,19 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Quick force...", "", m_quickForceWindow->visible()))
-        {
-            if (m_quickForceWindow->visible())
-                m_quickForceWindow->hide();
-            else
-            {
-                m_quickForceWindow->show();
-                m_windowList->placeWindow(m_quickForceWindow);
-            }
-        }
+        // These select the tool rather than toggling its panel on its own. The
+        // panel is owned by the mode now - onEditModeChanged() takes it away
+        // when the tool is dropped - so a menu item that only opened the window
+        // would put it on screen describing a tool that is not active, and then
+        // close it again at the next mode change. The check mark follows the
+        // active mode for the same reason, which also makes these agree with
+        // the toolbar buttons that do the same thing.
 
-        if (ImGui::MenuItem("Quick support...", "", m_quickSupportWindow->visible()))
-        {
-            if (m_quickSupportWindow->visible())
-                m_quickSupportWindow->hide();
-            else
-            {
-                m_quickSupportWindow->show();
-                m_windowList->placeWindow(m_quickSupportWindow);
-            }
-        }
+        if (ImGui::MenuItem("Quick force...", "", this->getEditMode() == WidgetMode::PaintLoad))
+            this->setEditMode(WidgetMode::PaintLoad);
+
+        if (ImGui::MenuItem("Quick support...", "", this->getEditMode() == WidgetMode::PaintBC))
+            this->setEditMode(WidgetMode::PaintBC);
 
         ImGui::Separator();
 

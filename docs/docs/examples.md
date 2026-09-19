@@ -2,9 +2,7 @@
 
 ObjectiveFrame includes example `.df3` models that can be used for demos, classroom exercises, onboarding, and regression checks. The models live in the repository under `bin/examples` and `bin/examples_misc`.
 
-!!! note "Gallery asset placeholder"
-
-    The examples below use existing repository thumbnails where available. Add consistent 16:9 screenshots or short animated previews for each example when preparing a more polished gallery.
+The same models are shown as thumbnails on the start page, where a click opens one directly.
 
 ## Recommended First Examples
 
@@ -31,12 +29,8 @@ ObjectiveFrame includes example `.df3` models that can be used for demos, classr
 - Use `building_with_load.df3` to demonstrate boundary conditions and lateral response.
 - Use `multiple_load_cases.df3` to introduce load case comparison.
 
-## Missing Example Material
+## Building Your Own Examples
 
-The following additions would make this page more useful:
+The **Create** menu holds scripted structure generators for arches, bridges, frames, grids, roofs and domes, towers and trusses. Each one asks for its own parameters and builds the structure at the cursor, which makes it quick to produce a variant of any of the models above for a specific exercise.
 
-- A one-line learning goal for each model.
-- A consistent screenshot style for every example.
-- Short animated clips for feedback-mode examples.
-- Downloadable exercise sheets for students.
-- Expected result screenshots after running each model.
+These generators are ChaiScript plugins read from the plugin folder, so an example tailored to a course can be written once and shipped with the rest. See [ChaiScript scripting](chaiscript.md).

@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <logger.h>
+#include <ofui/ui_profile.h>
 
 #include <FemView.h>
 
@@ -9,6 +10,18 @@
 #include <string>
 
 using namespace ofui;
+
+namespace {
+
+// Two labels over one ImGui identity. Everything after "###" is the id, so the
+// panel can be renamed when the profile changes without ImGui deciding it is a
+// different window and dropping the position and size the user gave it. Must
+// match the id the window is created with in FemViewWindow::onInit().
+
+const char *advancedTitle = "Eigenmode Analysis###eigenmodeWindow";
+const char *simpleTitle = "Stability analysis###eigenmodeWindow";
+
+} // namespace
 
 EigenmodeWindow::EigenmodeWindow(const std::string& title)
     : UiWindow(title)
@@ -111,61 +124,81 @@ void EigenmodeWindow::updateAnimationPhase(float deltaTime)
     }
 }
 
+void EigenmodeWindow::doPreDraw()
+{
+    setName(UiProfile::instance()->has(UiFeature::EigenmodeDetails) ? advancedTitle : simpleTitle);
+}
+
 void EigenmodeWindow::doDraw()
 {
-    ImGui::Text("Eigenmode Analysis");
-    ImGui::Separator();
-    
-    // Computation controls
-    ImGui::Text("Computation:");
-    ImGui::InputInt("Number of modes", &m_numModesToCompute);
-    if (m_numModesToCompute < 1)
-        m_numModesToCompute = 1;
-    if (m_numModesToCompute > 20)
-        m_numModesToCompute = 20;
-    
-    if (ImGui::Button("Compute Eigenmodes"))
+    // A simple profile keeps the three controls that answer "how does it move":
+    // animate, speed, scale. It drops the setup above them and the eigenvalue
+    // list below - modes are computed for you when a solve finds the structure
+    // unstable or unloaded (see FemViewSolverHandler), so there is nothing here
+    // the user has to run by hand.
+
+    const bool details = UiProfile::instance()->has(UiFeature::EigenmodeDetails);
+
+    if (details)
     {
-        onComputeButtonClicked();
+        ImGui::Text("Eigenmode Analysis");
+        ImGui::Separator();
+
+        // Computation controls
+
+        ImGui::Text("Computation:");
+        ImGui::InputInt("Number of modes", &m_numModesToCompute);
+        if (m_numModesToCompute < 1)
+            m_numModesToCompute = 1;
+        if (m_numModesToCompute > 20)
+            m_numModesToCompute = 20;
+
+        if (ImGui::Button("Compute Eigenmodes"))
+        {
+            onComputeButtonClicked();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Clear"))
+        {
+            onClearButtonClicked();
+        }
+
+        ImGui::Separator();
     }
-    
-    ImGui::SameLine();
-    
-    if (ImGui::Button("Clear"))
-    {
-        onClearButtonClicked();
-    }
-    
-    ImGui::Separator();
-    
+
     // Mode visualization controls (only if we have eigenmodes)
     if (m_hasEigenmodes)
     {
-        ImGui::Text("Mode Visualization:");
-        
-        int prevMode = m_currentMode;
-        if (ImGui::SliderInt("Mode", &m_currentMode, 0, m_numModesToCompute - 1))
+        if (details)
         {
-            if (prevMode != m_currentMode)
+            ImGui::Text("Mode Visualization:");
+
+            int prevMode = m_currentMode;
+            if (ImGui::SliderInt("Mode", &m_currentMode, 0, m_numModesToCompute - 1))
             {
-                onModeChanged(m_currentMode);
+                if (prevMode != m_currentMode)
+                {
+                    onModeChanged(m_currentMode);
+                }
             }
         }
-        
+
         ImGui::Checkbox("Animate", &m_animate);
 
-        if (m_femView != nullptr)
+        if (details && (m_femView != nullptr))
         {
             bool inSecondary = m_femView->isEigenmodeInSecondaryView();
             if (ImGui::Checkbox("Show animation in secondary view", &inSecondary))
                 m_femView->setEigenmodeInSecondaryView(inSecondary);
         }
-        
+
         if (m_animate)
         {
             ImGui::SliderFloat("Speed", &m_animationSpeed, 0.1f, 10.0f);
         }
-        
+
         float scaleFactor = static_cast<float>(m_modeScaleFactor);
         if (ImGui::SliderFloat("Scale Factor", &scaleFactor, 0.0f, m_sliderMax))
         {
@@ -173,54 +206,62 @@ void EigenmodeWindow::doDraw()
             if (!m_animate && m_femView != nullptr)
                 m_femView->setEigenmodeVisualization(m_currentMode);
         }
-        
-        ImGui::Separator();
 
-        if (!m_eigenvalues.empty())
+        if (details)
         {
-            ImGui::Text("Mode stability:");
             ImGui::Separator();
-            for (int i = 0; i < (int)m_eigenvalues.size(); i++)
+
+            if (!m_eigenvalues.empty())
             {
-                double lambda = m_eigenvalues[i];
-                bool unstable = lambda < 0.0;
-                bool current = (i == m_currentMode);
-
-                ImGui::PushID(i);
-
-                if (current)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
-                else if (unstable)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.35f, 0.35f, 1.0f));
-                else
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.4f, 1.0f));
-
-                std::string label;
-                if (unstable)
-                    label = "Mode " + std::to_string(i + 1) + ":  UNSTABLE";
-                else
+                ImGui::Text("Mode stability:");
+                ImGui::Separator();
+                for (int i = 0; i < (int)m_eigenvalues.size(); i++)
                 {
-                    double freq = std::sqrt(lambda) / (2.0 * 3.14159265358979323846);
-                    char buf[64];
-                    std::snprintf(buf, sizeof(buf), "Mode %d:  %.3f Hz", i + 1, freq);
-                    label = buf;
-                }
+                    double lambda = m_eigenvalues[i];
+                    bool unstable = lambda < 0.0;
+                    bool current = (i == m_currentMode);
 
-                if (ImGui::Selectable(label.c_str(), current))
-                {
-                    m_currentMode = i;
-                    onModeChanged(m_currentMode);
-                }
+                    ImGui::PushID(i);
 
-                ImGui::PopStyleColor();
-                ImGui::PopID();
+                    if (current)
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
+                    else if (unstable)
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.35f, 0.35f, 1.0f));
+                    else
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.4f, 1.0f));
+
+                    std::string label;
+                    if (unstable)
+                        label = "Mode " + std::to_string(i + 1) + ":  UNSTABLE";
+                    else
+                    {
+                        double freq = std::sqrt(lambda) / (2.0 * 3.14159265358979323846);
+                        char buf[64];
+                        std::snprintf(buf, sizeof(buf), "Mode %d:  %.3f Hz", i + 1, freq);
+                        label = buf;
+                    }
+
+                    if (ImGui::Selectable(label.c_str(), current))
+                    {
+                        m_currentMode = i;
+                        onModeChanged(m_currentMode);
+                    }
+
+                    ImGui::PopStyleColor();
+                    ImGui::PopID();
+                }
             }
         }
     }
     else
     {
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), 
-            "Run analysis first to compute eigenmodes");
+        // Without the Compute button there is nothing in this panel to press,
+        // so the hint has to point at the thing that does fill it.
+
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s",
+                           details ? "Run analysis first to compute eigenmodes"
+                                   : "Run the analysis. If the structure cannot stand up,\nthe way it moves "
+                                     "appears here.");
     }
 }
 

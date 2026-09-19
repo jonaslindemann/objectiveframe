@@ -59,6 +59,17 @@ public:
     void setIgnoreFocusCheck(bool flag);
     std::string name();
 
+    /**
+     * Renames the window.
+     *
+     * The name is also the ImGui window identity, so a window that renames
+     * itself at runtime should carry a "###id" suffix - everything after it is
+     * the id and everything before is the label, which lets the title change
+     * without ImGui treating it as a new window and dropping its position and
+     * size.
+     */
+    void setName(const std::string &name);
+
     bool isFocused();
 
     bool canClose();

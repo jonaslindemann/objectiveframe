@@ -10,7 +10,8 @@
 using namespace ofui;
 
 StartPopup::StartPopup(const std::string name, bool modal)
-    : PopupWindow(name, modal), m_view(nullptr), m_startButtonClickedFunc(nullptr), m_exampleClickedFunc(nullptr)
+    : PopupWindow(name, modal), m_view(nullptr), m_startButtonClickedFunc(nullptr), m_exampleClickedFunc(nullptr),
+      m_uiModeChangedFunc(nullptr)
 {
     this->setWindowFlags(ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
                          ImGuiWindowFlags_AlwaysAutoResize);
@@ -47,6 +48,11 @@ void ofui::StartPopup::assignStartButtonClickedFunc(StartButtonClickedFunc func)
 void ofui::StartPopup::assignExampleClickedFunc(ExampleClickedFunc func)
 {
     m_exampleClickedFunc = func;
+}
+
+void ofui::StartPopup::assignUiModeChangedFunc(UiModeChangedFunc func)
+{
+    m_uiModeChangedFunc = func;
 }
 
 void ofui::StartPopup::setVersionString(const std::string &versionString)
@@ -163,6 +169,46 @@ void StartPopup::doPopup()
 
         ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
+        // The interface profile, offered here because this is where a new user
+        // arrives before anything is on screen to be confused by. It is read
+        // straight off the profile rather than mirrored into a member, so it
+        // stays right when the mode is changed from the menu instead.
+        //
+        // Applied on the click rather than when the dialog closes: the toolbars
+        // are drawn behind this window, so the change is visible immediately
+        // and can be reconsidered without leaving the page.
+
+        // The explanation sits in a tooltip rather than under the buttons so
+        // that this block is the same height in both modes - the popup is
+        // AlwaysAutoResize, and a description that grew when Simple was picked
+        // would resize the window under the pointer that just picked it.
+
+        ImGui::TextUnformatted("Interface");
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Simple hides beam types, the load, support and material dialogs, and the "
+                              "selection filters.\nModels keep all of their data either way, and the mode "
+                              "can be changed at any time.");
+
+        auto *profile = UiProfile::instance();
+        auto currentMode = profile->mode();
+
+        if (ImGui::RadioButton("Simple", currentMode == UiMode::Simple))
+        {
+            if (m_uiModeChangedFunc)
+                m_uiModeChangedFunc(UiMode::Simple);
+        }
+
+        if (ImGui::RadioButton("Advanced", currentMode == UiMode::Advanced))
+        {
+            if (m_uiModeChangedFunc)
+                m_uiModeChangedFunc(UiMode::Advanced);
+        }
+
+        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+
         if (ImGui::Button("Documentation", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
@@ -198,7 +244,11 @@ void StartPopup::doPopup()
             ImGui::CloseCurrentPopup();
         }
 
-        ImGui::Dummy(ImVec2(0.0, 530.0f * scale));
+        // Pads the column down so the version string lands level with the
+        // bottom of the example grid. Reduced from 530 by the height of the
+        // interface block added above.
+
+        ImGui::Dummy(ImVec2(0.0, 440.0f * scale));
 
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
         ImGui::TextUnformatted(m_versionString.c_str());

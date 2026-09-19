@@ -21,7 +21,15 @@ private:
     struct Fields {
         // Matches ofem::BeamNodeBC::DefaultKind's ordinal - 0 fixed, 1 pinned,
         // 2/3/4 roller in x/y/z. The .cpp is the only place that knows that.
-        int constraint{0};
+        //
+        // Pinned rather than fixed: it is the support a frame usually wants, and
+        // it is the weaker of the two - a model that should have been built in
+        // shows up as a structure that is too soft, where full fixity where a
+        // pin was meant quietly stiffens the frame and reads as correct.
+        //
+        // Kept in step with FemViewWindow::QuickToolState::constraint, which
+        // carries the same default on the view side.
+        int constraint{1};
     };
     Fields m_fields;
 

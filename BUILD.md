@@ -127,8 +127,8 @@ python build-of.py --build --jobs 8
 After building, the binaries will be in:
 
 **Windows:**
-- `bin/Debug/` - Debug executables (with 'd' suffix, e.g., `objframe_glfwd.exe`)
-- `bin/Release/` - Release executables (e.g., `objframe_glfw.exe`)
+- `bin/Debug/` - Debug executables (with 'd' suffix, e.g., `objframed.exe`)
+- `bin/Release/` - Release executables (e.g., `objframe.exe`)
 - `lib/Debug/` - Debug libraries (with 'd' suffix, e.g., `femd.lib`)
 - `lib/Release/` - Release libraries (e.g., `fem.lib`)
 
@@ -196,7 +196,7 @@ git pull
 ```
 
 ### Build errors with IVF++
-ObjectiveFrame depends on the IVF++ library which should be located at `../ivfplusplus` relative to the ObjectiveFrame directory. Make sure you have it cloned and built.
+ObjectiveFrame depends on the IVF++ library which should be located at `../ivfplusplus` relative to the ObjectiveFrame directory. Make sure you have it cloned and built. Set the `IVF_ROOT` environment variable, or pass `-DIVF_ROOT=<path>` to CMake, if it lives somewhere else.
 
 **Windows:** IVF++ libraries must be in:
 - `../ivfplusplus/lib/Debug/` - Debug libraries (with 'd' suffix, e.g., `ivfd.lib`)

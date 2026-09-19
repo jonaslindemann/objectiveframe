@@ -671,6 +671,34 @@ void FemViewWindow::setEditMode(WidgetMode mode)
         setRepresentation(RepresentationMode::Fem);
         m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
         break;
+    case WidgetMode::PaintLoad:
+        log("WidgetMode::PaintLoad");
+        m_consoleWindow->clear();
+        m_editToolbarWindow->selectButton("Quick force", 1);
+        console("Quick force: Drag over nodes to load them with " +
+                FemViewQuickToolHandler::forceDescription(m_quick.force) +
+                ". [Ctrl] removes the load again. Change the force in the Quick force panel.");
+        setHighlightFilter(HighlightMode::Nodes);
+
+        // Its own filter, like CreateLine's - a force belongs on a node, and a
+        // stroke that could pick up beams would stamp nothing half the time.
+
+        setSelectFilter(SelectMode::Nodes);
+        setRepresentation(RepresentationMode::Fem);
+        m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+        break;
+    case WidgetMode::PaintBC:
+        log("WidgetMode::PaintBC");
+        m_consoleWindow->clear();
+        m_editToolbarWindow->selectButton("Quick support", 1);
+        console("Quick support: Drag over nodes to support them (" +
+                FemViewQuickToolHandler::constraintDescription(m_quick.constraint) +
+                "). [Ctrl] removes the support again. Change the support in the Quick support panel.");
+        setHighlightFilter(HighlightMode::Nodes);
+        setSelectFilter(SelectMode::Nodes);
+        setRepresentation(RepresentationMode::Fem);
+        m_beamModel->setResultType(IVF_BEAM_NO_RESULT);
+        break;
     case WidgetMode::CreateNode:
         log("WidgetMode::CreateNode");
         m_consoleWindow->clear();
@@ -736,6 +764,42 @@ void FemViewWindow::setEditMode(WidgetMode mode)
     {
         this->getScene()->getComposite()->setHighlightChildren(Shape::HS_OFF);
         this->setRepresentation(RepresentationMode::Displacements);
+    }
+
+    // What a stamping stroke lays down is whatever its panel says, so entering
+    // one of those modes opens that panel rather than leaving the user to find
+    // it - and closes the other one, which now describes a tool that is not
+    // active. Two open panels both offering to apply something invites setting
+    // a force and then wondering why the support tool ignored it.
+    //
+    // Only the active tool's panel is ever opened this way, so the two share a
+    // docking position rather than stacking: whichever tool is picked, its
+    // panel appears in the same place.
+
+    if (isStampMode(mode))
+    {
+        ofui::UiWindowPtr panel;
+
+        if (mode == WidgetMode::PaintLoad)
+        {
+            m_quickSupportWindow->hide();
+            m_quickForceWindow->update();
+            panel = m_quickForceWindow;
+        }
+        else
+        {
+            m_quickForceWindow->hide();
+            m_quickSupportWindow->update();
+            panel = m_quickSupportWindow;
+        }
+
+        if ((panel != nullptr) && !panel->visible())
+        {
+            panel->show();
+
+            if (!panel->hasBeenPlaced())
+                this->dockNextToEditToolbar(panel);
+        }
     }
 
     m_coordText = "";
@@ -871,7 +935,8 @@ void FemViewWindow::setCustomMode(CustomMode mode)
     else
         m_loadMixerWindow->hide();
 
-    if ((m_customMode == CustomMode::Structure) || (m_customMode == CustomMode::Paste))
+    if ((m_customMode == CustomMode::Structure) || (m_customMode == CustomMode::Paste) ||
+        (m_customMode == CustomMode::LockPlane))
     {
         this->setEditMode(WidgetMode::SelectPosition);
     }
@@ -2785,6 +2850,107 @@ void FemViewWindow::assignNodePosBCSelected()
     this->setCurrentNodeBC(nullptr);
 }
 
+void FemViewWindow::setQuickForce(double fx, double fy, double fz)
+{
+    // Stored split into a direction and a magnitude because that is what a load
+    // is - the panel and the scripting interface both talk in the (fx, fy, fz)
+    // the user thinks in, and this is the one place that converts.
+
+    double magnitude = std::sqrt(fx * fx + fy * fy + fz * fz);
+
+    if (magnitude < 1.0e-12)
+    {
+        m_quick.force.magnitude = 0.0;
+        return;
+    }
+
+    m_quick.force.dx = fx / magnitude;
+    m_quick.force.dy = fy / magnitude;
+    m_quick.force.dz = fz / magnitude;
+    m_quick.force.magnitude = magnitude;
+}
+
+void FemViewWindow::quickForce(double &fx, double &fy, double &fz)
+{
+    fx = m_quick.force.dx * m_quick.force.magnitude;
+    fy = m_quick.force.dy * m_quick.force.magnitude;
+    fz = m_quick.force.dz * m_quick.force.magnitude;
+}
+
+void FemViewWindow::setQuickConstraint(int kind)
+{
+    if (kind < 0 || kind > static_cast<int>(ofem::BeamNodeBC::DefaultKind::RollerZ))
+        return;
+
+    m_quick.constraint = static_cast<ofem::BeamNodeBC::DefaultKind>(kind);
+}
+
+int FemViewWindow::quickConstraint()
+{
+    return static_cast<int>(m_quick.constraint);
+}
+
+std::string FemViewWindow::quickForceName()
+{
+    return FemViewQuickToolHandler::forceDescription(m_quick.force);
+}
+
+void FemViewWindow::quickForceSelection(double fx, double fy, double fz)
+{
+    this->setQuickForce(fx, fy, fz);
+
+    int count = FemViewQuickToolHandler::applyForceToSelection(*this, m_quick.force);
+
+    if (count > 0)
+        this->notify(std::to_string(count) + " nodes loaded with " +
+                     FemViewQuickToolHandler::forceDescription(m_quick.force));
+    else
+        this->notify("No unloaded nodes selected.", ofui::NotificationLevel::Warning);
+}
+
+void FemViewWindow::quickConstraintSelection(int kind)
+{
+    this->setQuickConstraint(kind);
+
+    int count = FemViewQuickToolHandler::applyConstraintToSelection(*this, m_quick.constraint);
+
+    if (count > 0)
+        this->notify(std::to_string(count) + " nodes set to " +
+                     FemViewQuickToolHandler::constraintDescription(m_quick.constraint));
+    else
+        this->notify("No nodes selected that need that support.", ofui::NotificationLevel::Warning);
+}
+
+void FemViewWindow::clearQuickForceSelection()
+{
+    int count = FemViewQuickToolHandler::clearForcesFromSelection(*this);
+
+    if (count > 0)
+        this->notify("Loads removed from " + std::to_string(count) + " nodes");
+    else
+        this->notify("No loaded nodes selected.", ofui::NotificationLevel::Warning);
+}
+
+void FemViewWindow::clearQuickConstraintSelection()
+{
+    int count = FemViewQuickToolHandler::clearConstraintsFromSelection(*this);
+
+    if (count > 0)
+        this->notify("Supports removed from " + std::to_string(count) + " nodes");
+    else
+        this->notify("No supported nodes selected.", ofui::NotificationLevel::Warning);
+}
+
+void FemViewWindow::onStampStart()
+{
+    FemViewQuickToolHandler::armStamp(*this);
+}
+
+void FemViewWindow::onStamp(Shape *shape, bool remove)
+{
+    FemViewQuickToolHandler::stampShape(*this, shape, remove);
+}
+
 void FemViewWindow::assignNodeFixedBCGround()
 {
     this->snapShot();
@@ -3849,54 +4015,24 @@ size_t FemViewWindow::materialCount()
 
 void FemViewWindow::addNodeLoadAt(int i, double fx, double fy, double fz)
 {
-    if (i < 0 || i >= (int)m_beamModel->getNodeSet()->getSize())
-        return;
-    auto node = m_beamModel->getNodeSet()->getNode(i);
+    // Delegated so that a load added over the REST API or from a script goes
+    // through exactly the coalescing, naming and duplicate check the quick
+    // force tool uses - two implementations of "find a load like this one"
+    // would sooner or later disagree about what "like" means.
 
-    double mag = std::sqrt(fx * fx + fy * fy + fz * fz);
-    if (mag < 1e-12)
-        return;
-    double nx = fx / mag, ny = fy / mag, nz = fz / mag;
+    FemViewQuickToolHandler::ForceSpec spec;
 
-    auto loadSet = m_beamModel->getNodeLoadSet();
-    ofem::BeamNodeLoad *targetLoad = nullptr;
-    for (int j = 0; j < (int)loadSet->getSize(); j++)
-    {
-        auto load = static_cast<ofem::BeamNodeLoad *>(loadSet->getLoad(j));
-        double dx, dy, dz;
-        load->getDirection(dx, dy, dz);
-        double dmag = std::sqrt(dx * dx + dy * dy + dz * dz);
-        if (dmag > 1e-12)
-        {
-            dx /= dmag;
-            dy /= dmag;
-            dz /= dmag;
-        }
-        if (std::abs(dx - nx) < 1e-6 && std::abs(dy - ny) < 1e-6 && std::abs(dz - nz) < 1e-6 &&
-            std::abs(load->getValue() - mag) < 1e-3)
-        {
-            targetLoad = load;
-            break;
-        }
-    }
-    if (targetLoad == nullptr)
-    {
-        auto newLoad = new ofem::BeamNodeLoad();
-        newLoad->setDirection(nx, ny, nz);
-        newLoad->setValue(mag);
-        loadSet->addLoad(newLoad);
-        targetLoad = newLoad;
-        addNodeLoad(newLoad);
-    }
-    targetLoad->addNode(node);
-    auto visNodeLoad = static_cast<vfem::NodeLoad *>(targetLoad->getUser());
-    if (visNodeLoad != nullptr)
-        visNodeLoad->refresh();
-    m_solver.needRecalc = true;
-    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
-        clearEigenmodes();
-    this->set_changed();
-    this->redraw();
+    double magnitude = std::sqrt(fx * fx + fy * fy + fz * fz);
+
+    if (magnitude < 1.0e-12)
+        return;
+
+    spec.dx = fx / magnitude;
+    spec.dy = fy / magnitude;
+    spec.dz = fz / magnitude;
+    spec.magnitude = magnitude;
+
+    FemViewQuickToolHandler::applyForceToNodeAt(*this, i, spec);
 }
 
 void FemViewWindow::clearNodeLoadAt(int i)
@@ -4908,6 +5044,12 @@ void FemViewWindow::onInit()
 
     m_coordWindow = CoordWindow::create("Coord window");
 
+    // The readout is the only place a locked plane can be dropped without
+    // going back to the menu, which is where the user will be looking - the
+    // lock is shown right there.
+
+    m_coordWindow->assignPlaneClickedFunc([this](int plane) { this->selectWorkPlane(plane); });
+
     m_windowList->add(m_coordWindow);
 
     // Drawn after the coord window so it can anchor itself below the coord
@@ -4918,7 +5060,9 @@ void FemViewWindow::onInit()
     m_resultToolbarWindow->setAnchorWindow(m_coordWindow);
     m_resultToolbarWindow->setVisible(true);
 
-    m_coordWindow->setContentWidth(m_resultToolbarWindow->contentWidth());
+    // Sizing flows the other way now: the result toolbar matches whatever the
+    // coordinate display grows to, which the readout's plane buttons can widen
+    // beyond either window's nominal width. See ResultToolbarWindow::doDraw().
 
     m_windowList->add(m_resultToolbarWindow);
 
@@ -5037,6 +5181,22 @@ void FemViewWindow::onInit()
 
     m_windowList->add(m_transformWindow);
 
+    // Two panels rather than one with tabs: the force tool and the support tool
+    // are used at different points in building a model, and a beginner reaching
+    // for one should not have to notice the other is a tab away.
+
+    m_quickForceWindow = ofui::QuickForceWindow::create("Quick force");
+    m_quickForceWindow->setFemView(this);
+    m_quickForceWindow->setVisible(false);
+
+    m_windowList->add(m_quickForceWindow);
+
+    m_quickSupportWindow = ofui::QuickSupportWindow::create("Quick support");
+    m_quickSupportWindow->setFemView(this);
+    m_quickSupportWindow->setVisible(false);
+
+    m_windowList->add(m_quickSupportWindow);
+
     m_viewWindow = ofui::ViewWindow::create("View");
     m_viewWindow->setScene(getScene());
     m_viewWindow->setSourceView(this);
@@ -5105,6 +5265,37 @@ void FemViewWindow::onInit()
 
     m_editToolbarWindow->addButton("Create bar", OfToolbarButtonType::RadioButton,
                                    (m_paths.image / fs::path("tlbarline.png")).string(), 1);
+
+    m_editToolbarWindow->addSpacer();
+
+    // The loading tools, sitting with the model building tools rather than with
+    // the selection modes, because that is the order the work happens in: place
+    // nodes and beams, then load and support them.
+
+    // Self weight is a property of the model rather than a mode, so a toggle
+    // rather than a radio button - it stays on whatever tool is in use, and it
+    // takes no group so picking a mode does not clear it. It leads this group
+    // because that is what it is: a load, applied everywhere at once instead of
+    // where the user clicks.
+
+    m_editToolbarWindow->addButton("Self weight", OfToolbarButtonType::ToggleButton,
+                                   (m_paths.image / fs::path("tlselfweight.png")).string());
+
+    // The quick tools are edit modes, so radio group 1 - the same group as
+    // Create node and as the selection modes on the other toolbar, which is
+    // linked into this one - and picking one releases whatever tool was active
+    // before.
+    //
+    // They carry the Node loads and Node BC glyphs badged with a Q: they are a
+    // shortcut for those dialogs, which sit further along this same toolbar, and
+    // should look like it. The badge is the whole of the difference - everything
+    // else about the button is drawn like its neighbours.
+
+    m_editToolbarWindow->addButton("Quick force", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlquickload.png")).string(), 1);
+
+    m_editToolbarWindow->addButton("Quick support", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlquickbc.png")).string(), 1);
 
     m_editToolbarWindow->addSpacer();
 
@@ -5969,6 +6160,37 @@ void FemViewWindow::updateSelectionCount()
         return;
 
     m_coordWindow->setSelectionCount(this->selectionShapeCount("vfem::Node"), this->selectionShapeCount("vfem::Beam"));
+
+    // The plane can change on any mouse move ([Shift]) or from the menu, so it
+    // is read back rather than pushed on each of those paths.
+
+    const char *axis = (this->activeWorkPlane() == ShiftPlane::XY)
+                           ? "z"
+                           : ((this->activeWorkPlane() == ShiftPlane::YZ) ? "x" : "y");
+
+    ofui::WorkPlaneInfo planeInfo;
+
+    planeInfo.plane = static_cast<int>(this->activeWorkPlane());
+    planeInfo.locked = this->isWorkPlaneLocked();
+
+    // While a lock is being placed the plane is chosen but not yet in force, so
+    // the readout shows which button is waiting on a click in the view.
+
+    planeInfo.pending = (m_customMode == CustomMode::LockPlane) ? static_cast<int>(m_pendingLockPlane) : -1;
+
+    // Modes that place no 3D cursor have no work plane to constrain - selection
+    // and box select among them - so there is nothing for the buttons to do.
+
+    planeInfo.enabled = (this->getScene() != nullptr) && this->getScene()->getUseCursor();
+
+    if (planeInfo.locked)
+    {
+        char offsetText[64] = "";
+        snprintf(offsetText, sizeof(offsetText), "locked at %s = %.2f", axis, this->workPlaneOffset());
+        planeInfo.text = offsetText;
+    }
+
+    m_coordWindow->setWorkPlane(planeInfo);
 }
 
 void FemViewWindow::onDeSelect()
@@ -6057,8 +6279,130 @@ void FemViewWindow::onSelectFilter(Shape *shape, bool &select)
     }
 }
 
+void FemViewWindow::beginLockWorkPlane(int plane)
+{
+    ShiftPlane wanted = ShiftPlane::XZ;
+
+    if (plane == 1)
+        wanted = ShiftPlane::XY;
+    else if (plane == 2)
+        wanted = ShiftPlane::YZ;
+
+    m_pendingLockPlane = wanted;
+
+    // Remember the tool in hand. Picking a plane is a detour, not a change of
+    // what the user was doing.
+
+    if (this->getEditMode() != WidgetMode::SelectPosition)
+        m_lockPlaneReturnMode = this->getEditMode();
+
+    // Released first, so the pick itself happens against the ordinary ground
+    // plane rather than against a lock that is about to be replaced - picking a
+    // point on the old plane to define the new one is nearly always wrong.
+
+    this->releaseWorkPlane();
+
+    // setCustomMode() puts the view into WidgetMode::SelectPosition for this
+    // mode, the same way it does for a plugin picking a position.
+
+    this->setCustomMode(CustomMode::LockPlane);
+
+    m_consoleWindow->clear();
+
+    // A horizontal plane is the awkward one: clicks land on the ground plane,
+    // so without [Shift] every pick would give y = 0 and the lock could only
+    // ever be at ground level. Say so rather than let the user find out.
+
+    if (wanted == ShiftPlane::XZ)
+        console("Lock work plane (XZ): Click the height the plane should sit at. Hold [Shift] while clicking to "
+                "pick a point above the ground. [Esc] cancels.");
+    else
+        console("Lock work plane: Click a point for the plane to pass through. [Esc] cancels.");
+}
+
+void FemViewWindow::selectWorkPlane(int plane)
+{
+    if (plane == 0)
+    {
+        // The ground plane is the unlocked state, so asking for it is asking to
+        // be let out of whatever lock is in force - which is why the readout
+        // needs no separate release button.
+
+        this->releaseWorkPlaneLock();
+        return;
+    }
+
+    this->beginLockWorkPlane(plane);
+}
+
+void FemViewWindow::lockWorkPlaneAt(int plane, double x, double y, double z)
+{
+    ShiftPlane wanted = ShiftPlane::XZ;
+
+    if (plane == 1)
+        wanted = ShiftPlane::XY;
+    else if (plane == 2)
+        wanted = ShiftPlane::YZ;
+
+    this->lockWorkPlane(wanted, x, y, z);
+    this->notify("Work plane locked to " + this->workPlaneDescription());
+}
+
+void FemViewWindow::releaseWorkPlaneLock()
+{
+    if (!this->isWorkPlaneLocked())
+        return;
+
+    this->releaseWorkPlane();
+    this->notify("Work plane released");
+}
+
+std::string FemViewWindow::workPlaneDescription()
+{
+    const char *name = "XZ";
+
+    switch (this->activeWorkPlane())
+    {
+    case ShiftPlane::XY:
+        name = "XY";
+        break;
+    case ShiftPlane::YZ:
+        name = "YZ";
+        break;
+    default:
+        break;
+    }
+
+    if (!this->isWorkPlaneLocked())
+        return name;
+
+    const char *axis = (this->activeWorkPlane() == ShiftPlane::XY)
+                           ? "z"
+                           : ((this->activeWorkPlane() == ShiftPlane::YZ) ? "x" : "y");
+
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%s @ %s=%.2f", name, axis, this->workPlaneOffset());
+
+    return buffer;
+}
+
 void FemViewWindow::onSelectPosition(double x, double y, double z)
 {
+    if (m_customMode == CustomMode::LockPlane)
+    {
+        // Mode first, lock second. setEditMode() drops the plane indicator on
+        // the way in, so locking before it would put the plane up only to have
+        // it taken straight back down - and then it really would wait for the
+        // next mouse move to reappear.
+
+        m_customMode = CustomMode::Normal;
+        this->setEditMode(m_lockPlaneReturnMode);
+
+        this->lockWorkPlane(m_pendingLockPlane, x, y, z);
+
+        this->notify("Work plane locked to " + this->workPlaneDescription());
+    }
+
     if (m_customMode == CustomMode::Structure)
     {
         log(ofutil::to_coord_string(x, y, z));
@@ -6089,6 +6433,10 @@ void FemViewWindow::onEditModeChanged(WidgetMode previousMode, WidgetMode newMod
         this->cancelPasteGhost();
         m_customMode = CustomMode::Normal;
     }
+
+    if ((previousMode == WidgetMode::SelectPosition) && (newMode != WidgetMode::SelectPosition) &&
+        (m_customMode == CustomMode::LockPlane))
+        m_customMode = CustomMode::Normal;
 }
 
 void FemViewWindow::onMoveStart()
@@ -6431,6 +6779,30 @@ void FemViewWindow::onButtonClicked(ofui::OfToolbarButton &button)
         this->setEditMode(WidgetMode::PaintSelect);
     }
 
+    if (button.name() == "Self weight")
+    {
+        // The toolbar flips the button before calling back, so this is the
+        // state the user just asked for. The model is the authority either
+        // way - onDrawImGui() syncs the button from it every frame.
+
+        this->setSelfWeightEnabled(button.selected());
+
+        if (m_selfWeightWindow != nullptr)
+            m_selfWeightWindow->update();
+
+        this->notify(button.selected() ? "Self weight enabled" : "Self weight disabled");
+    }
+
+    if (button.name() == "Quick force")
+    {
+        this->setEditMode(WidgetMode::PaintLoad);
+    }
+
+    if (button.name() == "Quick support")
+    {
+        this->setEditMode(WidgetMode::PaintBC);
+    }
+
     if (button.name() == "Filter all")
         this->setUserSelectFilter(SelectMode::All);
 
@@ -6660,6 +7032,16 @@ void FemViewWindow::onKeyboard(int key)
                 m_customMode = CustomMode::Normal;
             }
 
+            // A plane pick that is abandoned leaves no lock behind - the old one
+            // was already released when the pick started, which is what the user
+            // asked for by starting it.
+
+            if (m_customMode == CustomMode::LockPlane)
+            {
+                m_customMode = CustomMode::Normal;
+                console("Lock work plane: cancelled.");
+            }
+
             m_editButtons->clearChecked();
             m_objectButtons->clearChecked();
             m_editButtons->check(0);
@@ -6729,6 +7111,14 @@ void FemViewWindow::onDrawImGui()
     // calls happen while the ImGui frame is still active and viewport data is valid.
     if (executeCalc)
         this->executeCalc();
+
+    // Self weight can be changed from the toolbar, from the Self-weight panel,
+    // from a script, or by loading a model. The button follows the model rather
+    // than remembering a state of its own, so every one of those routes leaves
+    // it telling the truth.
+
+    if (m_editToolbarWindow != nullptr)
+        m_editToolbarWindow->setButtonSelected("Self weight", this->selfWeightEnabled());
 
     m_windowList->draw();
 

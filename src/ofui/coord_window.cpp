@@ -7,13 +7,20 @@ using namespace ofui;
 
 CoordWindow::CoordWindow(const std::string name)
     : UiWindow(name), m_coord{0.0, 0.0, 0.0}, m_contentWidth{130.0f}, m_selectedNodes{0}, m_selectedBeams{0},
-      m_selectionFilter{"All"}
+      m_selectionFilter{"All"}, m_rowWidth{130.0f}
 {
     this->setWindowFlags(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                          ImGuiWindowFlags_NoNav);
 
     this->setAutoPlacement(false);
+
+    // A readout, not a panel: clicking its release button must not count as
+    // focusing a window, or the view would stop taking keyboard shortcuts for
+    // as long as the click left it focused. The toolbars opt out for the same
+    // reason.
+
+    this->setIgnoreFocusCheck(true);
 }
 
 CoordWindow::~CoordWindow()
@@ -42,6 +49,16 @@ void CoordWindow::setSelectionCount(int nodes, int beams)
 void CoordWindow::setSelectionFilter(const std::string filter)
 {
     m_selectionFilter = filter;
+}
+
+void CoordWindow::setWorkPlane(const WorkPlaneInfo &info)
+{
+    m_workPlane = info;
+}
+
+void CoordWindow::assignPlaneClickedFunc(const PlaneClickedFunc &func)
+{
+    m_onPlaneClicked = func;
 }
 
 void CoordWindow::setContentWidth(float width)
@@ -86,7 +103,7 @@ void CoordWindow::drawCoord(const char *label, double value)
 
     float labelWidth = ImGui::CalcTextSize(label).x;
     float valueWidth = ImGui::CalcTextSize(buffer).x;
-    float offset = m_contentWidth * ImGui::GetIO().FontGlobalScale - valueWidth;
+    float offset = m_rowWidth - valueWidth;
 
     ImGui::SameLine(std::max(offset, labelWidth + ImGui::GetStyle().ItemSpacing.x));
     ImGui::TextUnformatted(buffer);
@@ -98,18 +115,69 @@ void CoordWindow::drawValue(const char *label, const std::string &value)
 
     float labelWidth = ImGui::CalcTextSize(label).x;
     float valueWidth = ImGui::CalcTextSize(value.c_str()).x;
-    float offset = m_contentWidth * ImGui::GetIO().FontGlobalScale - valueWidth;
+    float offset = m_rowWidth - valueWidth;
 
     ImGui::SameLine(std::max(offset, labelWidth + ImGui::GetStyle().ItemSpacing.x));
     ImGui::TextUnformatted(value.c_str());
 }
 
+void CoordWindow::drawPlaneButton(const char *label, int plane)
+{
+    // Disabled means "you are already here". For xz that is the default ground
+    // plane, which is the unlocked state rather than the xz plane as such - a
+    // horizontal plane locked at some height is a different thing, and clicking
+    // xz is how you get back out of it.
+
+    bool current = (plane == 0) ? !m_workPlane.locked : (m_workPlane.locked && plane == m_workPlane.plane);
+    bool pending = (plane == m_workPlane.pending);
+
+    if (pending)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.60f, 0.15f, 0.40f));
+
+    ImGui::BeginDisabled(current || !m_workPlane.enabled);
+
+    if (ImGui::SmallButton(label) && m_onPlaneClicked)
+        m_onPlaneClicked(plane);
+
+    ImGui::EndDisabled();
+
+    if (pending)
+        ImGui::PopStyleColor();
+}
+
 void CoordWindow::doDraw()
 {
+    // The window auto-resizes to its widest row, which is not necessarily a
+    // coordinate row - the plane buttons can be wider. Measured here, with the
+    // cursor still at the left edge, so every row below right-aligns against
+    // the same edge the window actually ends at.
+
+    m_rowWidth = (std::max)(m_contentWidth * ImGui::GetIO().FontGlobalScale, ImGui::GetContentRegionAvail().x);
+
     ImGui::Dummy(ImVec2(m_contentWidth * ImGui::GetIO().FontGlobalScale, 0.0f));
     this->drawCoord("X", m_coord[0]);
     this->drawCoord("Y", m_coord[1]);
     this->drawCoord("Z", m_coord[2]);
+
+    // Which plane a click will land on. Worth having on screen permanently:
+    // without it the only clue is whether [Shift] is down, which is invisible,
+    // and a locked plane has no clue at all.
+
+    ImGui::Separator();
+
+    ImGui::TextUnformatted("Plane");
+    ImGui::SameLine();
+    this->drawPlaneButton("XZ", 0);
+    ImGui::SameLine();
+    this->drawPlaneButton("XY", 1);
+    ImGui::SameLine();
+    this->drawPlaneButton("YZ", 2);
+
+    // Always a line here, blank when there is nothing to say, so the window
+    // keeps a constant height and the toolbar anchored below it does not jump
+    // whenever the plane is locked or freed.
+
+    ImGui::TextDisabled("%s", m_workPlane.locked ? m_workPlane.text.c_str() : " ");
 
     // Selection readout. Always drawn, so the window keeps a constant height
     // and the toolbar anchored below it does not jump around.

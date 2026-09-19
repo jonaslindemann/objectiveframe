@@ -89,6 +89,13 @@ void ofui::ToolbarWindow::selectButton(const std::string name, int group)
     }
 }
 
+void ofui::ToolbarWindow::setButtonSelected(const std::string name, bool flag)
+{
+    for (auto &button : m_buttons)
+        if (button.name() == name)
+            button.setSelected(flag);
+}
+
 ofui::OfToolbarButton &ofui::ToolbarWindow::button(int idx)
 {
     return m_buttons[idx];
@@ -157,13 +164,19 @@ void ToolbarWindow::doDraw()
         }
         else if (button.type() == OfToolbarButtonType::ToggleButton)
         {
+            // The same frame a selected radio button gets. A toggle that is on
+            // and a mode that is active mean the same thing to the user, and
+            // drawing them differently only invites the question of how they
+            // differ. The tile behind the glyph stays m_color either way, as it
+            // is for every other button on the toolbar.
+
             if (button.selected())
             {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 1, 1});
+                ImGui::PushStyleColor(ImGuiCol_Button, m_selectedColor);
             }
             else
             {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0.5, 1.0});
+                ImGui::PushStyleColor(ImGuiCol_Button, m_color);
             }
             if (ImGui::ImageButton("", (ImTextureID)(button.id()), button_sz, ImVec2(0, 0), ImVec2(1, 1), m_color,
                                    m_selectedColor))

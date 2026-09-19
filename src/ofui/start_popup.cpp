@@ -136,6 +136,8 @@ void StartPopup::doPopup()
             }
         }
 
+        /*
+
         if (ImGui::Button("Open AI prompt...", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
@@ -157,6 +159,7 @@ void StartPopup::doPopup()
                 m_startButtonClickedFunc(button);
             }
         }
+        */
 
         ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
@@ -173,6 +176,8 @@ void StartPopup::doPopup()
 
         ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
 
+        /*
+
         if (ImGui::Button("Start automation API", ImVec2(180.0f * scale, 0)))
         {
             this->close(PopupResult::OK);
@@ -185,6 +190,7 @@ void StartPopup::doPopup()
         }
 
         ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+        */
 
         if (ImGui::Button("Close", ImVec2(180.0f * scale, 0)))
         {
@@ -192,7 +198,7 @@ void StartPopup::doPopup()
             ImGui::CloseCurrentPopup();
         }
 
-        ImGui::Dummy(ImVec2(0.0, 430.0f * scale));
+        ImGui::Dummy(ImVec2(0.0, 530.0f * scale));
 
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
         ImGui::TextUnformatted(m_versionString.c_str());

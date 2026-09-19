@@ -79,6 +79,26 @@ void FemViewScriptBindings::bind(chaiscript::ChaiScript &script, FemViewWindow &
     script.add(chaiscript::fun(&FemViewWindow::setSelectionCoord, &view), "setSelectionCoord");
     script.add(chaiscript::fun(&FemViewWindow::setSelectionCoordAxis, &view), "setSelectionCoordAxis");
 
+    // Quick force and support tools. The support is named by its ordinal -
+    // 0 fixed, 1 pinned, 2/3/4 roller in x/y/z - and both commands act on the
+    // current selection, coalescing loads and sharing supports exactly as the
+    // panel buttons do.
+
+    script.add(chaiscript::fun(&FemViewWindow::quickForceSelection, &view), "quickForceSelection");
+    script.add(chaiscript::fun(&FemViewWindow::quickConstraintSelection, &view), "quickConstraintSelection");
+    script.add(chaiscript::fun(&FemViewWindow::clearQuickForceSelection, &view), "clearQuickForceSelection");
+    script.add(chaiscript::fun(&FemViewWindow::clearQuickConstraintSelection, &view), "clearQuickConstraintSelection");
+    script.add(chaiscript::fun(&FemViewWindow::setQuickForce, &view), "setQuickForce");
+    script.add(chaiscript::fun(&FemViewWindow::setQuickConstraint, &view), "setQuickConstraint");
+
+    // Work plane lock. The plane is named by the ShiftPlane ordinal - 0 xz,
+    // 1 xy, 2 yz - and lockWorkPlaneAt() skips the point pick, which a script
+    // has no use for since it already knows the coordinates.
+
+    script.add(chaiscript::fun(&FemViewWindow::lockWorkPlaneAt, &view), "lockWorkPlaneAt");
+    script.add(chaiscript::fun(&FemViewWindow::releaseWorkPlaneLock, &view), "releaseWorkPlaneLock");
+    script.add(chaiscript::fun(&FemViewWindow::isWorkPlaneLocked, &view), "isWorkPlaneLocked");
+
     script.add(chaiscript::fun(&FemViewWindow::addBeamLoadAt, &view), "addBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::clearBeamLoadAt, &view), "clearBeamLoadAt");
     script.add(chaiscript::fun(&FemViewWindow::hasBeamLoadAt, &view), "hasBeamLoadAt");

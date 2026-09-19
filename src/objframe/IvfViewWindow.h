@@ -26,9 +26,31 @@ enum class WidgetMode {
     SelectVolume,
     BoxSelection,
     PaintSelect,
+
+    // Stamping modes. They share every gesture with PaintSelect - the same
+    // pick, the same [Ctrl] to reverse, the same "already selected" guard that
+    // makes a stroke touch each shape once - and additionally call onStamp()
+    // for each shape as it enters or leaves the selection. See isPaintMode()
+    // and isStampMode().
+
+    PaintLoad,
+    PaintBC,
+
     Manipulate,
     User
 };
+
+/** Modes that build a selection by dragging over shapes. */
+inline bool isPaintMode(WidgetMode mode)
+{
+    return (mode == WidgetMode::PaintSelect) || (mode == WidgetMode::PaintLoad) || (mode == WidgetMode::PaintBC);
+}
+
+/** Paint modes that additionally apply something to what they touch. */
+inline bool isStampMode(WidgetMode mode)
+{
+    return (mode == WidgetMode::PaintLoad) || (mode == WidgetMode::PaintBC);
+}
 
 // Mouse modes
 
@@ -200,6 +222,21 @@ private:
     ofmath::GridPlane m_yzPlane;
     ShiftPlane m_activeShiftPlane;
 
+    // A work plane the user has pinned, so cursor placement stops depending on
+    // whether [Shift] happens to be held. While it is active updateCursor()
+    // ignores [Shift] entirely and every mode that places the 3D cursor works
+    // against this plane - which is the point: a lock that some modes honoured
+    // and others did not would be worse than no lock.
+    //
+    // The origin is a point the plane passes through, not a corner: only the
+    // one coordinate the plane holds constant is actually used.
+    struct WorkPlaneLock {
+        bool active{false};
+        ShiftPlane plane{ShiftPlane::XZ};
+        double origin[3]{0.0, 0.0, 0.0};
+    };
+    WorkPlaneLock m_planeLock;
+
     // Translucent indicator shown whenever cursor placement is constrained
     // to a vertical plane by [Shift] -- in every mode that places the 3D
     // cursor, not just one of them; see updateCursor(). ivf::Mesh (flat
@@ -260,6 +297,36 @@ public:
      * live rather than being tied to one particular edit mode.
      */
     void showShiftPlaneIndicator(bool show);
+
+    /**
+     * Brings the construction plane's cursor lock in line with what is in force.
+     *
+     * That lock is what makes the workspace draw the ground crosshair and the
+     * line up to the cursor, which is the only cue that placement has left the
+     * ground plane. [Shift] and a locked work plane both want it, so every path
+     * that used to lock or unlock it directly goes through here instead - one of
+     * them clearing the other's lock is exactly the bug this prevents.
+     */
+    void applyCursorLock();
+
+    /**
+     * Pins cursor placement to one plane through the given point.
+     *
+     * [Shift] is ignored for as long as the lock holds, and the plane
+     * indicator stays up rather than appearing only while a modifier is down.
+     */
+    void lockWorkPlane(ShiftPlane plane, double x, double y, double z);
+
+    /** Releases the lock, returning to [Shift] driven plane selection. */
+    void releaseWorkPlane();
+
+    bool isWorkPlaneLocked() const;
+
+    /** The plane cursor placement is using right now, locked or not. */
+    ShiftPlane activeWorkPlane() const;
+
+    /** The coordinate the active plane holds constant. */
+    double workPlaneOffset() const;
 
     /**
      * Rebuilds m_shiftPlaneGrid in world space for the current
@@ -640,6 +707,35 @@ public:
      * @param selectedShapes Currently selected shapes.
      */
     virtual void onSelect(ivf::Composite *selectedShapes);
+
+    /**
+     * onStampStart event
+     *
+     * Called once when a stamping stroke begins, before the first shape is
+     * picked, so the handler can arm the stroke's single undo snapshot.
+     *
+     * Arming rather than snapshotting: a snapshot serialises the whole model,
+     * so one per stamped node would make undo walk a stroke back a node at a
+     * time, and taking one here would charge an undo entry to a stroke that
+     * starts over empty space or over a shape that already carries what is
+     * being stamped. The armed snapshot is taken by the first change that
+     * actually happens.
+     */
+    virtual void onStampStart();
+
+    /**
+     * onStamp event
+     *
+     * Called by paintSelectAt() in the stamping modes for each shape as it
+     * enters or leaves the selection, which is exactly once per shape per
+     * stroke - the "already selected" guards on both branches see to that.
+     * That guarantee matters: what is stamped accumulates, so a shape the
+     * cursor lingers on must not be stamped twice.
+     *
+     * \param remove the shape is leaving the selection ([Ctrl] held), so undo
+     *               what would otherwise be applied
+     */
+    virtual void onStamp(ivf::Shape *shape, bool remove);
 
     virtual bool onInsideVolume(ivf::Shape *shape);
 

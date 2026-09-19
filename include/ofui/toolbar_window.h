@@ -99,6 +99,15 @@ public:
      */
     void selectButton(const std::string name, int group);
 
+    /**
+     * Sets a toggle button's state without going through a click.
+     *
+     * selectButton() can only ever select, which is what a radio group needs.
+     * A toggle mirrors something the application owns and has to be able to
+     * follow it back to off.
+     */
+    void setButtonSelected(const std::string name, bool flag);
+
     OfToolbarButton &button(int idx);
     size_t buttonCount();
 

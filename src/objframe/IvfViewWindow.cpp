@@ -1037,7 +1037,7 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
     m_zoomX = 0.0f;
     m_zoomY = 0.0f;
 
-    if ((getEditMode() == WidgetMode::Select) || (getEditMode() == WidgetMode::PaintSelect))
+    if ((getEditMode() == WidgetMode::Select) || isPaintMode(getEditMode()))
     {
         m_selectedShape = NULL;
         m_scene->disableCursor();
@@ -1057,7 +1057,7 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_selectedShapes->clear();
-        m_scene->unlockCursor();
+        this->applyCursorLock();
     }
 
     if (getEditMode() == WidgetMode::SelectPosition)
@@ -1066,7 +1066,7 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_selectedShapes->clear();
-        m_scene->unlockCursor();
+        this->applyCursorLock();
     }
 
     if (getEditMode() == WidgetMode::SelectVolume)
@@ -1075,7 +1075,7 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
         m_scene->enableCursor();
         m_clickNumber = 0;
         m_selectedShapes->clear();
-        m_scene->unlockCursor();
+        this->applyCursorLock();
     }
 
     // Rubber band selection works purely in screen space, so it needs neither
@@ -1091,7 +1091,7 @@ void IvfViewWindow::setEditMode(WidgetMode mode)
     {
         m_scene->enableCursor();
         m_clickNumber = 0;
-        m_scene->unlockCursor();
+        this->applyCursorLock();
     }
 
     if (getEditMode() == WidgetMode::ViewPan)
@@ -1191,12 +1191,20 @@ void IvfViewWindow::paintSelectAt(int x, int y, bool deselect)
     if (highlight)
         shape->setHighlight(Shape::HS_ON);
 
+    // The two "already in this state" guards below are what make a stamping
+    // stroke safe: each shape passes through here once per stroke however long
+    // the cursor lingers on it. What is stamped accumulates, so stamping a
+    // shape twice would double a load rather than do nothing.
+
     if (deselect)
     {
         if (shape->getSelect() != GLBase::SS_ON)
             return;
 
         this->removeSelection(shape);
+
+        if (isStampMode(m_editMode))
+            this->onStamp(shape, true);
     }
     else
     {
@@ -1211,6 +1219,9 @@ void IvfViewWindow::paintSelectAt(int x, int y, bool deselect)
 
         shape->setSelect(GLBase::SS_ON);
         m_selectedShapes->addChild(shape);
+
+        if (isStampMode(m_editMode))
+            this->onStamp(shape, false);
     }
 
     onSelect(m_selectedShapes);
@@ -1244,12 +1255,138 @@ Camera *IvfViewWindow::getCamera()
     return m_camera;
 }
 
+void IvfViewWindow::applyCursorLock()
+{
+    // The construction plane's cursor lock is what makes the workspace draw the
+    // ground crosshair and the line up to the cursor (Workspace::
+    // doCreateGeometry()). [Shift] holds it while it is held; a locked work
+    // plane holds it for as long as the lock does, so placement off the ground
+    // plane reads the same either way.
+
+    if (m_planeLock.active || isShiftDown())
+    {
+        if (!m_scene->isCursorLocked())
+            m_scene->lockCursor();
+    }
+    else
+        m_scene->unlockCursor();
+}
+
+void IvfViewWindow::lockWorkPlane(ShiftPlane plane, double x, double y, double z)
+{
+    m_planeLock.active = true;
+    m_planeLock.plane = plane;
+    m_planeLock.origin[0] = x;
+    m_planeLock.origin[1] = y;
+    m_planeLock.origin[2] = z;
+
+    m_activeShiftPlane = plane;
+
+    this->applyCursorLock();
+
+    // The indicator anchors itself the moment it turns on and holds that anchor
+    // until it turns off. It may already be up from a [Shift] gesture, anchored
+    // somewhere else entirely, so clear the anchor to make it re-read the plane
+    // it is now showing.
+
+    m_shiftPlaneAnchored = false;
+
+    // The indicator, and the cursor's position on the new plane, are only ever
+    // worked out by updateCursor() - which runs on mouse motion. Without this
+    // the plane the user just placed stays invisible until they happen to move
+    // the mouse. Same refresh [Shift] does on key down, and skipped for the same
+    // reason: with the pointer over a panel there is no meaningful view position
+    // to re-read.
+
+    if (!isOverWindow())
+        this->updateCursor(mouseX(), mouseY());
+
+    redraw();
+}
+
+void IvfViewWindow::releaseWorkPlane()
+{
+    if (!m_planeLock.active)
+        return;
+
+    m_planeLock.active = false;
+    m_activeShiftPlane = ShiftPlane::XZ;
+
+    this->applyCursorLock();
+    this->showShiftPlaneIndicator(false);
+
+    // Puts the cursor back on the ground plane straight away, for the same
+    // reason locking refreshes it - otherwise it hangs at its last position on
+    // the plane that has just been dropped until the mouse next moves.
+
+    if (!isOverWindow())
+        this->updateCursor(mouseX(), mouseY());
+
+    redraw();
+}
+
+bool IvfViewWindow::isWorkPlaneLocked() const
+{
+    return m_planeLock.active;
+}
+
+ShiftPlane IvfViewWindow::activeWorkPlane() const
+{
+    return m_activeShiftPlane;
+}
+
+double IvfViewWindow::workPlaneOffset() const
+{
+    if (!m_planeLock.active)
+        return 0.0;
+
+    switch (m_planeLock.plane)
+    {
+    case ShiftPlane::XY:
+        return m_planeLock.origin[2];
+    case ShiftPlane::YZ:
+        return m_planeLock.origin[0];
+    default:
+        return m_planeLock.origin[1];
+    }
+}
+
 void IvfViewWindow::updateCursor(int x, int y)
 {
     ivf::Vec3d v = m_scene->getCamera()->pickVector(x, y);
     ivf::Vec3d o = m_scene->getCamera()->getPosition();
 
     bool shiftHeld = isShiftDown();
+
+    if (m_planeLock.active)
+    {
+        this->applyCursorLock();
+
+        // [Shift] is deliberately ignored here. A lock that a modifier could
+        // still override would leave the user unable to tell, from the screen,
+        // which plane a click is about to land on.
+
+        ofmath::GridPlane *plane = &m_xzPlane;
+
+        if (m_planeLock.plane == ShiftPlane::XY)
+            plane = &m_xyPlane;
+        else if (m_planeLock.plane == ShiftPlane::YZ)
+            plane = &m_yzPlane;
+
+        plane->setPlaneOrigin(m_planeLock.origin[0], m_planeLock.origin[1], m_planeLock.origin[2]);
+        plane->setOrigin(o.getComponents());
+
+        glm::vec3 ip = plane->intersect(v.getComponents());
+
+        m_activeShiftPlane = m_planeLock.plane;
+        m_scene->updateCursor(ip.x, ip.y, ip.z);
+
+        // Up for as long as the lock holds, rather than only while a modifier
+        // is down - the lock is otherwise invisible.
+
+        this->showShiftPlaneIndicator(onUseShiftPlane() && m_scene->getUseCursor());
+        return;
+    }
 
     if (shiftHeld)
     {
@@ -1323,6 +1460,20 @@ void IvfViewWindow::showShiftPlaneIndicator(bool show)
     // after releasing and re-pressing [Shift]) re-anchors from scratch
     // rather than reusing a stale position.
 
+    if (!m_shiftPlaneAnchored && m_planeLock.active)
+    {
+        // A locked plane is pinned where the user put it, so there is nothing
+        // to work out: the point they picked is the anchor. Only the coordinate
+        // the plane holds constant actually matters, but carrying all three
+        // keeps the branches below identical to the unlocked case.
+
+        m_shiftPlaneAnchor[0] = m_planeLock.origin[0];
+        m_shiftPlaneAnchor[1] = (m_planeLock.plane == ShiftPlane::XZ) ? m_planeLock.origin[1] : planeHeight / 2.0;
+        m_shiftPlaneAnchor[2] = m_planeLock.origin[2];
+
+        m_shiftPlaneAnchored = true;
+    }
+
     if (!m_shiftPlaneAnchored)
     {
         // Default: anchored to the ground rather than the cursor's height --
@@ -1395,7 +1546,18 @@ void IvfViewWindow::showShiftPlaneIndicator(bool show)
 
     double fixedCoord;
 
-    if (m_activeShiftPlane == ShiftPlane::XY)
+    if (m_activeShiftPlane == ShiftPlane::XZ)
+    {
+        // Horizontal, so no rotation at all - the patch is already built in
+        // local X/Z. Only ever reached through a lock: unlocked XZ placement is
+        // the ground plane, which has the workspace's own grid under it.
+
+        m_shiftPlane->setRotationQuat(0.0, 1.0, 0.0, 0.0);
+        m_shiftPlane->createMesh(m_workspaceSize, m_workspaceSize);
+        m_shiftPlane->setPosition(0.0, centerY, 0.0);
+        fixedCoord = centerY;
+    }
+    else if (m_activeShiftPlane == ShiftPlane::XY)
     {
         m_shiftPlane->setRotationQuat(1.0, 0.0, 0.0, 90.0);
         m_shiftPlane->createMesh(m_workspaceSize, planeHeight);
@@ -1439,6 +1601,36 @@ void IvfViewWindow::buildShiftPlaneGrid(double planeHeight, double fixedCoord, d
     Index *colorIdx = new Index();
     int next = 0;
     int j = 0;
+
+    // A locked horizontal plane is square rather than a vertical band, so it
+    // needs both its line families laid out in the ground plane's axes at one
+    // height. fixedCoord is that height; planeHeight and baseY describe a
+    // vertical extent this orientation does not have.
+
+    if (m_activeShiftPlane == ShiftPlane::XZ)
+    {
+        for (double h = -halfWidth; h <= halfWidth + epsilon; h += spacing, j++)
+        {
+            int color = (j % majorEvery == 0) ? 0 : 1;
+
+            m_shiftPlaneGrid->addCoord(h, fixedCoord, -halfWidth);
+            m_shiftPlaneGrid->addCoord(h, fixedCoord, halfWidth);
+            coordIdx->add(next, next + 1);
+            colorIdx->add(color, color);
+            next += 2;
+
+            m_shiftPlaneGrid->addCoord(-halfWidth, fixedCoord, h);
+            m_shiftPlaneGrid->addCoord(halfWidth, fixedCoord, h);
+            coordIdx->add(next, next + 1);
+            colorIdx->add(color, color);
+            next += 2;
+        }
+
+        m_shiftPlaneGrid->addCoordIndex(coordIdx);
+        m_shiftPlaneGrid->addColorIndex(colorIdx);
+        m_shiftPlaneGrid->setUseColor(true);
+        return;
+    }
 
     // Lines of constant horizontal position, running the full height.
 
@@ -1824,6 +2016,12 @@ void IvfViewWindow::onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape 
 void IvfViewWindow::onSelect(ivf::Composite *selectedShapes)
 {}
 
+void IvfViewWindow::onStampStart()
+{}
+
+void IvfViewWindow::onStamp(ivf::Shape *shape, bool remove)
+{}
+
 bool IvfViewWindow::onInsideVolume(ivf::Shape *shape)
 {
     return false;
@@ -1959,7 +2157,7 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
     // m_scene->updateCursor(x, y);
     this->updateCursor(x, y);
 
-    if (((getEditMode() == WidgetMode::Select) || (getEditMode() == WidgetMode::PaintSelect)) && (m_selectEnabled))
+    if (((getEditMode() == WidgetMode::Select) || isPaintMode(getEditMode())) && (m_selectEnabled))
     {
         if (m_selectedShape != nullptr)
         {
@@ -2143,7 +2341,7 @@ void IvfViewWindow::doMotion(int x, int y)
     // Paint selection. Every motion event with the left button held adds the
     // shape under the cursor to the selection - [Ctrl] removes it instead.
 
-    if ((getEditMode() == WidgetMode::PaintSelect) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    if (isPaintMode(getEditMode()) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
         this->paintSelectAt(x, y, isCtrlDown());
 
     if (getEditMode() == WidgetMode::Move && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
@@ -2287,7 +2485,7 @@ void IvfViewWindow::doMouse(int x, int y)
     // the individual motion events that follow are always additive, otherwise
     // each one would wipe what the stroke had picked up so far.
 
-    if ((m_editMode == WidgetMode::PaintSelect) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
+    if (isPaintMode(m_editMode) && (m_selectEnabled) && (mouseButton() == GLFW_MOUSE_BUTTON_LEFT))
     {
         if (this->currentSelectOp() == SelectOp::Replace)
         {
@@ -2295,6 +2493,13 @@ void IvfViewWindow::doMouse(int x, int y)
             m_selectedShapes->clear();
             m_selectedShape = nullptr;
         }
+
+        // Arms the stroke's single undo snapshot. The snapshot itself is taken
+        // by the first shape that is actually changed, not here - pressing the
+        // button over nothing must not cost an undo entry.
+
+        if (isStampMode(m_editMode))
+            this->onStampStart();
 
         this->paintSelectAt(x, y, isCtrlDown());
     }
@@ -2451,7 +2656,7 @@ void IvfViewWindow::doKeyboard(int key)
 {
     if (isShiftDown())
     {
-        m_scene->lockCursor();
+        this->applyCursorLock();
 
         // Otherwise the indicator only appears once the mouse next moves,
         // since it is only re-evaluated from updateCursor() -- pressing
@@ -2461,7 +2666,7 @@ void IvfViewWindow::doKeyboard(int key)
             this->updateCursor(mouseX(), mouseY());
     }
     else
-        m_scene->unlockCursor();
+        this->applyCursorLock();
 
     // [Esc] mid-drag aborts the WidgetMode::Select click-and-drag gesture.
     // Unlike ghost-paste's cancel, this can't be keyed off onEditModeChanged()
@@ -2477,17 +2682,19 @@ void IvfViewWindow::doKeyboard(int key)
 
 void IvfViewWindow::doKeyboardReleased(int key)
 {
-    if (isShiftDown())
-        m_scene->lockCursor();
-    else
-    {
-        m_scene->unlockCursor();
+    this->applyCursorLock();
 
+    if (!isShiftDown())
+    {
         // Releasing [Shift] without moving the mouse afterward would
         // otherwise leave the indicator on until the next motion event,
         // since it is only re-evaluated from updateCursor().
+        //
+        // Not while a plane is locked, though: there the indicator is showing
+        // the lock rather than the modifier, and has no reason to go away.
 
-        this->showShiftPlaneIndicator(false);
+        if (!m_planeLock.active)
+            this->showShiftPlaneIndicator(false);
     }
 }
 

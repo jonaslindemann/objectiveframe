@@ -152,6 +152,30 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Quick force...", "", m_quickForceWindow->visible()))
+        {
+            if (m_quickForceWindow->visible())
+                m_quickForceWindow->hide();
+            else
+            {
+                m_quickForceWindow->show();
+                m_windowList->placeWindow(m_quickForceWindow);
+            }
+        }
+
+        if (ImGui::MenuItem("Quick support...", "", m_quickSupportWindow->visible()))
+        {
+            if (m_quickSupportWindow->visible())
+                m_quickSupportWindow->hide();
+            else
+            {
+                m_quickSupportWindow->show();
+                m_windowList->placeWindow(m_quickSupportWindow);
+            }
+        }
+
+        ImGui::Separator();
+
         if (ImGui::MenuItem("Fix selected nodes", ""))
             this->assignNodeFixedBCSelected();
         if (ImGui::MenuItem("Fix position selected nodes", ""))
@@ -403,6 +427,35 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
 
         // Disabled in X-ray mode: the shadow is only drawn against the opaque
         // background, so the item would show a check that had no effect.
+
+        // Locking the work plane is a placement concern, so it sits with the
+        // rest of what the view does rather than with the model commands.
+
+        if (ImGui::BeginMenu("Work plane"))
+        {
+            // Each entry starts a point pick - the plane is known from the menu,
+            // where it passes through is not.
+
+            if (ImGui::MenuItem("Lock horizontal (XZ)...", ""))
+                this->beginLockWorkPlane(0);
+            if (ImGui::MenuItem("Lock vertical (XY)...", ""))
+                this->beginLockWorkPlane(1);
+            if (ImGui::MenuItem("Lock vertical (YZ)...", ""))
+                this->beginLockWorkPlane(2);
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Release lock", "", false, this->isWorkPlaneLocked()))
+                this->releaseWorkPlaneLock();
+
+            ImGui::Separator();
+
+            ImGui::TextDisabled("Active: %s", this->workPlaneDescription().c_str());
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
 
         if (ImGui::MenuItem("Show shadows", "Alt+4", this->getUseShadows(), !this->getUseBlending()))
             this->setUseShadows(!this->getUseShadows());

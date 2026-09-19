@@ -92,7 +92,24 @@ void ResultToolbarWindow::doDraw()
     if (m_view == nullptr)
         return;
 
-    const float buttonWidth = m_contentWidth * ImGui::GetIO().FontGlobalScale;
+    // Matched to the anchor - the coordinate display - rather than to a width
+    // of its own, so the two stacked windows line up whatever the readout grows
+    // to. Both auto-resize with the same style, so the anchor's window width
+    // less its padding is exactly the content width to fill. The anchor reports
+    // its size only after it has been drawn once, so the nominal width stands in
+    // until then.
+
+    float buttonWidth = m_contentWidth * ImGui::GetIO().FontGlobalScale;
+
+    auto anchor = m_anchorWindow.lock();
+
+    if ((anchor != nullptr) && anchor->visible() && (anchor->width() > 0))
+    {
+        float matched = float(anchor->width()) - 2.0f * ImGui::GetStyle().WindowPadding.x;
+
+        if (matched > 0.0f)
+            buttonWidth = matched;
+    }
 
     this->resultButton("Normal", IVF_BEAM_N, buttonWidth);
     this->resultButton("Torsion", IVF_BEAM_T, buttonWidth);

@@ -71,6 +71,8 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include <ofui/node_prop_window.h>
 #include <ofui/plugin_prop_window.h>
 #include <ofui/prop_window.h>
+#include <ofui/quick_force_window.h>
+#include <ofui/quick_support_window.h>
 #include <ofui/scale_window.h>
 #include <ofui/transform_window.h>
 #include <ofui/result_toolbar_window.h>
@@ -94,6 +96,7 @@ constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
 #include "Area2D.h"
 #include "ButtonGroup.h"
 #include "FemViewGeometryHandler.h"
+#include "FemViewQuickToolHandler.h"
 #include "IvfViewWindow.h"
 #include "PlaneButton.h"
 #include "script_plugin.h"
@@ -110,6 +113,13 @@ enum class CustomMode {
     Feedback,
     Structure,
     Paste,
+
+    // Picking the point a locked work plane passes through. Rides on
+    // WidgetMode::SelectPosition exactly as Structure and Paste do - the mode
+    // places the 3D cursor and reports one click, and this says what that click
+    // was for.
+    LockPlane,
+
     LoadMixer
 };
 
@@ -171,6 +181,7 @@ class FemViewWindow : public IvfViewWindow {
     friend class FemViewAiHandler;
     friend class FemViewSelectionHandler;
     friend class FemViewGeometryHandler;
+    friend class FemViewQuickToolHandler;
 
 public:
     // Side of the square workspace a new model starts with.
@@ -306,6 +317,28 @@ private:
 
     double m_tactileForceValue;
 
+    // What the quick force and support tools will apply next. One setting
+    // shared by the panel buttons and the two stamping modes, so what a stroke
+    // lays down is always what the panel says.
+
+    struct QuickToolState {
+        FemViewQuickToolHandler::ForceSpec force;
+        ofem::BeamNodeBC::DefaultKind constraint{ofem::BeamNodeBC::DefaultKind::Fixed};
+
+        // Armed when a stamping stroke starts, cleared by the first change in
+        // it - see FemViewQuickToolHandler's undo note.
+        bool stampArmed{false};
+    };
+    QuickToolState m_quick;
+
+    // The plane a pending lock will use, remembered from the menu until the
+    // click that says where to put it arrives. See beginLockWorkPlane().
+    ShiftPlane m_pendingLockPlane{ShiftPlane::XZ};
+
+    // The mode to go back to once the point has been picked, so locking a plane
+    // does not also throw away whatever tool the user had in hand.
+    WidgetMode m_lockPlaneReturnMode{WidgetMode::Select};
+
     struct EditState {
         ofem::BeamMaterialPtr currentMaterial;
         ofem::BeamLoadPtr currentElementLoad;
@@ -399,6 +432,8 @@ private:
     ofui::ScaleWindowPtr m_scaleWindow;
     ofui::ShadowWindowPtr m_shadowWindow;
     ofui::TransformWindowPtr m_transformWindow;
+    ofui::QuickForceWindowPtr m_quickForceWindow;
+    ofui::QuickSupportWindowPtr m_quickSupportWindow;
     ofui::ColorScaleWindowPtr m_colorScaleWindow;
     ofui::AboutWindowPtr m_aboutWindow;
     ofui::PropWindowPtr m_propWindow;
@@ -784,9 +819,69 @@ public:
     void assignNodeFixedBCSelected();
     void assignNodePosBCSelected();
     void assignNodeFixedBCGround();
+
+    /**
+     * Starts picking the point a locked work plane passes through.
+     *
+     * \param plane 0 xz (horizontal), 1 xy, 2 yz - the ShiftPlane ordinal, so
+     *              it binds into ChaiScript and the REST layer unchanged.
+     */
+    void beginLockWorkPlane(int plane);
+
+    /**
+     * Locks the work plane without the point pick.
+     *
+     * The scripting and REST entry point: a caller that already knows the
+     * coordinates has no use for a mode that waits for a click.
+     *
+     * \param plane the ShiftPlane ordinal - 0 xz, 1 xy, 2 yz
+     */
+    void lockWorkPlaneAt(int plane, double x, double y, double z);
+
+    /** Drops the lock, returning cursor placement to [Shift]. */
+    void releaseWorkPlaneLock();
+
+    /**
+     * Handles a plane picked from the coordinate readout.
+     *
+     * \param plane the ShiftPlane ordinal - 0 xz, 1 xy, 2 yz. Picking xz means
+     *              the ordinary ground plane, so it releases rather than
+     *              starting a lock; the other two start the point pick.
+     */
+    void selectWorkPlane(int plane);
+
+    /** A short description of the active plane, e.g. "XY @ z=2.50". */
+    std::string workPlaneDescription();
     void assignNodePosBCGround();
     void deleteNodeLoad(ofem::BeamNodeLoad *nodeLoad);
     void assignNodeLoadSelected();
+
+    // Quick force and support tools - see FemViewQuickToolHandler.
+    //
+    // The setters say what the tools will apply; the commands apply it to the
+    // current selection, and the two stamping edit modes apply the same thing
+    // to whatever a stroke touches. Scalars only, so they bind into ChaiScript
+    // directly, with the support named by ofem::BeamNodeBC::DefaultKind's
+    // ordinal - 0 fixed, 1 pinned, 2/3/4 roller in x/y/z.
+
+    void setQuickForce(double fx, double fy, double fz);
+    void setQuickConstraint(int kind);
+    void quickForceSelection(double fx, double fy, double fz);
+    void quickConstraintSelection(int kind);
+    void clearQuickForceSelection();
+    void clearQuickConstraintSelection();
+
+    /** The force the quick tools would apply, as (direction * magnitude). */
+    void quickForce(double &fx, double &fy, double &fz);
+    int quickConstraint();
+
+    /**
+     * The name the current quick force would create or join.
+     *
+     * Shown in the panel so the user knows which entry in the load list and
+     * which slider in the load mixer the next click will feed.
+     */
+    std::string quickForceName();
     void addNodeLoad(ofem::BeamNodeLoad *nodeLoad);
     void addLastNodeToSelection();
     void saveScreenShot(std::string filename);
@@ -913,6 +1008,8 @@ public:
     virtual void onCreateNode(double x, double y, double z, ivf::Node *&newNode) override;
     virtual void onCreateLine(ivf::Node *node1, ivf::Node *node2, ivf::Shape *&newLine) override;
     virtual void onSelect(ivf::Composite *selectedShapes) override;
+    virtual void onStampStart() override;
+    virtual void onStamp(ivf::Shape *shape, bool remove) override;
     virtual bool onInsideVolume(ivf::Shape *shape) override;
     virtual bool onInsideRect(ivf::Shape *shape) override;
     virtual void onCoordinate(double x, double y, double z) override;

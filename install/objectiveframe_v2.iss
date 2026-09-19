@@ -5,7 +5,7 @@
 ; Overridable from the command line so a build script can pass the version that
 ; the rest of the project is built with:  ISCC /DMyAppVersion=2.5.4 ...
 #ifndef MyAppVersion
-  #define MyAppVersion "2.6.0-b1"
+  #define MyAppVersion "2.6.0-b2"
 #endif
 #define MyAppPublisher "Division of Structural Mechanics"
 #define MyAppURL "https://jonaslindemann.github.io/objectiveframe/"

@@ -30,6 +30,22 @@ private:
 
     calfem::SpMatrix m_Ks;
     calfem::ColVec m_f;
+
+    /**
+     * The part of the load vector that comes from the elements rather than the
+     * node loads: equivalent nodal loads for distributed beam loads and
+     * self-weight, plus the transverse half of a bar's self-weight.
+     *
+     * Captured by execute() partway through building m_f, because recompute()
+     * rebuilds the load vector from scratch each frame and has no way to
+     * recover these otherwise - the element loop that produces them belongs to
+     * the assembly pass, which recompute() deliberately skips (the stiffness
+     * matrix it reuses is from execute() too). Starting from this instead of
+     * from zero is what keeps self-weight and beam loads acting while a
+     * feedback force is dragged around.
+     */
+    calfem::ColVec m_fElement;
+
     calfem::ColVec m_fsys;
     calfem::ColVec m_gdof;
     calfem::ColVec m_ldof;
@@ -74,10 +90,10 @@ private:
     int m_numEigenModes;
     std::vector<double> m_eigenValues;
     std::vector<Eigen::VectorXd> m_eigenVectors;
-    
+
     // Helpers for eigenvalue analysis
     Eigen::MatrixXd extractFreeStiffness();
-    Eigen::SparseMatrix<double> extractFreeSparseStiffness(const std::set<int>& bcDofSet, int numFreeDofs);
+    Eigen::SparseMatrix<double> extractFreeSparseStiffness(const std::set<int> &bcDofSet, int numFreeDofs);
 
 public:
     BeamSolver();
@@ -104,13 +120,13 @@ public:
     virtual double getMaxReactionMoment() override;
 
     virtual ModelState modelState() override;
-    
+
     // Eigenvalue analysis methods
     virtual bool computeEigenModes(int numModes = 5) override;
     virtual bool hasEigenModes() const override;
     virtual int getNumEigenModes() const override;
     virtual double getEigenValue(int mode) const override;
-    virtual void getEigenVector(int mode, Eigen::VectorXd& eigenVector) const override;
+    virtual void getEigenVector(int mode, Eigen::VectorXd &eigenVector) const override;
     virtual void clearEigenModes() override;
 };
 

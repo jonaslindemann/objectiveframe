@@ -535,7 +535,7 @@ There are three ways to say how heavy the structure is:
 
 The first two turn a mass into a force through **Gravity**, which defaults to 9.81 m/s². **Load factor** scales the result, so a factor of 1.5 gives a factored self-weight case without touching the material data.
 
-Self-weight acts downwards in global coordinates and is projected onto each element's own axes, so it is correct for inclined and vertical members. It is added when the model is solved and does not appear as an entry in the load lists. In density mode a material with no density set contributes nothing, which is worth checking if a model that should sag does not.
+Self-weight acts downwards in global coordinates and is projected onto each element's own axes, so it is correct for inclined and vertical members, bars as well as beams. It is added when the model is solved and does not appear as an entry in the load lists. It keeps acting in feedback mode, so a force moved by hand is felt on top of the structure's own weight rather than in place of it. In density mode a material with no density set contributes nothing, which is worth checking if a model that should sag does not.
 
 ### Creating boundary conditions / forces
 

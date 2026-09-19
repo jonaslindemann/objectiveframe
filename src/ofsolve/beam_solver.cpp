@@ -81,86 +81,204 @@ void projectGravityToLocal(Beam *beam, double w, double &qx, double &qy, double 
     qz = -n3y * w;
 }
 
-void addSelfWeightToEq(BeamModel *beamModel, Matrix &Eq)
-{
-    if (beamModel == nullptr || !beamModel->selfWeightEnabled())
-        return;
-
-    const double scale = beamModel->gravityScale();
-    if (scale == 0.0)
-        return;
-
-    BeamSet *elementSet = beamModel->getElementSet();
-    int nElements = static_cast<int>(elementSet->getSize());
-
-    if (beamModel->selfWeightMode() == SelfWeightMode::Density)
+// How heavy each element is, as a load per unit length.
+//
+// Two of the three modes give the same number for every element, and the third
+// needs the summed length of the whole structure, so the mode is resolved once
+// here rather than per element. Shared by the two places self-weight is applied:
+// the distributed load matrix Eq, and the nodal load vector that carries the
+// part of a bar's weight its element formulation cannot take.
+class SelfWeightIntensity {
+public:
+    explicit SelfWeightIntensity(BeamModel *beamModel)
     {
-        const double g = beamModel->gravity() * scale;
-        if (g == 0.0)
+        if (beamModel == nullptr || !beamModel->selfWeightEnabled())
             return;
 
-        for (int i = 1; i <= nElements; i++)
+        const double scale = beamModel->gravityScale();
+        if (scale == 0.0)
+            return;
+
+        if (beamModel->selfWeightMode() == SelfWeightMode::Density)
         {
-            Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
-            BeamMaterial *material = beam->getMaterial();
-            if (material == nullptr)
-                continue;
-
-            double density = material->density();
-            if (density <= 0.0)
-                continue;
-
-            double E, G, A, Iy, Iz, Kv;
-            material->getProperties(E, G, A, Iy, Iz, Kv);
-            double w = density * A * g;
-
-            double qx, qy, qz;
-            projectGravityToLocal(beam, w, qx, qy, qz);
-
-            int row = i - 1;
-            Eq(row, 0) += qx;
-            Eq(row, 1) += qy;
-            Eq(row, 2) += qz;
+            m_gravity = beamModel->gravity() * scale;
+            m_fromDensity = true;
+            m_active = (m_gravity != 0.0);
+            return;
         }
-    }
-    else // Every other mode ends up as one intensity applied to every beam
-    {
-        double w = 0.0;
 
         if (beamModel->selfWeightMode() == SelfWeightMode::MassPerLength)
         {
             // Mass per unit length becomes a load per unit length through g --
             // the same gravity the density mode uses.
-            w = beamModel->massPerLength() * beamModel->gravity() * scale;
+            m_uniform = beamModel->massPerLength() * beamModel->gravity() * scale;
         }
         else // SelfWeightMode::TotalLoad -- spread by length over the structure
         {
+            BeamSet *elementSet = beamModel->getElementSet();
             double totalLength = 0.0;
-            for (int i = 1; i <= nElements; i++)
-            {
-                Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
-                totalLength += beam->getLength();
-            }
+
+            for (int i = 0; i < static_cast<int>(elementSet->getSize()); i++)
+                totalLength += static_cast<Beam *>(elementSet->getElement(i))->getLength();
+
             if (totalLength <= 0.0)
                 return;
 
-            w = (beamModel->totalWeight() * scale) / totalLength;
+            m_uniform = (beamModel->totalWeight() * scale) / totalLength;
         }
 
+        m_active = (m_uniform != 0.0);
+    }
+
+    /** False when nothing in the model carries self-weight, so callers can return early. */
+    bool active() const
+    {
+        return m_active;
+    }
+
+    double forElement(Beam *beam) const
+    {
+        if (!m_active)
+            return 0.0;
+
+        if (!m_fromDensity)
+            return m_uniform;
+
+        // Density mode is the only one that asks the element anything, and an
+        // element with no material or no density set contributes nothing.
+
+        BeamMaterial *material = beam->getMaterial();
+        if (material == nullptr)
+            return 0.0;
+
+        const double density = material->density();
+        if (density <= 0.0)
+            return 0.0;
+
+        double E, G, A, Iy, Iz, Kv;
+        material->getProperties(E, G, A, Iy, Iz, Kv);
+
+        return density * A * m_gravity;
+    }
+
+private:
+    bool m_active{false};
+    bool m_fromDensity{false};
+    double m_gravity{0.0};
+    double m_uniform{0.0};
+};
+
+void addSelfWeightToEq(BeamModel *beamModel, Matrix &Eq)
+{
+    SelfWeightIntensity intensity(beamModel);
+
+    if (!intensity.active())
+        return;
+
+    BeamSet *elementSet = beamModel->getElementSet();
+
+    for (int i = 0; i < static_cast<int>(elementSet->getSize()); i++)
+    {
+        Beam *beam = static_cast<Beam *>(elementSet->getElement(i));
+
+        const double w = intensity.forElement(beam);
         if (w == 0.0)
-            return;
+            continue;
 
-        for (int i = 1; i <= nElements; i++)
+        double qx, qy, qz;
+        projectGravityToLocal(beam, w, qx, qy, qz);
+
+        Eq(i, 0) += qx;
+        Eq(i, 1) += qy;
+        Eq(i, 2) += qz;
+    }
+}
+
+/**
+ * Adds the part of a bar's self-weight that its element formulation cannot carry.
+ *
+ * A bar has three translation DOFs per node and no transverse distributed-load
+ * term, so assembly hands bar3e only Eq's axial column. That column is gravity
+ * projected onto the bar axis, which is a real axial distributed load -- but it
+ * is not the bar's weight. On its own it applies n_y^2 times too little vertical
+ * load, so a horizontal bar weighs nothing at all, and it applies a horizontal
+ * force of w*n_y*n_x per unit length that gravity never had, so a diagonal bar
+ * is pushed sideways. Where the diagonals all lean the same way -- which is what
+ * a Delaunay tetrahedralization of a regular grid gives, the diagonal of a
+ * cospherical point set being a tie broken by index order -- those sideways
+ * forces add up instead of cancelling, and the structure leans.
+ *
+ * What is missing is gravity minus its axial projection, which is transverse to
+ * the bar. A truss element cannot carry that internally, so it is lumped to the
+ * two end nodes as statically equivalent forces, half at each end. Axial part
+ * plus transverse part then sum to exactly (0, -w*L, 0) -- the element's weight,
+ * straight down -- while the axial force along the bar keeps the linear
+ * variation that the axial part genuinely causes.
+ *
+ * Beams need none of this: beam3e is given all three components of Eq.
+ */
+void addBarSelfWeightToLoadVector(BeamModel *beamModel, ColVec &f)
+{
+    SelfWeightIntensity intensity(beamModel);
+
+    if (!intensity.active())
+        return;
+
+    BeamSet *elementSet = beamModel->getElementSet();
+
+    for (int i = 0; i < static_cast<int>(elementSet->getSize()); i++)
+    {
+        Beam *beam = static_cast<Beam *>(elementSet->getElement(i));
+
+        if (beam->beamType() == btBeam)
+            continue;
+
+        const double w = intensity.forElement(beam);
+        if (w == 0.0)
+            continue;
+
+        const double L = beam->getLength();
+        if (L <= 0.0)
+            continue;
+
+        double x1, y1, z1, x2, y2, z2;
+        beam->getNode(0)->getCoord(x1, y1, z1);
+        beam->getNode(1)->getCoord(x2, y2, z2);
+
+        const double nx = (x2 - x1) / L;
+        const double ny = (y2 - y1) / L;
+        const double nz = (z2 - z1) / L;
+
+        // Gravity (0, -w, 0) less its axial projection (-w*n_y)*n, halved onto
+        // each end. Reversing the element's node order flips all three
+        // components of n, leaving every product below unchanged -- so the
+        // result does not depend on which end the mesher called node 0.
+
+        const double half = 0.5 * w * L;
+        const double fx = half * ny * nx;
+        const double fy = half * (ny * ny - 1.0);
+        const double fz = half * ny * nz;
+
+        for (int e = 0; e < 2; e++)
         {
-            Beam *beam = static_cast<Beam *>(elementSet->getElement(i - 1));
+            Node *node = beam->getNode(e);
 
-            double qx, qy, qz;
-            projectGravityToLocal(beam, w, qx, qy, qz);
+            Dof *dofX = node->getDof(0);
+            Dof *dofY = node->getDof(1);
+            Dof *dofZ = node->getDof(2);
 
-            int row = i - 1;
-            Eq(row, 0) += qx;
-            Eq(row, 1) += qy;
-            Eq(row, 2) += qz;
+            if ((dofX == nullptr) || (dofY == nullptr) || (dofZ == nullptr))
+                continue;
+
+            // A node the enumeration never reached has no number, and indexing
+            // the load vector with it would run off the front of the array.
+
+            if ((dofX->getNumber() <= 0) || (dofY->getNumber() <= 0) || (dofZ->getNumber() <= 0))
+                continue;
+
+            f(dofX->getNumber() - 1) += fx;
+            f(dofY->getNumber() - 1) += fy;
+            f(dofZ->getNumber() - 1) += fz;
         }
     }
 }
@@ -170,8 +288,8 @@ void addSelfWeightToEq(BeamModel *beamModel, Matrix &Eq)
 BeamSolver::BeamSolver()
     : m_beamModel{nullptr}, m_maxNodeValue{-1.0e300}, m_forceNode{nullptr}, m_modelState{ModelState::Ok},
       m_maxN{-1e300}, m_minN{1e300}, m_maxT{-1e300}, m_minT{1e300}, m_maxM{-1e300}, m_minM{1e300}, m_maxV{-1e300},
-      m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_force{0.0, 0.0, 0.0}, m_nDof{0},
-      m_hasEigenModes{false}, m_numEigenModes{0}
+      m_minV{1e300}, m_maxNavier{-1e300}, m_minNavier{1e300}, m_force{0.0, 0.0, 0.0}, m_nDof{0}, m_hasEigenModes{false},
+      m_numEigenModes{0}
 {}
 
 BeamSolver::~BeamSolver()
@@ -278,6 +396,8 @@ void BeamSolver::execute()
     ColVec fe_b(6);
     m_f.resize(m_nDof, 1);
     m_f.setZero();
+    m_fElement.resize(m_nDof, 1);
+    m_fElement.setZero();
     IntRowVec DofTopo(12);
     IntRowVec DofTopo_b(6);
 
@@ -388,6 +508,19 @@ void BeamSolver::execute()
     //
 
     Logger::instance()->log(LogLevel::Info, "Defining load vector.");
+
+    // The transverse half of every bar's self-weight, which bar3e above had no
+    // way to take. Goes in here, with the other nodal forces, because that is
+    // what it is once the element cannot carry it.
+
+    addBarSelfWeightToLoadVector(femModel, m_f);
+
+    // Everything in the load vector up to this point came from the elements --
+    // beam3e/bar3e's equivalent nodal loads for distributed loads and
+    // self-weight, and the line above. recompute() cannot rebuild any of it,
+    // since it skips the assembly pass, so it is kept for that to start from.
+
+    m_fElement = m_f;
 
     for (i = 0; i < nodeLoadSet->getSize(); i++)
     {
@@ -727,7 +860,7 @@ void BeamSolver::execute()
     printMaxMin();
 
     Logger::instance()->log(LogLevel::Info, "Solver completed.");
-    
+
     // Optional: Perform stability check after solve
     // Uncomment to enable automatic eigenvalue analysis
     /*
@@ -737,12 +870,12 @@ void BeamSolver::execute()
         double minEigenvalue = getEigenValue(0);
         if (minEigenvalue < -1e-6)
         {
-            Logger::instance()->log(LogLevel::Warning, 
+            Logger::instance()->log(LogLevel::Warning,
                 "Structure is UNSTABLE. Check eigenmode visualization.");
         }
         else if (minEigenvalue < 1e-3)
         {
-            Logger::instance()->log(LogLevel::Warning, 
+            Logger::instance()->log(LogLevel::Warning,
                 "Structure may be near instability (small positive eigenvalue).");
         }
     }
@@ -785,8 +918,21 @@ void BeamSolver::recompute()
 
         NodeSet *nodeSet = femModel->getNodeSet();
 
-        ColVec f = m_f;
-        f.setZero();
+        // Starts from the element contribution rather than from zero: the
+        // distributed beam loads and self-weight are still acting while the
+        // feedback force is moved, and the element loop that produced them is
+        // in execute(), which this deliberately does not repeat. Falls back to
+        // a zeroed vector if execute() never got as far as capturing it.
+
+        ColVec f;
+
+        if (m_fElement.size() == m_f.size())
+            f = m_fElement;
+        else
+        {
+            f = m_f;
+            f.setZero();
+        }
 
         if (m_forceNode != nullptr)
         {
@@ -1343,20 +1489,20 @@ Eigen::MatrixXd BeamSolver::extractFreeStiffness()
 {
     // Extract the free (unconstrained) portion of the stiffness matrix
     // This removes rows and columns corresponding to prescribed DOFs
-    
+
     std::set<int> bcDofSet;
     for (int i = 0; i < m_bcDofs.size(); i++)
     {
         bcDofSet.insert(m_bcDofs(i) - 1); // Convert to 0-based indexing
     }
-    
+
     // Count free DOFs
     int numFreeDofs = m_nDof - bcDofSet.size();
-    
+
     // Create mapping from free DOF indices to original indices
     std::vector<int> freeDofs;
     freeDofs.reserve(numFreeDofs);
-    
+
     for (int i = 0; i < m_nDof; i++)
     {
         if (bcDofSet.find(i) == bcDofSet.end())
@@ -1364,11 +1510,11 @@ Eigen::MatrixXd BeamSolver::extractFreeStiffness()
             freeDofs.push_back(i);
         }
     }
-    
+
     // Extract the free portion of the stiffness matrix
     Eigen::MatrixXd Kfree(numFreeDofs, numFreeDofs);
     Kfree.setZero();
-    
+
     for (int i = 0; i < numFreeDofs; i++)
     {
         for (int j = 0; j < numFreeDofs; j++)
@@ -1383,11 +1529,11 @@ Eigen::MatrixXd BeamSolver::extractFreeStiffness()
                 Kfree(i, j) = m_Ks.coeff(rj, ri);
         }
     }
-    
+
     return Kfree;
 }
 
-Eigen::SparseMatrix<double> BeamSolver::extractFreeSparseStiffness(const std::set<int>& bcDofSet, int numFreeDofs)
+Eigen::SparseMatrix<double> BeamSolver::extractFreeSparseStiffness(const std::set<int> &bcDofSet, int numFreeDofs)
 {
     // Build mapping: original DOF index -> free DOF index (-1 if constrained)
     std::vector<int> dofMap(m_nDof, -1);
@@ -1447,8 +1593,8 @@ bool BeamSolver::computeEigenModes(int numModes)
             return false;
         }
 
-        Logger::instance()->log(LogLevel::Info,
-            "Free stiffness matrix size: " + std::to_string(numFreeDofs) + "x" + std::to_string(numFreeDofs));
+        Logger::instance()->log(LogLevel::Info, "Free stiffness matrix size: " + std::to_string(numFreeDofs) + "x" +
+                                                    std::to_string(numFreeDofs));
 
         std::vector<int> freeDofs;
         freeDofs.reserve(numFreeDofs);
@@ -1505,13 +1651,12 @@ bool BeamSolver::computeEigenModes(int numModes)
                 else
                 {
                     Logger::instance()->log(LogLevel::Warning,
-                        "Spectra solver did not fully converge. Falling back to dense solver.");
+                                            "Spectra solver did not fully converge. Falling back to dense solver.");
                 }
-            }
-            catch (const std::exception& e)
+            } catch (const std::exception &e)
             {
-                Logger::instance()->log(LogLevel::Warning,
-                    std::string("Spectra solver failed (") + e.what() + "). Falling back to dense solver.");
+                Logger::instance()->log(LogLevel::Warning, std::string("Spectra solver failed (") + e.what() +
+                                                               "). Falling back to dense solver.");
             }
         }
 
@@ -1540,13 +1685,13 @@ bool BeamSolver::computeEigenModes(int numModes)
         if (minEigenvalue < -EIGENVALUE_TOLERANCE)
         {
             hasNegativeEigenvalues = true;
-            Logger::instance()->log(LogLevel::Warning,
-                "UNSTABLE STRUCTURE DETECTED: Negative eigenvalue = " + std::to_string(minEigenvalue));
+            Logger::instance()->log(LogLevel::Warning, "UNSTABLE STRUCTURE DETECTED: Negative eigenvalue = " +
+                                                           std::to_string(minEigenvalue));
         }
         else if (minEigenvalue < EIGENVALUE_TOLERANCE)
         {
             Logger::instance()->log(LogLevel::Warning,
-                "NEAR-SINGULAR STRUCTURE: Smallest eigenvalue = " + std::to_string(minEigenvalue));
+                                    "NEAR-SINGULAR STRUCTURE: Smallest eigenvalue = " + std::to_string(minEigenvalue));
         }
 
         for (int i = 0; i < m_numEigenModes; i++)
@@ -1569,17 +1714,15 @@ bool BeamSolver::computeEigenModes(int numModes)
 
         m_hasEigenModes = true;
         Logger::instance()->log(LogLevel::Info,
-            "Successfully computed " + std::to_string(m_numEigenModes) + " eigen modes.");
+                                "Successfully computed " + std::to_string(m_numEigenModes) + " eigen modes.");
 
         if (hasNegativeEigenvalues)
             m_modelState = ModelState::Unstable;
 
         return true;
-    }
-    catch (const std::exception& e)
+    } catch (const std::exception &e)
     {
-        Logger::instance()->log(LogLevel::Error,
-            "Exception in eigenmode computation: " + std::string(e.what()));
+        Logger::instance()->log(LogLevel::Error, "Exception in eigenmode computation: " + std::string(e.what()));
         return false;
     }
 }
@@ -1622,4 +1765,3 @@ void BeamSolver::getEigenVector(int mode, Eigen::VectorXd &eigenVector) const
         eigenVector = Eigen::VectorXd::Zero(m_nDof);
     }
 }
-

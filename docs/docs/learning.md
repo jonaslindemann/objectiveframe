@@ -58,7 +58,7 @@ Turn on **View / Self-weight...** and run the analysis again. Self-weight is the
 
 A few things make ObjectiveFrame easier to teach with:
 
-- Start the class in the **Simple** interface, and reveal the property dialogs when the course needs them. `objframe.exe --ui-mode=simple` makes a shortcut that always comes up that way.
+- Start the class in one of the **Simple** interfaces, and reveal the property dialogs when the course needs them. `objframe.exe --ui-mode=simple-bar` makes a shortcut that always comes up as a truss interface showing normal force only; `--ui-mode=simple-beam` is the same interface over beams, with the full set of sectional results.
 - The bundled examples appear as thumbnails on the start page, so an exercise can start from "open the third one" rather than from a file path.
 - The **Create** menu's structure generators build parametric trusses, frames, domes and towers, which is the quickest way to produce a variant of an exercise per student.
 - Models, and the scripts that generate them, are plain files that can be handed out and collected. See [ChaiScript scripting](chaiscript.md).

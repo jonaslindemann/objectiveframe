@@ -192,7 +192,7 @@ After building, you can run ObjectiveFrame from the installation directory:
 
 The application itself takes a few options, which are useful while developing:
 
-- `--ui-mode=simple` / `--ui-mode=advanced`: start in that interface profile for this run only, without changing the stored setting.
+- `--ui-mode=simple-bar` / `--ui-mode=simple-beam` / `--ui-mode=advanced`: start in that interface profile for this run only, without changing the stored setting.
 - `--gldebug`: create a debug OpenGL context and route driver messages into the log window.
 - `--core`, `--legacy`, `--mixed`: choose the render profile. Core is the default.
 

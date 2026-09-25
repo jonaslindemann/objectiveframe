@@ -15,9 +15,14 @@ namespace ofui {
  * current selection on demand - so a beginner can either drag over nodes or
  * select them first, and get the same result either way.
  *
- * Deliberately small: one magnitude and one of six axis directions. Anything
- * beyond that is what the Node loads panel is for, and this panel says which
- * load the next click will feed so the two can be followed between.
+ * Deliberately small: one magnitude and one of six axis directions, a row of
+ * segments each. Anything beyond that is what the Node loads panel is for.
+ *
+ * Nothing here explains itself in standing text - what each control means, and
+ * which load the next click will feed, are tooltips on the control they belong
+ * to, so the panel is four rows rather than eight. The Apply button carries the
+ * selection count, and says what to do instead when there is no selection,
+ * which is the only instruction left on screen.
  */
 class QuickForceWindow : public UiWindow {
 private:

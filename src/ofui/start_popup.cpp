@@ -179,7 +179,7 @@ void StartPopup::doPopup()
         // and can be reconsidered without leaving the page.
 
         // The explanation sits in a tooltip rather than under the buttons so
-        // that this block is the same height in both modes - the popup is
+        // that this block is the same height in every mode - the popup is
         // AlwaysAutoResize, and a description that grew when Simple was picked
         // would resize the window under the pointer that just picked it.
 
@@ -188,17 +188,26 @@ void StartPopup::doPopup()
         ImGui::TextDisabled("(?)");
 
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Simple hides beam types, the load, support and material dialogs, and the "
-                              "selection filters.\nModels keep all of their data either way, and the mode "
-                              "can be changed at any time.");
+            ImGui::SetTooltip("The simple modes hide the load, support and material dialogs and the "
+                              "selection filters, and build from one kind of element.\nBar structures "
+                              "carry axial force alone, so that mode shows normal force only; beam "
+                              "structures get the full set of sectional results.\nModels keep all of "
+                              "their data whichever mode is in force, and the mode can be changed at any "
+                              "time.");
 
         auto *profile = UiProfile::instance();
         auto currentMode = profile->mode();
 
-        if (ImGui::RadioButton("Simple", currentMode == UiMode::Simple))
+        if (ImGui::RadioButton("Simple - Bar", currentMode == UiMode::SimpleBar))
         {
             if (m_uiModeChangedFunc)
-                m_uiModeChangedFunc(UiMode::Simple);
+                m_uiModeChangedFunc(UiMode::SimpleBar);
+        }
+
+        if (ImGui::RadioButton("Simple - Beam", currentMode == UiMode::SimpleBeam))
+        {
+            if (m_uiModeChangedFunc)
+                m_uiModeChangedFunc(UiMode::SimpleBeam);
         }
 
         if (ImGui::RadioButton("Advanced", currentMode == UiMode::Advanced))
@@ -246,9 +255,9 @@ void StartPopup::doPopup()
 
         // Pads the column down so the version string lands level with the
         // bottom of the example grid. Reduced from 530 by the height of the
-        // interface block added above.
+        // interface block above, which is three radio rows rather than two.
 
-        ImGui::Dummy(ImVec2(0.0, 440.0f * scale));
+        ImGui::Dummy(ImVec2(0.0, 420.0f * scale));
 
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
         ImGui::TextUnformatted(m_versionString.c_str());

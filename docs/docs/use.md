@@ -36,12 +36,13 @@ The start page can be reopened at any time from **File / Start page**.
 
 The start page also chooses which interface ObjectiveFrame presents.
 
-- **Simple** hides the parts of the interface that a first-time user does not need: the choice of element type, the node load, beam load, support and material property dialogs, the selection filter buttons, and the analytical half of the eigenmode panel.
-- **Advanced** shows everything. This is the default, and what the rest of this guide describes.
+- **Simple - bar structures** hides the parts of the interface that a first-time user does not need: the node load, beam load, support and material property dialogs, the selection filter buttons, and the analytical half of the eigenmode panel. Everything is built from bars, and because a bar carries axial force alone, the results are normal force only. This is what a fresh installation starts in.
+- **Simple - beam structures** is the same reduced interface built from beams, with the full set of sectional results: normal force, torsion, shear, moment and Navier.
+- **Advanced** shows everything, including the choice of element type per beam. This is what the rest of this guide describes.
 
-The mode is a view of the same program, not a different file format: a model carries all of its data either way, and switching modes never changes the model. The choice is remembered between sessions, and can be changed at any time — the interface follows on the next frame, without a restart.
+The mode is a view of the same program, not a different file format: a model carries all of its data whichever mode is in force, and switching modes never changes the model. A simple mode does change what the *next* element you create is — a bar or a beam — but leaves the elements already in the model as they are. The choice is remembered between sessions, and can be changed at any time — the interface follows on the next frame, without a restart.
 
-Starting `objframe.exe --ui-mode=simple` (or `--ui-mode=advanced`) starts in that mode for one run without changing the stored setting, which is useful for a lab shortcut that should always come up simple.
+Starting `objframe.exe --ui-mode=simple-bar` (or `--ui-mode=simple-beam`, or `--ui-mode=advanced`) starts in that mode for one run without changing the stored setting, which is useful for a lab shortcut that should always come up simple.
 
 ## Main window and view
 
@@ -499,25 +500,27 @@ Both live on the lower toolbar and work the same way:
 
 1. Pick **Quick support** or **Quick force**. Its panel opens with the tool, and closes again when you leave it.
 2. Say what to apply — one of five standard supports, or one direction and one magnitude.
-3. Either **drag over nodes** to stamp it on as the cursor passes, or select nodes first and press **Apply to selection**.
+3. Either **drag over nodes** to stamp it on as the cursor passes, or select nodes first and press **Apply to N nodes**.
 
-Holding [Ctrl] while dragging removes instead of applying, and **Remove from selection** does the same for a selection.
+Holding [Ctrl] while dragging removes instead of applying, and **Remove** does the same for a selection. The Apply button counts what is selected and greys out when nothing is, so the row says what it is about to act on.
+
+The panel keeps its explanations on hover: what each support holds, and which load the next force will feed, are tooltips on the buttons they describe.
 
 The five standard supports are:
 
 | Support | Holds |
 | --- | --- |
-| **Fixed (all dofs)** | All three translations and all three rotations |
-| **Pinned (free to rotate)** | All three translations, free to rotate |
-| **Roller X** | Free to move along X, held in Y and Z, free to rotate |
-| **Roller Y** | Free to move along Y, held in X and Z, free to rotate |
-| **Roller Z** | Free to move along Z, held in X and Y, free to rotate |
+| **Fixed** | All three translations and all three rotations |
+| **Pinned** | All three translations, free to rotate |
+| **Roll X** | Free to move along X, held in Y and Z, free to rotate |
+| **Roll Y** | Free to move along Y, held in X and Z, free to rotate |
+| **Roll Z** | Free to move along Z, held in X and Y, free to rotate |
 
 Pinned is the default, because it is the support a frame usually wants and it is the weaker of the two obvious choices: a model that should have been built in shows up as a structure that is too soft, while full fixity where a pin was meant quietly stiffens the frame and reads as correct.
 
 A node carries one support at a time, so applying a support replaces whatever the node had — the buttons behave like the radio buttons they look like. The five supports are shared objects rather than one per node, so supporting a hundred nodes still leaves one entry in the boundary condition list.
 
-Quick forces coalesce in the same spirit: a force joins the existing load with the same direction and magnitude, and only makes a new one when nothing matches. A hundred clicks of the same downward force therefore leave one load with a hundred nodes, one entry in the load list and one slider in the load mixer, while a force of a different size still gets its own entry. The panel names the load the next click will feed, so the two can be followed between.
+Quick forces coalesce in the same spirit: a force joins the existing load with the same direction and magnitude, and only makes a new one when nothing matches. A hundred clicks of the same downward force therefore leave one load with a hundred nodes, one entry in the load list and one slider in the load mixer, while a force of a different size still gets its own entry. Hovering the panel's Apply button names the load the next click will feed, so the two can be followed between.
 
 A whole stroke is a single undo step, and a stroke that changes nothing leaves no undo entry.
 

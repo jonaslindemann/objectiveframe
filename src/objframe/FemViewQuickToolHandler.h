@@ -119,6 +119,14 @@ public:
     /** Arms the snapshot latch. Called when a paint stroke starts. */
     static void armStamp(FemViewWindow &view);
 
+    /**
+     * How many nodes are selected.
+     *
+     * The panels put this in their Apply label, so the button says what it
+     * will act on instead of a line of text underneath saying it.
+     */
+    static int selectedNodeCount(FemViewWindow &view);
+
     /** A one line description of what the current quick tool would do. */
     static std::string forceDescription(const ForceSpec &spec);
     static std::string constraintDescription(ConstraintKind kind);

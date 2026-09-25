@@ -13,8 +13,12 @@ namespace ofui {
  * current selection on demand - the support counterpart of
  * ofui::QuickForceWindow, and deliberately its twin in layout.
  *
- * Offers the five standard supports and nothing else. A support that is not one
- * of these is what the Node BC panel is for.
+ * Offers the five standard supports and nothing else, as one row of segments. A
+ * support that is not one of these is what the Node BC panel is for.
+ *
+ * What each support holds, and that a node carries one at a time, are tooltips
+ * rather than standing text - see ofui::QuickForceWindow, whose layout this
+ * matches row for row.
  */
 class QuickSupportWindow : public UiWindow {
 private:

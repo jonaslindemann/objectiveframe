@@ -318,9 +318,13 @@ FemViewWindow::FemViewWindow(int width, int height, const std::string title, GLF
     // The interface profile, restored before anything is created. Nothing reads
     // it until the first frame draws, so this only has to happen before then -
     // it is set here to keep it next to the other stored settings.
+    //
+    // A first run with nothing stored comes up in the bar profile: it is the
+    // smallest interface of the three, and the start window offers the other
+    // two before anything else is on screen.
 
     ofui::UiProfile::instance()->setMode(
-        ofui::UiProfile::modeFromName(ofutil::get_config_value("ui_mode", "advanced")));
+        ofui::UiProfile::modeFromName(ofutil::get_config_value("ui_mode", "simple-bar")));
 }
 
 std::shared_ptr<FemViewWindow> FemViewWindow::create(int width, int height, const std::string title,
@@ -748,7 +752,7 @@ void FemViewWindow::setEditMode(WidgetMode mode)
             "Feedback mode: Click on a node to apply interactive force. Move mouse with button down to move force.");
         setHighlightFilter(HighlightMode::Nodes);
         setSelectFilter(SelectMode::Nodes);
-        m_mainToolbarWindow->selectButton("Feedback", 1);
+        m_editToolbarWindow->selectButton("Feedback", 1);
         m_loadMixerWindow->setFemNodeLoadSet((ofem::BeamNodeLoadSet *)m_beamModel->getNodeLoadSet());
         m_loadMixerWindow->show();
         if (!m_loadMixerWindow->hasBeenPlaced())
@@ -1041,17 +1045,52 @@ void FemViewWindow::applyUiMode()
     if (!profile->has(UiFeature::SelectionFilters) && (m_userSelectFilter != SelectMode::All))
         this->setUserSelectFilter(SelectMode::All);
 
-    if (!profile->has(UiFeature::BeamTypes) && (m_beamType != BeamType::Beam))
+    const bool canChooseElement = profile->has(UiFeature::CreateBeamTool) && profile->has(UiFeature::CreateBarTool);
+
+    if (!canChooseElement)
     {
-        m_beamType = BeamType::Beam;
+        // Only one creation tool is left on the toolbar, so the profile decides
+        // what an element is - that is the whole difference between the bar and
+        // beam profiles.
 
-        // Create bar has just gone from the toolbar while it was the lit
-        // button, which leaves the toolbar showing no active tool at all.
-        // setEditMode() picks the button from m_beamType, so re-entering the
-        // mode lights Create beam instead.
+        const auto wanted =
+            (profile->defaultElementType() == ofui::UiElementType::Bar) ? BeamType::Bar : BeamType::Beam;
 
-        if (this->getEditMode() == WidgetMode::CreateLine)
-            this->setEditMode(WidgetMode::CreateLine);
+        if (m_beamType != wanted)
+        {
+            m_beamType = wanted;
+
+            // The other create button has just gone from the toolbar while it
+            // was the lit one, which leaves the toolbar showing no active tool
+            // at all. setEditMode() picks the button from m_beamType, so
+            // re-entering the mode lights the one that is left.
+
+            if (this->getEditMode() == WidgetMode::CreateLine)
+                this->setEditMode(WidgetMode::CreateLine);
+        }
+    }
+
+    // A sectional result carried over from another profile would stay on screen
+    // with no button left to turn it off, and in the bar profile it would be
+    // colouring the model by a quantity the elements do not carry.
+
+    if (!profile->has(UiFeature::BeamResultTypes) && (m_beamModel != nullptr))
+    {
+        const int resultType = this->getResultType();
+
+        if ((resultType != IVF_BEAM_N) && (resultType != IVF_BEAM_NO_RESULT))
+        {
+            // Straight onto the model rather than through setResultType(),
+            // which solves the model when the result it is handed is not ready
+            // yet. That is right when a result was asked for and wrong here:
+            // the user changed profile, and a mode switch should not start a
+            // calculation. The representation is left alone for the same
+            // reason - whatever was on screen was already showing a result.
+
+            m_beamModel->setResultType(IVF_BEAM_N);
+            this->refreshBeamModelVisuals();
+            this->redraw();
+        }
     }
 }
 
@@ -2964,6 +3003,11 @@ std::string FemViewWindow::quickForceName()
     return FemViewQuickToolHandler::forceDescription(m_quick.force);
 }
 
+int FemViewWindow::selectedNodeCount()
+{
+    return FemViewQuickToolHandler::selectedNodeCount(*this);
+}
+
 void FemViewWindow::quickForceSelection(double fx, double fy, double fz)
 {
     this->setQuickForce(fx, fy, fz);
@@ -4853,12 +4897,12 @@ void FemViewWindow::onInit()
         // answers, and is worth saying out loud instead of silently starting in
         // a mode nobody asked for.
 
-        const auto asSimple = ofui::UiProfile::modeFromName(name, ofui::UiMode::Simple);
+        const auto asSimple = ofui::UiProfile::modeFromName(name, ofui::UiMode::SimpleBeam);
         const auto asAdvanced = ofui::UiProfile::modeFromName(name, ofui::UiMode::Advanced);
 
         if (asSimple != asAdvanced)
         {
-            log("Unknown --ui-mode value '" + name + "' - expected simple or advanced. Ignoring.");
+            log("Unknown --ui-mode value '" + name + "' - expected simple-bar, simple-beam or advanced. Ignoring.");
             continue;
         }
 
@@ -5358,10 +5402,6 @@ void FemViewWindow::onInit()
                                    (m_paths.image / fs::path("tlinspect.png")).string());
     m_mainToolbarWindow->addButton("Delete", OfToolbarButtonType::Button,
                                    (m_paths.image / fs::path("tldelete.png")).string());
-    m_mainToolbarWindow->addSpacer();
-    m_mainToolbarWindow->addButton("Feedback", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlfeedback.png")).string(), 1);
-    m_mainToolbarWindow->addButton("Run", OfToolbarButtonType::Button, (m_paths.image / fs::path("run.png")).string());
 
     using std::placeholders::_1;
     m_mainToolbarWindow->assignOnButtonClicked(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1));
@@ -5378,10 +5418,11 @@ void FemViewWindow::onInit()
                                    (m_paths.image / fs::path("tlnode.png")).string(), 1);
 
     m_editToolbarWindow->addButton("Create beam", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlsolidline.png")).string(), 1, UiFeature::BeamTypes);
+                                   (m_paths.image / fs::path("tlsolidline.png")).string(), 1,
+                                   UiFeature::CreateBeamTool);
 
     m_editToolbarWindow->addButton("Create bar", OfToolbarButtonType::RadioButton,
-                                   (m_paths.image / fs::path("tlbarline.png")).string(), 1);
+                                   (m_paths.image / fs::path("tlbarline.png")).string(), 1, UiFeature::CreateBarTool);
 
     m_editToolbarWindow->addSpacer();
 
@@ -5430,6 +5471,18 @@ void FemViewWindow::onInit()
 
     m_editToolbarWindow->addButton("Materials", OfToolbarButtonType::Button,
                                    (m_paths.image / fs::path("tlmaterials.png")).string(), 0, UiFeature::Materials);
+
+    m_editToolbarWindow->addSpacer();
+
+    // Solving the model, last because it is what the rest of this toolbar leads
+    // up to. Feedback takes radio group 1, the same group the create and quick
+    // tools above use and the selection modes on the linked toolbar use, so
+    // entering it releases whatever tool was active.
+
+    m_editToolbarWindow->addButton("Feedback", OfToolbarButtonType::RadioButton,
+                                   (m_paths.image / fs::path("tlfeedback.png")).string(), 1);
+
+    m_editToolbarWindow->addButton("Run", OfToolbarButtonType::Button, (m_paths.image / fs::path("run.png")).string());
 
     m_editToolbarWindow->assignOnButtonClicked(
         ButtonClickedFunc(std::bind(&FemViewWindow::onButtonClicked, this, std::placeholders::_1)));

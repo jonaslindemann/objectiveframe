@@ -511,6 +511,11 @@ void FemViewQuickToolHandler::stampConstraint(FemViewWindow &view, ofem::Node *n
     invalidateResults(view);
 }
 
+int FemViewQuickToolHandler::selectedNodeCount(FemViewWindow &view)
+{
+    return static_cast<int>(selectedNodes(view).size());
+}
+
 std::string FemViewQuickToolHandler::forceDescription(const ForceSpec &spec)
 {
     if (!spec.valid())

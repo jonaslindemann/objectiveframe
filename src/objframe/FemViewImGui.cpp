@@ -593,14 +593,22 @@ void FemViewWindow::drawMainMenuBar(bool &executeCalc, bool &quitApplication)
     {
         if (ImGui::MenuItem("Normal", ""))
             this->setResultType(IVF_BEAM_N);
-        if (ImGui::MenuItem("Torsion", ""))
-            this->setResultType(IVF_BEAM_T);
-        if (ImGui::MenuItem("Shear", ""))
-            this->setResultType(IVF_BEAM_V);
-        if (ImGui::MenuItem("Moment", ""))
-            this->setResultType(IVF_BEAM_M);
-        if (ImGui::MenuItem("Navier", ""))
-            this->setResultType(IVF_BEAM_NAVIER);
+
+        // Gated alongside the result toolbar - a button hidden there and still
+        // reachable from the menu is not hidden, it is just harder to find.
+
+        if (ofui::UiProfile::instance()->has(ofui::UiFeature::BeamResultTypes))
+        {
+            if (ImGui::MenuItem("Torsion", ""))
+                this->setResultType(IVF_BEAM_T);
+            if (ImGui::MenuItem("Shear", ""))
+                this->setResultType(IVF_BEAM_V);
+            if (ImGui::MenuItem("Moment", ""))
+                this->setResultType(IVF_BEAM_M);
+            if (ImGui::MenuItem("Navier", ""))
+                this->setResultType(IVF_BEAM_NAVIER);
+        }
+
         if (ImGui::MenuItem("No results", ""))
             this->setResultType(IVF_BEAM_NO_RESULT);
 

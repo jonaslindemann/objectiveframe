@@ -22,22 +22,38 @@ UiProfile *UiProfile::instance()
 
 void UiProfile::applyPreset(UiMode mode)
 {
-    // Advanced is everything. Simple is everything minus the groups listed
-    // below, which is the only place the difference between the two profiles is
-    // written down.
+    // Advanced is everything. The two simple profiles are everything minus the
+    // groups listed below, which is the only place the difference between the
+    // profiles is written down.
 
     for (auto &feature : m_features)
         feature = true;
 
-    if (mode == UiMode::Simple)
+    m_elementType = UiElementType::Beam;
+
+    if ((mode == UiMode::SimpleBar) || (mode == UiMode::SimpleBeam))
     {
         m_features[static_cast<int>(UiFeature::SelectionFilters)] = false;
-        m_features[static_cast<int>(UiFeature::BeamTypes)] = false;
         m_features[static_cast<int>(UiFeature::LoadDialogs)] = false;
         m_features[static_cast<int>(UiFeature::BcDialogs)] = false;
         m_features[static_cast<int>(UiFeature::Materials)] = false;
         m_features[static_cast<int>(UiFeature::EigenmodeDetails)] = false;
     }
+
+    // The two simple profiles differ only in what an element is taken to be.
+    // A bar carries axial force alone, so the bar profile creates bars and
+    // shows normal force; the beam profile is the same interface over beams,
+    // with the full set of sectional results.
+
+    if (mode == UiMode::SimpleBar)
+    {
+        m_features[static_cast<int>(UiFeature::CreateBeamTool)] = false;
+        m_features[static_cast<int>(UiFeature::BeamResultTypes)] = false;
+        m_elementType = UiElementType::Bar;
+    }
+
+    if (mode == UiMode::SimpleBeam)
+        m_features[static_cast<int>(UiFeature::CreateBarTool)] = false;
 }
 
 void UiProfile::setMode(UiMode mode)
@@ -68,6 +84,11 @@ bool UiProfile::has(UiFeature feature) const
     return m_features[idx];
 }
 
+UiElementType UiProfile::defaultElementType() const
+{
+    return m_elementType;
+}
+
 void UiProfile::setFeature(UiFeature feature, bool flag)
 {
     if (feature == UiFeature::None)
@@ -92,7 +113,15 @@ int UiProfile::revision() const
 
 std::string UiProfile::modeName(UiMode mode)
 {
-    return (mode == UiMode::Simple) ? "simple" : "advanced";
+    switch (mode)
+    {
+    case UiMode::SimpleBar:
+        return "simple-bar";
+    case UiMode::SimpleBeam:
+        return "simple-beam";
+    default:
+        return "advanced";
+    }
 }
 
 UiMode UiProfile::modeFromName(const std::string &name, UiMode defaultMode)
@@ -102,8 +131,18 @@ UiMode UiProfile::modeFromName(const std::string &name, UiMode defaultMode)
     std::transform(lowered.begin(), lowered.end(), lowered.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
+    if ((lowered == "simple-bar") || (lowered == "simplebar") || (lowered == "bar"))
+        return UiMode::SimpleBar;
+
+    if ((lowered == "simple-beam") || (lowered == "simplebeam") || (lowered == "beam"))
+        return UiMode::SimpleBeam;
+
+    // "simple" is what the single simple profile was stored as before it was
+    // split in two. It was a beam interface, so settings written by an older
+    // build keep meaning what they meant.
+
     if (lowered == "simple")
-        return UiMode::Simple;
+        return UiMode::SimpleBeam;
 
     if (lowered == "advanced")
         return UiMode::Advanced;

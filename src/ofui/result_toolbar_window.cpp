@@ -6,6 +6,8 @@
 #include <FemWidget.h>
 #endif
 
+#include <ofui/ui_profile.h>
+
 #include <vfem/beam_model.h>
 
 using namespace ofui;
@@ -111,11 +113,20 @@ void ResultToolbarWindow::doDraw()
             buttonWidth = matched;
     }
 
+    // Normal force and "no result" apply to a bar as much as to a beam, so they
+    // are always here; the sectional results are a beam question and go with
+    // the profile.
+
     this->resultButton("Normal", IVF_BEAM_N, buttonWidth);
-    this->resultButton("Torsion", IVF_BEAM_T, buttonWidth);
-    this->resultButton("Shear", IVF_BEAM_V, buttonWidth);
-    this->resultButton("Moment", IVF_BEAM_M, buttonWidth);
-    this->resultButton("Navier", IVF_BEAM_NAVIER, buttonWidth);
+
+    if (UiProfile::instance()->has(UiFeature::BeamResultTypes))
+    {
+        this->resultButton("Torsion", IVF_BEAM_T, buttonWidth);
+        this->resultButton("Shear", IVF_BEAM_V, buttonWidth);
+        this->resultButton("Moment", IVF_BEAM_M, buttonWidth);
+        this->resultButton("Navier", IVF_BEAM_NAVIER, buttonWidth);
+    }
+
     this->resultButton("No result", IVF_BEAM_NO_RESULT, buttonWidth);
 
     ImGui::Separator();

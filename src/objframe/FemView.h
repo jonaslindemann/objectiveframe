@@ -908,10 +908,15 @@ public:
     /**
      * The name the current quick force would create or join.
      *
-     * Shown in the panel so the user knows which entry in the load list and
-     * which slider in the load mixer the next click will feed.
+     * Offered as a tooltip in the panel, so the user can find out which entry
+     * in the load list and which slider in the load mixer the next click will
+     * feed without the answer standing on screen the whole time.
      */
     std::string quickForceName();
+
+    /** How many nodes are selected, for the quick tools' Apply labels. */
+    int selectedNodeCount();
+
     void addNodeLoad(ofem::BeamNodeLoad *nodeLoad);
     void addLastNodeToSelection();
     void saveScreenShot(std::string filename);

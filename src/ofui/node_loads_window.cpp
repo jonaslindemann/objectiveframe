@@ -109,6 +109,13 @@ void NodeLoadsWindow::doDraw()
             m_view->setNeedRecalc(true);
         }
     }
+    if (ImGui::Button("Unassign all", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femNodeLoadSet != nullptr)
+            m_view->unassignNodeLoadFromAll();
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Remove this load from all nodes, not just the selected ones");
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))
     {
         m_propPopup->setVisible(true);

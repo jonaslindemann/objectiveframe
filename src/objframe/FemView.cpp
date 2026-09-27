@@ -4771,6 +4771,90 @@ void FemViewWindow::removeNodesFromNodeLoad()
     this->redraw();
 }
 
+void FemViewWindow::removeBeamsFromBeamLoad()
+{
+    ofem::BeamLoad *beamLoad = this->getCurrentBeamLoad();
+
+    if (beamLoad != nullptr)
+        beamLoad->clearElements();
+
+    m_solver.needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::unassignNodeLoadFromAll()
+{
+    ofem::BeamNodeLoad *nodeLoad = this->getCurrentNodeLoad();
+
+    if (nodeLoad == nullptr || nodeLoad->getNodeSize() == 0)
+        return;
+
+    this->snapShot();
+    this->removeNodesFromNodeLoad();
+}
+
+void FemViewWindow::unassignBeamLoadFromAll()
+{
+    ofem::BeamLoad *beamLoad = this->getCurrentBeamLoad();
+
+    if (beamLoad == nullptr || beamLoad->getElementsSize() == 0)
+        return;
+
+    this->snapShot();
+    this->removeBeamsFromBeamLoad();
+}
+
+void FemViewWindow::unassignNodeBCFromAll()
+{
+    ofem::BeamNodeBC *nodeBC = this->getCurrentNodeBC();
+
+    if (nodeBC == nullptr || nodeBC->getNodeSize() == 0)
+        return;
+
+    this->snapShot();
+    nodeBC->clearNodes();
+
+    m_solver.needRecalc = true;
+    if (m_eigenmodeWindow != nullptr && m_eigenmodeWindow->hasEigenmodes())
+        clearEigenmodes();
+    this->set_changed();
+    this->redraw();
+}
+
+void FemViewWindow::unassignMaterialFromAll()
+{
+    ofem::BeamMaterial *material = this->getCurrentMaterial();
+
+    if (material == nullptr || m_beamModel == nullptr)
+        return;
+
+    // Collect first, so the snapshot is only taken when something changes.
+
+    std::vector<ofem::Beam *> beams;
+    auto elementSet = m_beamModel->getElementSet();
+    for (size_t i = 0; i < elementSet->getSize(); i++)
+    {
+        auto beam = static_cast<ofem::Beam *>(elementSet->getElement(i));
+        if (beam->getMaterial() == material)
+            beams.push_back(beam);
+    }
+
+    if (beams.empty())
+        return;
+
+    this->snapShot();
+
+    for (auto beam : beams)
+        beam->setMaterial(nullptr);
+
+    m_solver.needRecalc = true;
+    this->set_changed();
+    this->redraw();
+}
+
 void FemViewWindow::removeNodeBCsFromSelected()
 {
     // Remove materials from selected shapes
@@ -7423,9 +7507,5 @@ void FemViewWindow::onGlfwResize(int width, int height)
         m_editToolbarWindow->setPosition(int(20 * scale), this->height() - int(140 * scale));
 
     if (m_consoleWindow != nullptr)
-        // Fallback only -- ConsoleWindow::doPreDraw() bottom-aligns it with its
-        // anchor window (the modeling toolbar) every frame, which takes over as
-        // soon as that toolbar has been drawn once.
-        m_consoleWindow->setPosition(this->width() / 2.0 - m_consoleWindow->width() / 2.0,
-                                     this->height() - int(80 * scale));
+        m_consoleWindow->realign();
 }

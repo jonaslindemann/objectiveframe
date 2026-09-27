@@ -11,6 +11,8 @@ namespace ofui {
 class EigenmodeWindow : public UiWindow {
 private:
     int m_numModesToCompute;
+    int m_numModes{0};
+    bool m_scrollToCurrent{false};
     int m_currentMode;
     bool m_hasEigenmodes;
     bool m_animate;
@@ -25,6 +27,10 @@ private:
     void onComputeButtonClicked();
     void onClearButtonClicked();
     void onModeChanged(int mode);
+
+    void drawModeSelector(bool showDescription);
+    void drawModeTable();
+    void drawAnimationControls(bool details);
     
 public:
     EigenmodeWindow(const std::string& title);

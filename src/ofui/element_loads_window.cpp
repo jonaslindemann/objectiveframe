@@ -91,7 +91,7 @@ void ElementLoadsWindow::doDraw()
         {
             if (m_currentItemIdx != -1)
             {
-                m_view->removeNodesFromNodeLoad();
+                m_view->removeBeamsFromBeamLoad();
                 m_femBeamLoadSet->removeLoad(m_currentItemIdx);
             }
         }
@@ -112,6 +112,13 @@ void ElementLoadsWindow::doDraw()
             m_view->setNeedRecalc(true);
         }
     }
+    if (ImGui::Button("Unassign all", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femBeamLoadSet != nullptr)
+            m_view->unassignBeamLoadFromAll();
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Remove this load from all elements, not just the selected ones");
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))
     {
         m_propPopup->setVisible(true);

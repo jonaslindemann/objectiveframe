@@ -22,6 +22,13 @@ void ofui::ConsoleWindow::setAnchorWindow(std::shared_ptr<UiWindow> window)
     m_anchorWindow = window;
 }
 
+void ofui::ConsoleWindow::realign()
+{
+    m_placed = false;
+    m_anchorBottom = -1;
+    m_stableFrames = 0;
+}
+
 void ofui::ConsoleWindow::clear()
 {
     m_buffer.clear();
@@ -89,17 +96,55 @@ void ofui::ConsoleWindow::doPreDraw()
     this->setSize(int(width), int(height));
     ImGui::SetNextWindowSize(ImVec2(width, height), 0); // ImGuiCond_FirstUseEver);
 
-    // Bottom-align with the anchor window every frame -- a one-shot setPosition()
-    // (e.g. from an onGlfwResize handler) can be computed before AlwaysAutoResize
-    // windows have settled on their final height, and never gets corrected once
-    // that height changes.
+    if (m_placed)
+        return;
+
+    // Placed under the modeling toolbar at startup and after each realign(), and
+    // left alone in between. The toolbar is AlwaysAutoResize, so its height takes
+    // a few frames to settle (and changes with the UI scale): keep aligning until
+    // its bottom edge has held still for a few frames. Until the toolbar has been
+    // drawn at all, park the console at the bottom centre of the work area so it
+    // does not flash at ImGui's default.
+
+    const int settleFrames = 3;
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    float x = viewport->WorkPos.x + viewport->WorkSize.x / 2.0f - width / 2.0f;
 
     auto anchor = m_anchorWindow.lock();
-    if (anchor != nullptr && anchor->visible() && anchor->y() >= 0 && anchor->height() > 0)
+    const bool noAnchor = anchor == nullptr || !anchor->visible();
+    if (noAnchor || anchor->y() < 0 || anchor->height() <= 0)
     {
-        const ImGuiViewport *viewport = ImGui::GetMainViewport();
-        float x = viewport->WorkPos.x + viewport->WorkSize.x / 2.0f - width / 2.0f;
-        float y = float(anchor->y() + anchor->height()) - height;
-        ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Always);
+        const float pad = 20.0f * scale;
+        ImGui::SetNextWindowPos(ImVec2(x, viewport->WorkPos.y + viewport->WorkSize.y - height - pad),
+                                ImGuiCond_Always);
+
+        // Nothing to align with at all: the fallback is the placement.
+
+        if (noAnchor)
+            m_placed = true;
+        return;
     }
+
+    const int anchorBottom = anchor->y() + anchor->height();
+    if (anchorBottom == m_anchorBottom)
+        m_stableFrames++;
+    else
+    {
+        m_anchorBottom = anchorBottom;
+        m_stableFrames = 0;
+    }
+
+    // Centred when that clears the toolbar, otherwise just to its right. Both
+    // share a bottom edge, so centring in a narrow window would put the console
+    // on top of the toolbar.
+
+    const float margin = 10.0f * scale;
+    const float minX = float(anchor->x() + anchor->width()) + margin;
+    if (x < minX)
+        x = minX;
+
+    ImGui::SetNextWindowPos(ImVec2(x, float(anchorBottom) - height), ImGuiCond_Always);
+
+    if (m_stableFrames >= settleFrames)
+        m_placed = true;
 }

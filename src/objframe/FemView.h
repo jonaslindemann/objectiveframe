@@ -744,7 +744,22 @@ public:
     void removeNodeBCsFromSelected();
     void removeNodeLoadsFromSelected();
     void removeNodesFromNodeLoad();
+    void removeBeamsFromBeamLoad();
     void removeBCsFromBC();
+
+    /**
+     * "Unassign all" in the property windows: take the current node load, beam
+     * load, BC or material off everything it is assigned to, whatever is
+     * selected. Each takes one snapshot, and none when there is nothing to
+     * unassign, so an empty click leaves no undo entry. Unlike removeBCsFromBC()
+     * the BC variant also clears the read-only default supports - clearing them
+     * is exactly what "remove all supports of this kind" means, and only
+     * deleting them is off limits.
+     */
+    void unassignNodeLoadFromAll();
+    void unassignBeamLoadFromAll();
+    void unassignNodeBCFromAll();
+    void unassignMaterialFromAll();
     void refreshToolbars();
     void onHighlightFilter(ivf::Shape *shape, bool &highlight);
     void deleteSelected();

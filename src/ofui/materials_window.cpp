@@ -97,6 +97,12 @@ void MaterialsWindow::doDraw()
             m_view->setNeedRecalc(true);
         }
     }
+    if (ImGui::Button("Unassign all", ImVec2(100.0f, 0.0f))) {
+        if (m_materials != nullptr)
+            m_view->unassignMaterialFromAll();
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Remove this material from all elements, not just the selected ones");
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f))) {
         if (m_materials != nullptr) {
             if (m_view->getCurrentMaterial() != nullptr) {

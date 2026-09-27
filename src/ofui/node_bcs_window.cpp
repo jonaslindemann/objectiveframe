@@ -116,6 +116,13 @@ void NodeBCsWindow::doDraw()
             m_view->setNeedRecalc(true);
         }
     }
+    if (ImGui::Button("Unassign all", ImVec2(100.0f, 0.0f)))
+    {
+        if (m_femNodeBCSet != nullptr)
+            m_view->unassignNodeBCFromAll();
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Remove this boundary condition from all nodes, not just the selected ones");
     if (ImGui::Button("Properties...", ImVec2(100.0f, 0.0f)))
     {
         m_propPopup->setVisible(true);

@@ -204,9 +204,15 @@ set(OBJFRAME_INCLUDE_DIR
     ${PROJECT_SOURCE_DIR}/src/util
     ${PROJECT_SOURCE_DIR}/src/imgui)
 
+# The version the application reports, generated from project() so the About
+# dialog and the packages cannot disagree.
+configure_file(src/objframe/objframe_version.h.in
+  ${PROJECT_BINARY_DIR}/generated/objframe_version.h @ONLY)
+
 include_directories(
   ${DEPENDS_INCLUDE_DIR} ${OBJFRAME_INCLUDE_DIR} ${IVF_INCLUDE_DIR}
-  ${OBJFRAME_INCLUDE} ${CHAISCRIPT_EXTRAS_INCLUDE})
+  ${OBJFRAME_INCLUDE} ${CHAISCRIPT_EXTRAS_INCLUDE}
+  ${PROJECT_BINARY_DIR}/generated)
 
 # Link directories for ObjectiveFrame libraries (with Debug/Release subfolders on Windows)
 if(WIN32)

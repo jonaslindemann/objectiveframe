@@ -38,8 +38,15 @@ endforeach()
 # shipped, do not change it.
 set(OF_PKG_BUNDLE_ID "se.lu.byggmek.objectiveframe"
     CACHE STRING "macOS bundle and package identifier")
-set(OF_PKG_VERSION "${PROJECT_VERSION}"
-    CACHE STRING "Version shown in Finder and checked by Installer")
+# Empty means the project() version in the top-level CMakeLists.txt. Leaving
+# the cache entry empty matters: a cached default is never refreshed, so a
+# version copied in at first configure would outlive every later bump. The
+# normal variable set below shadows the cache entry for the rest of this file.
+set(OF_PKG_VERSION "" CACHE STRING
+    "Version shown in Finder and checked by Installer (empty: the project() version)")
+if(NOT OF_PKG_VERSION)
+    set(OF_PKG_VERSION "${PROJECT_VERSION}")
+endif()
 set(OF_PKG_ARCH "${CMAKE_SYSTEM_PROCESSOR}"
     CACHE STRING "Architectures the installer accepts (arm64, x86_64 or arm64,x86_64)")
 

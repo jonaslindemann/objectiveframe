@@ -70,8 +70,15 @@ set(OF_MSIX_PUBLISHER "CN=Lunds Universitet, O=Lunds Universitet, S=Skane lan, C
     CACHE STRING "MSIX publisher - must match the signing certificate subject exactly")
 set(OF_MSIX_PUBLISHER_DISPLAY_NAME "Division of Structural Mechanics"
     CACHE STRING "MSIX publisher display name")
-set(OF_MSIX_VERSION "${PROJECT_VERSION}.0"
-    CACHE STRING "MSIX package version, four parts, last part must be 0")
+# Empty means the project() version with .0 appended. Leaving the cache entry
+# empty matters: a cached default is never refreshed, so a version copied in at
+# first configure would outlive every later bump. The normal variable set below
+# shadows the cache entry for the rest of this file.
+set(OF_MSIX_VERSION "" CACHE STRING
+    "MSIX package version, four parts, last part must be 0 (empty: the project() version)")
+if(NOT OF_MSIX_VERSION)
+    set(OF_MSIX_VERSION "${PROJECT_VERSION}.0")
+endif()
 set(OF_MSIX_DISPLAY_NAME "ObjectiveFrame"
     CACHE STRING "MSIX display name")
 set(OF_MSIX_DESCRIPTION "Finite element beam analysis with real-time 3D visualisation"

@@ -1,0 +1,116 @@
+--- a/include/chaiscript/language/chaiscript_common.hpp
++++ b/include/chaiscript/language/chaiscript_common.hpp
+@@ -127,9 +127,48 @@
+   typedef std::unique_ptr<AST_Node> AST_NodePtr;
+   typedef std::unique_ptr<const AST_Node> AST_NodePtr_Const;
+ 
+-  struct AST_Node_Trace;
++  /// Defined ahead of exception::eval_error, which holds a std::vector of it:
++  /// newer libc++ rejects std::vector members of an incomplete type.
++  struct AST_Node_Trace
++  {
++    const AST_Node_Type identifier;
++    const std::string text;
++    Parse_Location location;
+ 
++    const std::string &filename() const {
++      return *location.filename;
++    }
+ 
++    const File_Position &start() const {
++      return location.start;
++    }
++
++    const File_Position &end() const {
++      return location.end;
++    }
++
++    std::string pretty_print() const
++    {
++      std::ostringstream oss;
++
++      oss << text;
++
++      for (const auto & elem : children) {
++        oss << elem.pretty_print() << ' ';
++      }
++
++      return oss.str();
++    }
++
++    std::vector<AST_Node_Trace> get_children(const AST_Node &node);
++
++    AST_Node_Trace(const AST_Node &node);
++
++    std::vector<AST_Node_Trace> children;
++
++  };
++
++
+   /// \brief Classes which may be thrown during error cases when ChaiScript is executing.
+   namespace exception
+   {
+@@ -570,54 +609,18 @@
+ 
+   };
+ 
+-  struct AST_Node_Trace
++  inline std::vector<AST_Node_Trace> AST_Node_Trace::get_children(const AST_Node &node)
+   {
+-    const AST_Node_Type identifier;
+-    const std::string text;
+-    Parse_Location location;
++    const auto node_children = node.get_children();
++    return std::vector<AST_Node_Trace>(node_children.begin(), node_children.end());
++  }
+ 
+-    const std::string &filename() const {
+-      return *location.filename;
+-    }
++  inline AST_Node_Trace::AST_Node_Trace(const AST_Node &node)
++    : identifier(node.identifier), text(node.text),
++    location(node.location), children(get_children(node))
++  {
++  }
+ 
+-    const File_Position &start() const {
+-      return location.start;
+-    }
+-
+-    const File_Position &end() const {
+-      return location.end;
+-    }
+-
+-    std::string pretty_print() const
+-    {
+-      std::ostringstream oss;
+-
+-      oss << text;
+-
+-      for (const auto & elem : children) {
+-        oss << elem.pretty_print() << ' ';
+-      }
+-
+-      return oss.str();
+-    }
+-
+-    std::vector<AST_Node_Trace> get_children(const AST_Node &node)
+-    {
+-      const auto node_children = node.get_children();
+-      return std::vector<AST_Node_Trace>(node_children.begin(), node_children.end());
+-    }
+-
+-    AST_Node_Trace(const AST_Node &node)
+-      : identifier(node.identifier), text(node.text),
+-      location(node.location), children(get_children(node))
+-    {
+-    }
+-
+-
+-    std::vector<AST_Node_Trace> children;
+-
+-  };
+-
+   namespace parser {
+     class ChaiScript_Parser_Base
+     {

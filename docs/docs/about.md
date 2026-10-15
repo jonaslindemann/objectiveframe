@@ -21,8 +21,17 @@ ObjectiveFrame is implemented in C++ using OpenGL for hardware-accelerated rende
 - [Dear ImGui](https://github.com/ocornut/imgui) for the immediate mode user interface.
 - [GLFW](https://www.glfw.org/) for OpenGL windows and input.
 - [Eigen](https://eigen.tuxfamily.org/) for matrix and solver routines.
-- [TetGen](https://www.wias-berlin.de/software/index.jsp?id=TetGen&lang=1) for generating beam and truss structures from points.
+- [TetGen](https://github.com/TetGen/Tetgen) for generating beam and truss structures from points.
 - [Interactive Visualisation Framework - Ivf++](https://github.com/jonaslindemann/ivfplusplus) for scene graph and visualization infrastructure.
+
+## Licensing
+
+ObjectiveFrame is distributed under the MIT License.
+
+TetGen, by Hang Si at the Weierstrass Institute for Applied Analysis and Stochastics (WIAS), is licensed separately under the [GNU Affero General Public License v3](https://github.com/TetGen/Tetgen/blob/main/LICENSE). ObjectiveFrame does not link against it; it runs TetGen as a separate program that is installed alongside the application. The build uses TetGen 1.6.1, compiled unmodified from the official source:
+
+- GitHub: [github.com/TetGen/Tetgen](https://github.com/TetGen/Tetgen) - release [v1.6.1](https://github.com/TetGen/Tetgen/releases/tag/v1.6.1)
+- WIAS: [wias-berlin.de/software/tetgen](https://www.wias-berlin.de/software/index.jsp?id=TetGen&lang=1)
 
 ## Current Focus
 

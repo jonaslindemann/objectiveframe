@@ -275,6 +275,7 @@ public:
     virtual void onGlfwKey(int key, int scancode, int action, int mods) override;
     virtual void onGlfwMousePosition(double x, double y) override;
     virtual void onGlfwMouseButton(int button, int action, int mods) override;
+    virtual void onGlfwScroll(double xoffset, double yoffset) override;
     virtual void onGlfwResize(int width, int height) override;
     virtual void onGlfwDraw() override;
 

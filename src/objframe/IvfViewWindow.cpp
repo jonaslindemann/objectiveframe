@@ -229,6 +229,38 @@ void IvfViewWindow::onGlfwMouseButton(int button, int action, int mods)
     }
 }
 
+void IvfViewWindow::onGlfwScroll(double xoffset, double yoffset)
+{
+    // Scrolling navigates the view: plain scroll zooms (mouse wheel, or a
+    // vertical two-finger swipe on a trackpad), [Shift] + scroll pans. This is
+    // the trackpad counterpart of right-drag, which needs a held two-finger
+    // click. Deltas accumulate into the same fields doMotion() uses, so
+    // onGlfwDraw() applies them next frame. Panels scroll as usual.
+
+    if (isOverWindow())
+        return;
+
+    // A wheel notch is 1.0; trackpads send many small fractional offsets.
+    // Both factors are in the "pixels of drag" units doMotion() produces.
+
+    const float zoomPerStep = 25.0f;
+    const float panPerStep = 10.0f;
+
+    if (getCurrentModifier() == ButtonState::bsShift)
+    {
+        // Both axes pan: a trackpad sends both, and macOS turns a shifted
+        // vertical wheel into a horizontal one.
+
+        m_moveX += float(xoffset) * panPerStep;
+        m_moveY += float(yoffset) * panPerStep;
+    }
+    else
+        m_zoomY += float(yoffset) * zoomPerStep;
+
+    m_scene->updateSizes();
+    redraw();
+}
+
 void IvfViewWindow::onGlfwResize(int width, int height)
 {
     // m_camera->setViewPort(this->width(), this->height());
@@ -1938,7 +1970,8 @@ void IvfViewWindow::doDrawImGui()
     //----------------------------------------------------------------------------------
 
     // Rubber band rectangle, drawn on top of everything else. ImGui works in
-    // viewport coordinates, mouse positions are window relative.
+    // viewport coordinates, mouse positions are window relative and in
+    // framebuffer pixels, hence the division by pixelRatio().
     //
     // This has to happen before onDrawImGui(), which ends with ImGui::Render().
     // Render() finalizes every draw list, so appending to the foreground list
@@ -1948,11 +1981,12 @@ void IvfViewWindow::doDrawImGui()
     if (m_rubberBandActive && isAnyMouseButtonDown())
     {
         ImVec2 origin = ImGui::GetMainViewport()->Pos;
+        const float ratio = this->pixelRatio();
 
         auto rect = makeRect(m_rubberBandStart, m_rubberBandEnd);
 
-        ImVec2 p0(origin.x + float(rect.x0), origin.y + float(rect.y0));
-        ImVec2 p1(origin.x + float(rect.x1), origin.y + float(rect.y1));
+        ImVec2 p0(origin.x + float(rect.x0) / ratio, origin.y + float(rect.y0) / ratio);
+        ImVec2 p1(origin.x + float(rect.x1) / ratio, origin.y + float(rect.y1) / ratio);
 
         // Crossing selections get their own colour so the two behaviours are
         // never confused with each other.
@@ -2282,12 +2316,10 @@ void IvfViewWindow::doPassiveMotion(int x, int y)
 
 void IvfViewWindow::doMotion(int x, int y)
 {
-    m_angleX = 0.0f;
-    m_angleY = 0.0f;
-    m_moveX = 0.0f;
-    m_moveY = 0.0f;
-    m_zoomX = 0.0f;
-    m_zoomY = 0.0f;
+    // Camera deltas accumulate until onGlfwDraw() applies and clears them.
+    // Several motion events can arrive between frames (macOS delivers them at
+    // a much higher rate than Windows), so overwriting here would drop all but
+    // the last one.
 
     this->getScene()->showCursor();
     // if ( (getEditMode()>=IVF_VIEW) && (getEditMode()<IVF_CREATE) )
@@ -2299,26 +2331,28 @@ void IvfViewWindow::doMotion(int x, int y)
                 this->getScene()->hideCursor();
                 if (getCurrentModifier() == ButtonState::bsAlt)
                 {
-                    m_zoomX = ((float)x - m_beginX);
-                    m_zoomY = ((float)y - m_beginY);
+                    m_zoomX += ((float)x - m_beginX);
+                    m_zoomY += ((float)y - m_beginY);
                 }
                 else if (getCurrentModifier() == ButtonState::bsShift)
                 {
-                    m_moveX = ((float)x - m_beginX);
-                    m_moveY = ((float)y - m_beginY);
+                    m_moveX += ((float)x - m_beginX);
+                    m_moveY += ((float)y - m_beginY);
                 }
                 else
                 {
-                    m_angleX = ((float)x - m_beginX);
-                    m_angleY = ((float)y - m_beginY);
+                    m_angleX += ((float)x - m_beginX);
+                    m_angleY += ((float)y - m_beginY);
                 }
             }
             m_beginX = x;
             m_beginY = y;
 
+            // No draw() here - see the rubber band note below. The application
+            // loop renders continuously and applies the deltas next frame.
+
             m_scene->updateSizes();
             redraw();
-            draw();
         }
     }
 

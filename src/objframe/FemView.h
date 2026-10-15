@@ -5,13 +5,24 @@ constexpr auto OBJFRAME_RELEASE = "Release version - 2.6.0";
 constexpr auto OBJFRAME_COPYRIGHT_STRING = "Copyright (C) 2001-2026\nDivision of Structural Mechanics, Lund university";
 constexpr auto OBJFRAME_AUTHOR1 = "Main author: Jonas Lindemann";
 constexpr auto OBJFRAME_AUTHOR2 = "Contributors: Pierre Olsson, Daniel Akesson";
-constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen from WAIS - https://wias-berlin.de/software/index.jsp?id=TetGen&lang=1";
+constexpr auto OBJFRAME_EXTRA1 = "Uses TetGen by Hang Si, WIAS (AGPLv3) - https://github.com/TetGen/Tetgen";
 constexpr auto OBJFRAME_BUILD_TIMESTAMP = "Built: " __DATE__ " " __TIME__;
+
+// Starting UI scale. macOS lays out in points rather than pixels, so at 1.0
+// the 22 pt interface font is far larger than the 13 pt of native apps; 0.75
+// brings it to about 16 pt. On Windows, onInit() raises the scale to match a
+// high-DPI display instead.
+#ifdef __APPLE__
+constexpr float OBJFRAME_DEFAULT_UI_SCALE = 0.75f;
+#else
+constexpr float OBJFRAME_DEFAULT_UI_SCALE = 1.0f;
+#endif
 
 #ifdef WIN32
 #include <shobjidl.h>
-#include <ivf/RenderContext.h>
 #endif
+
+#include <ivf/RenderContext.h>
 
 #include <chaiscript/chaiscript.hpp>
 
@@ -201,7 +212,7 @@ private:
         double relNodeSize{0.0055};
         double relLoadSize{0.08};
         double relLineRadius{0.0023};
-        float uiScale{1.0f};
+        float uiScale{OBJFRAME_DEFAULT_UI_SCALE};
         bool useSphereCursor{false};
         bool useBlending{false};
         bool useShadows{true};

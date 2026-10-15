@@ -10,9 +10,41 @@
 #include "GLFWApplication.h"
 #include <ofutil/util_functions.h>
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 static void error_callback(int error, const char *description)
 {
     fprintf(stderr, "Error: %s\n", description);
+}
+
+// Absolute path of the running executable. Everything located relative to
+// it - data folders, the tetgen helper - must not depend on the working
+// directory: the mesher changes it to the temp folder before running tetgen,
+// so a relative "." program path would then point there instead.
+static std::filesystem::path executablePath(const char *argv0)
+{
+    namespace fs = std::filesystem;
+
+#ifdef __APPLE__
+    // argv[0] is only what the shell was given ("./objframe", or a bare
+    // "objframe" found on PATH); dyld knows the real location.
+    uint32_t size = 0;
+    _NSGetExecutablePath(nullptr, &size);
+    std::string buffer(size, '\0');
+    if (_NSGetExecutablePath(buffer.data(), &size) == 0)
+    {
+        std::error_code ec;
+        auto path = fs::weakly_canonical(fs::path(buffer.c_str()), ec);
+        if (!ec)
+            return path;
+    }
+#endif
+
+    std::error_code ec;
+    auto path = fs::absolute(fs::path(argv0), ec);
+    return ec ? fs::path(argv0) : path;
 }
 
 int main(int argc, char **argv)
@@ -55,11 +87,9 @@ int main(int argc, char **argv)
     if (glDebug)
         app->hint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-    std::string fullExePathStr = argv[0];
-
     namespace fs = std::filesystem;
 
-    fs::path fullExePath(fullExePathStr);
+    fs::path fullExePath = executablePath(argv[0]);
     fs::path progPath = fullExePath.parent_path();
     fs::path logoPath = progPath;
     logoPath.append("images").append("logo.png");

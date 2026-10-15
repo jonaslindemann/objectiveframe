@@ -39,6 +39,14 @@ private:
     ExampleClickedFunc m_exampleClickedFunc;
     UiModeChangedFunc m_uiModeChangedFunc;
 
+    // Shrinks the example grid and spacers so the popup fits the window, see
+    // fitToViewport().
+    float m_fit{1.0f};
+    int m_settleFrames{0};
+    bool m_recenter{false};
+
+    void fitToViewport();
+
 public:
     StartPopup(const std::string name, bool modal = true);
     virtual ~StartPopup();

@@ -12,6 +12,9 @@ lib/
 src/fmt/
 
 bin/objframe
+bin/objsolver
+bin/ofai_test
+bin/tetgen
 
 build/
 *.pyc

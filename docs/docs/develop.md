@@ -98,6 +98,12 @@ ObjectiveFrame requires the following packages (automatically installed via vcpk
 
 See `vcpkg.json` in the root directory for the complete list of dependencies.
 
+### TetGen
+
+The mesher runs [TetGen](https://github.com/TetGen/Tetgen) as a separate program. It is not a vcpkg package: `src/tetgen` downloads the TetGen 1.6.1 release from <https://github.com/TetGen/Tetgen> when CMake configures, so the first configure needs network access. TetGen is then built as the `tetgen` target and placed next to the `objframe` executable, where the mesher looks for it. Configure with `-DOF_BUILD_TETGEN=OFF` to skip it; meshing then needs a `tetgen` on `PATH`.
+
+TetGen is licensed under the [GNU Affero General Public License v3](https://github.com/TetGen/Tetgen/blob/main/LICENSE), not the MIT License that covers ObjectiveFrame. Keep it a separate program rather than linking its library form into ObjectiveFrame, which would make the AGPL's terms apply to the combined application.
+
 ## Building ObjectiveFrame
 
 ### Using CMake directly (Recommended)

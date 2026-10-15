@@ -33,6 +33,8 @@ python build-of.py --build --build-type Debug
 - `bin/Release/objframe.exe`
 - `bin/Debug/objframed.exe`
 
+**macOS installer:** `cmake --build build-release --target pkg` builds a signed (optionally notarized) `.pkg` into `packages/macos/` — see [install/macos/README.md](install/macos/README.md).
+
 There are no automated tests. Build and manually run the application to verify changes.
 
 **Code formatting:** `.clang-format` is present (Microsoft-based style, 4-space indent). Run `clang-format` on changed files before committing.
@@ -152,7 +154,8 @@ A preview holds raw `ofem::Node *`, so it is cancelled from `onSelect()`/`onDeSe
 | `fem` | `src/fem/` | `include/ofem/` | `ofem` | Pure FEM data model — nodes, beams, materials, loads, BCs, sections, file I/O |
 | `visfem` | `src/visfem/` | *(same dir)* | `vfem` | ivf++-based visual representations of FEM objects |
 | `ofui` | `src/ofui/` | `include/ofui/` | `ofui` | All ImGui panel/popup/window classes |
-| `ofsolve` | `src/ofsolve/` | `include/ofsolve/` | `ofsolver` | Solver interface + TetGen beam mesher (calls `tetgen.exe`) |
+| `ofsolve` | `src/ofsolve/` | `include/ofsolve/` | `ofsolver` | Solver interface + TetGen beam mesher (runs the `tetgen` program) |
+| `tetgen` | `src/tetgen/` | *(downloaded)* | — | TetGen 1.6.1 fetched from github.com/TetGen/Tetgen and built as a stand-alone program. AGPLv3 — keep it a separate process rather than linking it into the MIT-licensed app |
 | `ofmath` | `src/ofmath/` | `include/ofmath/` | — | Grid plane, ray-cylinder intersection |
 | `ofservice` | `src/ofservice/` | `include/ofservice/` | `ofservice` | CivetWeb HTTP REST server (port 8081) |
 | `ofai` | *(headers only)* | `include/ofai/` | `ofai` | Claude API integration — `StructureGenerator`, `PromptDatabase` |

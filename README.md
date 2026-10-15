@@ -66,7 +66,7 @@ Start with [Learning FEM with ObjectiveFrame](https://jonaslindemann.github.io/o
 
 ## Implementation
 
-ObjectiveFrame is implemented in C++ using OpenGL for hardware-accelerated rendering. The current user interface uses [Dear ImGui](https://github.com/ocornut/imgui) with [GLFW](https://www.glfw.org/). Structural analysis uses [Eigen](https://eigen.tuxfamily.org/), and beam/truss structures can be generated from points using [TetGen](https://www.wias-berlin.de/software/index.jsp?id=TetGen&lang=1).
+ObjectiveFrame is implemented in C++ using OpenGL for hardware-accelerated rendering. The current user interface uses [Dear ImGui](https://github.com/ocornut/imgui) with [GLFW](https://www.glfw.org/). Structural analysis uses [Eigen](https://eigen.tuxfamily.org/), and beam/truss structures can be generated from points using [TetGen](https://github.com/TetGen/Tetgen).
 
 The project also builds on the [Interactive Visualisation Framework - Ivf++](https://github.com/jonaslindemann/ivfplusplus).
 
@@ -96,3 +96,14 @@ If ObjectiveFrame supports teaching, research, or published work, please cite th
 ## License
 
 ObjectiveFrame is distributed under the MIT License. See [LICENSE](LICENSE).
+
+### TetGen
+
+ObjectiveFrame generates beam and truss structures from points with [TetGen](https://github.com/TetGen/Tetgen) by Hang Si, Weierstrass Institute for Applied Analysis and Stochastics (WIAS). TetGen is **not** covered by the MIT License: it is licensed under the [GNU Affero General Public License v3](https://github.com/TetGen/Tetgen/blob/main/LICENSE).
+
+ObjectiveFrame does not link against TetGen. It runs it as a separate program (`tetgen`, `tetgen.exe`), which the installers ship alongside the application. The build downloads TetGen 1.6.1 from the official repository and compiles it unmodified; see `src/tetgen/CMakeLists.txt`.
+
+TetGen's source code is available from:
+
+- GitHub: <https://github.com/TetGen/Tetgen> (the version used is release [v1.6.1](https://github.com/TetGen/Tetgen/releases/tag/v1.6.1))
+- WIAS: <https://www.wias-berlin.de/software/index.jsp?id=TetGen&lang=1>

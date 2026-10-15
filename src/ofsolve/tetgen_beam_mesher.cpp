@@ -387,7 +387,7 @@ void ofsolver::TetgenBeamMesher::generate()
     std::filesystem::remove(edgeFilename);
     std::filesystem::remove(faceFilename);
 
-std::string tetgenExec;
+    std::string tetgenExec;
 
 #ifdef WIN32
     if (m_progPath.empty())
@@ -395,7 +395,14 @@ std::string tetgenExec;
     else
         tetgenExec = "\"" + m_progPath + "\\tetgen.exe\" -e \"" + nodeFilename + "\"";
 #else
-    std::string tetgenExec = "tetgen -e \"" + nodeFilename + "\"";
+    // A tetgen shipped next to the executable (as in the macOS .app bundle)
+    // wins over one on PATH - an app started from Finder gets only a minimal
+    // PATH, so it cannot rely on a Homebrew install.
+    auto bundledTetgen = std::filesystem::path(m_progPath) / "tetgen";
+    if (!m_progPath.empty() && std::filesystem::exists(bundledTetgen))
+        tetgenExec = "\"" + bundledTetgen.string() + "\" -e \"" + nodeFilename + "\"";
+    else
+        tetgenExec = "tetgen -e \"" + nodeFilename + "\"";
 #endif
 
 Logger::instance()->log(LogLevel::Info, tetgenExec);

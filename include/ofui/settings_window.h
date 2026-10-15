@@ -27,6 +27,7 @@ private:
     int m_lineSides;
     std::string m_aiApiKey;
     char m_aiApiKeyBuf[512];
+    bool m_showAiApiKey{false};
 
     FemViewWindow *m_view;
 

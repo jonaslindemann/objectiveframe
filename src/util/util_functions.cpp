@@ -5,6 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
+
+#include <nlohmann/json.hpp>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -171,10 +174,9 @@ std::string doc_folder()
     else
         return std::string();
 #else
-    return std::string(getenv("HOME")) + "/Documents";
+    const char *home = std::getenv("HOME");
+    return home ? std::string(home) + "/Documents" : std::string();
 #endif
-
-    return std::string(my_documents);
 }
 
 std::string samples_folder()
@@ -186,6 +188,8 @@ std::string samples_folder()
 
     return samples.string();
 }
+
+#ifdef WIN32
 
 std::string get_config_value(std::string key, std::string default_value)
 {
@@ -246,6 +250,72 @@ bool set_config_value(std::string key, std::string value)
 
     return lResult == ERROR_SUCCESS;
 }
+
+#else
+
+// Outside Windows the settings live in a JSON file rather than the registry:
+// ~/Library/Application Support/ObjectiveFrame/config.json on macOS,
+// $XDG_CONFIG_HOME/objectiveframe/config.json (or ~/.config/...) elsewhere.
+
+static std::filesystem::path config_file_path()
+{
+    namespace fs = std::filesystem;
+
+    const char *home = std::getenv("HOME");
+    fs::path base = home ? fs::path(home) : fs::current_path();
+
+#ifdef __APPLE__
+    return base / "Library" / "Application Support" / "ObjectiveFrame" / "config.json";
+#else
+    const char *xdg = std::getenv("XDG_CONFIG_HOME");
+    fs::path configDir = (xdg && *xdg) ? fs::path(xdg) : base / ".config";
+    return configDir / "objectiveframe" / "config.json";
+#endif
+}
+
+static nlohmann::json read_config()
+{
+    std::ifstream file(config_file_path());
+    if (!file.is_open())
+        return nlohmann::json::object();
+
+    auto j = nlohmann::json::parse(file, nullptr, false);
+    if (j.is_discarded() || !j.is_object())
+        return nlohmann::json::object();
+
+    return j;
+}
+
+std::string get_config_value(std::string key, std::string default_value)
+{
+    auto j = read_config();
+    auto it = j.find(key);
+    if (it == j.end() || !it->is_string())
+        return default_value;
+
+    return it->get<std::string>();
+}
+
+bool set_config_value(std::string key, std::string value)
+{
+    namespace fs = std::filesystem;
+
+    auto j = read_config();
+    j[key] = value;
+
+    auto path = config_file_path();
+    std::error_code ec;
+    fs::create_directories(path.parent_path(), ec);
+
+    std::ofstream file(path);
+    if (!file.is_open())
+        return false;
+
+    file << j.dump(4);
+    return file.good();
+}
+
+#endif
 
 void flipImageVertically(GLubyte *data, unsigned width, unsigned height)
 {

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>ObjectiveFrame @OF_PKG_VERSION@</title>
+    <options customize="never" require-scripts="false" hostArchitectures="@OF_PKG_ARCH@"/>
+    <domains enable_localSystem="true"/>
+    <volume-check>
+        <allowed-os-versions>
+            <os-version min="@CMAKE_OSX_DEPLOYMENT_TARGET@"/>
+        </allowed-os-versions>
+    </volume-check>
+    <choices-outline>
+        <line choice="default">
+            <line choice="@OF_PKG_BUNDLE_ID@"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="@OF_PKG_BUNDLE_ID@" visible="false">
+        <pkg-ref id="@OF_PKG_BUNDLE_ID@"/>
+    </choice>
+    <pkg-ref id="@OF_PKG_BUNDLE_ID@" version="@OF_PKG_VERSION@" onConclusion="none">ObjectiveFrame-component.pkg</pkg-ref>
+</installer-gui-script>

@@ -29,6 +29,12 @@ static void mouse_pos_callback(GLFWwindow *window, double x, double y)
     win->doMousePosition(x, y);
 }
 
+static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    auto win = GLFWWindowTracker::instance()->get(window);
+    win->doScroll(xoffset, yoffset);
+}
+
 static void window_resize_callback(GLFWwindow *window, int width, int height)
 {
     auto win = GLFWWindowTracker::instance()->get(window);
@@ -61,6 +67,7 @@ void GLFWApplication::addWindow(GLFWWindowPtr window)
     glfwSetKeyCallback(window->ref(), key_callback);
     glfwSetMouseButtonCallback(window->ref(), mouse_callback);
     glfwSetCursorPosCallback(window->ref(), mouse_pos_callback);
+    glfwSetScrollCallback(window->ref(), scroll_callback);
     glfwSetWindowSizeCallback(window->ref(), window_resize_callback);
 
     GLFWWindowTracker::instance()->addWindow(window);

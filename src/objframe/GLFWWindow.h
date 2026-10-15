@@ -50,6 +50,7 @@ public:
     int width();
     int height();
     void getSize(int &width, int &height);
+    float pixelRatio();
     void setWindowIcon(const std::string filename);
     void maximize();
     void enable();
@@ -81,12 +82,14 @@ public:
     void doKey(int key, int scancode, int action, int mods);
     void doMousePosition(double x, double y);
     void doMouseButton(int button, int action, int mods);
+    void doScroll(double xoffset, double yoffset);
     void doResize(int width, int height);
     void doDraw();
 
     virtual void onGlfwKey(int key, int scancode, int action, int mods);
     virtual void onGlfwMousePosition(double x, double y);
     virtual void onGlfwMouseButton(int button, int action, int mods);
+    virtual void onGlfwScroll(double xoffset, double yoffset);
     virtual void onGlfwResize(int width, int height);
     virtual void onGlfwDraw();
 };

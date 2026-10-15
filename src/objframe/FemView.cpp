@@ -1284,13 +1284,25 @@ void FemViewWindow::setProgramPath(const std::string &progPath)
     m_paths.progStr = progPath;
     m_paths.prog.assign(m_paths.progStr);
 
-    m_paths.font = m_paths.prog / fs::path("fonts");
-    m_paths.image = m_paths.prog / fs::path("images");
-    m_paths.plugin = m_paths.prog / fs::path("plugins");
-    m_paths.map = m_paths.prog / fs::path("maps");
-    m_paths.python = m_paths.prog / fs::path("python");
-    m_paths.example = m_paths.prog / fs::path("examples");
-    m_paths.ai = m_paths.prog / fs::path("ai");
+    // Data lives next to the executable, except in a macOS .app bundle, where
+    // the executable is in Contents/MacOS and the data in Contents/Resources.
+    // m_paths.prog stays the executable's directory - helpers such as tetgen
+    // are found there.
+
+    fs::path dataPath = m_paths.prog;
+#ifdef __APPLE__
+    fs::path bundleResources = m_paths.prog / fs::path("..") / fs::path("Resources");
+    if (fs::exists(bundleResources / fs::path("fonts")))
+        dataPath = fs::weakly_canonical(bundleResources);
+#endif
+
+    m_paths.font = dataPath / fs::path("fonts");
+    m_paths.image = dataPath / fs::path("images");
+    m_paths.plugin = dataPath / fs::path("plugins");
+    m_paths.map = dataPath / fs::path("maps");
+    m_paths.python = dataPath / fs::path("python");
+    m_paths.example = dataPath / fs::path("examples");
+    m_paths.ai = dataPath / fs::path("ai");
 }
 
 const std::string FemViewWindow::getProgPath()
@@ -2288,7 +2300,7 @@ void FemViewWindow::addLastNodeToSelection()
 
 void FemViewWindow::saveScreenShot(std::string filename)
 {
-    BYTE *pixels = new BYTE[3 * this->width() * this->height()];
+    GLubyte *pixels = new GLubyte[3 * this->width() * this->height()];
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, this->width(), this->height(), GL_RGB, GL_UNSIGNED_BYTE, pixels);
     ofutil::saveImage(filename, pixels, this->width(), this->height());
@@ -5039,11 +5051,27 @@ void FemViewWindow::onInit()
     // its own refreshUiStyle() call rather than relying on that first pass to pick
     // it up. The user can still change it afterward via Settings.
 
+    //
+    // Only the part of the content scale the OS does not already apply counts.
+    // On macOS (and Wayland) window coordinates are in points and the framebuffer
+    // is already content-scale times larger, which ImGui handles through
+    // DisplayFramebufferScale -- scaling the UI again would double it. On Windows
+    // window coordinates are pixels and the framebuffer ratio is 1.
+
     float contentScaleX = 1.0f, contentScaleY = 1.0f;
+    float framebufferRatio = 1.0f;
     if (this->ref() != nullptr)
+    {
         glfwGetWindowContentScale(this->ref(), &contentScaleX, &contentScaleY);
 
-    float detectedScale = std::max(contentScaleX, contentScaleY);
+        int winWidth = 0, winHeight = 0, fbWidth = 0, fbHeight = 0;
+        glfwGetWindowSize(this->ref(), &winWidth, &winHeight);
+        glfwGetFramebufferSize(this->ref(), &fbWidth, &fbHeight);
+        if (winWidth > 0 && fbWidth > 0)
+            framebufferRatio = float(fbWidth) / float(winWidth);
+    }
+
+    float detectedScale = std::max(contentScaleX, contentScaleY) / framebufferRatio;
     if (detectedScale > 1.05f)
     {
         m_view.uiScale = std::clamp(std::round(detectedScale * 4.0f) / 4.0f, 1.0f, 3.0f);
@@ -5120,10 +5148,24 @@ void FemViewWindow::onInit()
 
     if (std::filesystem::is_directory(m_paths.font))
     {
-        m_labelFont = ivf::BitmapFont::create((m_paths.font / fs::path("white_font.fnt")).string());
-        m_axisFont = ivf::BitmapFont::create((m_paths.font / fs::path("black_font.fnt")).string());
-        m_greenFont = ivf::BitmapFont::create((m_paths.font / fs::path("green_font.fnt")).string());
-        m_redFont = ivf::BitmapFont::create((m_paths.font / fs::path("red_font.fnt")).string());
+        // ivf::BitmapFont names its texture by cutting the path at the first
+        // '.', so a dot anywhere in a directory name - "ObjectiveFrame.app" in
+        // the macOS bundle - sends it looking for the wrong file. Load from
+        // inside the font directory with dot-free relative paths instead. The
+        // texture is read in the constructor, so the working directory only
+        // has to be borrowed for these four calls.
+
+        std::error_code ec;
+        auto previousDir = fs::current_path(ec);
+        fs::current_path(m_paths.font, ec);
+
+        m_labelFont = ivf::BitmapFont::create("./white_font.fnt");
+        m_axisFont = ivf::BitmapFont::create("./black_font.fnt");
+        m_greenFont = ivf::BitmapFont::create("./green_font.fnt");
+        m_redFont = ivf::BitmapFont::create("./red_font.fnt");
+
+        if (!previousDir.empty())
+            fs::current_path(previousDir, ec);
     }
     else
     {
@@ -7504,7 +7546,8 @@ void FemViewWindow::onGlfwResize(int width, int height)
         m_mainToolbarWindow->setPosition(int(20 * scale), int(20 * scale));
 
     if (m_editToolbarWindow != nullptr)
-        m_editToolbarWindow->setPosition(int(20 * scale), this->height() - int(140 * scale));
+        m_editToolbarWindow->setPosition(int(20 * scale),
+                                         int(this->height() / this->pixelRatio()) - int(140 * scale));
 
     if (m_consoleWindow != nullptr)
         m_consoleWindow->realign();

@@ -61,9 +61,19 @@ endif()
 # This puts vcpkg_installed/ in the project root instead of each build directory
 set(VCPKG_INSTALLED_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed" CACHE PATH "vcpkg installed directory")
 
+# Oldest macOS the build runs on. Without it everything targets the build
+# machine's own macOS, and a package built on the newest release refuses to
+# start anywhere older. 13.3 is the floor for libc++'s std::format. The vcpkg
+# dependencies are held to the same value by triplets/arm64-osx.cmake, and
+# ivf++ has to be configured with it too - keep all three in step.
+# An existing build tree caches it empty, which a plain set(CACHE) would keep.
+if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3" CACHE STRING "Minimum macOS version" FORCE)
+endif()
+
 # Version is the single source for the package version used by install/msix.
 # Keep it in sync with MyAppVersion in install/objectiveframe_v2.iss.
-project(objframe2 VERSION 2.5.4)
+project(objframe2 VERSION 2.6.0)
 
 enable_language(CXX)
 enable_language(C)
@@ -148,19 +158,19 @@ endif()
 # This works with both single-config and multi-config generators
 set(IVF_LIBRARIES ivf ivfgle ivfmath ivfimage gleivf glad)
 
+# ivf++ lays out lib/<Config>/ on every platform; only the file name differs
+# (ivf.lib on Windows, libivf.a elsewhere).
+set(IVF_LIB_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
+set(IVF_LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+
 foreach(lib ${IVF_LIBRARIES})
   add_library(${lib} STATIC IMPORTED)
   set_target_properties(${lib} PROPERTIES
-    IMPORTED_LOCATION_RELEASE "${IVF_ROOT}/lib/Release/${lib}.lib"
-    IMPORTED_LOCATION_DEBUG "${IVF_ROOT}/lib/Debug/${lib}d.lib"
+    IMPORTED_LOCATION_RELEASE "${IVF_ROOT}/lib/Release/${IVF_LIB_PREFIX}${lib}${IVF_LIB_SUFFIX}"
+    IMPORTED_LOCATION_DEBUG "${IVF_ROOT}/lib/Debug/${IVF_LIB_PREFIX}${lib}d${IVF_LIB_SUFFIX}"
+    IMPORTED_LOCATION "${IVF_ROOT}/lib/Release/${IVF_LIB_PREFIX}${lib}${IVF_LIB_SUFFIX}"
     INTERFACE_INCLUDE_DIRECTORIES "${IVF_INCLUDE_DIR}"
   )
-  # For single-config generators on Unix/Linux (if needed)
-  if(NOT WIN32)
-    set_target_properties(${lib} PROPERTIES
-      IMPORTED_LOCATION "${IVF_ROOT}/lib/${lib}.a"
-    )
-  endif()
 endforeach()
 
 if (APPLE OR UNIX)
@@ -221,8 +231,9 @@ endif()
 
 add_subdirectory(src)
 
-# Packaging targets (Windows MSIX). Not part of the default build.
+# Packaging targets (Windows MSIX, macOS .pkg). Not part of the default build.
 add_subdirectory(install/msix)
+add_subdirectory(install/macos)
 
 # Create unified objframe interface library target
 # This bundles all objframe libraries and dependencies for easier linking

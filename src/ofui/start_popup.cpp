@@ -5,6 +5,8 @@
 
 #include <ofutil/util_functions.h>
 
+#include <algorithm>
+#include <cmath>
 #include <format>
 
 using namespace ofui;
@@ -69,24 +71,46 @@ void StartPopup::doPopup()
 {
     const float scale = ImGui::GetIO().FontGlobalScale;
 
-    // ImGui::Dummy(ImVec2(800.0, 800.0));
+    // The example grid, its column and the vertical spacers shrink with m_fit
+    // so the popup fits the window; buttons and text keep their size.
+    const float fit = scale * m_fit;
+
+    // The thumbnails and the buttons decide the width of the popup; the text
+    // above wraps to it rather than widening the window.
+    //
+    // The example column holds four thumbnails with their frame padding and
+    // the cell gaps between them - padding that does not shrink with them. The
+    // actions column is exactly as wide as its widest item and the buttons
+    // fill it, so the right edge sits on the window padding just as the left
+    // edge does: tables pad between columns, not along their outer edges.
+    const ImGuiStyle &style = ImGui::GetStyle();
+    const float cellGap = 2.0f * style.CellPadding.x;
+    const float exampleWidth = 4.0f * (180.0f * fit + 2.0f * style.FramePadding.x) + 3.0f * cellGap;
+
+    const float radioWidth = ImGui::GetFrameHeight() + style.ItemInnerSpacing.x;
+    const float actionsWidth = (std::max)({180.0f * scale, ImGui::CalcTextSize(m_versionString.c_str()).x,
+                                          ImGui::CalcTextSize(m_release.c_str()).x,
+                                          radioWidth + ImGui::CalcTextSize("Simple - Beam").x});
+    const float contentWidth = exampleWidth + cellGap + actionsWidth;
+
     ImGui::Text("Welcome to ObjectiveFrame!");
     ImGui::NewLine();
 
-    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + contentWidth);
     ImGui::TextUnformatted(
         "Select one of the examples below or use the buttons to the right to create new models or open "
         "existing models.");
     ImGui::PopTextWrapPos();
-    ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+    ImGui::Dummy(ImVec2(0.0, 20.0f * fit));
 
     auto imageIdx = 0;
 
-    if (ImGui::BeginTable("table2", 2))
-        ;
+    // An explicit outer width: a table left to fill the available width would
+    // hold the auto-resizing window at whatever width it had last frame.
+    if (ImGui::BeginTable("table2", 2, ImGuiTableFlags_SizingFixedFit, ImVec2(contentWidth, 0.0f)))
     {
-        ImGui::TableSetupColumn("Example", ImGuiTableColumnFlags_WidthFixed, 800.0f * scale);
-        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 200.0f * scale);
+        ImGui::TableSetupColumn("Example", ImGuiTableColumnFlags_WidthFixed, exampleWidth);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, actionsWidth);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::BeginTable("table3", 4, ImGuiTableFlags_SizingFixedFit))
@@ -102,7 +126,7 @@ void StartPopup::doPopup()
                         m_exampleImage[imageIdx]->bind();
                         auto id = "##" + ofutil::to_string(i) + ofutil::to_string(j);
                         if (ImGui::ImageButton(id.c_str(), (ImTextureID)m_exampleImage[imageIdx]->id(),
-                                               ImVec2(180.0f * scale, 180.0f * scale)))
+                                               ImVec2(180.0f * fit, 180.0f * fit)))
                         {
                             if (m_exampleClickedFunc)
                                 m_exampleClickedFunc(m_exampleFilename[imageIdx]);
@@ -120,8 +144,13 @@ void StartPopup::doPopup()
             }
             ImGui::EndTable();
         }
+
+        // Where the example grid ends, so the version text can be lined up
+        // with it at the bottom of the actions column.
+        const float gridBottom = ImGui::GetItemRectMax().y;
+
         ImGui::TableNextColumn();
-        if (ImGui::Button("New Project...", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("New Project...", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -131,7 +160,7 @@ void StartPopup::doPopup()
                 m_startButtonClickedFunc(button);
             }
         }
-        if (ImGui::Button("Open Model...", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("Open Model...", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -144,7 +173,7 @@ void StartPopup::doPopup()
 
         /*
 
-        if (ImGui::Button("Open AI prompt...", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("Open AI prompt...", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -155,7 +184,7 @@ void StartPopup::doPopup()
             }
         }
 
-        if (ImGui::Button("Open Python model...", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("Open Python model...", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -167,7 +196,7 @@ void StartPopup::doPopup()
         }
         */
 
-        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * fit));
 
         // The interface profile, offered here because this is where a new user
         // arrives before anything is on screen to be confused by. It is read
@@ -216,9 +245,9 @@ void StartPopup::doPopup()
                 m_uiModeChangedFunc(UiMode::Advanced);
         }
 
-        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * fit));
 
-        if (ImGui::Button("Documentation", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("Documentation", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -229,11 +258,11 @@ void StartPopup::doPopup()
             }
         }
 
-        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * fit));
 
         /*
 
-        if (ImGui::Button("Start automation API", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("Start automation API", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
@@ -244,26 +273,69 @@ void StartPopup::doPopup()
             }
         }
 
-        ImGui::Dummy(ImVec2(0.0, 20.0f * scale));
+        ImGui::Dummy(ImVec2(0.0, 20.0f * fit));
         */
 
-        if (ImGui::Button("Close", ImVec2(180.0f * scale, 0)))
+        if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0)))
         {
             this->close(PopupResult::OK);
             ImGui::CloseCurrentPopup();
         }
 
-        // Pads the column down so the version string lands level with the
-        // bottom of the example grid. Reduced from 530 by the height of the
-        // interface block above, which is three radio rows rather than two.
+        // Pad the column down so the two version lines end level with the
+        // bottom of the example grid. Nothing is added when the column is
+        // already the taller of the two, so the popup is never taller than its
+        // content needs.
 
-        ImGui::Dummy(ImVec2(0.0, 420.0f * scale));
+        const float versionHeight = 2.0f * ImGui::GetTextLineHeightWithSpacing() - style.ItemSpacing.y;
+        const float padding = gridBottom - ImGui::GetCursorScreenPos().y - versionHeight;
+        if (padding > 0.0f)
+            ImGui::Dummy(ImVec2(0.0f, padding - style.ItemSpacing.y));
 
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 45.0f);
         ImGui::TextUnformatted(m_versionString.c_str());
         ImGui::TextUnformatted(m_release.c_str());
-        ImGui::PopTextWrapPos();
 
         ImGui::EndTable();
+    }
+
+    this->fitToViewport();
+}
+
+void StartPopup::fitToViewport()
+{
+    // Keep the popup within 90% of the window's work area. The grid scales
+    // with m_fit but the text does not, so one correction cannot hit the
+    // target exactly - it converges over a few corrections instead. An
+    // auto-resizing window takes its size from the previous frame's content,
+    // so after each change wait for the new size to show up before measuring
+    // again; measuring straight away would correct twice and overshoot.
+
+    if (m_settleFrames > 0)
+    {
+        m_settleFrames--;
+        return;
+    }
+
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    const ImVec2 size = ImGui::GetWindowSize();
+    if (size.x <= 0.0f || size.y <= 0.0f)
+        return;
+
+    const float ratio =
+        (std::min)(0.9f * viewport->WorkSize.x / size.x, 0.9f * viewport->WorkSize.y / size.y);
+    const float target = std::clamp(m_fit * ratio, 0.3f, 1.0f);
+
+    if (std::abs(target - m_fit) > 0.01f)
+    {
+        m_fit = target;
+        m_settleFrames = 2;
+        m_recenter = true;
+    }
+    else if (m_recenter)
+    {
+        // Centred once on appearing; re-centre at the settled size.
+        ImGui::SetWindowPos(ImVec2(viewport->WorkPos.x + (viewport->WorkSize.x - size.x) * 0.5f,
+                                   viewport->WorkPos.y + (viewport->WorkSize.y - size.y) * 0.5f));
+        m_recenter = false;
     }
 }

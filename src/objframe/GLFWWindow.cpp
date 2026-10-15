@@ -174,6 +174,25 @@ void GLFWWindow::getSize(int &width, int &height)
     }
 }
 
+// Framebuffer pixels per window coordinate. width()/height() and everything
+// in the 3D view work in framebuffer pixels, while GLFW reports the cursor and
+// ImGui lays out in window coordinates. The two only differ where the OS
+// scales for high DPI itself (2 on a Retina Mac); on Windows this is 1.
+float GLFWWindow::pixelRatio()
+{
+    if (!m_window)
+        return 1.0f;
+
+    int winWidth = 0, winHeight = 0;
+    glfwGetWindowSize(m_window, &winWidth, &winHeight);
+    glfwGetFramebufferSize(m_window, &m_width, &m_height);
+
+    if (winWidth <= 0 || m_width <= 0)
+        return 1.0f;
+
+    return float(m_width) / float(winWidth);
+}
+
 void GLFWWindow::setWindowIcon(const std::string filename)
 {
     GLFWimage images[1];
@@ -184,6 +203,27 @@ void GLFWWindow::setWindowIcon(const std::string filename)
 
 void GLFWWindow::maximize()
 {
+#ifdef __APPLE__
+    // On macOS glfwMaximizeWindow() is a Cocoa "zoom", which is skipped when
+    // the window already counts as zoomed - e.g. a default size the system has
+    // clamped to the screen. Fill the monitor's work area (the screen minus
+    // menu bar and Dock) explicitly instead. Position and size refer to the
+    // content area, so the title bar has to be taken off.
+
+    GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+    if (monitor != nullptr)
+    {
+        int areaX, areaY, areaWidth, areaHeight;
+        glfwGetMonitorWorkarea(monitor, &areaX, &areaY, &areaWidth, &areaHeight);
+
+        int left, top, right, bottom;
+        glfwGetWindowFrameSize(m_window, &left, &top, &right, &bottom);
+
+        glfwSetWindowPos(m_window, areaX + left, areaY + top);
+        glfwSetWindowSize(m_window, areaWidth - left - right, areaHeight - top - bottom);
+        return;
+    }
+#endif
     glfwMaximizeWindow(m_window);
 }
 
@@ -246,6 +286,13 @@ void GLFWWindow::doKey(int key, int scancode, int action, int mods)
 
 void GLFWWindow::doMousePosition(double x, double y)
 {
+    // Store the cursor in framebuffer pixels, the same units as width() and
+    // height(), so picking and projection line up on high-DPI displays.
+
+    const float ratio = pixelRatio();
+    x *= ratio;
+    y *= ratio;
+
     m_mouseX = int(x);
     m_mouseY = int(y);
     onGlfwMousePosition(x, y);
@@ -257,6 +304,11 @@ void GLFWWindow::doMouseButton(int button, int action, int mods)
     m_mouseAction = action;
     m_mouseMods = mods;
     onGlfwMouseButton(button, action, mods);
+}
+
+void GLFWWindow::doScroll(double xoffset, double yoffset)
+{
+    onGlfwScroll(xoffset, yoffset);
 }
 
 void GLFWWindow::doResize(int width, int height)
@@ -290,6 +342,9 @@ void GLFWWindow::onGlfwMousePosition(double x, double y)
 {}
 
 void GLFWWindow::onGlfwMouseButton(int button, int action, int mods)
+{}
+
+void GLFWWindow::onGlfwScroll(double xoffset, double yoffset)
 {}
 
 void GLFWWindow::onGlfwResize(int width, int height)

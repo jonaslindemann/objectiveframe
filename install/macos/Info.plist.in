@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleName</key>
+    <string>ObjectiveFrame</string>
+    <key>CFBundleDisplayName</key>
+    <string>ObjectiveFrame</string>
+    <key>CFBundleIdentifier</key>
+    <string>@OF_PKG_BUNDLE_ID@</string>
+    <key>CFBundleExecutable</key>
+    <string>objframe</string>
+    <key>CFBundleIconFile</key>
+    <string>ObjectiveFrame</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@OF_PKG_VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@OF_PKG_VERSION@</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>@CMAKE_OSX_DEPLOYMENT_TARGET@</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.education</string>
+    <!-- Without this a bundled app is drawn at half resolution and upscaled
+         on Retina displays. -->
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright (C) 2001-2026 Division of Structural Mechanics, Lund University</string>
+</dict>
+</plist>

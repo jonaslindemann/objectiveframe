@@ -107,78 +107,169 @@ std::shared_ptr<SettingsWindow> SettingsWindow::create(const std::string name)
 
 void SettingsWindow::doDraw()
 {
-    // ImGui::Dummy(ImVec2(150.0, 0.0));
-
     this->update();
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
 
-    ImGui::SliderFloat("Size (units)", &m_size, 1.0f, 100.0f, "%.0f");
-    ImGui::SliderFloat("Node size (%)", &m_nodeSize, 0.1f, 2.0f);
-    ImGui::SliderFloat("Line radius (%)", &m_lineRadius, 0.1f, 2.0f);
-    ImGui::SliderFloat("Load size (%)", &m_loadSize, 1.0f, 10.0f);
-    ImGui::SliderInt("Line sides", &m_lineSides, 4, 12);
+    // Tabs group the settings by what they affect. Only the open tab's widgets
+    // are drawn, but the values are applied below every frame regardless, so
+    // nothing depends on which tab is showing.
+    //
+    // The panel auto-resizes, so its width is pinned to the font size: wrapped
+    // text would otherwise wrap to last frame's width and never let it shrink,
+    // and tabs of different widths would make it jump sideways.
 
-    ImGui::Separator();
+    const float panelWidth = ImGui::GetFontSize() * 24.0f;
+    const float itemWidth = ImGui::GetFontSize() * 12.0f;
 
-    ImGui::Checkbox("Sphere nodes", &m_sphereNodes);
-    ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
-    ImGui::Checkbox("Show shift-plane indicator", &m_showShiftPlane);
+    ImGui::Dummy(ImVec2(panelWidth, 0.0f));
 
-    // The shadow is only drawn against the opaque background, so in X-ray mode
-    // the setting is kept but shown as unavailable rather than silently ignored.
-
-    ImGui::BeginDisabled(m_view->getUseBlending());
-    ImGui::Checkbox("Show shadows", &m_useShadows);
-    ImGui::EndDisabled();
-
-    if (m_view->getUseBlending())
+    if (ImGui::BeginTabBar("##settings_tabs"))
     {
-        ImGui::SameLine();
-        ImGui::TextDisabled("(off in X-ray mode)");
-    }
-
-    // The construction plane is hidden outright in X-ray mode, so its opacity
-    // has nothing to act on there.
-
-    ImGui::BeginDisabled(m_view->getUseBlending());
-    ImGui::SliderFloat("Grid surface opacity", &m_gridSurfaceOpacity, 0.0f, 1.0f, "%.2f");
-    ImGui::EndDisabled();
-
-    if (!m_view->getUseBlending() && m_gridSurfaceOpacity < 1.0f)
-        ImGui::TextDisabled("Reaction arrows below the plane show through; the shadow fades with it.");
-
-    ImGui::Separator();
-
-    ImGui::SliderFloat("UI Scale", &m_uiScale, 0.5f, 3.0f);
-    ImGui::Checkbox("Use ImGui file dialogs", &m_useImGuiFileDialogs);
-    ImGui::Checkbox("Save screenshot on save", &m_saveScreenShot);
-
-    ImGui::Separator();
-
-    ImGui::TextWrapped(
-        "Objective frame can expose its functionality using a rest based API, which can be started with the "
-        "button below. The service currently provides no security and only listens to access from localhost.");
-
-    ImGui::Dummy(ImVec2(0.0, 10.0));
-
-    if (m_view->isServiceRunning())
-    {
-        if (ImGui::Button("Stop service"))
+        if (ImGui::BeginTabItem("Model"))
         {
-            m_view->stopService();
+            ImGui::PushItemWidth(itemWidth);
+
+            ImGui::SeparatorText("Size relative to workspace");
+            ImGui::SliderFloat("Node size (%)", &m_nodeSize, 0.1f, 2.0f);
+            ImGui::SliderFloat("Line radius (%)", &m_lineRadius, 0.1f, 2.0f);
+            ImGui::SliderFloat("Load size (%)", &m_loadSize, 1.0f, 10.0f);
+
+            ImGui::SeparatorText("Appearance");
+            ImGui::SliderInt("Line sides", &m_lineSides, 4, 12);
+            ImGui::Checkbox("Sphere nodes", &m_sphereNodes);
+            ImGui::Checkbox("Show node numbers", &m_showNodeNumbers);
+
+            ImGui::PopItemWidth();
+            ImGui::EndTabItem();
         }
-        ImGui::SameLine();
-        ImGui::Text("Service is running at localhost:8081");
-    }
-    else
-    {
-        if (ImGui::Button("Start service"))
+
+        if (ImGui::BeginTabItem("Scene"))
         {
-            m_view->startService();
+            ImGui::PushItemWidth(itemWidth);
+
+            ImGui::SeparatorText("Workspace");
+            ImGui::SliderFloat("Size (units)", &m_size, 1.0f, 100.0f, "%.0f");
+            ImGui::Checkbox("Show shift-plane indicator", &m_showShiftPlane);
+
+            ImGui::SeparatorText("Rendering");
+
+            // The shadow is only drawn against the opaque background, so in
+            // X-ray mode the setting is kept but shown as unavailable rather
+            // than silently ignored.
+
+            ImGui::BeginDisabled(m_view->getUseBlending());
+            ImGui::Checkbox("Show shadows", &m_useShadows);
+            ImGui::EndDisabled();
+
+            if (m_view->getUseBlending())
+            {
+                ImGui::SameLine();
+                ImGui::TextDisabled("(off in X-ray mode)");
+            }
+
+            // The construction plane is hidden outright in X-ray mode, so its
+            // opacity has nothing to act on there.
+
+            ImGui::BeginDisabled(m_view->getUseBlending());
+            ImGui::SliderFloat("Grid surface opacity", &m_gridSurfaceOpacity, 0.0f, 1.0f, "%.2f");
+            ImGui::EndDisabled();
+
+            if (!m_view->getUseBlending() && m_gridSurfaceOpacity < 1.0f)
+            {
+                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panelWidth);
+                ImGui::TextDisabled("Reaction arrows below the plane show through; the shadow fades with it.");
+                ImGui::PopTextWrapPos();
+            }
+
+            ImGui::PopItemWidth();
+            ImGui::EndTabItem();
         }
-        ImGui::SameLine();
-        ImGui::Text("Service is not running.");
+
+        if (ImGui::BeginTabItem("Interface"))
+        {
+            ImGui::PushItemWidth(itemWidth);
+
+            ImGui::SeparatorText("Display");
+            ImGui::SliderFloat("UI scale", &m_uiScale, 0.5f, 3.0f);
+
+            ImGui::SeparatorText("Files");
+            ImGui::Checkbox("Use ImGui file dialogs", &m_useImGuiFileDialogs);
+            ImGui::Checkbox("Save screenshot on save", &m_saveScreenShot);
+
+            ImGui::PopItemWidth();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Services"))
+        {
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panelWidth);
+
+            ImGui::SeparatorText("Automation API");
+            ImGui::TextUnformatted(
+                "ObjectiveFrame can expose its functionality through a REST API. The service currently provides no "
+                "security and only accepts connections from localhost.");
+
+            ImGui::Dummy(ImVec2(0.0f, 4.0f));
+
+            if (m_view->isServiceRunning())
+            {
+                if (ImGui::Button("Stop service"))
+                    m_view->stopService();
+                ImGui::SameLine();
+                ImGui::TextUnformatted("Running at localhost:8081");
+            }
+            else
+            {
+                if (ImGui::Button("Start service"))
+                    m_view->startService();
+                ImGui::SameLine();
+                ImGui::TextDisabled("Not running");
+            }
+
+            ImGui::SeparatorText("AI structure generator");
+            ImGui::TextUnformatted("API key");
+
+            // Masked unless asked for - the key is a credential and the panel
+            // may be on a shared or projected screen. Password mode also
+            // blocks copying it back out of the field.
+
+            const ImGuiInputTextFlags keyFlags = m_showAiApiKey ? ImGuiInputTextFlags_None
+                                                                : ImGuiInputTextFlags_Password;
+            const float showWidth = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x +
+                                    ImGui::CalcTextSize("Show").x + ImGui::GetStyle().ItemSpacing.x;
+
+            ImGui::SetNextItemWidth(panelWidth - showWidth);
+            if (ImGui::InputText("##ai_api_key", m_aiApiKeyBuf, sizeof(m_aiApiKeyBuf), keyFlags) &&
+                m_aiApiKey != m_aiApiKeyBuf)
+            {
+                m_aiApiKey = m_aiApiKeyBuf;
+                m_view->setAiApiKey(m_aiApiKey);
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox("Show", &m_showAiApiKey);
+
+            if (ImGui::Button("Paste from clipboard"))
+            {
+                const char *clip = ImGui::GetClipboardText();
+                if (clip != nullptr)
+                {
+                    strncpy(m_aiApiKeyBuf, clip, sizeof(m_aiApiKeyBuf) - 1);
+                    m_aiApiKeyBuf[sizeof(m_aiApiKeyBuf) - 1] = '\0';
+
+                    if (m_aiApiKey != m_aiApiKeyBuf)
+                    {
+                        m_aiApiKey = m_aiApiKeyBuf;
+                        m_view->setAiApiKey(m_aiApiKey);
+                    }
+                }
+            }
+
+            ImGui::PopTextWrapPos();
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
     }
 
     m_size = std::nearbyint(m_size * 0.5f) * 2.0f;
@@ -200,30 +291,5 @@ void SettingsWindow::doDraw()
         m_view->setUiScale(m_uiScale);
 
         static_cast<vfem::BeamModel *>(m_view->getModel())->setShowNodeNumbers(m_showNodeNumbers);
-    }
-
-    ImGui::Dummy(ImVec2(0.0, 10.0));
-
-    ImGui::Text("AI API key:");
-    if (ImGui::InputText("##ai_api_key", m_aiApiKeyBuf, sizeof(m_aiApiKeyBuf)) && m_aiApiKey != m_aiApiKeyBuf)
-    {
-        m_aiApiKey = m_aiApiKeyBuf;
-        m_view->setAiApiKey(m_aiApiKey);
-    }
-
-    if (ImGui::Button("Paste from clipboard"))
-    {
-        const char *clip = ImGui::GetClipboardText();
-        if (clip != nullptr)
-        {
-            strncpy(m_aiApiKeyBuf, clip, sizeof(m_aiApiKeyBuf) - 1);
-            m_aiApiKeyBuf[sizeof(m_aiApiKeyBuf) - 1] = '\0';
-
-            if (m_aiApiKey != m_aiApiKeyBuf)
-            {
-                m_aiApiKey = m_aiApiKeyBuf;
-                m_view->setAiApiKey(m_aiApiKey);
-            }
-        }
     }
 }
